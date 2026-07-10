@@ -102,9 +102,7 @@ class AuthActionController extends Notifier<AsyncValue<void>> {
 
   AuthRepository get _repo => ref.read(authRepositoryProvider);
 
-  Future<AppFailure?> _run(
-    Future<AppFailure?> Function() action,
-  ) async {
+  Future<AppFailure?> _run(Future<AppFailure?> Function() action) async {
     state = const AsyncValue.loading();
     final failure = await action();
     if (failure != null) {
@@ -116,43 +114,38 @@ class AuthActionController extends Notifier<AsyncValue<void>> {
   }
 
   Future<AppFailure?> signIn(String email, String password) => _run(
-        () async =>
-            (await _repo.signIn(email: email, password: password))
-                .failureOrNull,
-      );
+    () async =>
+        (await _repo.signIn(email: email, password: password)).failureOrNull,
+  );
 
   Future<AppFailure?> register(
     String email,
     String password,
     String displayName,
-  ) =>
-      _run(
-        () async => (await _repo.register(
-          email: email,
-          password: password,
-          displayName: displayName,
-        ))
-            .failureOrNull,
-      );
+  ) => _run(
+    () async => (await _repo.register(
+      email: email,
+      password: password,
+      displayName: displayName,
+    )).failureOrNull,
+  );
 
   Future<AppFailure?> resendConfirmation(String email) => _run(
-        () async =>
-            (await _repo.resendConfirmation(email: email)).failureOrNull,
-      );
+    () async => (await _repo.resendConfirmation(email: email)).failureOrNull,
+  );
 
   Future<AppFailure?> sendPasswordReset(String email) => _run(
-        () async =>
-            (await _repo.sendPasswordReset(email: email)).failureOrNull,
-      );
+    () async => (await _repo.sendPasswordReset(email: email)).failureOrNull,
+  );
 
   Future<AppFailure?> updatePassword(String newPassword) => _run(
-        () async => (await _repo.updatePassword(newPassword: newPassword))
-            .failureOrNull,
-      );
+    () async =>
+        (await _repo.updatePassword(newPassword: newPassword)).failureOrNull,
+  );
 
   Future<AppFailure?> updateEmail(String newEmail) => _run(
-        () async => (await _repo.updateEmail(newEmail: newEmail)).failureOrNull,
-      );
+    () async => (await _repo.updateEmail(newEmail: newEmail)).failureOrNull,
+  );
 
   Future<AppFailure?> signOut() =>
       _run(() async => (await _repo.signOut()).failureOrNull);
@@ -160,5 +153,5 @@ class AuthActionController extends Notifier<AsyncValue<void>> {
 
 final authActionProvider =
     NotifierProvider<AuthActionController, AsyncValue<void>>(
-  AuthActionController.new,
-);
+      AuthActionController.new,
+    );

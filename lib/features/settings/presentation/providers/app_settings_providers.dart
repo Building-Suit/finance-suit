@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,8 +21,9 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
   }
 
   Future<void> _load() async {
-    final stored =
-        await ref.read(sharedPreferencesProvider).getString(_themeModeKey);
+    final stored = await ref
+        .read(sharedPreferencesProvider)
+        .getString(_themeModeKey);
     if (stored != null) {
       state = ThemeMode.values.firstWhere(
         (mode) => mode.name == stored,
@@ -54,8 +53,9 @@ class AppLocaleNotifier extends Notifier<Locale?> {
   }
 
   Future<void> _load() async {
-    final stored =
-        await ref.read(sharedPreferencesProvider).getString(_localeKey);
+    final stored = await ref
+        .read(sharedPreferencesProvider)
+        .getString(_localeKey);
     if (stored != null && stored.isNotEmpty) {
       state = Locale(stored);
     }

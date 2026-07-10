@@ -13,6 +13,9 @@ Future<void> bootstrap() async {
 
   await Supabase.initialize(
     url: Env.supabaseUrl,
+    // The local Supabase stack still issues legacy anon JWT keys; the
+    // deprecated parameter remains correct for that key format.
+    // ignore: deprecated_member_use
     anonKey: Env.supabaseAnonKey,
     debug: kDebugMode,
   );

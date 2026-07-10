@@ -6,10 +6,13 @@ class Env {
   const Env._();
 
   static const String supabaseUrl = String.fromEnvironment('SUPABASE_URL');
-  static const String supabaseAnonKey =
-      String.fromEnvironment('SUPABASE_ANON_KEY');
-  static const String appEnvironment =
-      String.fromEnvironment('APP_ENVIRONMENT', defaultValue: 'development');
+  static const String supabaseAnonKey = String.fromEnvironment(
+    'SUPABASE_ANON_KEY',
+  );
+  static const String appEnvironment = String.fromEnvironment(
+    'APP_ENVIRONMENT',
+    defaultValue: 'development',
+  );
   static const String authCallbackScheme = String.fromEnvironment(
     'AUTH_CALLBACK_SCHEME',
     defaultValue: 'worktracker',

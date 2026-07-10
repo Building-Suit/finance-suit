@@ -5,7 +5,7 @@ import 'package:work_tracker/core/date_time/plain_date.dart';
 @immutable
 class DateRange {
   const DateRange({required this.start, required this.end})
-      : assert(start <= end, 'start must not be after end');
+    : assert(start <= end, 'start must not be after end');
 
   final PlainDate start;
   final PlainDate end;

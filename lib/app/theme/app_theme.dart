@@ -62,31 +62,31 @@ class AppTheme {
   /// Style for large balance figures. Tabular figures keep digits aligned.
   static TextStyle balanceStyle(BuildContext context) =>
       Theme.of(context).textTheme.headlineMedium!.copyWith(
-            fontWeight: FontWeight.w700,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          );
+        fontWeight: FontWeight.w700,
+        fontFeatures: const [FontFeature.tabularFigures()],
+      );
 
   /// Style for inline monetary amounts.
   static TextStyle amountStyle(BuildContext context) =>
       Theme.of(context).textTheme.titleMedium!.copyWith(
-            fontWeight: FontWeight.w600,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          );
+        fontWeight: FontWeight.w600,
+        fontFeatures: const [FontFeature.tabularFigures()],
+      );
 
   /// Semantic colors for transaction directions. Color is never the only
   /// indicator — icons and sign prefixes accompany it.
   static Color incomeColor(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
-          ? const Color(0xFF7BD88F)
-          : const Color(0xFF1B6E3C);
+      ? const Color(0xFF7BD88F)
+      : const Color(0xFF1B6E3C);
 
   static Color expenseColor(BuildContext context) =>
       Theme.of(context).colorScheme.error;
 
   static Color allowanceColor(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
-          ? const Color(0xFFE2B96F)
-          : const Color(0xFF8A5A00);
+      ? const Color(0xFFE2B96F)
+      : const Color(0xFF8A5A00);
 
   static Color transferColor(BuildContext context) =>
       Theme.of(context).colorScheme.primary;

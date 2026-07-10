@@ -80,10 +80,7 @@ class Money implements Comparable<Money> {
   }
 
   /// Divides by an integer with deterministic rounding.
-  Money divideBy(
-    int divisor, {
-    MoneyRounding rounding = MoneyRounding.halfUp,
-  }) {
+  Money divideBy(int divisor, {MoneyRounding rounding = MoneyRounding.halfUp}) {
     if (divisor == 0) throw ArgumentError('divisor must not be zero');
     return Money(
       minor: _divRounded(minor, divisor, rounding),
