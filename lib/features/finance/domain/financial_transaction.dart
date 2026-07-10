@@ -3,7 +3,7 @@ import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
 
-/// A row from `public.financial_transactions`.
+/// A row from `app_finance.financial_transactions`.
 @immutable
 class FinancialTransaction {
   const FinancialTransaction({

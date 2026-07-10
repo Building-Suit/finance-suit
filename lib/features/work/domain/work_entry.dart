@@ -3,7 +3,7 @@ import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
 
-/// A row from `public.work_entries`.
+/// A row from `app_work.work_entries`.
 @immutable
 class WorkEntry {
   const WorkEntry({

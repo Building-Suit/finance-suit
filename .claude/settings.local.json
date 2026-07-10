@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter --version)",
+      "Bash(docker info:*)",
+      "Bash(supabase --version)",
+      "Bash(dart --version)",
+      "Bash(git init:*)",
+      "Bash(flutter create:*)",
+      "Bash(git checkout:*)",
+      "Bash(find android/app/src/main/kotlin -name \"*.kt\" -exec cat {} \\\\;)",
+      "Bash(flutter pub:*)",
+      "Bash(supabase init:*)",
+      "Bash(python3 -)",
+      "Bash(supabase start:*)",
+      "Bash(supabase db:*)",
+      "Bash(supabase test:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(flutter gen-l10n:*)",
+      "Bash(dart format:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(flutter test:*)",
+      "Bash(grep -v \"^$\")",
+      "Bash(grep -n \"create or replace function\\\\|create function\" supabase/migrations/*.sql)"
+    ]
+  }
+}

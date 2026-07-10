@@ -27,6 +27,7 @@ class OnboardingStatusNotifier extends Notifier<OnboardingStatus> {
     try {
       final row = await ref
           .read(supabaseClientProvider)
+          .schema(AppSchemas.core)
           .from('user_preferences')
           .select('onboarding_completed_at')
           .eq('user_id', userId)

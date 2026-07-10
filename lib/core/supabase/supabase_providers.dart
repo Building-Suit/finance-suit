@@ -1,6 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+abstract final class AppSchemas {
+  static const core = 'app_core';
+  static const finance = 'app_finance';
+  static const work = 'app_work';
+  static const salary = 'app_salary';
+  static const reports = 'app_reports';
+}
+
 /// Single access point for the Supabase client. Repositories depend on this
 /// provider; widgets never touch the client directly.
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {

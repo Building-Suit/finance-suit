@@ -5,7 +5,7 @@
 -- ---------------------------------------------------------------------------
 -- Signed per-account transaction flows (internal building block)
 -- ---------------------------------------------------------------------------
-create or replace view public.account_flows
+create or replace view app_finance.account_flows
 with (security_invoker = on) as
   select
     t.user_id,
@@ -14,7 +14,7 @@ with (security_invoker = on) as
     t.transaction_kind,
     t.occurred_on,
     -t.amount_minor as signed_amount_minor
-  from public.financial_transactions t
+  from app_finance.financial_transactions t
   where t.source_account_id is not null
   union all
   select
@@ -24,13 +24,13 @@ with (security_invoker = on) as
     t.transaction_kind,
     t.occurred_on,
     t.amount_minor
-  from public.financial_transactions t
+  from app_finance.financial_transactions t
   where t.destination_account_id is not null;
 
 -- ---------------------------------------------------------------------------
 -- Account balances
 -- ---------------------------------------------------------------------------
-create or replace view public.account_balances
+create or replace view app_finance.account_balances
 with (security_invoker = on) as
   select
     a.id as account_id,
@@ -45,21 +45,21 @@ with (security_invoker = on) as
     (a.opening_balance_minor + coalesce(f.net, 0))::bigint as balance_minor,
     coalesce(f.total_in, 0)::bigint as total_incoming_minor,
     coalesce(f.total_out, 0)::bigint as total_outgoing_minor
-  from public.accounts a
+  from app_finance.accounts a
   left join (
     select
       account_id,
       sum(signed_amount_minor) as net,
       sum(signed_amount_minor) filter (where signed_amount_minor > 0) as total_in,
       -sum(signed_amount_minor) filter (where signed_amount_minor < 0) as total_out
-    from public.account_flows
+    from app_finance.account_flows
     group by account_id
   ) f on f.account_id = a.id;
 
 -- ---------------------------------------------------------------------------
 -- Negative balance enforcement
 -- ---------------------------------------------------------------------------
-create or replace function public.enforce_account_balance()
+create or replace function app_private.enforce_account_balance()
 returns trigger
 language plpgsql
 set search_path = ''
@@ -73,7 +73,7 @@ begin
   end if;
   select allow_negative_balance, is_archived, name
     into v_account
-    from public.accounts
+    from app_finance.accounts
     where id = new.source_account_id;
   if v_account.is_archived then
     raise exception 'account_archived: cannot write to an archived account';
@@ -82,7 +82,7 @@ begin
     return new;
   end if;
   select balance_minor into v_balance
-    from public.account_balances
+    from app_finance.account_balances
     where account_id = new.source_account_id;
   if v_balance < 0 then
     raise exception 'insufficient_funds: % does not allow negative balance',
@@ -93,14 +93,14 @@ end;
 $$;
 
 create constraint trigger trg_enforce_account_balance
-  after insert or update on public.financial_transactions
+  after insert or update on app_finance.financial_transactions
   deferrable initially immediate
-  for each row execute function public.enforce_account_balance();
+  for each row execute function app_private.enforce_account_balance();
 
 -- ---------------------------------------------------------------------------
 -- Cash-flow summary for a date range
 -- ---------------------------------------------------------------------------
-create or replace function public.cash_flow_summary(p_start date, p_end date)
+create or replace function app_reports.cash_flow_summary(p_start date, p_end date)
 returns table (
   income_minor bigint,
   expenses_minor bigint,
@@ -120,7 +120,7 @@ as $$
       ('custom_income', 'freelance_income', 'salary_income')), 0)
     - coalesce(sum(amount_minor) filter (where transaction_kind = 'expense'), 0)
     - coalesce(sum(amount_minor) filter (where transaction_kind = 'allowance_given'), 0)
-  from public.financial_transactions
+  from app_finance.financial_transactions
   where user_id = (select auth.uid())
     and occurred_on between p_start and p_end
     and transaction_kind <> 'transfer';
@@ -129,7 +129,7 @@ $$;
 -- ---------------------------------------------------------------------------
 -- Finance time series (income/expense/allowance per bucket)
 -- ---------------------------------------------------------------------------
-create or replace function public.finance_series(
+create or replace function app_reports.finance_series(
   p_start date,
   p_end date,
   p_bucket text default 'day'
@@ -160,7 +160,7 @@ begin
       ('custom_income', 'freelance_income', 'salary_income')), 0)
     - coalesce(sum(t.amount_minor) filter (where t.transaction_kind = 'expense'), 0)
     - coalesce(sum(t.amount_minor) filter (where t.transaction_kind = 'allowance_given'), 0))::bigint
-  from public.financial_transactions t
+  from app_finance.financial_transactions t
   where t.user_id = (select auth.uid())
     and t.occurred_on between p_start and p_end
     and t.transaction_kind <> 'transfer'
@@ -172,10 +172,10 @@ $$;
 -- ---------------------------------------------------------------------------
 -- Amounts grouped by category (expenses / allowances / income breakdowns)
 -- ---------------------------------------------------------------------------
-create or replace function public.amounts_by_category(
+create or replace function app_reports.amounts_by_category(
   p_start date,
   p_end date,
-  p_kind public.transaction_kind
+  p_kind app_finance.transaction_kind
 )
 returns table (
   category_id uuid,
@@ -194,8 +194,8 @@ as $$
     coalesce(c.icon, 'category'),
     sum(t.amount_minor)::bigint,
     count(*)::bigint
-  from public.financial_transactions t
-  left join public.transaction_categories c on c.id = t.category_id
+  from app_finance.financial_transactions t
+  left join app_finance.transaction_categories c on c.id = t.category_id
   where t.user_id = (select auth.uid())
     and t.occurred_on between p_start and p_end
     and t.transaction_kind = p_kind
@@ -206,7 +206,7 @@ $$;
 -- ---------------------------------------------------------------------------
 -- Account balance history (running daily balance, computed server-side)
 -- ---------------------------------------------------------------------------
-create or replace function public.account_balance_history(
+create or replace function app_reports.account_balance_history(
   p_account_id uuid,
   p_start date,
   p_end date
@@ -218,21 +218,21 @@ set search_path = ''
 as $$
   with account as (
     select id, opening_balance_minor
-    from public.accounts
+    from app_finance.accounts
     where id = p_account_id and user_id = (select auth.uid())
   ),
   opening as (
     select
       a.opening_balance_minor + coalesce((
         select sum(f.signed_amount_minor)
-        from public.account_flows f
+        from app_finance.account_flows f
         where f.account_id = a.id and f.occurred_on < p_start
       ), 0) as start_balance
     from account a
   ),
   daily as (
     select f.occurred_on as day, sum(f.signed_amount_minor) as delta
-    from public.account_flows f
+    from app_finance.account_flows f
     join account a on a.id = f.account_id
     where f.occurred_on between p_start and p_end
     group by f.occurred_on
@@ -252,9 +252,9 @@ $$;
 -- ---------------------------------------------------------------------------
 -- Work summary for a date range (salary-estimate input aggregation)
 -- ---------------------------------------------------------------------------
-create or replace function public.work_summary(p_start date, p_end date)
+create or replace function app_reports.work_summary(p_start date, p_end date)
 returns table (
-  entry_type public.work_entry_type,
+  entry_type app_work.work_entry_type,
   entry_count bigint,
   total_minutes bigint,
   total_day_units_hundredths bigint,
@@ -270,7 +270,7 @@ as $$
     coalesce(sum(w.duration_minutes), 0)::bigint,
     coalesce(sum(w.day_units_hundredths), 0)::bigint,
     coalesce(sum(w.computed_amount_minor), 0)::bigint
-  from public.work_entries w
+  from app_work.work_entries w
   where w.user_id = (select auth.uid())
     and w.work_date between p_start and p_end
   group by w.entry_type;
@@ -279,7 +279,7 @@ $$;
 -- ---------------------------------------------------------------------------
 -- Working minutes grouped by week / month (reports)
 -- ---------------------------------------------------------------------------
-create or replace function public.work_minutes_series(
+create or replace function app_reports.work_minutes_series(
   p_start date,
   p_end date,
   p_bucket text default 'week'
@@ -297,7 +297,7 @@ begin
   select
     date_trunc(p_bucket, w.work_date)::date,
     coalesce(sum(w.duration_minutes), 0)::bigint
-  from public.work_entries w
+  from app_work.work_entries w
   where w.user_id = (select auth.uid())
     and w.work_date between p_start and p_end
     and w.duration_minutes is not null
@@ -309,13 +309,13 @@ $$;
 -- ---------------------------------------------------------------------------
 -- Default categories seeder
 -- ---------------------------------------------------------------------------
-create or replace function public.seed_default_categories(p_user_id uuid)
+create or replace function app_private.seed_default_categories(p_user_id uuid)
 returns void
 language plpgsql
 set search_path = ''
 as $$
 begin
-  insert into public.transaction_categories (user_id, name, category_kind, icon, sort_order)
+  insert into app_finance.transaction_categories (user_id, name, category_kind, icon, sort_order)
   values
     (p_user_id, 'Food', 'expense', 'restaurant', 0),
     (p_user_id, 'Transportation', 'expense', 'directions_bus', 1),
@@ -346,7 +346,7 @@ $$;
 -- ---------------------------------------------------------------------------
 -- Atomic onboarding completion
 -- ---------------------------------------------------------------------------
-create or replace function public.complete_onboarding(
+create or replace function app_core.complete_onboarding(
   p_display_name text,
   p_currency_code text,
   p_timezone text,
@@ -359,21 +359,22 @@ create or replace function public.complete_onboarding(
   p_payment_month_offset smallint,
   p_standard_paid_days smallint,
   p_standard_minutes_per_day integer,
-  p_day_rate_mode public.rate_mode,
+  p_day_rate_mode app_salary.rate_mode,
   p_manual_day_rate_minor bigint,
-  p_hour_rate_mode public.rate_mode,
+  p_hour_rate_mode app_salary.rate_mode,
   p_manual_hour_rate_minor bigint,
   p_extra_day_multiplier_pct integer,
   p_official_holiday_multiplier_pct integer,
   p_overtime_multiplier_pct integer,
-  p_holiday_semantics public.holiday_multiplier_semantics,
+  p_holiday_semantics app_salary.holiday_multiplier_semantics,
   p_account_name text,
-  p_account_type public.account_type,
+  p_account_type app_finance.account_type,
   p_opening_balance_minor bigint,
   p_allow_negative_balance boolean
 )
 returns uuid
 language plpgsql
+security definer
 set search_path = ''
 as $$
 declare
@@ -384,15 +385,15 @@ begin
     raise exception 'not_authenticated';
   end if;
 
-  update public.profiles
+  update app_core.profiles
     set display_name = p_display_name
     where id = v_user_id;
   if not found then
-    insert into public.profiles (id, display_name)
+    insert into app_core.profiles (id, display_name)
     values (v_user_id, p_display_name);
   end if;
 
-  insert into public.user_preferences (
+  insert into app_core.user_preferences (
     user_id, currency_code, timezone, locale,
     week_starts_on, weekend_days, onboarding_completed_at
   ) values (
@@ -407,7 +408,7 @@ begin
     weekend_days = excluded.weekend_days,
     onboarding_completed_at = now();
 
-  insert into public.salary_settings (
+  insert into app_salary.salary_settings (
     user_id, base_salary_minor, currency_code,
     salary_period_start_day, payment_day, payment_month_offset,
     standard_paid_days_per_period, standard_minutes_per_day,
@@ -442,21 +443,21 @@ begin
     official_holiday_multiplier_semantics = excluded.official_holiday_multiplier_semantics;
 
   -- First account becomes the default when no active account exists yet.
-  insert into public.accounts (
+  insert into app_finance.accounts (
     user_id, name, account_type, currency_code,
     opening_balance_minor, is_default, allow_negative_balance
   ) values (
     v_user_id, p_account_name, p_account_type, p_currency_code,
     p_opening_balance_minor,
     not exists (
-      select 1 from public.accounts
+      select 1 from app_finance.accounts
       where user_id = v_user_id and not is_archived
     ),
     p_allow_negative_balance
   )
   returning id into v_account_id;
 
-  perform public.seed_default_categories(v_user_id);
+  perform app_private.seed_default_categories(v_user_id);
 
   return v_account_id;
 end;
@@ -465,7 +466,7 @@ $$;
 -- ---------------------------------------------------------------------------
 -- Atomic transfer between own accounts
 -- ---------------------------------------------------------------------------
-create or replace function public.create_transfer(
+create or replace function app_finance.create_transfer(
   p_source_account_id uuid,
   p_destination_account_id uuid,
   p_amount_minor bigint,
@@ -493,13 +494,13 @@ begin
   end if;
 
   select currency_code into v_currency
-    from public.accounts
+    from app_finance.accounts
     where id = p_source_account_id and user_id = v_user_id and not is_archived;
   if v_currency is null then
     raise exception 'invalid_account: source not found or archived';
   end if;
   select currency_code into v_dest_currency
-    from public.accounts
+    from app_finance.accounts
     where id = p_destination_account_id and user_id = v_user_id and not is_archived;
   if v_dest_currency is null then
     raise exception 'invalid_account: destination not found or archived';
@@ -508,7 +509,7 @@ begin
     raise exception 'currency_mismatch: transfers require matching currencies';
   end if;
 
-  insert into public.financial_transactions (
+  insert into app_finance.financial_transactions (
     user_id, transaction_kind, occurred_on, amount_minor, currency_code,
     source_account_id, destination_account_id, notes
   ) values (
@@ -524,7 +525,7 @@ $$;
 -- ---------------------------------------------------------------------------
 -- Atomic salary payment recording (idempotent)
 -- ---------------------------------------------------------------------------
-create or replace function public.record_salary_payment(
+create or replace function app_salary.record_salary_payment(
   p_period_id uuid,
   p_actual_amount_minor bigint,
   p_destination_account_id uuid,
@@ -549,7 +550,7 @@ begin
   end if;
 
   select * into v_period
-    from public.salary_periods
+    from app_salary.salary_periods
     where id = p_period_id and user_id = v_user_id
     for update;
   if v_period is null then
@@ -563,13 +564,13 @@ begin
   end if;
 
   select currency_code into v_currency
-    from public.accounts
+    from app_finance.accounts
     where id = p_destination_account_id and user_id = v_user_id and not is_archived;
   if v_currency is null then
     raise exception 'invalid_account: destination not found or archived';
   end if;
 
-  insert into public.financial_transactions (
+  insert into app_finance.financial_transactions (
     user_id, transaction_kind, occurred_on, amount_minor, currency_code,
     destination_account_id, salary_period_id, title, notes
   ) values (
@@ -578,7 +579,7 @@ begin
   )
   returning id into v_tx_id;
 
-  update public.salary_periods set
+  update app_salary.salary_periods set
     status = 'paid',
     actual_amount_minor = p_actual_amount_minor,
     received_date = p_received_date,
@@ -593,10 +594,10 @@ $$;
 -- ---------------------------------------------------------------------------
 -- Realtime publication for user-owned tables
 -- ---------------------------------------------------------------------------
-alter publication supabase_realtime add table public.financial_transactions;
-alter publication supabase_realtime add table public.work_entries;
-alter publication supabase_realtime add table public.accounts;
-alter publication supabase_realtime add table public.salary_periods;
-alter publication supabase_realtime add table public.salary_adjustments;
-alter publication supabase_realtime add table public.official_holidays;
-alter publication supabase_realtime add table public.transaction_categories;
+alter publication supabase_realtime add table app_finance.financial_transactions;
+alter publication supabase_realtime add table app_work.work_entries;
+alter publication supabase_realtime add table app_finance.accounts;
+alter publication supabase_realtime add table app_salary.salary_periods;
+alter publication supabase_realtime add table app_salary.salary_adjustments;
+alter publication supabase_realtime add table app_work.official_holidays;
+alter publication supabase_realtime add table app_finance.transaction_categories;

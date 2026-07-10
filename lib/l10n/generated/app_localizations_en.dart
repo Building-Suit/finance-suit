@@ -97,6 +97,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonSeeAll => 'See all';
 
   @override
+  String get commonApply => 'Apply';
+
+  @override
   String get errInvalidCredentials => 'Incorrect email or password.';
 
   @override
@@ -843,4 +846,181 @@ class AppLocalizationsEn extends AppLocalizations {
   String workDurationHm(int hours, int minutes) {
     return '${hours}h ${minutes}m';
   }
+
+  @override
+  String get homeBalance => 'Balance';
+
+  @override
+  String get homeDefaultAccount => 'Default account';
+
+  @override
+  String get homeSavings => 'Savings';
+
+  @override
+  String get homeCashFlow => 'Cash flow';
+
+  @override
+  String get homeSalary => 'Salary';
+
+  @override
+  String get homeRecentActivity => 'Recent activity';
+
+  @override
+  String get homeQuickActions => 'Quick actions';
+
+  @override
+  String get homeNoRecentActivity => 'No recent activity.';
+
+  @override
+  String get homeAddExpense => 'Add expense';
+
+  @override
+  String get homeGiveAllowance => 'Give allowance';
+
+  @override
+  String get homeAddIncome => 'Add income';
+
+  @override
+  String get homeTransfer => 'Transfer money';
+
+  @override
+  String get homeAddOvertime => 'Add overtime';
+
+  @override
+  String get homeAddExtraDay => 'Add extra day';
+
+  @override
+  String get homeAddHoliday => 'Add holiday worked';
+
+  @override
+  String get historyTitle => 'History';
+
+  @override
+  String get historyNoItems => 'No records match these filters.';
+
+  @override
+  String get historyLoadMore => 'Load more';
+
+  @override
+  String get historyBusinessDate => 'Business date';
+
+  @override
+  String get historyActiveFilters => 'Active filters';
+
+  @override
+  String get historyCustomRange => 'Custom range';
+
+  @override
+  String get historySortRecordDesc => 'Newest business date';
+
+  @override
+  String get historySortRecordAsc => 'Oldest business date';
+
+  @override
+  String get historySortAmountDesc => 'Highest amount';
+
+  @override
+  String get historySortAmountAsc => 'Lowest amount';
+
+  @override
+  String get historySortCreatedDesc => 'Newest created';
+
+  @override
+  String get historyFilterWork => 'Work';
+
+  @override
+  String get historyFilterRegularWork => 'Regular work';
+
+  @override
+  String get historyFilterSalaryAdjustment => 'Salary adjustment';
+
+  @override
+  String get rangeCurrentMonth => 'Current month';
+
+  @override
+  String get rangeLast30 => 'Last 30 days';
+
+  @override
+  String get rangePreviousMonth => 'Previous month';
+
+  @override
+  String get rangeLast90 => 'Last 90 days';
+
+  @override
+  String get rangeToday => 'Today';
+
+  @override
+  String get rangeLast7 => 'Last 7 days';
+
+  @override
+  String get rangeCurrentYear => 'Current year';
+
+  @override
+  String get reportsCashFlow => 'Income, expenses and allowances';
+
+  @override
+  String get reportsNetOverTime => 'Net cash flow over time';
+
+  @override
+  String get reportsExpensesByCategory => 'Expenses by category';
+
+  @override
+  String get reportsAllowancesByCategory => 'Allowances by category';
+
+  @override
+  String get reportsIncomeByCategory => 'Income by source';
+
+  @override
+  String get reportsAccountBalance => 'Account balance over time';
+
+  @override
+  String get reportsSalaryComparison => 'Estimated vs actual salary';
+
+  @override
+  String get reportsWorkCompensation => 'Work compensation by salary period';
+
+  @override
+  String get reportsWorkingHours => 'Working hours';
+
+  @override
+  String get reportsNoData => 'No report data in this range.';
+
+  @override
+  String get reportsBucketDay => 'Daily';
+
+  @override
+  String get reportsBucketWeek => 'Weekly';
+
+  @override
+  String get reportsBucketMonth => 'Monthly';
+
+  @override
+  String get reportIncome => 'Income';
+
+  @override
+  String get reportExpenses => 'Expenses';
+
+  @override
+  String get reportAllowances => 'Allowances';
+
+  @override
+  String get reportNet => 'Net';
+
+  @override
+  String get reportEstimated => 'Estimated';
+
+  @override
+  String get reportActual => 'Actual';
+
+  @override
+  String get reportOvertime => 'Overtime';
+
+  @override
+  String get reportExtraDays => 'Extra days';
+
+  @override
+  String get reportHolidays => 'Holidays';
+
+  @override
+  String get reportHours => 'Hours';
 }

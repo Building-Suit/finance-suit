@@ -1,7 +1,7 @@
 import 'package:meta/meta.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 
-/// A row from `public.transaction_categories`.
+/// A row from `app_finance.transaction_categories`.
 @immutable
 class TransactionCategory {
   const TransactionCategory({

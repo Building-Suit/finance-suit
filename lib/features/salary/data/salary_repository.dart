@@ -13,6 +13,8 @@ class SalaryRepository {
 
   final SupabaseClient _client;
 
+  SupabaseQuerySchema get _db => _client.schema(AppSchemas.salary);
+
   String get _userId {
     final id = _client.auth.currentUser?.id;
     if (id == null) {
@@ -107,7 +109,7 @@ class SalaryRepository {
     String? notes,
   }) {
     return guard(() async {
-      return _client.rpc<String>(
+      return _db.rpc<String>(
         'record_salary_payment',
         params: {
           'p_period_id': periodId,
@@ -139,7 +141,7 @@ class SalaryRepository {
 
   Future<Result<void>> createAdjustment(SalaryAdjustmentDraft draft) {
     return guard(() async {
-      await _client.from('salary_adjustments').insert({
+      await _db.from('salary_adjustments').insert({
         'user_id': _userId,
         ...draft.toJson(),
       });
@@ -160,7 +162,7 @@ class SalaryRepository {
 
   Future<Result<void>> deleteAdjustment(String id) {
     return guard(() async {
-      await _client.from('salary_adjustments').delete().eq('id', id);
+      await _db.from('salary_adjustments').delete().eq('id', id);
     });
   }
 }

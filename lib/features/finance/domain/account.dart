@@ -2,7 +2,7 @@ import 'package:meta/meta.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
 
-/// A user account row from `public.accounts`.
+/// A user account row from `app_finance.accounts`.
 @immutable
 class Account {
   const Account({
@@ -43,7 +43,7 @@ class Account {
       Money(minor: openingBalanceMinor, currencyCode: currencyCode);
 }
 
-/// A row from the `public.account_balances` view: account metadata plus the
+/// A row from the `app_finance.account_balances` view: account metadata plus the
 /// derived running balance and flow totals.
 @immutable
 class AccountBalance {

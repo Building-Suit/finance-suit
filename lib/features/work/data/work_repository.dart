@@ -12,6 +12,8 @@ class WorkRepository {
 
   final SupabaseClient _client;
 
+  SupabaseQuerySchema get _db => _client.schema(AppSchemas.work);
+
   String get _userId {
     final id = _client.auth.currentUser?.id;
     if (id == null) {
@@ -39,7 +41,7 @@ class WorkRepository {
 
   Future<Result<void>> createEntry(WorkEntryDraft draft) {
     return guard(() async {
-      await _client.from('work_entries').insert({
+      await _db.from('work_entries').insert({
         'user_id': _userId,
         ...draft.toJson(),
       });
@@ -48,13 +50,13 @@ class WorkRepository {
 
   Future<Result<void>> updateEntry(String id, WorkEntryDraft draft) {
     return guard(() async {
-      await _client.from('work_entries').update(draft.toJson()).eq('id', id);
+      await _db.from('work_entries').update(draft.toJson()).eq('id', id);
     });
   }
 
   Future<Result<void>> deleteEntry(String id) {
     return guard(() async {
-      await _client.from('work_entries').delete().eq('id', id);
+      await _db.from('work_entries').delete().eq('id', id);
     });
   }
 
@@ -75,7 +77,7 @@ class WorkRepository {
     String? notes,
   }) {
     return guard(() async {
-      await _client.from('official_holidays').insert({
+      await _db.from('official_holidays').insert({
         'user_id': _userId,
         'holiday_date': date.toIso(),
         'name': name,
@@ -100,7 +102,7 @@ class WorkRepository {
 
   Future<Result<void>> deleteHoliday(String id) {
     return guard(() async {
-      await _client.from('official_holidays').delete().eq('id', id);
+      await _db.from('official_holidays').delete().eq('id', id);
     });
   }
 }

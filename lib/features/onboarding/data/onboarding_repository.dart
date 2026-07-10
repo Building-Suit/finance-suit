@@ -63,11 +63,12 @@ class OnboardingRepository {
   OnboardingRepository(this._client);
 
   final SupabaseClient _client;
+  SupabaseQuerySchema get _db => _client.schema(AppSchemas.core);
 
   /// Returns the id of the created first account.
   Future<Result<String>> completeOnboarding(OnboardingSubmission s) {
     return guard(() async {
-      final result = await _client.rpc<String>(
+      final result = await _db.rpc<String>(
         'complete_onboarding',
         params: {
           'p_display_name': s.displayName,

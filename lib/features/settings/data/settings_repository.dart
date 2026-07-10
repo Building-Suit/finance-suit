@@ -11,6 +11,9 @@ class SettingsRepository {
 
   final SupabaseClient _client;
 
+  SupabaseQuerySchema get _coreDb => _client.schema(AppSchemas.core);
+  SupabaseQuerySchema get _salaryDb => _client.schema(AppSchemas.salary);
+
   String get _userId {
     final id = _client.auth.currentUser?.id;
     if (id == null) {
@@ -21,7 +24,7 @@ class SettingsRepository {
 
   Future<Result<UserProfile>> fetchProfile() {
     return guard(() async {
-      final row = await _client
+      final row = await _coreDb
           .from('profiles')
           .select('id, display_name')
           .eq('id', _userId)
@@ -32,7 +35,7 @@ class SettingsRepository {
 
   Future<Result<void>> updateDisplayName(String displayName) {
     return guard(() async {
-      await _client
+      await _coreDb
           .from('profiles')
           .update({'display_name': displayName})
           .eq('id', _userId);
@@ -41,7 +44,7 @@ class SettingsRepository {
 
   Future<Result<UserPreferences>> fetchPreferences() {
     return guard(() async {
-      final row = await _client
+      final row = await _coreDb
           .from('user_preferences')
           .select()
           .eq('user_id', _userId)
@@ -64,7 +67,7 @@ class SettingsRepository {
         'default_history_days': ?defaultHistoryDays,
       };
       if (patch.isEmpty) return;
-      await _client
+      await _coreDb
           .from('user_preferences')
           .update(patch)
           .eq('user_id', _userId);
@@ -73,7 +76,7 @@ class SettingsRepository {
 
   Future<Result<SalarySettings>> fetchSalarySettings() {
     return guard(() async {
-      final row = await _client
+      final row = await _salaryDb
           .from('salary_settings')
           .select()
           .eq('user_id', _userId)
@@ -84,7 +87,7 @@ class SettingsRepository {
 
   Future<Result<void>> updateSalarySettings(SalarySettings settings) {
     return guard(() async {
-      await _client
+      await _salaryDb
           .from('salary_settings')
           .update(settings.toUpdateJson())
           .eq('user_id', _userId);

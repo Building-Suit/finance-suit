@@ -18,6 +18,7 @@ import 'package:work_tracker/features/finance/presentation/screens/categories_sc
 import 'package:work_tracker/features/finance/presentation/screens/money_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/transaction_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/transfer_form_screen.dart';
+import 'package:work_tracker/features/history/presentation/screens/history_screen.dart';
 import 'package:work_tracker/features/onboarding/presentation/providers/onboarding_status_provider.dart';
 import 'package:work_tracker/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:work_tracker/features/reports/presentation/screens/reports_screen.dart';
@@ -44,6 +45,7 @@ abstract final class AppRoutes {
   static const work = '/work';
   static const money = '/money';
   static const reports = '/reports';
+  static const history = '/history';
   static const settings = '/settings';
 }
 
@@ -149,6 +151,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                         final String iso => PlainDate.parse(iso),
                         null => null,
                       },
+                      initialType: switch (state.uri.queryParameters['type']) {
+                        final String type => WorkEntryType.fromDb(type),
+                        null => null,
+                      },
                     ),
                   ),
                   GoRoute(
@@ -225,6 +231,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.reports,
                 builder: (context, state) => const ReportsScreen(),
+              ),
+              GoRoute(
+                path: AppRoutes.history,
+                builder: (context, state) => const HistoryScreen(),
               ),
             ],
           ),

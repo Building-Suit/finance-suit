@@ -1,7 +1,7 @@
 import 'package:meta/meta.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 
-/// A row from `public.official_holidays`.
+/// A row from `app_work.official_holidays`.
 @immutable
 class OfficialHoliday {
   const OfficialHoliday({

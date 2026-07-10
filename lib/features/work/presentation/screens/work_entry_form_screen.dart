@@ -21,9 +21,15 @@ import 'package:work_tracker/l10n/generated/app_localizations.dart';
 /// Create or edit a work entry. Fields adapt to the entry type and a live
 /// estimate shows the extra pay the pure salary calculator would produce.
 class WorkEntryFormScreen extends ConsumerStatefulWidget {
-  const WorkEntryFormScreen({super.key, this.initialDate, this.existing});
+  const WorkEntryFormScreen({
+    super.key,
+    this.initialDate,
+    this.initialType,
+    this.existing,
+  });
 
   final PlainDate? initialDate;
+  final WorkEntryType? initialType;
   final WorkEntry? existing;
 
   @override
@@ -41,7 +47,9 @@ class _WorkEntryFormScreenState extends ConsumerState<WorkEntryFormScreen> {
   final _notesController = TextEditingController();
 
   late WorkEntryType _type =
-      widget.existing?.entryType ?? WorkEntryType.overtime;
+      widget.existing?.entryType ??
+      widget.initialType ??
+      WorkEntryType.overtime;
   late PlainDate _date =
       widget.existing?.workDate ?? widget.initialDate ?? PlainDate.today();
   TimeOfDay? _startTime;

@@ -2,7 +2,7 @@ import 'package:meta/meta.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 
-/// A row from `public.salary_adjustments` (salary-only bonus or deduction).
+/// A row from `app_salary.salary_adjustments` (salary-only bonus or deduction).
 @immutable
 class SalaryAdjustment {
   const SalaryAdjustment({

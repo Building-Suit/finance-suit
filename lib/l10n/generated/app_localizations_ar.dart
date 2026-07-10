@@ -97,6 +97,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonSeeAll => 'عرض الكل';
 
   @override
+  String get commonApply => 'تطبيق';
+
+  @override
   String get errInvalidCredentials =>
       'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
 
@@ -841,4 +844,181 @@ class AppLocalizationsAr extends AppLocalizations {
   String workDurationHm(int hours, int minutes) {
     return '$hoursس $minutesد';
   }
+
+  @override
+  String get homeBalance => 'الرصيد';
+
+  @override
+  String get homeDefaultAccount => 'الحساب الافتراضي';
+
+  @override
+  String get homeSavings => 'المدخرات';
+
+  @override
+  String get homeCashFlow => 'التدفق النقدي';
+
+  @override
+  String get homeSalary => 'الراتب';
+
+  @override
+  String get homeRecentActivity => 'النشاط الأخير';
+
+  @override
+  String get homeQuickActions => 'إجراءات سريعة';
+
+  @override
+  String get homeNoRecentActivity => 'لا يوجد نشاط حديث.';
+
+  @override
+  String get homeAddExpense => 'إضافة مصروف';
+
+  @override
+  String get homeGiveAllowance => 'إعطاء مصروف شخصي';
+
+  @override
+  String get homeAddIncome => 'إضافة دخل';
+
+  @override
+  String get homeTransfer => 'تحويل أموال';
+
+  @override
+  String get homeAddOvertime => 'إضافة عمل إضافي';
+
+  @override
+  String get homeAddExtraDay => 'إضافة يوم إضافي';
+
+  @override
+  String get homeAddHoliday => 'إضافة عمل في عطلة';
+
+  @override
+  String get historyTitle => 'السجل';
+
+  @override
+  String get historyNoItems => 'لا توجد سجلات مطابقة لهذه الفلاتر.';
+
+  @override
+  String get historyLoadMore => 'تحميل المزيد';
+
+  @override
+  String get historyBusinessDate => 'تاريخ السجل';
+
+  @override
+  String get historyActiveFilters => 'الفلاتر النشطة';
+
+  @override
+  String get historyCustomRange => 'نطاق مخصص';
+
+  @override
+  String get historySortRecordDesc => 'أحدث تاريخ سجل';
+
+  @override
+  String get historySortRecordAsc => 'أقدم تاريخ سجل';
+
+  @override
+  String get historySortAmountDesc => 'أعلى مبلغ';
+
+  @override
+  String get historySortAmountAsc => 'أقل مبلغ';
+
+  @override
+  String get historySortCreatedDesc => 'الأحدث إنشاءً';
+
+  @override
+  String get historyFilterWork => 'العمل';
+
+  @override
+  String get historyFilterRegularWork => 'عمل عادي';
+
+  @override
+  String get historyFilterSalaryAdjustment => 'تعديل راتب';
+
+  @override
+  String get rangeCurrentMonth => 'الشهر الحالي';
+
+  @override
+  String get rangeLast30 => 'آخر 30 يومًا';
+
+  @override
+  String get rangePreviousMonth => 'الشهر السابق';
+
+  @override
+  String get rangeLast90 => 'آخر 90 يومًا';
+
+  @override
+  String get rangeToday => 'اليوم';
+
+  @override
+  String get rangeLast7 => 'آخر 7 أيام';
+
+  @override
+  String get rangeCurrentYear => 'السنة الحالية';
+
+  @override
+  String get reportsCashFlow => 'الدخل والمصروفات والمصروفات الشخصية';
+
+  @override
+  String get reportsNetOverTime => 'صافي التدفق النقدي بمرور الوقت';
+
+  @override
+  String get reportsExpensesByCategory => 'المصروفات حسب الفئة';
+
+  @override
+  String get reportsAllowancesByCategory => 'المصروفات الشخصية حسب الفئة';
+
+  @override
+  String get reportsIncomeByCategory => 'الدخل حسب المصدر';
+
+  @override
+  String get reportsAccountBalance => 'رصيد الحساب بمرور الوقت';
+
+  @override
+  String get reportsSalaryComparison => 'الراتب المقدر مقابل الفعلي';
+
+  @override
+  String get reportsWorkCompensation => 'تعويضات العمل حسب فترة الراتب';
+
+  @override
+  String get reportsWorkingHours => 'ساعات العمل';
+
+  @override
+  String get reportsNoData => 'لا توجد بيانات تقارير في هذا النطاق.';
+
+  @override
+  String get reportsBucketDay => 'يومي';
+
+  @override
+  String get reportsBucketWeek => 'أسبوعي';
+
+  @override
+  String get reportsBucketMonth => 'شهري';
+
+  @override
+  String get reportIncome => 'الدخل';
+
+  @override
+  String get reportExpenses => 'المصروفات';
+
+  @override
+  String get reportAllowances => 'المصروفات الشخصية';
+
+  @override
+  String get reportNet => 'الصافي';
+
+  @override
+  String get reportEstimated => 'المقدر';
+
+  @override
+  String get reportActual => 'الفعلي';
+
+  @override
+  String get reportOvertime => 'عمل إضافي';
+
+  @override
+  String get reportExtraDays => 'أيام إضافية';
+
+  @override
+  String get reportHolidays => 'عطلات';
+
+  @override
+  String get reportHours => 'ساعات';
 }

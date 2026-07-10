@@ -272,6 +272,12 @@ abstract class AppLocalizations {
   /// **'See all'**
   String get commonSeeAll;
 
+  /// No description provided for @commonApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get commonApply;
+
   /// No description provided for @errInvalidCredentials.
   ///
   /// In en, this message translates to:
@@ -1693,6 +1699,360 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{hours}h {minutes}m'**
   String workDurationHm(int hours, int minutes);
+
+  /// No description provided for @homeBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance'**
+  String get homeBalance;
+
+  /// No description provided for @homeDefaultAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Default account'**
+  String get homeDefaultAccount;
+
+  /// No description provided for @homeSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings'**
+  String get homeSavings;
+
+  /// No description provided for @homeCashFlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash flow'**
+  String get homeCashFlow;
+
+  /// No description provided for @homeSalary.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary'**
+  String get homeSalary;
+
+  /// No description provided for @homeRecentActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent activity'**
+  String get homeRecentActivity;
+
+  /// No description provided for @homeQuickActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick actions'**
+  String get homeQuickActions;
+
+  /// No description provided for @homeNoRecentActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent activity.'**
+  String get homeNoRecentActivity;
+
+  /// No description provided for @homeAddExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Add expense'**
+  String get homeAddExpense;
+
+  /// No description provided for @homeGiveAllowance.
+  ///
+  /// In en, this message translates to:
+  /// **'Give allowance'**
+  String get homeGiveAllowance;
+
+  /// No description provided for @homeAddIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Add income'**
+  String get homeAddIncome;
+
+  /// No description provided for @homeTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer money'**
+  String get homeTransfer;
+
+  /// No description provided for @homeAddOvertime.
+  ///
+  /// In en, this message translates to:
+  /// **'Add overtime'**
+  String get homeAddOvertime;
+
+  /// No description provided for @homeAddExtraDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Add extra day'**
+  String get homeAddExtraDay;
+
+  /// No description provided for @homeAddHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'Add holiday worked'**
+  String get homeAddHoliday;
+
+  /// No description provided for @historyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get historyTitle;
+
+  /// No description provided for @historyNoItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No records match these filters.'**
+  String get historyNoItems;
+
+  /// No description provided for @historyLoadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get historyLoadMore;
+
+  /// No description provided for @historyBusinessDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Business date'**
+  String get historyBusinessDate;
+
+  /// No description provided for @historyActiveFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Active filters'**
+  String get historyActiveFilters;
+
+  /// No description provided for @historyCustomRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom range'**
+  String get historyCustomRange;
+
+  /// No description provided for @historySortRecordDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest business date'**
+  String get historySortRecordDesc;
+
+  /// No description provided for @historySortRecordAsc.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest business date'**
+  String get historySortRecordAsc;
+
+  /// No description provided for @historySortAmountDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest amount'**
+  String get historySortAmountDesc;
+
+  /// No description provided for @historySortAmountAsc.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowest amount'**
+  String get historySortAmountAsc;
+
+  /// No description provided for @historySortCreatedDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest created'**
+  String get historySortCreatedDesc;
+
+  /// No description provided for @historyFilterWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get historyFilterWork;
+
+  /// No description provided for @historyFilterRegularWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Regular work'**
+  String get historyFilterRegularWork;
+
+  /// No description provided for @historyFilterSalaryAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary adjustment'**
+  String get historyFilterSalaryAdjustment;
+
+  /// No description provided for @rangeCurrentMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Current month'**
+  String get rangeCurrentMonth;
+
+  /// No description provided for @rangeLast30.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get rangeLast30;
+
+  /// No description provided for @rangePreviousMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous month'**
+  String get rangePreviousMonth;
+
+  /// No description provided for @rangeLast90.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 90 days'**
+  String get rangeLast90;
+
+  /// No description provided for @rangeToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get rangeToday;
+
+  /// No description provided for @rangeLast7.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 days'**
+  String get rangeLast7;
+
+  /// No description provided for @rangeCurrentYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Current year'**
+  String get rangeCurrentYear;
+
+  /// No description provided for @reportsCashFlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Income, expenses and allowances'**
+  String get reportsCashFlow;
+
+  /// No description provided for @reportsNetOverTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Net cash flow over time'**
+  String get reportsNetOverTime;
+
+  /// No description provided for @reportsExpensesByCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses by category'**
+  String get reportsExpensesByCategory;
+
+  /// No description provided for @reportsAllowancesByCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowances by category'**
+  String get reportsAllowancesByCategory;
+
+  /// No description provided for @reportsIncomeByCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Income by source'**
+  String get reportsIncomeByCategory;
+
+  /// No description provided for @reportsAccountBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Account balance over time'**
+  String get reportsAccountBalance;
+
+  /// No description provided for @reportsSalaryComparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated vs actual salary'**
+  String get reportsSalaryComparison;
+
+  /// No description provided for @reportsWorkCompensation.
+  ///
+  /// In en, this message translates to:
+  /// **'Work compensation by salary period'**
+  String get reportsWorkCompensation;
+
+  /// No description provided for @reportsWorkingHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Working hours'**
+  String get reportsWorkingHours;
+
+  /// No description provided for @reportsNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No report data in this range.'**
+  String get reportsNoData;
+
+  /// No description provided for @reportsBucketDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get reportsBucketDay;
+
+  /// No description provided for @reportsBucketWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get reportsBucketWeek;
+
+  /// No description provided for @reportsBucketMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get reportsBucketMonth;
+
+  /// No description provided for @reportIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get reportIncome;
+
+  /// No description provided for @reportExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get reportExpenses;
+
+  /// No description provided for @reportAllowances.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowances'**
+  String get reportAllowances;
+
+  /// No description provided for @reportNet.
+  ///
+  /// In en, this message translates to:
+  /// **'Net'**
+  String get reportNet;
+
+  /// No description provided for @reportEstimated.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated'**
+  String get reportEstimated;
+
+  /// No description provided for @reportActual.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual'**
+  String get reportActual;
+
+  /// No description provided for @reportOvertime.
+  ///
+  /// In en, this message translates to:
+  /// **'Overtime'**
+  String get reportOvertime;
+
+  /// No description provided for @reportExtraDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra days'**
+  String get reportExtraDays;
+
+  /// No description provided for @reportHolidays.
+  ///
+  /// In en, this message translates to:
+  /// **'Holidays'**
+  String get reportHolidays;
+
+  /// No description provided for @reportHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get reportHours;
 }
 
 class _AppLocalizationsDelegate

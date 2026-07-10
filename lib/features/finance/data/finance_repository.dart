@@ -14,6 +14,8 @@ class FinanceRepository {
 
   final SupabaseClient _client;
 
+  SupabaseQuerySchema get _db => _client.schema(AppSchemas.finance);
+
   String get _userId {
     final id = _client.auth.currentUser?.id;
     if (id == null) {
@@ -30,10 +32,7 @@ class FinanceRepository {
     bool includeArchived = false,
   }) {
     return guard(() async {
-      var query = _client
-          .from('account_balances')
-          .select()
-          .eq('user_id', _userId);
+      var query = _db.from('account_balances').select().eq('user_id', _userId);
       if (!includeArchived) {
         query = query.eq('is_archived', false);
       }
@@ -44,7 +43,7 @@ class FinanceRepository {
 
   Future<Result<Account>> fetchAccount(String id) {
     return guard(() async {
-      final row = await _client.from('accounts').select().eq('id', id).single();
+      final row = await _db.from('accounts').select().eq('id', id).single();
       return Account.fromJson(row);
     });
   }
@@ -58,7 +57,7 @@ class FinanceRepository {
     String? notes,
   }) {
     return guard(() async {
-      await _client.from('accounts').insert({
+      await _db.from('accounts').insert({
         'user_id': _userId,
         'name': name,
         'account_type': accountType.dbValue,
@@ -79,7 +78,7 @@ class FinanceRepository {
     String? notes,
   }) {
     return guard(() async {
-      await _client
+      await _db
           .from('accounts')
           .update({
             'name': name,
@@ -98,19 +97,19 @@ class FinanceRepository {
       // the archived account also loses its default flag.
       final patch = <String, dynamic>{'is_archived': archived};
       if (archived) patch['is_default'] = false;
-      await _client.from('accounts').update(patch).eq('id', id);
+      await _db.from('accounts').update(patch).eq('id', id);
     });
   }
 
   Future<Result<void>> setDefaultAccount(String id) {
     return guard(() async {
       // Partial unique index allows one default among active accounts.
-      await _client
+      await _db
           .from('accounts')
           .update({'is_default': false})
           .eq('user_id', _userId)
           .eq('is_default', true);
-      await _client.from('accounts').update({'is_default': true}).eq('id', id);
+      await _db.from('accounts').update({'is_default': true}).eq('id', id);
     });
   }
 
@@ -123,7 +122,7 @@ class FinanceRepository {
     bool includeArchived = false,
   }) {
     return guard(() async {
-      var query = _client
+      var query = _db
           .from('transaction_categories')
           .select()
           .eq('user_id', _userId);
@@ -146,7 +145,7 @@ class FinanceRepository {
     String icon = 'category',
   }) {
     return guard(() async {
-      await _client.from('transaction_categories').insert({
+      await _db.from('transaction_categories').insert({
         'user_id': _userId,
         'name': name,
         'category_kind': kind.dbValue,
@@ -157,7 +156,7 @@ class FinanceRepository {
 
   Future<Result<void>> renameCategory(String id, String name) {
     return guard(() async {
-      await _client
+      await _db
           .from('transaction_categories')
           .update({'name': name})
           .eq('id', id);
@@ -169,7 +168,7 @@ class FinanceRepository {
     required bool archived,
   }) {
     return guard(() async {
-      await _client
+      await _db
           .from('transaction_categories')
           .update({'is_archived': archived})
           .eq('id', id);
@@ -184,7 +183,7 @@ class FinanceRepository {
     int limit = 50,
   }) {
     return guard(() async {
-      final rows = await _client
+      final rows = await _db
           .from('financial_transactions')
           .select()
           .eq('user_id', _userId)
@@ -197,7 +196,7 @@ class FinanceRepository {
 
   Future<Result<void>> createTransaction(TransactionDraft draft) {
     return guard(() async {
-      await _client.from('financial_transactions').insert({
+      await _db.from('financial_transactions').insert({
         'user_id': _userId,
         ...draft.toJson(),
       });
@@ -206,7 +205,7 @@ class FinanceRepository {
 
   Future<Result<void>> updateTransaction(String id, TransactionDraft draft) {
     return guard(() async {
-      await _client
+      await _db
           .from('financial_transactions')
           .update(draft.toJson())
           .eq('id', id);
@@ -215,7 +214,7 @@ class FinanceRepository {
 
   Future<Result<void>> deleteTransaction(String id) {
     return guard(() async {
-      await _client.from('financial_transactions').delete().eq('id', id);
+      await _db.from('financial_transactions').delete().eq('id', id);
     });
   }
 
@@ -229,7 +228,7 @@ class FinanceRepository {
     String? notes,
   }) {
     return guard(() async {
-      await _client.rpc<String>(
+      await _db.rpc<String>(
         'create_transfer',
         params: {
           'p_source_account_id': sourceAccountId,
