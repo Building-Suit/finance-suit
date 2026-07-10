@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
@@ -136,6 +137,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     setState(() => _step++);
   }
 
+  /// Enter key / keyboard submit: advance, or finish on the review step.
+  void _submitCurrentStep() {
+    if (_busy) return;
+    if (_step < _stepCount - 1) {
+      _next();
+    } else {
+      _finish();
+    }
+  }
+
   void _back() => setState(() => _step--);
 
   Future<void> _finish() async {
@@ -208,92 +219,86 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       l10n.onbStepReview,
     ];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.onbWelcome),
-        automaticallyImplyLeading: false,
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.onbStepProgress(_step + 1, _stepCount),
-                    style: Theme.of(context).textTheme.labelMedium,
-                  ),
-                  const SizedBox(height: 4),
-                  LinearProgressIndicator(
-                    value: (_step + 1) / _stepCount,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    stepTitles[_step],
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ],
+    // Enter (hardware or numpad) advances the wizard like the Next button.
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.enter): _submitCurrentStep,
+        const SingleActivator(LogicalKeyboardKey.numpadEnter):
+            _submitCurrentStep,
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.onbWelcome),
+          automaticallyImplyLeading: false,
+        ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.onbStepProgress(_step + 1, _stepCount),
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    LinearProgressIndicator(
+                      value: (_step + 1) / _stepCount,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      stepTitles[_step],
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Expanded(
-              // LayoutBuilder measures the space this screen actually has on
-              // the device. The step actions live inside the scroll view and
-              // are pushed to the bottom of that measured space, so they are
-              // always either visible or reachable by scrolling — they never
-              // depend on Scaffold slots or system-inset reporting.
-              child: LayoutBuilder(
-                builder: (context, viewport) => SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: viewport.maxHeight),
-                    child: IntrinsicHeight(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+              Expanded(
+                // The step actions scroll with the content, directly after
+                // it. No pinned slots, no viewport-height tricks: the buttons
+                // are always laid out and always reachable by scrolling.
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      switch (_step) {
+                        0 => _buildProfileStep(l10n),
+                        1 => _buildSalaryStep(l10n),
+                        2 => _buildAccountStep(l10n),
+                        _ => _buildReviewStep(l10n),
+                      },
+                      const SizedBox(height: 24),
+                      Row(
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: switch (_step) {
-                              0 => _buildProfileStep(l10n),
-                              1 => _buildSalaryStep(l10n),
-                              2 => _buildAccountStep(l10n),
-                              _ => _buildReviewStep(l10n),
-                            },
-                          ),
-                          const Spacer(),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                            child: Row(
-                              children: [
-                                if (_step > 0)
-                                  OutlinedButton(
-                                    onPressed: _busy ? null : _back,
-                                    child: Text(l10n.commonBack),
-                                  ),
-                                const Spacer(),
-                                if (_step < _stepCount - 1)
-                                  FilledButton(
-                                    onPressed: _next,
-                                    child: Text(l10n.commonNext),
-                                  )
-                                else
-                                  AuthSubmitButton(
-                                    label: l10n.onbFinish,
-                                    busy: _busy,
-                                    onPressed: _finish,
-                                  ),
-                              ],
+                          if (_step > 0)
+                            OutlinedButton(
+                              onPressed: _busy ? null : _back,
+                              child: Text(l10n.commonBack),
                             ),
-                          ),
+                          const Spacer(),
+                          if (_step < _stepCount - 1)
+                            FilledButton(
+                              onPressed: _next,
+                              child: Text(l10n.commonNext),
+                            )
+                          else
+                            AuthSubmitButton(
+                              label: l10n.onbFinish,
+                              busy: _busy,
+                              onPressed: _finish,
+                            ),
                         ],
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -306,6 +311,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TextFormField(
+            onFieldSubmitted: (_) => _submitCurrentStep(),
             controller: _displayNameController,
             textCapitalization: TextCapitalization.words,
             decoration: InputDecoration(labelText: l10n.authFullName),
@@ -330,6 +336,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
           const SizedBox(height: 16),
           TextFormField(
+            onFieldSubmitted: (_) => _submitCurrentStep(),
             controller: _currencyController,
             textCapitalization: TextCapitalization.characters,
             maxLength: 3,
@@ -398,6 +405,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TextFormField(
+            onFieldSubmitted: (_) => _submitCurrentStep(),
             controller: _baseSalaryController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
@@ -459,6 +467,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             children: [
               Expanded(
                 child: TextFormField(
+                  onFieldSubmitted: (_) => _submitCurrentStep(),
                   controller: _paidDaysController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
@@ -480,6 +489,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: TextFormField(
+                  onFieldSubmitted: (_) => _submitCurrentStep(),
                   controller: _hoursPerDayController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(labelText: l10n.salStandardHours),
@@ -613,6 +623,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         if (mode == RateMode.manual) ...[
           const SizedBox(height: 12),
           TextFormField(
+            onFieldSubmitted: (_) => _submitCurrentStep(),
             controller: manualController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
@@ -643,6 +654,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     required String label,
   }) {
     return TextFormField(
+      onFieldSubmitted: (_) => _submitCurrentStep(),
       controller: controller,
       keyboardType: TextInputType.number,
       decoration: InputDecoration(labelText: label),
@@ -660,6 +672,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TextFormField(
+            onFieldSubmitted: (_) => _submitCurrentStep(),
             controller: _accountNameController,
             textCapitalization: TextCapitalization.words,
             decoration: InputDecoration(labelText: l10n.accName),
@@ -684,6 +697,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
           const SizedBox(height: 16),
           TextFormField(
+            onFieldSubmitted: (_) => _submitCurrentStep(),
             controller: _openingBalanceController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
