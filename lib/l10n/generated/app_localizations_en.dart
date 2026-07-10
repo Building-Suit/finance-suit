@@ -629,6 +629,132 @@ class AppLocalizationsEn extends AppLocalizations {
   String get catNoneYet => 'No categories of this kind yet.';
 
   @override
+  String get salPeriodsTitle => 'Salary periods';
+
+  @override
+  String get salCurrentPeriod => 'Current period';
+
+  @override
+  String salEstimatedFor(String month) {
+    return 'Estimated $month salary';
+  }
+
+  @override
+  String salBasedOn(String start, String end) {
+    return 'Based on work from $start to $end';
+  }
+
+  @override
+  String salExpectedPayment(String date) {
+    return 'Expected payment: $date';
+  }
+
+  @override
+  String get salStatusOpen => 'Open';
+
+  @override
+  String get salStatusFinalized => 'Finalized';
+
+  @override
+  String get salStatusPaid => 'Paid';
+
+  @override
+  String get salBreakdown => 'Breakdown';
+
+  @override
+  String get salEstimatedTotal => 'Estimated total';
+
+  @override
+  String get salItemExtraDays => 'Extra days';
+
+  @override
+  String get salItemHolidays => 'Official holidays worked';
+
+  @override
+  String get salItemOvertime => 'Overtime';
+
+  @override
+  String get salItemBonuses => 'Bonuses';
+
+  @override
+  String get salItemDeductions => 'Deductions';
+
+  @override
+  String get salAdjustments => 'Adjustments';
+
+  @override
+  String get salNewAdjustment => 'New adjustment';
+
+  @override
+  String get salEditAdjustment => 'Edit adjustment';
+
+  @override
+  String get salAdjBonus => 'Bonus';
+
+  @override
+  String get salAdjDeduction => 'Deduction';
+
+  @override
+  String get salEffectiveDate => 'Effective date';
+
+  @override
+  String get salNoAdjustments => 'No adjustments in this period.';
+
+  @override
+  String get salDeleteAdjTitle => 'Delete adjustment?';
+
+  @override
+  String get salDeleteAdjBody => 'This permanently removes the adjustment.';
+
+  @override
+  String get salFinalize => 'Finalize period';
+
+  @override
+  String get salFinalizeConfirmTitle => 'Finalize this period?';
+
+  @override
+  String get salFinalizeConfirmBody =>
+      'An immutable snapshot of the current calculation will be stored. Later settings changes will not affect it.';
+
+  @override
+  String get salReopen => 'Reopen period';
+
+  @override
+  String get salReopenConfirmTitle => 'Reopen this period?';
+
+  @override
+  String get salReopenConfirmBody =>
+      'The stored snapshot will be replaced when you finalize again.';
+
+  @override
+  String get salMarkPaid => 'Mark as paid';
+
+  @override
+  String get salActualAmount => 'Actual amount received';
+
+  @override
+  String get salReceivedDate => 'Received date';
+
+  @override
+  String get salDestinationAccount => 'Destination account';
+
+  @override
+  String get salActualReceived => 'Actual received';
+
+  @override
+  String get salDifference => 'Difference vs estimate';
+
+  @override
+  String get salNoPeriods => 'No salary periods yet.';
+
+  @override
+  String get salWarnBaseZero => 'Base salary is not configured yet.';
+
+  @override
+  String get salWarnMissingAmounts =>
+      'Some work entries have no stored amount.';
+
+  @override
   String get workEntryType => 'Entry type';
 
   @override

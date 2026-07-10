@@ -236,6 +236,69 @@
   "catKindAllowance": "فئة مصروف شخصي",
   "catKindIncome": "فئة دخل",
   "catNoneYet": "لا توجد فئات من هذا النوع بعد.",
+  "salPeriodsTitle": "فترات الراتب",
+  "salCurrentPeriod": "الفترة الحالية",
+  "salEstimatedFor": "راتب {month} المقدر",
+  "@salEstimatedFor": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "salBasedOn": "بناءً على العمل من {start} إلى {end}",
+  "@salBasedOn": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "salExpectedPayment": "تاريخ الدفع المتوقع: {date}",
+  "@salExpectedPayment": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "salStatusOpen": "مفتوحة",
+  "salStatusFinalized": "مُثبتة",
+  "salStatusPaid": "مدفوعة",
+  "salBreakdown": "التفاصيل",
+  "salEstimatedTotal": "الإجمالي المقدر",
+  "salItemExtraDays": "أيام إضافية",
+  "salItemHolidays": "عطلات رسمية تم العمل فيها",
+  "salItemOvertime": "عمل إضافي",
+  "salItemBonuses": "مكافآت",
+  "salItemDeductions": "خصومات",
+  "salAdjustments": "التعديلات",
+  "salNewAdjustment": "تعديل جديد",
+  "salEditAdjustment": "تحرير التعديل",
+  "salAdjBonus": "مكافأة",
+  "salAdjDeduction": "خصم",
+  "salEffectiveDate": "تاريخ السريان",
+  "salNoAdjustments": "لا توجد تعديلات في هذه الفترة.",
+  "salDeleteAdjTitle": "حذف التعديل؟",
+  "salDeleteAdjBody": "سيؤدي هذا إلى إزالة التعديل نهائيًا.",
+  "salFinalize": "تثبيت الفترة",
+  "salFinalizeConfirmTitle": "تثبيت هذه الفترة؟",
+  "salFinalizeConfirmBody": "سيتم حفظ لقطة ثابتة من الحساب الحالي، ولن تتأثر بتغييرات الإعدادات اللاحقة.",
+  "salReopen": "إعادة فتح الفترة",
+  "salReopenConfirmTitle": "إعادة فتح هذه الفترة؟",
+  "salReopenConfirmBody": "سيتم استبدال اللقطة المحفوظة عند التثبيت مرة أخرى.",
+  "salMarkPaid": "تسجيل الاستلام",
+  "salActualAmount": "المبلغ الفعلي المستلم",
+  "salReceivedDate": "تاريخ الاستلام",
+  "salDestinationAccount": "حساب الإيداع",
+  "salActualReceived": "المستلم فعليًا",
+  "salDifference": "الفرق عن التقدير",
+  "salNoPeriods": "لا توجد فترات راتب بعد.",
+  "salWarnBaseZero": "لم يتم ضبط الراتب الأساسي بعد.",
+  "salWarnMissingAmounts": "بعض سجلات العمل بلا مبلغ محفوظ.",
   "workEntryType": "نوع السجل",
   "workEntryRegular": "يوم عمل عادي",
   "workEntryOvertime": "عمل إضافي",

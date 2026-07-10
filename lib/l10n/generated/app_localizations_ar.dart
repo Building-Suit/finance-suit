@@ -628,6 +628,131 @@ class AppLocalizationsAr extends AppLocalizations {
   String get catNoneYet => 'لا توجد فئات من هذا النوع بعد.';
 
   @override
+  String get salPeriodsTitle => 'فترات الراتب';
+
+  @override
+  String get salCurrentPeriod => 'الفترة الحالية';
+
+  @override
+  String salEstimatedFor(String month) {
+    return 'راتب $month المقدر';
+  }
+
+  @override
+  String salBasedOn(String start, String end) {
+    return 'بناءً على العمل من $start إلى $end';
+  }
+
+  @override
+  String salExpectedPayment(String date) {
+    return 'تاريخ الدفع المتوقع: $date';
+  }
+
+  @override
+  String get salStatusOpen => 'مفتوحة';
+
+  @override
+  String get salStatusFinalized => 'مُثبتة';
+
+  @override
+  String get salStatusPaid => 'مدفوعة';
+
+  @override
+  String get salBreakdown => 'التفاصيل';
+
+  @override
+  String get salEstimatedTotal => 'الإجمالي المقدر';
+
+  @override
+  String get salItemExtraDays => 'أيام إضافية';
+
+  @override
+  String get salItemHolidays => 'عطلات رسمية تم العمل فيها';
+
+  @override
+  String get salItemOvertime => 'عمل إضافي';
+
+  @override
+  String get salItemBonuses => 'مكافآت';
+
+  @override
+  String get salItemDeductions => 'خصومات';
+
+  @override
+  String get salAdjustments => 'التعديلات';
+
+  @override
+  String get salNewAdjustment => 'تعديل جديد';
+
+  @override
+  String get salEditAdjustment => 'تحرير التعديل';
+
+  @override
+  String get salAdjBonus => 'مكافأة';
+
+  @override
+  String get salAdjDeduction => 'خصم';
+
+  @override
+  String get salEffectiveDate => 'تاريخ السريان';
+
+  @override
+  String get salNoAdjustments => 'لا توجد تعديلات في هذه الفترة.';
+
+  @override
+  String get salDeleteAdjTitle => 'حذف التعديل؟';
+
+  @override
+  String get salDeleteAdjBody => 'سيؤدي هذا إلى إزالة التعديل نهائيًا.';
+
+  @override
+  String get salFinalize => 'تثبيت الفترة';
+
+  @override
+  String get salFinalizeConfirmTitle => 'تثبيت هذه الفترة؟';
+
+  @override
+  String get salFinalizeConfirmBody =>
+      'سيتم حفظ لقطة ثابتة من الحساب الحالي، ولن تتأثر بتغييرات الإعدادات اللاحقة.';
+
+  @override
+  String get salReopen => 'إعادة فتح الفترة';
+
+  @override
+  String get salReopenConfirmTitle => 'إعادة فتح هذه الفترة؟';
+
+  @override
+  String get salReopenConfirmBody =>
+      'سيتم استبدال اللقطة المحفوظة عند التثبيت مرة أخرى.';
+
+  @override
+  String get salMarkPaid => 'تسجيل الاستلام';
+
+  @override
+  String get salActualAmount => 'المبلغ الفعلي المستلم';
+
+  @override
+  String get salReceivedDate => 'تاريخ الاستلام';
+
+  @override
+  String get salDestinationAccount => 'حساب الإيداع';
+
+  @override
+  String get salActualReceived => 'المستلم فعليًا';
+
+  @override
+  String get salDifference => 'الفرق عن التقدير';
+
+  @override
+  String get salNoPeriods => 'لا توجد فترات راتب بعد.';
+
+  @override
+  String get salWarnBaseZero => 'لم يتم ضبط الراتب الأساسي بعد.';
+
+  @override
+  String get salWarnMissingAmounts => 'بعض سجلات العمل بلا مبلغ محفوظ.';
+
+  @override
   String get workEntryType => 'نوع السجل';
 
   @override

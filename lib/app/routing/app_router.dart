@@ -21,6 +21,8 @@ import 'package:work_tracker/features/finance/presentation/screens/transfer_form
 import 'package:work_tracker/features/onboarding/presentation/providers/onboarding_status_provider.dart';
 import 'package:work_tracker/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:work_tracker/features/reports/presentation/screens/reports_screen.dart';
+import 'package:work_tracker/features/salary/presentation/screens/salary_period_detail_screen.dart';
+import 'package:work_tracker/features/salary/presentation/screens/salary_periods_screen.dart';
 import 'package:work_tracker/features/settings/presentation/screens/change_email_screen.dart';
 import 'package:work_tracker/features/settings/presentation/screens/change_password_screen.dart';
 import 'package:work_tracker/features/settings/presentation/screens/salary_settings_screen.dart';
@@ -158,6 +160,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'holidays',
                     builder: (context, state) => const HolidaysScreen(),
+                  ),
+                  GoRoute(
+                    path: 'periods',
+                    builder: (context, state) => const SalaryPeriodsScreen(),
+                    routes: [
+                      GoRoute(
+                        path: ':id',
+                        builder: (context, state) => SalaryPeriodDetailScreen(
+                          periodId: state.pathParameters['id']!,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

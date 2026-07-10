@@ -58,6 +58,11 @@ class _WorkScreenState extends ConsumerState<WorkScreen> {
         title: Text(l10n.tabWork),
         actions: [
           IconButton(
+            icon: const Icon(Icons.request_quote_outlined),
+            tooltip: l10n.salPeriodsTitle,
+            onPressed: () => context.push('${AppRoutes.work}/periods'),
+          ),
+          IconButton(
             icon: const Icon(Icons.event_outlined),
             tooltip: l10n.workHolidays,
             onPressed: () => context.push('${AppRoutes.work}/holidays'),

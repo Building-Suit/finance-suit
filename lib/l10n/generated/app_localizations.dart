@@ -1286,6 +1286,240 @@ abstract class AppLocalizations {
   /// **'No categories of this kind yet.'**
   String get catNoneYet;
 
+  /// No description provided for @salPeriodsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary periods'**
+  String get salPeriodsTitle;
+
+  /// No description provided for @salCurrentPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Current period'**
+  String get salCurrentPeriod;
+
+  /// No description provided for @salEstimatedFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated {month} salary'**
+  String salEstimatedFor(String month);
+
+  /// No description provided for @salBasedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on work from {start} to {end}'**
+  String salBasedOn(String start, String end);
+
+  /// No description provided for @salExpectedPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected payment: {date}'**
+  String salExpectedPayment(String date);
+
+  /// No description provided for @salStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get salStatusOpen;
+
+  /// No description provided for @salStatusFinalized.
+  ///
+  /// In en, this message translates to:
+  /// **'Finalized'**
+  String get salStatusFinalized;
+
+  /// No description provided for @salStatusPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get salStatusPaid;
+
+  /// No description provided for @salBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Breakdown'**
+  String get salBreakdown;
+
+  /// No description provided for @salEstimatedTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated total'**
+  String get salEstimatedTotal;
+
+  /// No description provided for @salItemExtraDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra days'**
+  String get salItemExtraDays;
+
+  /// No description provided for @salItemHolidays.
+  ///
+  /// In en, this message translates to:
+  /// **'Official holidays worked'**
+  String get salItemHolidays;
+
+  /// No description provided for @salItemOvertime.
+  ///
+  /// In en, this message translates to:
+  /// **'Overtime'**
+  String get salItemOvertime;
+
+  /// No description provided for @salItemBonuses.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonuses'**
+  String get salItemBonuses;
+
+  /// No description provided for @salItemDeductions.
+  ///
+  /// In en, this message translates to:
+  /// **'Deductions'**
+  String get salItemDeductions;
+
+  /// No description provided for @salAdjustments.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjustments'**
+  String get salAdjustments;
+
+  /// No description provided for @salNewAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'New adjustment'**
+  String get salNewAdjustment;
+
+  /// No description provided for @salEditAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit adjustment'**
+  String get salEditAdjustment;
+
+  /// No description provided for @salAdjBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus'**
+  String get salAdjBonus;
+
+  /// No description provided for @salAdjDeduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Deduction'**
+  String get salAdjDeduction;
+
+  /// No description provided for @salEffectiveDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Effective date'**
+  String get salEffectiveDate;
+
+  /// No description provided for @salNoAdjustments.
+  ///
+  /// In en, this message translates to:
+  /// **'No adjustments in this period.'**
+  String get salNoAdjustments;
+
+  /// No description provided for @salDeleteAdjTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete adjustment?'**
+  String get salDeleteAdjTitle;
+
+  /// No description provided for @salDeleteAdjBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently removes the adjustment.'**
+  String get salDeleteAdjBody;
+
+  /// No description provided for @salFinalize.
+  ///
+  /// In en, this message translates to:
+  /// **'Finalize period'**
+  String get salFinalize;
+
+  /// No description provided for @salFinalizeConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Finalize this period?'**
+  String get salFinalizeConfirmTitle;
+
+  /// No description provided for @salFinalizeConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'An immutable snapshot of the current calculation will be stored. Later settings changes will not affect it.'**
+  String get salFinalizeConfirmBody;
+
+  /// No description provided for @salReopen.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen period'**
+  String get salReopen;
+
+  /// No description provided for @salReopenConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen this period?'**
+  String get salReopenConfirmTitle;
+
+  /// No description provided for @salReopenConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The stored snapshot will be replaced when you finalize again.'**
+  String get salReopenConfirmBody;
+
+  /// No description provided for @salMarkPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as paid'**
+  String get salMarkPaid;
+
+  /// No description provided for @salActualAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual amount received'**
+  String get salActualAmount;
+
+  /// No description provided for @salReceivedDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Received date'**
+  String get salReceivedDate;
+
+  /// No description provided for @salDestinationAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination account'**
+  String get salDestinationAccount;
+
+  /// No description provided for @salActualReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual received'**
+  String get salActualReceived;
+
+  /// No description provided for @salDifference.
+  ///
+  /// In en, this message translates to:
+  /// **'Difference vs estimate'**
+  String get salDifference;
+
+  /// No description provided for @salNoPeriods.
+  ///
+  /// In en, this message translates to:
+  /// **'No salary periods yet.'**
+  String get salNoPeriods;
+
+  /// No description provided for @salWarnBaseZero.
+  ///
+  /// In en, this message translates to:
+  /// **'Base salary is not configured yet.'**
+  String get salWarnBaseZero;
+
+  /// No description provided for @salWarnMissingAmounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Some work entries have no stored amount.'**
+  String get salWarnMissingAmounts;
+
   /// No description provided for @workEntryType.
   ///
   /// In en, this message translates to:

@@ -236,6 +236,69 @@
   "catKindAllowance": "Allowance category",
   "catKindIncome": "Income category",
   "catNoneYet": "No categories of this kind yet.",
+  "salPeriodsTitle": "Salary periods",
+  "salCurrentPeriod": "Current period",
+  "salEstimatedFor": "Estimated {month} salary",
+  "@salEstimatedFor": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "salBasedOn": "Based on work from {start} to {end}",
+  "@salBasedOn": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "salExpectedPayment": "Expected payment: {date}",
+  "@salExpectedPayment": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "salStatusOpen": "Open",
+  "salStatusFinalized": "Finalized",
+  "salStatusPaid": "Paid",
+  "salBreakdown": "Breakdown",
+  "salEstimatedTotal": "Estimated total",
+  "salItemExtraDays": "Extra days",
+  "salItemHolidays": "Official holidays worked",
+  "salItemOvertime": "Overtime",
+  "salItemBonuses": "Bonuses",
+  "salItemDeductions": "Deductions",
+  "salAdjustments": "Adjustments",
+  "salNewAdjustment": "New adjustment",
+  "salEditAdjustment": "Edit adjustment",
+  "salAdjBonus": "Bonus",
+  "salAdjDeduction": "Deduction",
+  "salEffectiveDate": "Effective date",
+  "salNoAdjustments": "No adjustments in this period.",
+  "salDeleteAdjTitle": "Delete adjustment?",
+  "salDeleteAdjBody": "This permanently removes the adjustment.",
+  "salFinalize": "Finalize period",
+  "salFinalizeConfirmTitle": "Finalize this period?",
+  "salFinalizeConfirmBody": "An immutable snapshot of the current calculation will be stored. Later settings changes will not affect it.",
+  "salReopen": "Reopen period",
+  "salReopenConfirmTitle": "Reopen this period?",
+  "salReopenConfirmBody": "The stored snapshot will be replaced when you finalize again.",
+  "salMarkPaid": "Mark as paid",
+  "salActualAmount": "Actual amount received",
+  "salReceivedDate": "Received date",
+  "salDestinationAccount": "Destination account",
+  "salActualReceived": "Actual received",
+  "salDifference": "Difference vs estimate",
+  "salNoPeriods": "No salary periods yet.",
+  "salWarnBaseZero": "Base salary is not configured yet.",
+  "salWarnMissingAmounts": "Some work entries have no stored amount.",
   "workEntryType": "Entry type",
   "workEntryRegular": "Regular day",
   "workEntryOvertime": "Overtime",
