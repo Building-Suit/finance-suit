@@ -73,7 +73,10 @@ AppFailure mapSupabaseError(Object error) {
   if (error is AuthException) {
     final code = error.code ?? '';
     final message = error.message.toLowerCase();
-    if (code == 'invalid_credentials' || message.contains('invalid login')) {
+    if (code == 'invalid_credentials' ||
+        message.contains('invalid login') ||
+        message.contains('invalid credentials') ||
+        message.contains('invalid email or password')) {
       return AuthFailure(
         AuthFailureKind.invalidCredentials,
         debugDetails: error.message,
@@ -94,7 +97,10 @@ AppFailure mapSupabaseError(Object error) {
         debugDetails: error.message,
       );
     }
-    if (code == 'weak_password' || message.contains('password')) {
+    if (code == 'weak_password' ||
+        message.contains('weak password') ||
+        message.contains('password should be') ||
+        message.contains('password must')) {
       return AuthFailure(
         AuthFailureKind.weakPassword,
         debugDetails: error.message,
