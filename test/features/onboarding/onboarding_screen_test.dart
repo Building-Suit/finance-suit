@@ -36,4 +36,35 @@ void main() {
     expect(rect.bottom, lessThanOrEqualTo(915));
     expect(rect.top, greaterThanOrEqualTo(0));
   });
+
+  testWidgets('Next button is reachable by scrolling on a tiny viewport', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 480));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: OnboardingScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final next = find.widgetWithText(FilledButton, 'Next');
+    await tester.dragUntilVisible(
+      next,
+      find.byType(SingleChildScrollView),
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
+
+    expect(next, findsOneWidget);
+    final rect = tester.getRect(next);
+    expect(rect.bottom, lessThanOrEqualTo(480));
+    expect(rect.top, greaterThanOrEqualTo(0));
+  });
 }

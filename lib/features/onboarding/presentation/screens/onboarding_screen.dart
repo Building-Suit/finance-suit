@@ -239,42 +239,61 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: switch (_step) {
-                  0 => _buildProfileStep(l10n),
-                  1 => _buildSalaryStep(l10n),
-                  2 => _buildAccountStep(l10n),
-                  _ => _buildReviewStep(l10n),
-                },
+              // LayoutBuilder measures the space this screen actually has on
+              // the device. The step actions live inside the scroll view and
+              // are pushed to the bottom of that measured space, so they are
+              // always either visible or reachable by scrolling — they never
+              // depend on Scaffold slots or system-inset reporting.
+              child: LayoutBuilder(
+                builder: (context, viewport) => SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: viewport.maxHeight),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: switch (_step) {
+                              0 => _buildProfileStep(l10n),
+                              1 => _buildSalaryStep(l10n),
+                              2 => _buildAccountStep(l10n),
+                              _ => _buildReviewStep(l10n),
+                            },
+                          ),
+                          const Spacer(),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                            child: Row(
+                              children: [
+                                if (_step > 0)
+                                  OutlinedButton(
+                                    onPressed: _busy ? null : _back,
+                                    child: Text(l10n.commonBack),
+                                  ),
+                                const Spacer(),
+                                if (_step < _stepCount - 1)
+                                  FilledButton(
+                                    onPressed: _next,
+                                    child: Text(l10n.commonNext),
+                                  )
+                                else
+                                  AuthSubmitButton(
+                                    label: l10n.onbFinish,
+                                    busy: _busy,
+                                    onPressed: _finish,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ],
-        ),
-      ),
-      // The Scaffold slot keeps the step actions above system insets and
-      // the keyboard on all devices, unlike a trailing Column child.
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              if (_step > 0)
-                OutlinedButton(
-                  onPressed: _busy ? null : _back,
-                  child: Text(l10n.commonBack),
-                ),
-              const Spacer(),
-              if (_step < _stepCount - 1)
-                FilledButton(onPressed: _next, child: Text(l10n.commonNext))
-              else
-                AuthSubmitButton(
-                  label: l10n.onbFinish,
-                  busy: _busy,
-                  onPressed: _finish,
-                ),
-            ],
-          ),
         ),
       ),
     );
