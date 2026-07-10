@@ -1,0 +1,39 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
+import 'package:work_tracker/features/onboarding/presentation/screens/onboarding_screen.dart';
+import 'package:work_tracker/l10n/generated/app_localizations.dart';
+
+void main() {
+  setUp(() {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.empty();
+  });
+
+  testWidgets('step 1 shows a visible Next button on a phone viewport', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(412, 915));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: OnboardingScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final next = find.widgetWithText(FilledButton, 'Next');
+    expect(next, findsOneWidget);
+
+    final rect = tester.getRect(next);
+    expect(rect.bottom, lessThanOrEqualTo(915));
+    expect(rect.top, greaterThanOrEqualTo(0));
+  });
+}
