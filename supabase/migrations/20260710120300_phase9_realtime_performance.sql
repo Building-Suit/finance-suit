@@ -154,12 +154,16 @@ grant usage, select on all sequences in schema
   app_reports
 to authenticated, service_role;
 
-grant usage on all types in schema
-  app_core,
-  app_finance,
-  app_work,
-  app_salary,
-  app_reports
+grant usage on type
+  app_finance.account_type,
+  app_finance.category_kind,
+  app_finance.transaction_kind,
+  app_work.work_entry_type,
+  app_salary.adjustment_type,
+  app_salary.holiday_multiplier_semantics,
+  app_salary.rate_mode,
+  app_salary.rounding_mode,
+  app_salary.salary_period_status
 to authenticated, service_role;
 
 revoke execute on all functions in schema
