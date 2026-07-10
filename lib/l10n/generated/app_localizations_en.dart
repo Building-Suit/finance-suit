@@ -509,6 +509,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setSaved => 'Saved';
 
   @override
+  String get setAboutSection => 'About';
+
+  @override
+  String get setAppVersion => 'App version';
+
+  @override
   String get moneyAccountsTab => 'Accounts';
 
   @override

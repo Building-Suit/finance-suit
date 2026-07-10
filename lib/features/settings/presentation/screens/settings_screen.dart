@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:work_tracker/app/configuration/env.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
@@ -208,6 +209,13 @@ class SettingsScreen extends ConsumerWidget {
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
             onTap: () => _confirmSignOut(context, ref),
+          ),
+          const Divider(),
+          _SectionHeader(title: l10n.setAboutSection),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: Text(l10n.setAppVersion),
+            subtitle: Text(Env.appVersion),
           ),
           const SizedBox(height: 24),
         ],

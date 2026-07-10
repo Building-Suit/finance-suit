@@ -1052,6 +1052,18 @@ abstract class AppLocalizations {
   /// **'Saved'**
   String get setSaved;
 
+  /// No description provided for @setAboutSection.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get setAboutSection;
+
+  /// No description provided for @setAppVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'App version'**
+  String get setAppVersion;
+
   /// No description provided for @moneyAccountsTab.
   ///
   /// In en, this message translates to:

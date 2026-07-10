@@ -508,6 +508,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setSaved => 'تم الحفظ';
 
   @override
+  String get setAboutSection => 'حول التطبيق';
+
+  @override
+  String get setAppVersion => 'إصدار التطبيق';
+
+  @override
   String get moneyAccountsTab => 'الحسابات';
 
   @override

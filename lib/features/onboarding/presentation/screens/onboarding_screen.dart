@@ -43,7 +43,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // Step 1: profile
   final _displayNameController = TextEditingController();
   final _currencyController = TextEditingController(text: 'EGP');
-  final _timezoneController = TextEditingController(text: 'Africa/Cairo');
   String _locale = 'en';
   int _weekStartsOn = 6; // Saturday
   final Set<int> _weekendDays = {5, 6}; // Fri, Sat
@@ -82,7 +81,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     for (final c in [
       _displayNameController,
       _currencyController,
-      _timezoneController,
       _baseSalaryController,
       _paidDaysController,
       _hoursPerDayController,
@@ -148,7 +146,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final submission = OnboardingSubmission(
       displayName: _displayNameController.text.trim(),
       currencyCode: _currency,
-      timezone: _timezoneController.text.trim(),
+      // Not user-facing; the app operates on the spec's default timezone.
+      timezone: 'Africa/Cairo',
       locale: _locale,
       weekStartsOn: _weekStartsOn,
       weekendDays: _weekendDays.toList()..sort(),
@@ -250,28 +249,32 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 },
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  if (_step > 0)
-                    OutlinedButton(
-                      onPressed: _busy ? null : _back,
-                      child: Text(l10n.commonBack),
-                    ),
-                  const Spacer(),
-                  if (_step < _stepCount - 1)
-                    FilledButton(onPressed: _next, child: Text(l10n.commonNext))
-                  else
-                    AuthSubmitButton(
-                      label: l10n.onbFinish,
-                      busy: _busy,
-                      onPressed: _finish,
-                    ),
-                ],
-              ),
-            ),
           ],
+        ),
+      ),
+      // The Scaffold slot keeps the step actions above system insets and
+      // the keyboard on all devices, unlike a trailing Column child.
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              if (_step > 0)
+                OutlinedButton(
+                  onPressed: _busy ? null : _back,
+                  child: Text(l10n.commonBack),
+                ),
+              const Spacer(),
+              if (_step < _stepCount - 1)
+                FilledButton(onPressed: _next, child: Text(l10n.commonNext))
+              else
+                AuthSubmitButton(
+                  label: l10n.onbFinish,
+                  busy: _busy,
+                  onPressed: _finish,
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -320,15 +323,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 return validationMessage(context, ValidationError.required);
               }
               return null;
-            },
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _timezoneController,
-            decoration: InputDecoration(labelText: l10n.onbTimezone),
-            validator: (v) {
-              final e = Validators.requiredText(v, maxLength: 64);
-              return e == null ? null : validationMessage(context, e);
             },
           ),
           const SizedBox(height: 16),
@@ -730,7 +724,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               children: [
                 row(l10n.authFullName, _displayNameController.text.trim()),
                 row(l10n.onbCurrency, _currency),
-                row(l10n.onbTimezone, _timezoneController.text.trim()),
                 row(l10n.onbWeekStart, weekdayName(context, _weekStartsOn)),
                 row(
                   l10n.onbWeekendDays,

@@ -197,6 +197,8 @@
   "setSignOutConfirmTitle": "تسجيل الخروج؟",
   "setSignOutConfirmBody": "يمكنك تسجيل الدخول مرة أخرى في أي وقت.",
   "setSaved": "تم الحفظ",
+  "setAboutSection": "حول التطبيق",
+  "setAppVersion": "إصدار التطبيق",
   "moneyAccountsTab": "الحسابات",
   "moneyTransactionsTab": "المعاملات",
   "moneyTotalBalance": "الرصيد الإجمالي",

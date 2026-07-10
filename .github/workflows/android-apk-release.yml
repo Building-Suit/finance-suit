@@ -106,7 +106,18 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Derive versionName from the release tag (v0.1.4 -> 0.1.4) and
+          # versionCode from the unique run number, so every published APK
+          # reports which build it is and upgrades install cleanly.
+          build_name="${RELEASE_TAG#v}"
+          if [[ ! "${build_name}" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            build_name="0.0.0-${build_name}"
+          fi
+
           flutter build apk --release \
+            --build-name="${build_name}" \
+            --build-number="${GITHUB_RUN_NUMBER}" \
+            --dart-define=APP_VERSION="${build_name}+${GITHUB_RUN_NUMBER}" \
             --dart-define=SUPABASE_URL="${SUPABASE_URL}" \
             --dart-define=SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY}" \
             --dart-define=APP_ENVIRONMENT="${APP_ENVIRONMENT}" \
