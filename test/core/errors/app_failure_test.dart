@@ -13,6 +13,16 @@ void main() {
       expect((failure as AuthFailure).kind, AuthFailureKind.invalidCredentials);
     });
 
+    test('maps retryable fetch errors to network failure, not auth', () {
+      final failure = mapSupabaseError(
+        AuthRetryableFetchException(
+          message: 'SocketException: Failed host lookup',
+        ),
+      );
+
+      expect(failure, isA<NetworkFailure>());
+    });
+
     test('maps weak password only for actual weak-password errors', () {
       final failure = mapSupabaseError(
         const AuthException(

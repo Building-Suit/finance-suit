@@ -70,6 +70,12 @@ class UnknownFailure extends AppFailure {
 /// Maps Supabase / PostgREST exceptions into typed [AppFailure]s.
 AppFailure mapSupabaseError(Object error) {
   if (error is AppFailure) return error;
+  // Network-level auth failures (no connectivity, DNS, refused sockets)
+  // subclass AuthException but are not authentication problems; surface
+  // them as connectivity issues instead of a misleading auth error.
+  if (error is AuthRetryableFetchException) {
+    return NetworkFailure(debugDetails: error.message);
+  }
   if (error is AuthException) {
     final code = error.code ?? '';
     final message = error.message.toLowerCase();
