@@ -5,6 +5,7 @@ import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
+import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
 import 'package:work_tracker/features/onboarding/data/onboarding_repository.dart';
@@ -19,19 +20,6 @@ String weekdayName(BuildContext context, int isoWeekday) {
   return DateFormat.EEEE(
     Localizations.localeOf(context).toString(),
   ).format(date);
-}
-
-String accountTypeLabel(AppLocalizations l10n, AccountType type) {
-  return switch (type) {
-    AccountType.current => l10n.accTypeCurrent,
-    AccountType.savings => l10n.accTypeSavings,
-    AccountType.cash => l10n.accTypeCash,
-    AccountType.bank => l10n.accTypeBank,
-    AccountType.wallet => l10n.accTypeWallet,
-    AccountType.emergency => l10n.accTypeEmergency,
-    AccountType.vacation => l10n.accTypeVacation,
-    AccountType.custom => l10n.accTypeCustom,
-  };
 }
 
 class OnboardingScreen extends ConsumerStatefulWidget {

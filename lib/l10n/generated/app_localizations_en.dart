@@ -504,4 +504,127 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setSaved => 'Saved';
+
+  @override
+  String get moneyAccountsTab => 'Accounts';
+
+  @override
+  String get moneyTransactionsTab => 'Transactions';
+
+  @override
+  String get moneyTotalBalance => 'Total balance';
+
+  @override
+  String get moneyNewAccount => 'New account';
+
+  @override
+  String get moneyEditAccount => 'Edit account';
+
+  @override
+  String get moneyNoAccounts => 'No accounts yet. Add one to start tracking.';
+
+  @override
+  String get moneyNoTransactions => 'No transactions yet.';
+
+  @override
+  String get moneyDefaultLabel => 'Default';
+
+  @override
+  String get moneyArchivedLabel => 'Archived';
+
+  @override
+  String get moneySetDefault => 'Set as default';
+
+  @override
+  String get moneyArchive => 'Archive';
+
+  @override
+  String get moneyUnarchive => 'Unarchive';
+
+  @override
+  String get moneyShowArchived => 'Show archived';
+
+  @override
+  String get moneyArchiveConfirmTitle => 'Archive account?';
+
+  @override
+  String get moneyArchiveConfirmBody =>
+      'Archived accounts are hidden from pickers and cannot receive new transactions. Existing history stays intact.';
+
+  @override
+  String get txExpense => 'Expense';
+
+  @override
+  String get txAllowance => 'Allowance';
+
+  @override
+  String get txCustomIncome => 'Other income';
+
+  @override
+  String get txFreelanceIncome => 'Freelance income';
+
+  @override
+  String get txSalaryIncome => 'Salary';
+
+  @override
+  String get txTransfer => 'Transfer';
+
+  @override
+  String get txAddTitle => 'Add transaction';
+
+  @override
+  String get txEditTitle => 'Edit transaction';
+
+  @override
+  String get txAccount => 'Account';
+
+  @override
+  String get txFromAccount => 'From account';
+
+  @override
+  String get txToAccount => 'To account';
+
+  @override
+  String get txCategory => 'Category';
+
+  @override
+  String get txNoCategory => 'No category';
+
+  @override
+  String get txCounterparty => 'Given to';
+
+  @override
+  String get txTitleField => 'Title';
+
+  @override
+  String get txDeleteConfirmTitle => 'Delete transaction?';
+
+  @override
+  String get txDeleteConfirmBody =>
+      'This permanently removes the transaction and updates account balances.';
+
+  @override
+  String get txSalaryLocked =>
+      'Salary payments are managed from salary periods and cannot be edited here.';
+
+  @override
+  String get catManage => 'Manage categories';
+
+  @override
+  String get catNew => 'New category';
+
+  @override
+  String get catName => 'Category name';
+
+  @override
+  String get catKindExpense => 'Expense category';
+
+  @override
+  String get catKindAllowance => 'Allowance category';
+
+  @override
+  String get catKindIncome => 'Income category';
+
+  @override
+  String get catNoneYet => 'No categories of this kind yet.';
 }

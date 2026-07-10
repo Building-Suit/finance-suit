@@ -1045,6 +1045,246 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Saved'**
   String get setSaved;
+
+  /// No description provided for @moneyAccountsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get moneyAccountsTab;
+
+  /// No description provided for @moneyTransactionsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get moneyTransactionsTab;
+
+  /// No description provided for @moneyTotalBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Total balance'**
+  String get moneyTotalBalance;
+
+  /// No description provided for @moneyNewAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'New account'**
+  String get moneyNewAccount;
+
+  /// No description provided for @moneyEditAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit account'**
+  String get moneyEditAccount;
+
+  /// No description provided for @moneyNoAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts yet. Add one to start tracking.'**
+  String get moneyNoAccounts;
+
+  /// No description provided for @moneyNoTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions yet.'**
+  String get moneyNoTransactions;
+
+  /// No description provided for @moneyDefaultLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get moneyDefaultLabel;
+
+  /// No description provided for @moneyArchivedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get moneyArchivedLabel;
+
+  /// No description provided for @moneySetDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as default'**
+  String get moneySetDefault;
+
+  /// No description provided for @moneyArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get moneyArchive;
+
+  /// No description provided for @moneyUnarchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Unarchive'**
+  String get moneyUnarchive;
+
+  /// No description provided for @moneyShowArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Show archived'**
+  String get moneyShowArchived;
+
+  /// No description provided for @moneyArchiveConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive account?'**
+  String get moneyArchiveConfirmTitle;
+
+  /// No description provided for @moneyArchiveConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived accounts are hidden from pickers and cannot receive new transactions. Existing history stays intact.'**
+  String get moneyArchiveConfirmBody;
+
+  /// No description provided for @txExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get txExpense;
+
+  /// No description provided for @txAllowance.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowance'**
+  String get txAllowance;
+
+  /// No description provided for @txCustomIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Other income'**
+  String get txCustomIncome;
+
+  /// No description provided for @txFreelanceIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Freelance income'**
+  String get txFreelanceIncome;
+
+  /// No description provided for @txSalaryIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary'**
+  String get txSalaryIncome;
+
+  /// No description provided for @txTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get txTransfer;
+
+  /// No description provided for @txAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add transaction'**
+  String get txAddTitle;
+
+  /// No description provided for @txEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit transaction'**
+  String get txEditTitle;
+
+  /// No description provided for @txAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get txAccount;
+
+  /// No description provided for @txFromAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'From account'**
+  String get txFromAccount;
+
+  /// No description provided for @txToAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'To account'**
+  String get txToAccount;
+
+  /// No description provided for @txCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get txCategory;
+
+  /// No description provided for @txNoCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'No category'**
+  String get txNoCategory;
+
+  /// No description provided for @txCounterparty.
+  ///
+  /// In en, this message translates to:
+  /// **'Given to'**
+  String get txCounterparty;
+
+  /// No description provided for @txTitleField.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get txTitleField;
+
+  /// No description provided for @txDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete transaction?'**
+  String get txDeleteConfirmTitle;
+
+  /// No description provided for @txDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently removes the transaction and updates account balances.'**
+  String get txDeleteConfirmBody;
+
+  /// No description provided for @txSalaryLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary payments are managed from salary periods and cannot be edited here.'**
+  String get txSalaryLocked;
+
+  /// No description provided for @catManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage categories'**
+  String get catManage;
+
+  /// No description provided for @catNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New category'**
+  String get catNew;
+
+  /// No description provided for @catName.
+  ///
+  /// In en, this message translates to:
+  /// **'Category name'**
+  String get catName;
+
+  /// No description provided for @catKindExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense category'**
+  String get catKindExpense;
+
+  /// No description provided for @catKindAllowance.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowance category'**
+  String get catKindAllowance;
+
+  /// No description provided for @catKindIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Income category'**
+  String get catKindIncome;
+
+  /// No description provided for @catNoneYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No categories of this kind yet.'**
+  String get catNoneYet;
 }
 
 class _AppLocalizationsDelegate

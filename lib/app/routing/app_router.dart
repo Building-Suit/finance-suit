@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/routing/app_shell.dart';
 import 'package:work_tracker/app/routing/splash_screen.dart';
+import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:work_tracker/features/auth/presentation/screens/confirm_email_screen.dart';
 import 'package:work_tracker/features/auth/presentation/screens/forgot_password_screen.dart';
@@ -10,7 +11,12 @@ import 'package:work_tracker/features/auth/presentation/screens/login_screen.dar
 import 'package:work_tracker/features/auth/presentation/screens/register_screen.dart';
 import 'package:work_tracker/features/auth/presentation/screens/reset_password_screen.dart';
 import 'package:work_tracker/features/dashboard/presentation/screens/home_screen.dart';
+import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
+import 'package:work_tracker/features/finance/presentation/screens/account_form_screen.dart';
+import 'package:work_tracker/features/finance/presentation/screens/categories_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/money_screen.dart';
+import 'package:work_tracker/features/finance/presentation/screens/transaction_form_screen.dart';
+import 'package:work_tracker/features/finance/presentation/screens/transfer_form_screen.dart';
 import 'package:work_tracker/features/onboarding/presentation/providers/onboarding_status_provider.dart';
 import 'package:work_tracker/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:work_tracker/features/reports/presentation/screens/reports_screen.dart';
@@ -137,6 +143,41 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.money,
                 builder: (context, state) => const MoneyScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'accounts/new',
+                    builder: (context, state) => const AccountFormScreen(),
+                  ),
+                  GoRoute(
+                    path: 'accounts/:id',
+                    builder: (context, state) => AccountFormScreen(
+                      accountId: state.pathParameters['id'],
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'tx/new',
+                    builder: (context, state) => TransactionFormScreen(
+                      kind: TransactionKind.fromDb(
+                        state.uri.queryParameters['kind'] ?? 'expense',
+                      ),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'tx/edit',
+                    builder: (context, state) => TransactionFormScreen(
+                      kind: (state.extra! as FinancialTransaction).kind,
+                      existing: state.extra! as FinancialTransaction,
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'transfer',
+                    builder: (context, state) => const TransferFormScreen(),
+                  ),
+                  GoRoute(
+                    path: 'categories',
+                    builder: (context, state) => const CategoriesScreen(),
+                  ),
+                ],
               ),
             ],
           ),

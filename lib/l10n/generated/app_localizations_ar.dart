@@ -503,4 +503,127 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get setSaved => 'تم الحفظ';
+
+  @override
+  String get moneyAccountsTab => 'الحسابات';
+
+  @override
+  String get moneyTransactionsTab => 'المعاملات';
+
+  @override
+  String get moneyTotalBalance => 'الرصيد الإجمالي';
+
+  @override
+  String get moneyNewAccount => 'حساب جديد';
+
+  @override
+  String get moneyEditAccount => 'تعديل الحساب';
+
+  @override
+  String get moneyNoAccounts => 'لا توجد حسابات بعد. أضف حسابًا للبدء.';
+
+  @override
+  String get moneyNoTransactions => 'لا توجد معاملات بعد.';
+
+  @override
+  String get moneyDefaultLabel => 'افتراضي';
+
+  @override
+  String get moneyArchivedLabel => 'مؤرشف';
+
+  @override
+  String get moneySetDefault => 'تعيين كافتراضي';
+
+  @override
+  String get moneyArchive => 'أرشفة';
+
+  @override
+  String get moneyUnarchive => 'إلغاء الأرشفة';
+
+  @override
+  String get moneyShowArchived => 'عرض المؤرشفة';
+
+  @override
+  String get moneyArchiveConfirmTitle => 'أرشفة الحساب؟';
+
+  @override
+  String get moneyArchiveConfirmBody =>
+      'الحسابات المؤرشفة تختفي من القوائم ولا تستقبل معاملات جديدة. يبقى السجل السابق كما هو.';
+
+  @override
+  String get txExpense => 'مصروف';
+
+  @override
+  String get txAllowance => 'مصروف شخصي لشخص آخر';
+
+  @override
+  String get txCustomIncome => 'دخل آخر';
+
+  @override
+  String get txFreelanceIncome => 'دخل عمل حر';
+
+  @override
+  String get txSalaryIncome => 'راتب';
+
+  @override
+  String get txTransfer => 'تحويل';
+
+  @override
+  String get txAddTitle => 'إضافة معاملة';
+
+  @override
+  String get txEditTitle => 'تعديل المعاملة';
+
+  @override
+  String get txAccount => 'الحساب';
+
+  @override
+  String get txFromAccount => 'من حساب';
+
+  @override
+  String get txToAccount => 'إلى حساب';
+
+  @override
+  String get txCategory => 'الفئة';
+
+  @override
+  String get txNoCategory => 'بدون فئة';
+
+  @override
+  String get txCounterparty => 'أُعطي إلى';
+
+  @override
+  String get txTitleField => 'العنوان';
+
+  @override
+  String get txDeleteConfirmTitle => 'حذف المعاملة؟';
+
+  @override
+  String get txDeleteConfirmBody =>
+      'سيؤدي هذا إلى حذف المعاملة نهائيًا وتحديث أرصدة الحسابات.';
+
+  @override
+  String get txSalaryLocked =>
+      'تُدار دفعات الراتب من فترات الراتب ولا يمكن تعديلها هنا.';
+
+  @override
+  String get catManage => 'إدارة الفئات';
+
+  @override
+  String get catNew => 'فئة جديدة';
+
+  @override
+  String get catName => 'اسم الفئة';
+
+  @override
+  String get catKindExpense => 'فئة مصروفات';
+
+  @override
+  String get catKindAllowance => 'فئة مصروف شخصي';
+
+  @override
+  String get catKindIncome => 'فئة دخل';
+
+  @override
+  String get catNoneYet => 'لا توجد فئات من هذا النوع بعد.';
 }
