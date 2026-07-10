@@ -25,7 +25,7 @@ class SalaryRepository {
 
   Future<Result<List<SalaryPeriod>>> fetchPeriods() {
     return guard(() async {
-      final rows = await _client
+      final rows = await _db
           .from('salary_periods')
           .select()
           .eq('user_id', _userId)
@@ -36,7 +36,7 @@ class SalaryRepository {
 
   Future<Result<SalaryPeriod>> fetchPeriod(String id) {
     return guard(() async {
-      final row = await _client
+      final row = await _db
           .from('salary_periods')
           .select()
           .eq('id', id)
@@ -49,7 +49,7 @@ class SalaryRepository {
   /// Idempotent thanks to the (user_id, period_start) unique constraint.
   Future<Result<SalaryPeriod>> ensurePeriod(PeriodBounds bounds) {
     return guard(() async {
-      await _client
+      await _db
           .from('salary_periods')
           .upsert(
             {
@@ -61,7 +61,7 @@ class SalaryRepository {
             onConflict: 'user_id,period_start',
             ignoreDuplicates: true,
           );
-      final row = await _client
+      final row = await _db
           .from('salary_periods')
           .select()
           .eq('user_id', _userId)
@@ -76,7 +76,7 @@ class SalaryRepository {
     Map<String, dynamic> snapshot,
   ) {
     return guard(() async {
-      await _client
+      await _db
           .from('salary_periods')
           .update({
             'status': 'finalized',
@@ -91,7 +91,7 @@ class SalaryRepository {
   /// Explicit reopen of a finalized (not paid) period.
   Future<Result<void>> reopenPeriod(String id) {
     return guard(() async {
-      await _client
+      await _db
           .from('salary_periods')
           .update({'status': 'open', 'finalized_at': null})
           .eq('id', id)
@@ -127,7 +127,7 @@ class SalaryRepository {
     required PlainDate end,
   }) {
     return guard(() async {
-      final rows = await _client
+      final rows = await _db
           .from('salary_adjustments')
           .select()
           .eq('user_id', _userId)
@@ -153,10 +153,7 @@ class SalaryRepository {
     SalaryAdjustmentDraft draft,
   ) {
     return guard(() async {
-      await _client
-          .from('salary_adjustments')
-          .update(draft.toJson())
-          .eq('id', id);
+      await _db.from('salary_adjustments').update(draft.toJson()).eq('id', id);
     });
   }
 

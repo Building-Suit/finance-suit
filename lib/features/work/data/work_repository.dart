@@ -27,7 +27,7 @@ class WorkRepository {
     required PlainDate end,
   }) {
     return guard(() async {
-      final rows = await _client
+      final rows = await _db
           .from('work_entries')
           .select()
           .eq('user_id', _userId)
@@ -62,7 +62,7 @@ class WorkRepository {
 
   Future<Result<List<OfficialHoliday>>> fetchHolidays() {
     return guard(() async {
-      final rows = await _client
+      final rows = await _db
           .from('official_holidays')
           .select()
           .eq('user_id', _userId)
@@ -93,7 +93,7 @@ class WorkRepository {
     String? notes,
   }) {
     return guard(() async {
-      await _client
+      await _db
           .from('official_holidays')
           .update({'holiday_date': date.toIso(), 'name': name, 'notes': notes})
           .eq('id', id);
