@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/routing/app_shell.dart';
 import 'package:work_tracker/app/routing/splash_screen.dart';
+import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:work_tracker/features/auth/presentation/screens/confirm_email_screen.dart';
@@ -24,6 +25,9 @@ import 'package:work_tracker/features/settings/presentation/screens/change_email
 import 'package:work_tracker/features/settings/presentation/screens/change_password_screen.dart';
 import 'package:work_tracker/features/settings/presentation/screens/salary_settings_screen.dart';
 import 'package:work_tracker/features/settings/presentation/screens/settings_screen.dart';
+import 'package:work_tracker/features/work/domain/work_entry.dart';
+import 'package:work_tracker/features/work/presentation/screens/holidays_screen.dart';
+import 'package:work_tracker/features/work/presentation/screens/work_entry_form_screen.dart';
 import 'package:work_tracker/features/work/presentation/screens/work_screen.dart';
 
 abstract final class AppRoutes {
@@ -135,6 +139,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.work,
                 builder: (context, state) => const WorkScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'entry/new',
+                    builder: (context, state) => WorkEntryFormScreen(
+                      initialDate: switch (state.uri.queryParameters['date']) {
+                        final String iso => PlainDate.parse(iso),
+                        null => null,
+                      },
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'entry/edit',
+                    builder: (context, state) => WorkEntryFormScreen(
+                      existing: state.extra! as WorkEntry,
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'holidays',
+                    builder: (context, state) => const HolidaysScreen(),
+                  ),
+                ],
               ),
             ],
           ),

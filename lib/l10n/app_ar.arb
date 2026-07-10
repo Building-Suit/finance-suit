@@ -235,5 +235,40 @@
   "catKindExpense": "فئة مصروفات",
   "catKindAllowance": "فئة مصروف شخصي",
   "catKindIncome": "فئة دخل",
-  "catNoneYet": "لا توجد فئات من هذا النوع بعد."
+  "catNoneYet": "لا توجد فئات من هذا النوع بعد.",
+  "workEntryType": "نوع السجل",
+  "workEntryRegular": "يوم عمل عادي",
+  "workEntryOvertime": "عمل إضافي",
+  "workEntryExtraDay": "يوم إضافي",
+  "workEntryHoliday": "عمل في عطلة رسمية",
+  "workAddEntry": "إضافة سجل عمل",
+  "workEditEntry": "تعديل سجل العمل",
+  "workNoEntries": "لا توجد سجلات عمل هذا الشهر.",
+  "workNoEntriesForDay": "لا توجد سجلات في هذا اليوم.",
+  "workStartTime": "وقت البدء",
+  "workEndTime": "وقت الانتهاء",
+  "workBreakMinutes": "الاستراحة (دقائق)",
+  "workDurationMinutes": "المدة (دقائق)",
+  "workDayUnits": "أيام العمل (مثال: 1 أو 0.5)",
+  "workMultiplier": "نسبة المضاعف %",
+  "workCustomRate": "سعر مخصص",
+  "workLinkedHoliday": "العطلة الرسمية",
+  "workEstimatedPay": "الأجر الإضافي المقدر",
+  "workHolidays": "العطلات الرسمية",
+  "workNewHoliday": "عطلة جديدة",
+  "workEditHoliday": "تعديل العطلة",
+  "workHolidayName": "اسم العطلة",
+  "workNoHolidays": "لا توجد عطلات رسمية بعد.",
+  "workDeleteEntryTitle": "حذف سجل العمل؟",
+  "workDeleteEntryBody": "سيؤدي هذا إلى حذف سجل العمل نهائيًا.",
+  "workDeleteHolidayTitle": "حذف العطلة؟",
+  "workDeleteHolidayBody": "تحتفظ سجلات العمل المرتبطة بأجرها المسجل لكنها تفقد الارتباط بالعطلة.",
+  "workMonthTotal": "الأجر الإضافي هذا الشهر",
+  "workDurationHm": "{hours}س {minutes}د",
+  "@workDurationHm": {
+    "placeholders": {
+      "hours": {"type": "int"},
+      "minutes": {"type": "int"}
+    }
+  }
 }

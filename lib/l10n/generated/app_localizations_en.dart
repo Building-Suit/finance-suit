@@ -627,4 +627,94 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get catNoneYet => 'No categories of this kind yet.';
+
+  @override
+  String get workEntryType => 'Entry type';
+
+  @override
+  String get workEntryRegular => 'Regular day';
+
+  @override
+  String get workEntryOvertime => 'Overtime';
+
+  @override
+  String get workEntryExtraDay => 'Extra day';
+
+  @override
+  String get workEntryHoliday => 'Holiday worked';
+
+  @override
+  String get workAddEntry => 'Add work entry';
+
+  @override
+  String get workEditEntry => 'Edit work entry';
+
+  @override
+  String get workNoEntries => 'No work entries this month.';
+
+  @override
+  String get workNoEntriesForDay => 'No entries on this day.';
+
+  @override
+  String get workStartTime => 'Start time';
+
+  @override
+  String get workEndTime => 'End time';
+
+  @override
+  String get workBreakMinutes => 'Break (minutes)';
+
+  @override
+  String get workDurationMinutes => 'Duration (minutes)';
+
+  @override
+  String get workDayUnits => 'Days worked (e.g. 1 or 0.5)';
+
+  @override
+  String get workMultiplier => 'Multiplier %';
+
+  @override
+  String get workCustomRate => 'Custom rate';
+
+  @override
+  String get workLinkedHoliday => 'Official holiday';
+
+  @override
+  String get workEstimatedPay => 'Estimated extra pay';
+
+  @override
+  String get workHolidays => 'Official holidays';
+
+  @override
+  String get workNewHoliday => 'New holiday';
+
+  @override
+  String get workEditHoliday => 'Edit holiday';
+
+  @override
+  String get workHolidayName => 'Holiday name';
+
+  @override
+  String get workNoHolidays => 'No official holidays yet.';
+
+  @override
+  String get workDeleteEntryTitle => 'Delete work entry?';
+
+  @override
+  String get workDeleteEntryBody => 'This permanently removes the work entry.';
+
+  @override
+  String get workDeleteHolidayTitle => 'Delete holiday?';
+
+  @override
+  String get workDeleteHolidayBody =>
+      'Linked work entries keep their recorded pay but lose the holiday link.';
+
+  @override
+  String get workMonthTotal => 'Extra pay this month';
+
+  @override
+  String workDurationHm(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
 }

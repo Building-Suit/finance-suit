@@ -235,5 +235,40 @@
   "catKindExpense": "Expense category",
   "catKindAllowance": "Allowance category",
   "catKindIncome": "Income category",
-  "catNoneYet": "No categories of this kind yet."
+  "catNoneYet": "No categories of this kind yet.",
+  "workEntryType": "Entry type",
+  "workEntryRegular": "Regular day",
+  "workEntryOvertime": "Overtime",
+  "workEntryExtraDay": "Extra day",
+  "workEntryHoliday": "Holiday worked",
+  "workAddEntry": "Add work entry",
+  "workEditEntry": "Edit work entry",
+  "workNoEntries": "No work entries this month.",
+  "workNoEntriesForDay": "No entries on this day.",
+  "workStartTime": "Start time",
+  "workEndTime": "End time",
+  "workBreakMinutes": "Break (minutes)",
+  "workDurationMinutes": "Duration (minutes)",
+  "workDayUnits": "Days worked (e.g. 1 or 0.5)",
+  "workMultiplier": "Multiplier %",
+  "workCustomRate": "Custom rate",
+  "workLinkedHoliday": "Official holiday",
+  "workEstimatedPay": "Estimated extra pay",
+  "workHolidays": "Official holidays",
+  "workNewHoliday": "New holiday",
+  "workEditHoliday": "Edit holiday",
+  "workHolidayName": "Holiday name",
+  "workNoHolidays": "No official holidays yet.",
+  "workDeleteEntryTitle": "Delete work entry?",
+  "workDeleteEntryBody": "This permanently removes the work entry.",
+  "workDeleteHolidayTitle": "Delete holiday?",
+  "workDeleteHolidayBody": "Linked work entries keep their recorded pay but lose the holiday link.",
+  "workMonthTotal": "Extra pay this month",
+  "workDurationHm": "{hours}h {minutes}m",
+  "@workDurationHm": {
+    "placeholders": {
+      "hours": {"type": "int"},
+      "minutes": {"type": "int"}
+    }
+  }
 }

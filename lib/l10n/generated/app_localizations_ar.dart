@@ -626,4 +626,94 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get catNoneYet => 'لا توجد فئات من هذا النوع بعد.';
+
+  @override
+  String get workEntryType => 'نوع السجل';
+
+  @override
+  String get workEntryRegular => 'يوم عمل عادي';
+
+  @override
+  String get workEntryOvertime => 'عمل إضافي';
+
+  @override
+  String get workEntryExtraDay => 'يوم إضافي';
+
+  @override
+  String get workEntryHoliday => 'عمل في عطلة رسمية';
+
+  @override
+  String get workAddEntry => 'إضافة سجل عمل';
+
+  @override
+  String get workEditEntry => 'تعديل سجل العمل';
+
+  @override
+  String get workNoEntries => 'لا توجد سجلات عمل هذا الشهر.';
+
+  @override
+  String get workNoEntriesForDay => 'لا توجد سجلات في هذا اليوم.';
+
+  @override
+  String get workStartTime => 'وقت البدء';
+
+  @override
+  String get workEndTime => 'وقت الانتهاء';
+
+  @override
+  String get workBreakMinutes => 'الاستراحة (دقائق)';
+
+  @override
+  String get workDurationMinutes => 'المدة (دقائق)';
+
+  @override
+  String get workDayUnits => 'أيام العمل (مثال: 1 أو 0.5)';
+
+  @override
+  String get workMultiplier => 'نسبة المضاعف %';
+
+  @override
+  String get workCustomRate => 'سعر مخصص';
+
+  @override
+  String get workLinkedHoliday => 'العطلة الرسمية';
+
+  @override
+  String get workEstimatedPay => 'الأجر الإضافي المقدر';
+
+  @override
+  String get workHolidays => 'العطلات الرسمية';
+
+  @override
+  String get workNewHoliday => 'عطلة جديدة';
+
+  @override
+  String get workEditHoliday => 'تعديل العطلة';
+
+  @override
+  String get workHolidayName => 'اسم العطلة';
+
+  @override
+  String get workNoHolidays => 'لا توجد عطلات رسمية بعد.';
+
+  @override
+  String get workDeleteEntryTitle => 'حذف سجل العمل؟';
+
+  @override
+  String get workDeleteEntryBody => 'سيؤدي هذا إلى حذف سجل العمل نهائيًا.';
+
+  @override
+  String get workDeleteHolidayTitle => 'حذف العطلة؟';
+
+  @override
+  String get workDeleteHolidayBody =>
+      'تحتفظ سجلات العمل المرتبطة بأجرها المسجل لكنها تفقد الارتباط بالعطلة.';
+
+  @override
+  String get workMonthTotal => 'الأجر الإضافي هذا الشهر';
+
+  @override
+  String workDurationHm(int hours, int minutes) {
+    return '$hoursس $minutesد';
+  }
 }

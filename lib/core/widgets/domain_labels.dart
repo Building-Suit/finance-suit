@@ -33,3 +33,12 @@ String categoryKindLabel(AppLocalizations l10n, CategoryKind kind) {
     CategoryKind.income => l10n.catKindIncome,
   };
 }
+
+String workEntryTypeLabel(AppLocalizations l10n, WorkEntryType type) {
+  return switch (type) {
+    WorkEntryType.regular => l10n.workEntryRegular,
+    WorkEntryType.overtime => l10n.workEntryOvertime,
+    WorkEntryType.extraDay => l10n.workEntryExtraDay,
+    WorkEntryType.holidayWorked => l10n.workEntryHoliday,
+  };
+}

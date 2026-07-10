@@ -1285,6 +1285,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No categories of this kind yet.'**
   String get catNoneYet;
+
+  /// No description provided for @workEntryType.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry type'**
+  String get workEntryType;
+
+  /// No description provided for @workEntryRegular.
+  ///
+  /// In en, this message translates to:
+  /// **'Regular day'**
+  String get workEntryRegular;
+
+  /// No description provided for @workEntryOvertime.
+  ///
+  /// In en, this message translates to:
+  /// **'Overtime'**
+  String get workEntryOvertime;
+
+  /// No description provided for @workEntryExtraDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra day'**
+  String get workEntryExtraDay;
+
+  /// No description provided for @workEntryHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday worked'**
+  String get workEntryHoliday;
+
+  /// No description provided for @workAddEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Add work entry'**
+  String get workAddEntry;
+
+  /// No description provided for @workEditEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit work entry'**
+  String get workEditEntry;
+
+  /// No description provided for @workNoEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'No work entries this month.'**
+  String get workNoEntries;
+
+  /// No description provided for @workNoEntriesForDay.
+  ///
+  /// In en, this message translates to:
+  /// **'No entries on this day.'**
+  String get workNoEntriesForDay;
+
+  /// No description provided for @workStartTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Start time'**
+  String get workStartTime;
+
+  /// No description provided for @workEndTime.
+  ///
+  /// In en, this message translates to:
+  /// **'End time'**
+  String get workEndTime;
+
+  /// No description provided for @workBreakMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Break (minutes)'**
+  String get workBreakMinutes;
+
+  /// No description provided for @workDurationMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration (minutes)'**
+  String get workDurationMinutes;
+
+  /// No description provided for @workDayUnits.
+  ///
+  /// In en, this message translates to:
+  /// **'Days worked (e.g. 1 or 0.5)'**
+  String get workDayUnits;
+
+  /// No description provided for @workMultiplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiplier %'**
+  String get workMultiplier;
+
+  /// No description provided for @workCustomRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom rate'**
+  String get workCustomRate;
+
+  /// No description provided for @workLinkedHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'Official holiday'**
+  String get workLinkedHoliday;
+
+  /// No description provided for @workEstimatedPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated extra pay'**
+  String get workEstimatedPay;
+
+  /// No description provided for @workHolidays.
+  ///
+  /// In en, this message translates to:
+  /// **'Official holidays'**
+  String get workHolidays;
+
+  /// No description provided for @workNewHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'New holiday'**
+  String get workNewHoliday;
+
+  /// No description provided for @workEditHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit holiday'**
+  String get workEditHoliday;
+
+  /// No description provided for @workHolidayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday name'**
+  String get workHolidayName;
+
+  /// No description provided for @workNoHolidays.
+  ///
+  /// In en, this message translates to:
+  /// **'No official holidays yet.'**
+  String get workNoHolidays;
+
+  /// No description provided for @workDeleteEntryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete work entry?'**
+  String get workDeleteEntryTitle;
+
+  /// No description provided for @workDeleteEntryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently removes the work entry.'**
+  String get workDeleteEntryBody;
+
+  /// No description provided for @workDeleteHolidayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete holiday?'**
+  String get workDeleteHolidayTitle;
+
+  /// No description provided for @workDeleteHolidayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked work entries keep their recorded pay but lose the holiday link.'**
+  String get workDeleteHolidayBody;
+
+  /// No description provided for @workMonthTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra pay this month'**
+  String get workMonthTotal;
+
+  /// No description provided for @workDurationHm.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m'**
+  String workDurationHm(int hours, int minutes);
 }
 
 class _AppLocalizationsDelegate
