@@ -14,6 +14,9 @@ import 'package:work_tracker/features/finance/presentation/screens/money_screen.
 import 'package:work_tracker/features/onboarding/presentation/providers/onboarding_status_provider.dart';
 import 'package:work_tracker/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:work_tracker/features/reports/presentation/screens/reports_screen.dart';
+import 'package:work_tracker/features/settings/presentation/screens/change_email_screen.dart';
+import 'package:work_tracker/features/settings/presentation/screens/change_password_screen.dart';
+import 'package:work_tracker/features/settings/presentation/screens/salary_settings_screen.dart';
 import 'package:work_tracker/features/settings/presentation/screens/settings_screen.dart';
 import 'package:work_tracker/features/work/presentation/screens/work_screen.dart';
 
@@ -150,6 +153,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.settings,
                 builder: (context, state) => const SettingsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'salary',
+                    builder: (context, state) => const SalarySettingsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'password',
+                    builder: (context, state) => const ChangePasswordScreen(),
+                  ),
+                  GoRoute(
+                    path: 'email',
+                    builder: (context, state) => const ChangeEmailScreen(),
+                  ),
+                ],
               ),
             ],
           ),

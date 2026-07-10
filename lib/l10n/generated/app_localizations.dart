@@ -649,6 +649,402 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Strong password'**
   String get authPasswordStrengthStrong;
+
+  /// No description provided for @onbStepProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'About you'**
+  String get onbStepProfile;
+
+  /// No description provided for @onbStepSalary.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary'**
+  String get onbStepSalary;
+
+  /// No description provided for @onbStepAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'First account'**
+  String get onbStepAccount;
+
+  /// No description provided for @onbStepReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get onbStepReview;
+
+  /// No description provided for @onbWelcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s set up your workspace'**
+  String get onbWelcome;
+
+  /// No description provided for @onbLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get onbLanguage;
+
+  /// No description provided for @onbCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get onbCurrency;
+
+  /// No description provided for @onbTimezone.
+  ///
+  /// In en, this message translates to:
+  /// **'Timezone'**
+  String get onbTimezone;
+
+  /// No description provided for @onbWeekStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Week starts on'**
+  String get onbWeekStart;
+
+  /// No description provided for @onbWeekendDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekend days'**
+  String get onbWeekendDays;
+
+  /// No description provided for @onbStepProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {current} of {total}'**
+  String onbStepProgress(int current, int total);
+
+  /// No description provided for @onbReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review your setup'**
+  String get onbReviewTitle;
+
+  /// No description provided for @onbFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish setup'**
+  String get onbFinish;
+
+  /// No description provided for @salBaseSalary.
+  ///
+  /// In en, this message translates to:
+  /// **'Base salary'**
+  String get salBaseSalary;
+
+  /// No description provided for @salPeriodStartDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Period start day'**
+  String get salPeriodStartDay;
+
+  /// No description provided for @salPaymentDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment day'**
+  String get salPaymentDay;
+
+  /// No description provided for @salPaymentMonthOffset.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment month'**
+  String get salPaymentMonthOffset;
+
+  /// No description provided for @salOffsetSameMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Same month'**
+  String get salOffsetSameMonth;
+
+  /// No description provided for @salOffsetNextMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Next month'**
+  String get salOffsetNextMonth;
+
+  /// No description provided for @salOffsetSecondMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Two months later'**
+  String get salOffsetSecondMonth;
+
+  /// No description provided for @salStandardPaidDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard paid days per period'**
+  String get salStandardPaidDays;
+
+  /// No description provided for @salStandardHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard hours per day'**
+  String get salStandardHours;
+
+  /// No description provided for @salDayRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Day rate'**
+  String get salDayRate;
+
+  /// No description provided for @salHourRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Hourly rate'**
+  String get salHourRate;
+
+  /// No description provided for @salRateDerived.
+  ///
+  /// In en, this message translates to:
+  /// **'Derived automatically'**
+  String get salRateDerived;
+
+  /// No description provided for @salRateManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get salRateManual;
+
+  /// No description provided for @salManualDayRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual day rate'**
+  String get salManualDayRate;
+
+  /// No description provided for @salManualHourRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual hourly rate'**
+  String get salManualHourRate;
+
+  /// No description provided for @salMultipliers.
+  ///
+  /// In en, this message translates to:
+  /// **'Multipliers'**
+  String get salMultipliers;
+
+  /// No description provided for @salExtraDayMultiplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra day multiplier (%)'**
+  String get salExtraDayMultiplier;
+
+  /// No description provided for @salHolidayMultiplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday multiplier (%)'**
+  String get salHolidayMultiplier;
+
+  /// No description provided for @salOvertimeMultiplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Overtime multiplier (%)'**
+  String get salOvertimeMultiplier;
+
+  /// No description provided for @salHolidaySemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday pay semantics'**
+  String get salHolidaySemantics;
+
+  /// No description provided for @salSemanticsAdditional.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional pay on top of base'**
+  String get salSemanticsAdditional;
+
+  /// No description provided for @salSemanticsTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total including base'**
+  String get salSemanticsTotal;
+
+  /// No description provided for @salDerivedDayRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Derived day rate: {amount}'**
+  String salDerivedDayRate(String amount);
+
+  /// No description provided for @salDerivedHourRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Derived hourly rate: {amount}'**
+  String salDerivedHourRate(String amount);
+
+  /// No description provided for @accName.
+  ///
+  /// In en, this message translates to:
+  /// **'Account name'**
+  String get accName;
+
+  /// No description provided for @accType.
+  ///
+  /// In en, this message translates to:
+  /// **'Account type'**
+  String get accType;
+
+  /// No description provided for @accTypeCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current balance'**
+  String get accTypeCurrent;
+
+  /// No description provided for @accTypeSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings'**
+  String get accTypeSavings;
+
+  /// No description provided for @accTypeCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get accTypeCash;
+
+  /// No description provided for @accTypeBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank'**
+  String get accTypeBank;
+
+  /// No description provided for @accTypeWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet'**
+  String get accTypeWallet;
+
+  /// No description provided for @accTypeEmergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency fund'**
+  String get accTypeEmergency;
+
+  /// No description provided for @accTypeVacation.
+  ///
+  /// In en, this message translates to:
+  /// **'Vacation fund'**
+  String get accTypeVacation;
+
+  /// No description provided for @accTypeCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get accTypeCustom;
+
+  /// No description provided for @accOpeningBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening balance'**
+  String get accOpeningBalance;
+
+  /// No description provided for @accAllowNegative.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow negative balance'**
+  String get accAllowNegative;
+
+  /// No description provided for @setAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get setAppearance;
+
+  /// No description provided for @setTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get setTheme;
+
+  /// No description provided for @setThemeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get setThemeSystem;
+
+  /// No description provided for @setThemeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get setThemeLight;
+
+  /// No description provided for @setThemeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get setThemeDark;
+
+  /// No description provided for @setProfileSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get setProfileSection;
+
+  /// No description provided for @setDisplayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Display name'**
+  String get setDisplayName;
+
+  /// No description provided for @setChangePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get setChangePassword;
+
+  /// No description provided for @setChangeEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Change email'**
+  String get setChangeEmail;
+
+  /// No description provided for @setNewEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'New email'**
+  String get setNewEmail;
+
+  /// No description provided for @setEmailChangeSent.
+  ///
+  /// In en, this message translates to:
+  /// **'A confirmation link was sent to the new email.'**
+  String get setEmailChangeSent;
+
+  /// No description provided for @setSalarySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary settings'**
+  String get setSalarySection;
+
+  /// No description provided for @setPreferencesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get setPreferencesSection;
+
+  /// No description provided for @setAccountSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get setAccountSection;
+
+  /// No description provided for @setSignOutConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out?'**
+  String get setSignOutConfirmTitle;
+
+  /// No description provided for @setSignOutConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You can log back in anytime.'**
+  String get setSignOutConfirmBody;
+
+  /// No description provided for @setSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get setSaved;
 }
 
 class _AppLocalizationsDelegate

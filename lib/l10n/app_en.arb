@@ -105,5 +105,95 @@
   "authLogout": "Log out",
   "authPasswordStrengthWeak": "Weak password",
   "authPasswordStrengthFair": "Fair password",
-  "authPasswordStrengthStrong": "Strong password"
+  "authPasswordStrengthStrong": "Strong password",
+  "onbStepProfile": "About you",
+  "onbStepSalary": "Salary",
+  "onbStepAccount": "First account",
+  "onbStepReview": "Review",
+  "onbWelcome": "Let's set up your workspace",
+  "onbLanguage": "Language",
+  "onbCurrency": "Currency",
+  "onbTimezone": "Timezone",
+  "onbWeekStart": "Week starts on",
+  "onbWeekendDays": "Weekend days",
+  "onbStepProgress": "Step {current} of {total}",
+  "@onbStepProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "onbReviewTitle": "Review your setup",
+  "onbFinish": "Finish setup",
+  "salBaseSalary": "Base salary",
+  "salPeriodStartDay": "Period start day",
+  "salPaymentDay": "Payment day",
+  "salPaymentMonthOffset": "Payment month",
+  "salOffsetSameMonth": "Same month",
+  "salOffsetNextMonth": "Next month",
+  "salOffsetSecondMonth": "Two months later",
+  "salStandardPaidDays": "Standard paid days per period",
+  "salStandardHours": "Standard hours per day",
+  "salDayRate": "Day rate",
+  "salHourRate": "Hourly rate",
+  "salRateDerived": "Derived automatically",
+  "salRateManual": "Manual",
+  "salManualDayRate": "Manual day rate",
+  "salManualHourRate": "Manual hourly rate",
+  "salMultipliers": "Multipliers",
+  "salExtraDayMultiplier": "Extra day multiplier (%)",
+  "salHolidayMultiplier": "Holiday multiplier (%)",
+  "salOvertimeMultiplier": "Overtime multiplier (%)",
+  "salHolidaySemantics": "Holiday pay semantics",
+  "salSemanticsAdditional": "Additional pay on top of base",
+  "salSemanticsTotal": "Total including base",
+  "salDerivedDayRate": "Derived day rate: {amount}",
+  "@salDerivedDayRate": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "salDerivedHourRate": "Derived hourly rate: {amount}",
+  "@salDerivedHourRate": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "accName": "Account name",
+  "accType": "Account type",
+  "accTypeCurrent": "Current balance",
+  "accTypeSavings": "Savings",
+  "accTypeCash": "Cash",
+  "accTypeBank": "Bank",
+  "accTypeWallet": "Wallet",
+  "accTypeEmergency": "Emergency fund",
+  "accTypeVacation": "Vacation fund",
+  "accTypeCustom": "Custom",
+  "accOpeningBalance": "Opening balance",
+  "accAllowNegative": "Allow negative balance",
+  "setAppearance": "Appearance",
+  "setTheme": "Theme",
+  "setThemeSystem": "System",
+  "setThemeLight": "Light",
+  "setThemeDark": "Dark",
+  "setProfileSection": "Profile",
+  "setDisplayName": "Display name",
+  "setChangePassword": "Change password",
+  "setChangeEmail": "Change email",
+  "setNewEmail": "New email",
+  "setEmailChangeSent": "A confirmation link was sent to the new email.",
+  "setSalarySection": "Salary settings",
+  "setPreferencesSection": "Preferences",
+  "setAccountSection": "Account",
+  "setSignOutConfirmTitle": "Log out?",
+  "setSignOutConfirmBody": "You can log back in anytime.",
+  "setSaved": "Saved"
 }

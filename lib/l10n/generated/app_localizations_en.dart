@@ -299,4 +299,209 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authPasswordStrengthStrong => 'Strong password';
+
+  @override
+  String get onbStepProfile => 'About you';
+
+  @override
+  String get onbStepSalary => 'Salary';
+
+  @override
+  String get onbStepAccount => 'First account';
+
+  @override
+  String get onbStepReview => 'Review';
+
+  @override
+  String get onbWelcome => 'Let\'s set up your workspace';
+
+  @override
+  String get onbLanguage => 'Language';
+
+  @override
+  String get onbCurrency => 'Currency';
+
+  @override
+  String get onbTimezone => 'Timezone';
+
+  @override
+  String get onbWeekStart => 'Week starts on';
+
+  @override
+  String get onbWeekendDays => 'Weekend days';
+
+  @override
+  String onbStepProgress(int current, int total) {
+    return 'Step $current of $total';
+  }
+
+  @override
+  String get onbReviewTitle => 'Review your setup';
+
+  @override
+  String get onbFinish => 'Finish setup';
+
+  @override
+  String get salBaseSalary => 'Base salary';
+
+  @override
+  String get salPeriodStartDay => 'Period start day';
+
+  @override
+  String get salPaymentDay => 'Payment day';
+
+  @override
+  String get salPaymentMonthOffset => 'Payment month';
+
+  @override
+  String get salOffsetSameMonth => 'Same month';
+
+  @override
+  String get salOffsetNextMonth => 'Next month';
+
+  @override
+  String get salOffsetSecondMonth => 'Two months later';
+
+  @override
+  String get salStandardPaidDays => 'Standard paid days per period';
+
+  @override
+  String get salStandardHours => 'Standard hours per day';
+
+  @override
+  String get salDayRate => 'Day rate';
+
+  @override
+  String get salHourRate => 'Hourly rate';
+
+  @override
+  String get salRateDerived => 'Derived automatically';
+
+  @override
+  String get salRateManual => 'Manual';
+
+  @override
+  String get salManualDayRate => 'Manual day rate';
+
+  @override
+  String get salManualHourRate => 'Manual hourly rate';
+
+  @override
+  String get salMultipliers => 'Multipliers';
+
+  @override
+  String get salExtraDayMultiplier => 'Extra day multiplier (%)';
+
+  @override
+  String get salHolidayMultiplier => 'Holiday multiplier (%)';
+
+  @override
+  String get salOvertimeMultiplier => 'Overtime multiplier (%)';
+
+  @override
+  String get salHolidaySemantics => 'Holiday pay semantics';
+
+  @override
+  String get salSemanticsAdditional => 'Additional pay on top of base';
+
+  @override
+  String get salSemanticsTotal => 'Total including base';
+
+  @override
+  String salDerivedDayRate(String amount) {
+    return 'Derived day rate: $amount';
+  }
+
+  @override
+  String salDerivedHourRate(String amount) {
+    return 'Derived hourly rate: $amount';
+  }
+
+  @override
+  String get accName => 'Account name';
+
+  @override
+  String get accType => 'Account type';
+
+  @override
+  String get accTypeCurrent => 'Current balance';
+
+  @override
+  String get accTypeSavings => 'Savings';
+
+  @override
+  String get accTypeCash => 'Cash';
+
+  @override
+  String get accTypeBank => 'Bank';
+
+  @override
+  String get accTypeWallet => 'Wallet';
+
+  @override
+  String get accTypeEmergency => 'Emergency fund';
+
+  @override
+  String get accTypeVacation => 'Vacation fund';
+
+  @override
+  String get accTypeCustom => 'Custom';
+
+  @override
+  String get accOpeningBalance => 'Opening balance';
+
+  @override
+  String get accAllowNegative => 'Allow negative balance';
+
+  @override
+  String get setAppearance => 'Appearance';
+
+  @override
+  String get setTheme => 'Theme';
+
+  @override
+  String get setThemeSystem => 'System';
+
+  @override
+  String get setThemeLight => 'Light';
+
+  @override
+  String get setThemeDark => 'Dark';
+
+  @override
+  String get setProfileSection => 'Profile';
+
+  @override
+  String get setDisplayName => 'Display name';
+
+  @override
+  String get setChangePassword => 'Change password';
+
+  @override
+  String get setChangeEmail => 'Change email';
+
+  @override
+  String get setNewEmail => 'New email';
+
+  @override
+  String get setEmailChangeSent =>
+      'A confirmation link was sent to the new email.';
+
+  @override
+  String get setSalarySection => 'Salary settings';
+
+  @override
+  String get setPreferencesSection => 'Preferences';
+
+  @override
+  String get setAccountSection => 'Account';
+
+  @override
+  String get setSignOutConfirmTitle => 'Log out?';
+
+  @override
+  String get setSignOutConfirmBody => 'You can log back in anytime.';
+
+  @override
+  String get setSaved => 'Saved';
 }

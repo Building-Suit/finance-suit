@@ -298,4 +298,209 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get authPasswordStrengthStrong => 'كلمة مرور قوية';
+
+  @override
+  String get onbStepProfile => 'عنك';
+
+  @override
+  String get onbStepSalary => 'الراتب';
+
+  @override
+  String get onbStepAccount => 'الحساب الأول';
+
+  @override
+  String get onbStepReview => 'المراجعة';
+
+  @override
+  String get onbWelcome => 'لنقم بإعداد مساحة عملك';
+
+  @override
+  String get onbLanguage => 'اللغة';
+
+  @override
+  String get onbCurrency => 'العملة';
+
+  @override
+  String get onbTimezone => 'المنطقة الزمنية';
+
+  @override
+  String get onbWeekStart => 'يبدأ الأسبوع يوم';
+
+  @override
+  String get onbWeekendDays => 'أيام العطلة الأسبوعية';
+
+  @override
+  String onbStepProgress(int current, int total) {
+    return 'الخطوة $current من $total';
+  }
+
+  @override
+  String get onbReviewTitle => 'راجع إعداداتك';
+
+  @override
+  String get onbFinish => 'إنهاء الإعداد';
+
+  @override
+  String get salBaseSalary => 'الراتب الأساسي';
+
+  @override
+  String get salPeriodStartDay => 'يوم بداية الفترة';
+
+  @override
+  String get salPaymentDay => 'يوم الدفع';
+
+  @override
+  String get salPaymentMonthOffset => 'شهر الدفع';
+
+  @override
+  String get salOffsetSameMonth => 'نفس الشهر';
+
+  @override
+  String get salOffsetNextMonth => 'الشهر التالي';
+
+  @override
+  String get salOffsetSecondMonth => 'بعد شهرين';
+
+  @override
+  String get salStandardPaidDays => 'أيام العمل المدفوعة القياسية في الفترة';
+
+  @override
+  String get salStandardHours => 'ساعات العمل القياسية في اليوم';
+
+  @override
+  String get salDayRate => 'أجر اليوم';
+
+  @override
+  String get salHourRate => 'أجر الساعة';
+
+  @override
+  String get salRateDerived => 'محسوب تلقائياً';
+
+  @override
+  String get salRateManual => 'يدوي';
+
+  @override
+  String get salManualDayRate => 'أجر اليوم اليدوي';
+
+  @override
+  String get salManualHourRate => 'أجر الساعة اليدوي';
+
+  @override
+  String get salMultipliers => 'المعاملات';
+
+  @override
+  String get salExtraDayMultiplier => 'معامل اليوم الإضافي (%)';
+
+  @override
+  String get salHolidayMultiplier => 'معامل العطلة الرسمية (%)';
+
+  @override
+  String get salOvertimeMultiplier => 'معامل العمل الإضافي (%)';
+
+  @override
+  String get salHolidaySemantics => 'طريقة احتساب أجر العطلة';
+
+  @override
+  String get salSemanticsAdditional => 'أجر إضافي فوق الأساسي';
+
+  @override
+  String get salSemanticsTotal => 'الإجمالي شاملاً الأساسي';
+
+  @override
+  String salDerivedDayRate(String amount) {
+    return 'أجر اليوم المحسوب: $amount';
+  }
+
+  @override
+  String salDerivedHourRate(String amount) {
+    return 'أجر الساعة المحسوب: $amount';
+  }
+
+  @override
+  String get accName => 'اسم الحساب';
+
+  @override
+  String get accType => 'نوع الحساب';
+
+  @override
+  String get accTypeCurrent => 'الرصيد الجاري';
+
+  @override
+  String get accTypeSavings => 'مدخرات';
+
+  @override
+  String get accTypeCash => 'نقدي';
+
+  @override
+  String get accTypeBank => 'بنك';
+
+  @override
+  String get accTypeWallet => 'محفظة';
+
+  @override
+  String get accTypeEmergency => 'صندوق الطوارئ';
+
+  @override
+  String get accTypeVacation => 'صندوق الإجازات';
+
+  @override
+  String get accTypeCustom => 'مخصص';
+
+  @override
+  String get accOpeningBalance => 'الرصيد الافتتاحي';
+
+  @override
+  String get accAllowNegative => 'السماح بالرصيد السالب';
+
+  @override
+  String get setAppearance => 'المظهر';
+
+  @override
+  String get setTheme => 'السمة';
+
+  @override
+  String get setThemeSystem => 'النظام';
+
+  @override
+  String get setThemeLight => 'فاتح';
+
+  @override
+  String get setThemeDark => 'داكن';
+
+  @override
+  String get setProfileSection => 'الملف الشخصي';
+
+  @override
+  String get setDisplayName => 'الاسم المعروض';
+
+  @override
+  String get setChangePassword => 'تغيير كلمة المرور';
+
+  @override
+  String get setChangeEmail => 'تغيير البريد الإلكتروني';
+
+  @override
+  String get setNewEmail => 'البريد الإلكتروني الجديد';
+
+  @override
+  String get setEmailChangeSent =>
+      'تم إرسال رابط تأكيد إلى البريد الإلكتروني الجديد.';
+
+  @override
+  String get setSalarySection => 'إعدادات الراتب';
+
+  @override
+  String get setPreferencesSection => 'التفضيلات';
+
+  @override
+  String get setAccountSection => 'الحساب';
+
+  @override
+  String get setSignOutConfirmTitle => 'تسجيل الخروج؟';
+
+  @override
+  String get setSignOutConfirmBody => 'يمكنك تسجيل الدخول مرة أخرى في أي وقت.';
+
+  @override
+  String get setSaved => 'تم الحفظ';
 }

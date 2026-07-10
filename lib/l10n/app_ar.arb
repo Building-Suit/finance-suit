@@ -105,5 +105,95 @@
   "authLogout": "تسجيل الخروج",
   "authPasswordStrengthWeak": "كلمة مرور ضعيفة",
   "authPasswordStrengthFair": "كلمة مرور مقبولة",
-  "authPasswordStrengthStrong": "كلمة مرور قوية"
+  "authPasswordStrengthStrong": "كلمة مرور قوية",
+  "onbStepProfile": "عنك",
+  "onbStepSalary": "الراتب",
+  "onbStepAccount": "الحساب الأول",
+  "onbStepReview": "المراجعة",
+  "onbWelcome": "لنقم بإعداد مساحة عملك",
+  "onbLanguage": "اللغة",
+  "onbCurrency": "العملة",
+  "onbTimezone": "المنطقة الزمنية",
+  "onbWeekStart": "يبدأ الأسبوع يوم",
+  "onbWeekendDays": "أيام العطلة الأسبوعية",
+  "onbStepProgress": "الخطوة {current} من {total}",
+  "@onbStepProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "onbReviewTitle": "راجع إعداداتك",
+  "onbFinish": "إنهاء الإعداد",
+  "salBaseSalary": "الراتب الأساسي",
+  "salPeriodStartDay": "يوم بداية الفترة",
+  "salPaymentDay": "يوم الدفع",
+  "salPaymentMonthOffset": "شهر الدفع",
+  "salOffsetSameMonth": "نفس الشهر",
+  "salOffsetNextMonth": "الشهر التالي",
+  "salOffsetSecondMonth": "بعد شهرين",
+  "salStandardPaidDays": "أيام العمل المدفوعة القياسية في الفترة",
+  "salStandardHours": "ساعات العمل القياسية في اليوم",
+  "salDayRate": "أجر اليوم",
+  "salHourRate": "أجر الساعة",
+  "salRateDerived": "محسوب تلقائياً",
+  "salRateManual": "يدوي",
+  "salManualDayRate": "أجر اليوم اليدوي",
+  "salManualHourRate": "أجر الساعة اليدوي",
+  "salMultipliers": "المعاملات",
+  "salExtraDayMultiplier": "معامل اليوم الإضافي (%)",
+  "salHolidayMultiplier": "معامل العطلة الرسمية (%)",
+  "salOvertimeMultiplier": "معامل العمل الإضافي (%)",
+  "salHolidaySemantics": "طريقة احتساب أجر العطلة",
+  "salSemanticsAdditional": "أجر إضافي فوق الأساسي",
+  "salSemanticsTotal": "الإجمالي شاملاً الأساسي",
+  "salDerivedDayRate": "أجر اليوم المحسوب: {amount}",
+  "@salDerivedDayRate": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "salDerivedHourRate": "أجر الساعة المحسوب: {amount}",
+  "@salDerivedHourRate": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "accName": "اسم الحساب",
+  "accType": "نوع الحساب",
+  "accTypeCurrent": "الرصيد الجاري",
+  "accTypeSavings": "مدخرات",
+  "accTypeCash": "نقدي",
+  "accTypeBank": "بنك",
+  "accTypeWallet": "محفظة",
+  "accTypeEmergency": "صندوق الطوارئ",
+  "accTypeVacation": "صندوق الإجازات",
+  "accTypeCustom": "مخصص",
+  "accOpeningBalance": "الرصيد الافتتاحي",
+  "accAllowNegative": "السماح بالرصيد السالب",
+  "setAppearance": "المظهر",
+  "setTheme": "السمة",
+  "setThemeSystem": "النظام",
+  "setThemeLight": "فاتح",
+  "setThemeDark": "داكن",
+  "setProfileSection": "الملف الشخصي",
+  "setDisplayName": "الاسم المعروض",
+  "setChangePassword": "تغيير كلمة المرور",
+  "setChangeEmail": "تغيير البريد الإلكتروني",
+  "setNewEmail": "البريد الإلكتروني الجديد",
+  "setEmailChangeSent": "تم إرسال رابط تأكيد إلى البريد الإلكتروني الجديد.",
+  "setSalarySection": "إعدادات الراتب",
+  "setPreferencesSection": "التفضيلات",
+  "setAccountSection": "الحساب",
+  "setSignOutConfirmTitle": "تسجيل الخروج؟",
+  "setSignOutConfirmBody": "يمكنك تسجيل الدخول مرة أخرى في أي وقت.",
+  "setSaved": "تم الحفظ"
 }
