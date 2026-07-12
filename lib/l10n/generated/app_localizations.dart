@@ -278,6 +278,12 @@ abstract class AppLocalizations {
   /// **'Apply'**
   String get commonApply;
 
+  /// No description provided for @commonAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get commonAdd;
+
   /// No description provided for @errInvalidCredentials.
   ///
   /// In en, this message translates to:
@@ -1748,59 +1754,11 @@ abstract class AppLocalizations {
   /// **'Recent activity'**
   String get homeRecentActivity;
 
-  /// No description provided for @homeQuickActions.
-  ///
-  /// In en, this message translates to:
-  /// **'Quick actions'**
-  String get homeQuickActions;
-
   /// No description provided for @homeNoRecentActivity.
   ///
   /// In en, this message translates to:
   /// **'No recent activity.'**
   String get homeNoRecentActivity;
-
-  /// No description provided for @homeAddExpense.
-  ///
-  /// In en, this message translates to:
-  /// **'Add expense'**
-  String get homeAddExpense;
-
-  /// No description provided for @homeGiveAllowance.
-  ///
-  /// In en, this message translates to:
-  /// **'Give allowance'**
-  String get homeGiveAllowance;
-
-  /// No description provided for @homeAddIncome.
-  ///
-  /// In en, this message translates to:
-  /// **'Add income'**
-  String get homeAddIncome;
-
-  /// No description provided for @homeTransfer.
-  ///
-  /// In en, this message translates to:
-  /// **'Transfer money'**
-  String get homeTransfer;
-
-  /// No description provided for @homeAddOvertime.
-  ///
-  /// In en, this message translates to:
-  /// **'Add overtime'**
-  String get homeAddOvertime;
-
-  /// No description provided for @homeAddExtraDay.
-  ///
-  /// In en, this message translates to:
-  /// **'Add extra day'**
-  String get homeAddExtraDay;
-
-  /// No description provided for @homeAddHoliday.
-  ///
-  /// In en, this message translates to:
-  /// **'Add holiday worked'**
-  String get homeAddHoliday;
 
   /// No description provided for @historyTitle.
   ///

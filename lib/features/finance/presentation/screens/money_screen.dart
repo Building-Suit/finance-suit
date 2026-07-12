@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
-import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
@@ -23,38 +22,6 @@ class MoneyScreen extends ConsumerStatefulWidget {
 
 class _MoneyScreenState extends ConsumerState<MoneyScreen> {
   bool _showArchived = false;
-
-  Future<void> _openAddSheet() async {
-    final l10n = AppLocalizations.of(context);
-    final kind = await showModalBottomSheet<TransactionKind>(
-      context: context,
-      builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final kind in const [
-              TransactionKind.expense,
-              TransactionKind.allowanceGiven,
-              TransactionKind.customIncome,
-              TransactionKind.freelanceIncome,
-              TransactionKind.transfer,
-            ])
-              ListTile(
-                leading: Icon(transactionKindIcon(kind)),
-                title: Text(transactionKindLabel(l10n, kind)),
-                onTap: () => Navigator.of(sheetContext).pop(kind),
-              ),
-          ],
-        ),
-      ),
-    );
-    if (kind == null || !mounted) return;
-    if (kind == TransactionKind.transfer) {
-      await context.push('${AppRoutes.money}/transfer');
-    } else {
-      await context.push('${AppRoutes.money}/tx/new?kind=${kind.dbValue}');
-    }
-  }
 
   Future<void> _onTransactionTap(FinancialTransaction tx) async {
     final l10n = AppLocalizations.of(context);
@@ -314,11 +281,6 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
         ),
         body: TabBarView(
           children: [_accountsTab(l10n), _transactionsTab(l10n)],
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _openAddSheet,
-          tooltip: l10n.txAddTitle,
-          child: const Icon(Icons.add),
         ),
       ),
     );

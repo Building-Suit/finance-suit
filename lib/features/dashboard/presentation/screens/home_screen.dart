@@ -145,17 +145,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     };
   }
 
-  void _openTransaction(TransactionKind kind) {
-    context.push('${AppRoutes.money}/tx/new?kind=${kind.dbValue}');
-  }
-
-  void _openWork(WorkEntryType type) {
-    final today = PlainDate.today();
-    context.push(
-      '${AppRoutes.work}/entry/new?date=${today.toIso()}&type=${type.dbValue}',
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -190,7 +179,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
           children: [
             _SectionHeader(title: l10n.homeBalance),
             AsyncView(
@@ -226,17 +215,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               onRetry: () => ref.invalidate(currentEstimateProvider),
               loading: const _SectionLoader(),
               data: (estimate) => EstimateBreakdownCard(estimate: estimate),
-            ),
-            _SectionHeader(title: l10n.homeQuickActions),
-            _QuickActions(
-              onExpense: () => _openTransaction(TransactionKind.expense),
-              onAllowance: () =>
-                  _openTransaction(TransactionKind.allowanceGiven),
-              onIncome: () => _openTransaction(TransactionKind.customIncome),
-              onTransfer: () => context.push('${AppRoutes.money}/transfer'),
-              onOvertime: () => _openWork(WorkEntryType.overtime),
-              onExtraDay: () => _openWork(WorkEntryType.extraDay),
-              onHoliday: () => _openWork(WorkEntryType.holidayWorked),
             ),
             _SectionHeader(
               title: l10n.homeRecentActivity,
@@ -529,52 +507,6 @@ class _MetricCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _QuickActions extends StatelessWidget {
-  const _QuickActions({
-    required this.onExpense,
-    required this.onAllowance,
-    required this.onIncome,
-    required this.onTransfer,
-    required this.onOvertime,
-    required this.onExtraDay,
-    required this.onHoliday,
-  });
-
-  final VoidCallback onExpense;
-  final VoidCallback onAllowance;
-  final VoidCallback onIncome;
-  final VoidCallback onTransfer;
-  final VoidCallback onOvertime;
-  final VoidCallback onExtraDay;
-  final VoidCallback onHoliday;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final actions = [
-      (Icons.shopping_cart_outlined, l10n.homeAddExpense, onExpense),
-      (Icons.volunteer_activism_outlined, l10n.homeGiveAllowance, onAllowance),
-      (Icons.add_card_outlined, l10n.homeAddIncome, onIncome),
-      (Icons.swap_horiz, l10n.homeTransfer, onTransfer),
-      (Icons.more_time, l10n.homeAddOvertime, onOvertime),
-      (Icons.event_available_outlined, l10n.homeAddExtraDay, onExtraDay),
-      (Icons.celebration_outlined, l10n.homeAddHoliday, onHoliday),
-    ];
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        for (final action in actions)
-          ActionChip(
-            avatar: Icon(action.$1, size: 18),
-            label: Text(action.$2),
-            onPressed: action.$3,
-          ),
-      ],
     );
   }
 }

@@ -100,6 +100,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonApply => 'Apply';
 
   @override
+  String get commonAdd => 'Add';
+
+  @override
   String get errInvalidCredentials => 'Incorrect email or password.';
 
   @override
@@ -872,31 +875,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeRecentActivity => 'Recent activity';
 
   @override
-  String get homeQuickActions => 'Quick actions';
-
-  @override
   String get homeNoRecentActivity => 'No recent activity.';
-
-  @override
-  String get homeAddExpense => 'Add expense';
-
-  @override
-  String get homeGiveAllowance => 'Give allowance';
-
-  @override
-  String get homeAddIncome => 'Add income';
-
-  @override
-  String get homeTransfer => 'Transfer money';
-
-  @override
-  String get homeAddOvertime => 'Add overtime';
-
-  @override
-  String get homeAddExtraDay => 'Add extra day';
-
-  @override
-  String get homeAddHoliday => 'Add holiday worked';
 
   @override
   String get historyTitle => 'History';

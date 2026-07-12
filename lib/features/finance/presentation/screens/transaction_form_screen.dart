@@ -181,6 +181,14 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     final l10n = AppLocalizations.of(context);
     final accounts = ref.watch(accountBalancesProvider);
     final categories = ref.watch(categoriesProvider(_categoryKind));
+    final accountList = accounts.value ?? <AccountBalance>[];
+    if (_accountId == null && accountList.isNotEmpty) {
+      // Preselect the default account (or the first one) on new transactions.
+      _accountId =
+          (accountList.where((a) => a.isDefault).firstOrNull ??
+                  accountList.first)
+              .accountId;
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -249,12 +257,15 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
+                // Recreate the field when the async preselection lands so the
+                // initial value is actually shown.
+                key: ValueKey('account-$_accountId'),
                 initialValue: _accountId,
                 decoration: InputDecoration(
                   labelText: _isIncome ? l10n.txToAccount : l10n.txAccount,
                 ),
                 items: [
-                  for (final account in accounts.value ?? <AccountBalance>[])
+                  for (final account in accountList)
                     DropdownMenuItem(
                       value: account.accountId,
                       child: Text(account.name),
