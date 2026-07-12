@@ -187,7 +187,7 @@ class FinanceRepository {
           .from('financial_transactions')
           .select()
           .eq('user_id', _userId)
-          .order('occurred_on', ascending: false)
+          .order('created_at', ascending: false)
           .order('id', ascending: false)
           .limit(limit);
       return rows.map(FinancialTransaction.fromJson).toList();

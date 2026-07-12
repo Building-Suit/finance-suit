@@ -100,6 +100,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonApply => 'تطبيق';
 
   @override
+  String get commonAdd => 'إضافة';
+
+  @override
   String get errInvalidCredentials =>
       'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
 
@@ -870,31 +873,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeRecentActivity => 'النشاط الأخير';
 
   @override
-  String get homeQuickActions => 'إجراءات سريعة';
-
-  @override
   String get homeNoRecentActivity => 'لا يوجد نشاط حديث.';
-
-  @override
-  String get homeAddExpense => 'إضافة مصروف';
-
-  @override
-  String get homeGiveAllowance => 'إعطاء مصروف شخصي';
-
-  @override
-  String get homeAddIncome => 'إضافة دخل';
-
-  @override
-  String get homeTransfer => 'تحويل أموال';
-
-  @override
-  String get homeAddOvertime => 'إضافة عمل إضافي';
-
-  @override
-  String get homeAddExtraDay => 'إضافة يوم إضافي';
-
-  @override
-  String get homeAddHoliday => 'إضافة عمل في عطلة';
 
   @override
   String get historyTitle => 'السجل';

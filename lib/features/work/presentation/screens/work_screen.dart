@@ -41,11 +41,6 @@ class _WorkScreenState extends ConsumerState<WorkScreen> {
     });
   }
 
-  Future<void> _addEntry() async {
-    final date = _selectedDay ?? PlainDate.today();
-    await context.push('${AppRoutes.work}/entry/new?date=${date.toIso()}');
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -68,11 +63,6 @@ class _WorkScreenState extends ConsumerState<WorkScreen> {
             onPressed: () => context.push('${AppRoutes.work}/holidays'),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addEntry,
-        tooltip: l10n.workAddEntry,
-        child: const Icon(Icons.add),
       ),
       body: AsyncView(
         value: entriesAsync,
