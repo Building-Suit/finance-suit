@@ -233,6 +233,70 @@
   "txDeleteConfirmTitle": "حذف المعاملة؟",
   "txDeleteConfirmBody": "سيؤدي هذا إلى حذف المعاملة نهائيًا وتحديث أرصدة الحسابات.",
   "txSalaryLocked": "تُدار دفعات الراتب من فترات الراتب ولا يمكن تعديلها هنا.",
+  "macrosTitle": "الماكرو",
+  "macroNew": "ماكرو جديد",
+  "macroEditTitle": "تعديل الماكرو",
+  "macroName": "اسم الماكرو",
+  "macroActions": "الإجراءات",
+  "macroAddAction": "إضافة إجراء",
+  "macroNoActions": "أضف إجراءً واحدًا على الأقل.",
+  "macroReversible": "قابل للعكس",
+  "macroReversibleHint": "يُدرج هذا الإجراء عند تشغيل الماكرو بالعكس",
+  "macroReversibleBadge": "قابل للعكس",
+  "macroRun": "تشغيل",
+  "macroRunReverse": "تشغيل بالعكس",
+  "macroRunTo": "إلى {name}",
+  "@macroRunTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "macroRunFrom": "من {name}",
+  "@macroRunFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "macroApplied": "تمت إضافة {count} من المعاملات",
+  "@macroApplied": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "macroActionCount": "{count} من الإجراءات",
+  "@macroActionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "macroEmpty": "لا توجد ماكرو بعد. احفظ المعاملات المتكررة وشغّلها بلمسة واحدة.",
+  "macroDeleteConfirmTitle": "حذف الماكرو؟",
+  "macroDeleteConfirmBody": "سيُحذف الماكرو وإجراءاته، وتبقى المعاملات التي أنشأها.",
+  "errMacroNotReversible": "لا يحتوي هذا الماكرو على إجراءات قابلة للعكس.",
+  "errMacroEmpty": "يحتاج الماكرو إلى إجراء واحد على الأقل.",
+  "moneyHeldTab": "محجوز",
+  "heldTitle": "المبالغ المحجوزة",
+  "heldNew": "مبلغ محجوز جديد",
+  "heldEditTitle": "تعديل المبلغ المحجوز",
+  "heldOwedTo": "مستحق لـ",
+  "heldTotal": "إجمالي المحجوز",
+  "heldEmpty": "لا توجد مبالغ محجوزة بعد. تتبّع المال المستحق عليك لشخص ما، بمفرده أو مرتبطًا بمعاملة.",
+  "heldSettle": "تحديد كمُسدد",
+  "heldUnsettle": "إعادة تنشيط",
+  "heldSettledLabel": "مُسدد",
+  "heldShowSettled": "عرض المُسدد",
+  "heldLinkedTransaction": "مرتبط بمعاملة",
+  "heldHoldForTransaction": "حجز مبلغ لهذه المعاملة",
+  "heldDeleteConfirmTitle": "حذف المبلغ المحجوز؟",
+  "heldDeleteConfirmBody": "يُحذف هذا السجل فقط؛ لن تتغير أي معاملة.",
   "catManage": "إدارة الفئات",
   "catNew": "فئة جديدة",
   "catName": "اسم الفئة",

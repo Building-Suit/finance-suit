@@ -42,19 +42,25 @@ enum HistorySort {
 
 @immutable
 class HistoryCursor {
-  const HistoryCursor({required this.recordDate, required this.id});
+  const HistoryCursor({
+    required this.recordDate,
+    required this.createdAt,
+    required this.id,
+  });
 
   final PlainDate recordDate;
+  final DateTime createdAt;
   final String id;
 
   @override
   bool operator ==(Object other) =>
       other is HistoryCursor &&
       other.recordDate == recordDate &&
+      other.createdAt == createdAt &&
       other.id == id;
 
   @override
-  int get hashCode => Object.hash(recordDate, id);
+  int get hashCode => Object.hash(recordDate, createdAt, id);
 }
 
 @immutable
@@ -213,7 +219,8 @@ class HistoryItem {
   final String? title;
   final String? notes;
 
-  HistoryCursor get cursor => HistoryCursor(recordDate: recordDate, id: id);
+  HistoryCursor get cursor =>
+      HistoryCursor(recordDate: recordDate, createdAt: createdAt, id: id);
 
   Money? get amount => amountMinor == null
       ? null

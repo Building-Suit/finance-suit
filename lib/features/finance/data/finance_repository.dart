@@ -7,7 +7,9 @@ import 'package:work_tracker/core/result/result.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
+import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
+import 'package:work_tracker/features/finance/domain/transaction_macro.dart';
 
 class FinanceRepository {
   FinanceRepository(this._client);
@@ -183,10 +185,13 @@ class FinanceRepository {
     int limit = 50,
   }) {
     return guard(() async {
+      // Business date first, then insertion order, so lists line up with
+      // history and reports everywhere.
       final rows = await _db
           .from('financial_transactions')
           .select()
           .eq('user_id', _userId)
+          .order('occurred_on', ascending: false)
           .order('created_at', ascending: false)
           .order('id', ascending: false)
           .limit(limit);
@@ -215,6 +220,118 @@ class FinanceRepository {
   Future<Result<void>> deleteTransaction(String id) {
     return guard(() async {
       await _db.from('financial_transactions').delete().eq('id', id);
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // Macros
+  // ---------------------------------------------------------------------
+
+  Future<Result<List<TransactionMacro>>> fetchMacros() {
+    return guard(() async {
+      final rows = await _db
+          .from('transaction_macros')
+          .select('*, transaction_macro_items(*)')
+          .eq('user_id', _userId)
+          .order('name', ascending: true);
+      return rows.map(TransactionMacro.fromJson).toList();
+    });
+  }
+
+  /// Atomic create/update of a macro and its full item list via the
+  /// `save_macro` RPC. Returns the macro id.
+  Future<Result<String>> saveMacro({
+    required String name,
+    required List<TransactionMacroItem> items,
+    String? macroId,
+  }) {
+    return guard(() async {
+      return _db.rpc<String>(
+        'save_macro',
+        params: {
+          'p_name': name,
+          'p_items': [
+            for (final (position, item) in items.indexed)
+              item.toPayload(position),
+          ],
+          'p_macro_id': macroId,
+        },
+      );
+    });
+  }
+
+  Future<Result<void>> deleteMacro(String id) {
+    return guard(() async {
+      await _db.from('transaction_macros').delete().eq('id', id);
+    });
+  }
+
+  /// Applies a macro atomically via the `apply_macro` RPC and returns the
+  /// number of transactions created. Reverse runs apply only reversible
+  /// items and swap transfer directions.
+  Future<Result<int>> applyMacro({
+    required String macroId,
+    required PlainDate occurredOn,
+    bool reverse = false,
+  }) {
+    return guard(() async {
+      final ids = await _db.rpc<List<dynamic>>(
+        'apply_macro',
+        params: {
+          'p_macro_id': macroId,
+          'p_occurred_on': occurredOn.toIso(),
+          'p_reverse': reverse,
+        },
+      );
+      return ids.length;
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // Held amounts
+  // ---------------------------------------------------------------------
+
+  Future<Result<List<HeldAmount>>> fetchHeldAmounts() {
+    return guard(() async {
+      final rows = await _db
+          .from('held_amounts')
+          .select()
+          .eq('user_id', _userId)
+          .order('held_on', ascending: false)
+          .order('created_at', ascending: false)
+          .order('id', ascending: false);
+      return rows.map(HeldAmount.fromJson).toList();
+    });
+  }
+
+  Future<Result<void>> createHeldAmount(HeldAmountDraft draft) {
+    return guard(() async {
+      await _db.from('held_amounts').insert({
+        'user_id': _userId,
+        ...draft.toJson(),
+      });
+    });
+  }
+
+  Future<Result<void>> updateHeldAmount(String id, HeldAmountDraft draft) {
+    return guard(() async {
+      await _db.from('held_amounts').update(draft.toJson()).eq('id', id);
+    });
+  }
+
+  /// Marks a held amount settled on [settledOn], or active again when null.
+  Future<Result<void>> setHeldAmountSettled(String id, PlainDate? settledOn) {
+    return guard(() async {
+      await _db
+          .from('held_amounts')
+          .update({'settled_on': settledOn?.toIso()})
+          .eq('id', id);
+    });
+  }
+
+  Future<Result<void>> deleteHeldAmount(String id) {
+    return guard(() async {
+      await _db.from('held_amounts').delete().eq('id', id);
     });
   }
 

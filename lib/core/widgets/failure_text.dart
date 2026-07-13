@@ -42,6 +42,9 @@ String _dbValidationMessage(AppLocalizations l10n, String raw) {
     'already_paid' => l10n.errAlreadyPaid,
     'not_finalized' => l10n.errNotFinalized,
     'invalid_amount' => l10n.errInvalidAmount,
+    'macro_not_reversible' => l10n.errMacroNotReversible,
+    'macro_empty' => l10n.errMacroEmpty,
+    'not_found' => l10n.errNotFound,
     _ => l10n.commonError,
   };
 }

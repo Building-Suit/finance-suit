@@ -1268,6 +1268,222 @@ abstract class AppLocalizations {
   /// **'Salary payments are managed from salary periods and cannot be edited here.'**
   String get txSalaryLocked;
 
+  /// No description provided for @macrosTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Macros'**
+  String get macrosTitle;
+
+  /// No description provided for @macroNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New macro'**
+  String get macroNew;
+
+  /// No description provided for @macroEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit macro'**
+  String get macroEditTitle;
+
+  /// No description provided for @macroName.
+  ///
+  /// In en, this message translates to:
+  /// **'Macro name'**
+  String get macroName;
+
+  /// No description provided for @macroActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Actions'**
+  String get macroActions;
+
+  /// No description provided for @macroAddAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add action'**
+  String get macroAddAction;
+
+  /// No description provided for @macroNoActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one action.'**
+  String get macroNoActions;
+
+  /// No description provided for @macroReversible.
+  ///
+  /// In en, this message translates to:
+  /// **'Reversible'**
+  String get macroReversible;
+
+  /// No description provided for @macroReversibleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Include this action when the macro runs in reverse'**
+  String get macroReversibleHint;
+
+  /// No description provided for @macroReversibleBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Reversible'**
+  String get macroReversibleBadge;
+
+  /// No description provided for @macroRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Run'**
+  String get macroRun;
+
+  /// No description provided for @macroRunReverse.
+  ///
+  /// In en, this message translates to:
+  /// **'Run in reverse'**
+  String get macroRunReverse;
+
+  /// No description provided for @macroRunTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To {name}'**
+  String macroRunTo(String name);
+
+  /// No description provided for @macroRunFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From {name}'**
+  String macroRunFrom(String name);
+
+  /// No description provided for @macroApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} transactions added'**
+  String macroApplied(int count);
+
+  /// No description provided for @macroActionCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} actions'**
+  String macroActionCount(int count);
+
+  /// No description provided for @macroEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No macros yet. Save repeated transactions and run them in one tap.'**
+  String get macroEmpty;
+
+  /// No description provided for @macroDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete macro?'**
+  String get macroDeleteConfirmTitle;
+
+  /// No description provided for @macroDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the macro and its actions. Transactions it created are kept.'**
+  String get macroDeleteConfirmBody;
+
+  /// No description provided for @errMacroNotReversible.
+  ///
+  /// In en, this message translates to:
+  /// **'This macro has no reversible actions.'**
+  String get errMacroNotReversible;
+
+  /// No description provided for @errMacroEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'A macro needs at least one action.'**
+  String get errMacroEmpty;
+
+  /// No description provided for @moneyHeldTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Held'**
+  String get moneyHeldTab;
+
+  /// No description provided for @heldTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Held amounts'**
+  String get heldTitle;
+
+  /// No description provided for @heldNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New held amount'**
+  String get heldNew;
+
+  /// No description provided for @heldEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit held amount'**
+  String get heldEditTitle;
+
+  /// No description provided for @heldOwedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Owed to'**
+  String get heldOwedTo;
+
+  /// No description provided for @heldTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total held'**
+  String get heldTotal;
+
+  /// No description provided for @heldEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No held amounts yet. Track money you owe someone, on its own or linked to a transaction.'**
+  String get heldEmpty;
+
+  /// No description provided for @heldSettle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as settled'**
+  String get heldSettle;
+
+  /// No description provided for @heldUnsettle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as active'**
+  String get heldUnsettle;
+
+  /// No description provided for @heldSettledLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled'**
+  String get heldSettledLabel;
+
+  /// No description provided for @heldShowSettled.
+  ///
+  /// In en, this message translates to:
+  /// **'Show settled'**
+  String get heldShowSettled;
+
+  /// No description provided for @heldLinkedTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked to a transaction'**
+  String get heldLinkedTransaction;
+
+  /// No description provided for @heldHoldForTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold an amount for this transaction'**
+  String get heldHoldForTransaction;
+
+  /// No description provided for @heldDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete held amount?'**
+  String get heldDeleteConfirmTitle;
+
+  /// No description provided for @heldDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Only this record is removed; transactions are not changed.'**
+  String get heldDeleteConfirmBody;
+
   /// No description provided for @catManage.
   ///
   /// In en, this message translates to:

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
@@ -12,6 +13,7 @@ import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dar
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
+import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
@@ -330,6 +332,29 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                   return e == null ? null : validationMessage(context, e);
                 },
               ),
+              if (_isEdit) ...[
+                const SizedBox(height: 16),
+                // Track part (or all) of this transaction as money still
+                // owed to someone; the hold links back to this transaction.
+                OutlinedButton.icon(
+                  onPressed: () {
+                    final existing = widget.existing!;
+                    context.push(
+                      '${AppRoutes.money}/held/new',
+                      extra: HeldAmountDraft(
+                        amountMinor: existing.amountMinor,
+                        currencyCode: existing.currencyCode,
+                        counterparty: '',
+                        heldOn: existing.occurredOn,
+                        transactionId: existing.id,
+                        title: existing.title,
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.pause_circle_outline),
+                  label: Text(l10n.heldHoldForTransaction),
+                ),
+              ],
               const SizedBox(height: 16),
               AuthErrorBanner(failure: _failure),
               AuthSubmitButton(
