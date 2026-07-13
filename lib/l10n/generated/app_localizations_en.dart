@@ -620,6 +620,127 @@ class AppLocalizationsEn extends AppLocalizations {
       'Salary payments are managed from salary periods and cannot be edited here.';
 
   @override
+  String get macrosTitle => 'Macros';
+
+  @override
+  String get macroNew => 'New macro';
+
+  @override
+  String get macroEditTitle => 'Edit macro';
+
+  @override
+  String get macroName => 'Macro name';
+
+  @override
+  String get macroActions => 'Actions';
+
+  @override
+  String get macroAddAction => 'Add action';
+
+  @override
+  String get macroNoActions => 'Add at least one action.';
+
+  @override
+  String get macroReversible => 'Reversible';
+
+  @override
+  String get macroReversibleHint =>
+      'Include this action when the macro runs in reverse';
+
+  @override
+  String get macroReversibleBadge => 'Reversible';
+
+  @override
+  String get macroRun => 'Run';
+
+  @override
+  String get macroRunReverse => 'Run in reverse';
+
+  @override
+  String macroRunTo(String name) {
+    return 'To $name';
+  }
+
+  @override
+  String macroRunFrom(String name) {
+    return 'From $name';
+  }
+
+  @override
+  String macroApplied(int count) {
+    return '$count transactions added';
+  }
+
+  @override
+  String macroActionCount(int count) {
+    return '$count actions';
+  }
+
+  @override
+  String get macroEmpty =>
+      'No macros yet. Save repeated transactions and run them in one tap.';
+
+  @override
+  String get macroDeleteConfirmTitle => 'Delete macro?';
+
+  @override
+  String get macroDeleteConfirmBody =>
+      'This removes the macro and its actions. Transactions it created are kept.';
+
+  @override
+  String get errMacroNotReversible => 'This macro has no reversible actions.';
+
+  @override
+  String get errMacroEmpty => 'A macro needs at least one action.';
+
+  @override
+  String get moneyHeldTab => 'Held';
+
+  @override
+  String get heldTitle => 'Held amounts';
+
+  @override
+  String get heldNew => 'New held amount';
+
+  @override
+  String get heldEditTitle => 'Edit held amount';
+
+  @override
+  String get heldOwedTo => 'Owed to';
+
+  @override
+  String get heldTotal => 'Total held';
+
+  @override
+  String get heldEmpty =>
+      'No held amounts yet. Track money you owe someone, on its own or linked to a transaction.';
+
+  @override
+  String get heldSettle => 'Mark as settled';
+
+  @override
+  String get heldUnsettle => 'Mark as active';
+
+  @override
+  String get heldSettledLabel => 'Settled';
+
+  @override
+  String get heldShowSettled => 'Show settled';
+
+  @override
+  String get heldLinkedTransaction => 'Linked to a transaction';
+
+  @override
+  String get heldHoldForTransaction => 'Hold an amount for this transaction';
+
+  @override
+  String get heldDeleteConfirmTitle => 'Delete held amount?';
+
+  @override
+  String get heldDeleteConfirmBody =>
+      'Only this record is removed; transactions are not changed.';
+
+  @override
   String get catManage => 'Manage categories';
 
   @override

@@ -13,8 +13,13 @@ import 'package:work_tracker/features/auth/presentation/screens/register_screen.
 import 'package:work_tracker/features/auth/presentation/screens/reset_password_screen.dart';
 import 'package:work_tracker/features/dashboard/presentation/screens/home_screen.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
+import 'package:work_tracker/features/finance/domain/held_amount.dart';
+import 'package:work_tracker/features/finance/domain/transaction_macro.dart';
 import 'package:work_tracker/features/finance/presentation/screens/account_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/categories_screen.dart';
+import 'package:work_tracker/features/finance/presentation/screens/held_amount_form_screen.dart';
+import 'package:work_tracker/features/finance/presentation/screens/macro_form_screen.dart';
+import 'package:work_tracker/features/finance/presentation/screens/macros_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/money_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/transaction_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/transfer_form_screen.dart';
@@ -221,6 +226,34 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'categories',
                     builder: (context, state) => const CategoriesScreen(),
+                  ),
+                  GoRoute(
+                    path: 'macros',
+                    builder: (context, state) => const MacrosScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'new',
+                        builder: (context, state) => const MacroFormScreen(),
+                      ),
+                      GoRoute(
+                        path: 'edit',
+                        builder: (context, state) => MacroFormScreen(
+                          existing: state.extra! as TransactionMacro,
+                        ),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'held/new',
+                    builder: (context, state) => HeldAmountFormScreen(
+                      prefill: state.extra as HeldAmountDraft?,
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'held/edit',
+                    builder: (context, state) => HeldAmountFormScreen(
+                      existing: state.extra! as HeldAmount,
+                    ),
                   ),
                 ],
               ),

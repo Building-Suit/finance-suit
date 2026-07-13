@@ -233,6 +233,70 @@
   "txDeleteConfirmTitle": "Delete transaction?",
   "txDeleteConfirmBody": "This permanently removes the transaction and updates account balances.",
   "txSalaryLocked": "Salary payments are managed from salary periods and cannot be edited here.",
+  "macrosTitle": "Macros",
+  "macroNew": "New macro",
+  "macroEditTitle": "Edit macro",
+  "macroName": "Macro name",
+  "macroActions": "Actions",
+  "macroAddAction": "Add action",
+  "macroNoActions": "Add at least one action.",
+  "macroReversible": "Reversible",
+  "macroReversibleHint": "Include this action when the macro runs in reverse",
+  "macroReversibleBadge": "Reversible",
+  "macroRun": "Run",
+  "macroRunReverse": "Run in reverse",
+  "macroRunTo": "To {name}",
+  "@macroRunTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "macroRunFrom": "From {name}",
+  "@macroRunFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "macroApplied": "{count} transactions added",
+  "@macroApplied": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "macroActionCount": "{count} actions",
+  "@macroActionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "macroEmpty": "No macros yet. Save repeated transactions and run them in one tap.",
+  "macroDeleteConfirmTitle": "Delete macro?",
+  "macroDeleteConfirmBody": "This removes the macro and its actions. Transactions it created are kept.",
+  "errMacroNotReversible": "This macro has no reversible actions.",
+  "errMacroEmpty": "A macro needs at least one action.",
+  "moneyHeldTab": "Held",
+  "heldTitle": "Held amounts",
+  "heldNew": "New held amount",
+  "heldEditTitle": "Edit held amount",
+  "heldOwedTo": "Owed to",
+  "heldTotal": "Total held",
+  "heldEmpty": "No held amounts yet. Track money you owe someone, on its own or linked to a transaction.",
+  "heldSettle": "Mark as settled",
+  "heldUnsettle": "Mark as active",
+  "heldSettledLabel": "Settled",
+  "heldShowSettled": "Show settled",
+  "heldLinkedTransaction": "Linked to a transaction",
+  "heldHoldForTransaction": "Hold an amount for this transaction",
+  "heldDeleteConfirmTitle": "Delete held amount?",
+  "heldDeleteConfirmBody": "Only this record is removed; transactions are not changed.",
   "catManage": "Manage categories",
   "catNew": "New category",
   "catName": "Category name",

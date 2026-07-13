@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
+import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
@@ -9,6 +10,7 @@ import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
+import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/finance_widgets.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
@@ -22,6 +24,7 @@ class MoneyScreen extends ConsumerStatefulWidget {
 
 class _MoneyScreenState extends ConsumerState<MoneyScreen> {
   bool _showArchived = false;
+  bool _showSettledHeld = false;
 
   Future<void> _onTransactionTap(FinancialTransaction tx) async {
     final l10n = AppLocalizations.of(context);
@@ -257,15 +260,164 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
     );
   }
 
+  Future<void> _heldAction(HeldAmount held, String action) async {
+    final l10n = AppLocalizations.of(context);
+    final repo = ref.read(financeRepositoryProvider);
+    switch (action) {
+      case 'edit':
+        await context.push('${AppRoutes.money}/held/edit', extra: held);
+        return;
+      case 'settle':
+      case 'unsettle':
+        final result = await repo.setHeldAmountSettled(
+          held.id,
+          action == 'settle' ? PlainDate.today() : null,
+        );
+        if (!mounted) return;
+        result.when(
+          ok: (_) => ref.invalidate(heldAmountsProvider),
+          err: (failure) => ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(failureMessage(context, failure))),
+          ),
+        );
+        return;
+      case 'delete':
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: Text(l10n.heldDeleteConfirmTitle),
+            content: Text(l10n.heldDeleteConfirmBody),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: Text(l10n.commonCancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: Text(l10n.commonDelete),
+              ),
+            ],
+          ),
+        );
+        if (confirmed != true || !mounted) return;
+        final result = await repo.deleteHeldAmount(held.id);
+        if (!mounted) return;
+        result.when(
+          ok: (_) => ref.invalidate(heldAmountsProvider),
+          err: (failure) => ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(failureMessage(context, failure))),
+          ),
+        );
+        return;
+    }
+  }
+
+  Widget _heldTab(AppLocalizations l10n) {
+    final heldAmounts = ref.watch(heldAmountsProvider);
+    return AsyncView<List<HeldAmount>>(
+      value: heldAmounts,
+      onRetry: () => ref.invalidate(heldAmountsProvider),
+      data: (all) {
+        if (all.isEmpty) {
+          return EmptyStateView(
+            icon: Icons.pause_circle_outline,
+            message: l10n.heldEmpty,
+            actionLabel: l10n.heldNew,
+            onAction: () => context.push('${AppRoutes.money}/held/new'),
+          );
+        }
+        final active = all.where((h) => !h.isSettled).toList();
+        final settled = all.where((h) => h.isSettled).toList();
+
+        // Total owed per currency (mixing currencies is meaningless).
+        final totals = <String, int>{};
+        for (final held in active) {
+          totals[held.currencyCode] =
+              (totals[held.currencyCode] ?? 0) + held.amountMinor;
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async => ref.invalidate(heldAmountsProvider),
+          child: ListView(
+            children: [
+              Card(
+                margin: const EdgeInsets.all(16),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.heldTotal,
+                        style: Theme.of(context).textTheme.labelLarge,
+                      ),
+                      const SizedBox(height: 4),
+                      if (totals.isEmpty)
+                        Text(
+                          l10n.commonNone,
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                      for (final entry in totals.entries)
+                        BalanceText(
+                          money: Money(
+                            minor: entry.value,
+                            currencyCode: entry.key,
+                          ),
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              for (final held in active)
+                _HeldTile(
+                  held: held,
+                  l10n: l10n,
+                  onAction: (action) => _heldAction(held, action),
+                ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: OutlinedButton.icon(
+                  onPressed: () => context.push('${AppRoutes.money}/held/new'),
+                  icon: const Icon(Icons.add),
+                  label: Text(l10n.heldNew),
+                ),
+              ),
+              if (settled.isNotEmpty)
+                SwitchListTile(
+                  title: Text(l10n.heldShowSettled),
+                  value: _showSettledHeld,
+                  onChanged: (v) => setState(() => _showSettledHeld = v),
+                ),
+              if (_showSettledHeld)
+                for (final held in settled)
+                  _HeldTile(
+                    held: held,
+                    l10n: l10n,
+                    onAction: (action) => _heldAction(held, action),
+                  ),
+              const SizedBox(height: 88),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.tabMoney),
           actions: [
+            IconButton(
+              icon: const Icon(Icons.bolt_outlined),
+              tooltip: l10n.macrosTitle,
+              onPressed: () => context.push('${AppRoutes.money}/macros'),
+            ),
             IconButton(
               icon: const Icon(Icons.label_outline),
               tooltip: l10n.catManage,
@@ -276,12 +428,84 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
             tabs: [
               Tab(text: l10n.moneyAccountsTab),
               Tab(text: l10n.moneyTransactionsTab),
+              Tab(text: l10n.moneyHeldTab),
             ],
           ),
         ),
         body: TabBarView(
-          children: [_accountsTab(l10n), _transactionsTab(l10n)],
+          children: [
+            _accountsTab(l10n),
+            _transactionsTab(l10n),
+            _heldTab(l10n),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+class _HeldTile extends StatelessWidget {
+  const _HeldTile({
+    required this.held,
+    required this.l10n,
+    required this.onAction,
+  });
+
+  final HeldAmount held;
+  final AppLocalizations l10n;
+  final void Function(String action) onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final title = held.title?.isNotEmpty == true
+        ? held.title!
+        : held.counterparty;
+    final subtitleParts = [
+      held.heldOn.toIso(),
+      if (held.title?.isNotEmpty == true) held.counterparty,
+      if (held.isLinked) l10n.heldLinkedTransaction,
+      if (held.isSettled)
+        '${l10n.heldSettledLabel} · ${held.settledOn!.toIso()}',
+    ];
+    return ListTile(
+      leading: Icon(
+        held.isSettled
+            ? Icons.check_circle_outline
+            : Icons.pause_circle_outline,
+      ),
+      title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Text(
+        subtitleParts.join(' · '),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      onTap: () => onAction('edit'),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            held.amount.format(),
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              color: held.isSettled ? scheme.onSurfaceVariant : scheme.error,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+          PopupMenuButton<String>(
+            onSelected: onAction,
+            itemBuilder: (context) => [
+              PopupMenuItem(value: 'edit', child: Text(l10n.commonEdit)),
+              if (!held.isSettled)
+                PopupMenuItem(value: 'settle', child: Text(l10n.heldSettle)),
+              if (held.isSettled)
+                PopupMenuItem(
+                  value: 'unsettle',
+                  child: Text(l10n.heldUnsettle),
+                ),
+              PopupMenuItem(value: 'delete', child: Text(l10n.commonDelete)),
+            ],
+          ),
+        ],
       ),
     );
   }

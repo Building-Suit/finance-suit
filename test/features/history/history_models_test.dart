@@ -14,8 +14,9 @@ void main() {
     });
 
     test('uses default keyset only for default sort with a cursor', () {
-      const cursor = HistoryCursor(
-        recordDate: PlainDate(2026, 7, 10),
+      final cursor = HistoryCursor(
+        recordDate: const PlainDate(2026, 7, 10),
+        createdAt: DateTime.utc(2026, 7, 10, 10),
         id: 'abc',
       );
       final base = HistoryQuery(
@@ -58,6 +59,7 @@ void main() {
       expect(item.isOutgoing, isTrue);
       expect(item.isIncome, isFalse);
       expect(item.cursor.recordDate, const PlainDate(2026, 7, 9));
+      expect(item.cursor.createdAt, DateTime.utc(2026, 7, 10, 10));
     });
 
     test('parses signed salary adjustment', () {

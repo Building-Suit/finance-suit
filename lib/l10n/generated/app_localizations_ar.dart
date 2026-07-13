@@ -619,6 +619,128 @@ class AppLocalizationsAr extends AppLocalizations {
       'تُدار دفعات الراتب من فترات الراتب ولا يمكن تعديلها هنا.';
 
   @override
+  String get macrosTitle => 'الماكرو';
+
+  @override
+  String get macroNew => 'ماكرو جديد';
+
+  @override
+  String get macroEditTitle => 'تعديل الماكرو';
+
+  @override
+  String get macroName => 'اسم الماكرو';
+
+  @override
+  String get macroActions => 'الإجراءات';
+
+  @override
+  String get macroAddAction => 'إضافة إجراء';
+
+  @override
+  String get macroNoActions => 'أضف إجراءً واحدًا على الأقل.';
+
+  @override
+  String get macroReversible => 'قابل للعكس';
+
+  @override
+  String get macroReversibleHint =>
+      'يُدرج هذا الإجراء عند تشغيل الماكرو بالعكس';
+
+  @override
+  String get macroReversibleBadge => 'قابل للعكس';
+
+  @override
+  String get macroRun => 'تشغيل';
+
+  @override
+  String get macroRunReverse => 'تشغيل بالعكس';
+
+  @override
+  String macroRunTo(String name) {
+    return 'إلى $name';
+  }
+
+  @override
+  String macroRunFrom(String name) {
+    return 'من $name';
+  }
+
+  @override
+  String macroApplied(int count) {
+    return 'تمت إضافة $count من المعاملات';
+  }
+
+  @override
+  String macroActionCount(int count) {
+    return '$count من الإجراءات';
+  }
+
+  @override
+  String get macroEmpty =>
+      'لا توجد ماكرو بعد. احفظ المعاملات المتكررة وشغّلها بلمسة واحدة.';
+
+  @override
+  String get macroDeleteConfirmTitle => 'حذف الماكرو؟';
+
+  @override
+  String get macroDeleteConfirmBody =>
+      'سيُحذف الماكرو وإجراءاته، وتبقى المعاملات التي أنشأها.';
+
+  @override
+  String get errMacroNotReversible =>
+      'لا يحتوي هذا الماكرو على إجراءات قابلة للعكس.';
+
+  @override
+  String get errMacroEmpty => 'يحتاج الماكرو إلى إجراء واحد على الأقل.';
+
+  @override
+  String get moneyHeldTab => 'محجوز';
+
+  @override
+  String get heldTitle => 'المبالغ المحجوزة';
+
+  @override
+  String get heldNew => 'مبلغ محجوز جديد';
+
+  @override
+  String get heldEditTitle => 'تعديل المبلغ المحجوز';
+
+  @override
+  String get heldOwedTo => 'مستحق لـ';
+
+  @override
+  String get heldTotal => 'إجمالي المحجوز';
+
+  @override
+  String get heldEmpty =>
+      'لا توجد مبالغ محجوزة بعد. تتبّع المال المستحق عليك لشخص ما، بمفرده أو مرتبطًا بمعاملة.';
+
+  @override
+  String get heldSettle => 'تحديد كمُسدد';
+
+  @override
+  String get heldUnsettle => 'إعادة تنشيط';
+
+  @override
+  String get heldSettledLabel => 'مُسدد';
+
+  @override
+  String get heldShowSettled => 'عرض المُسدد';
+
+  @override
+  String get heldLinkedTransaction => 'مرتبط بمعاملة';
+
+  @override
+  String get heldHoldForTransaction => 'حجز مبلغ لهذه المعاملة';
+
+  @override
+  String get heldDeleteConfirmTitle => 'حذف المبلغ المحجوز؟';
+
+  @override
+  String get heldDeleteConfirmBody =>
+      'يُحذف هذا السجل فقط؛ لن تتغير أي معاملة.';
+
+  @override
   String get catManage => 'إدارة الفئات';
 
   @override
