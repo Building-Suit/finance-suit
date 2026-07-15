@@ -52,11 +52,16 @@ Future<void> pumpSheet(
   await tester.pumpAndSettle();
 }
 
+Finder sheetScrollable() => find.descendant(
+  of: find.byKey(const Key('global-add-list')),
+  matching: find.byType(Scrollable),
+);
+
 Future<void> expandSection(WidgetTester tester, String label) async {
   await tester.scrollUntilVisible(
     find.text(label).first,
     200,
-    scrollable: find.byType(ListView),
+    scrollable: sheetScrollable(),
   );
   await tester.tap(find.text(label).first);
   await tester.pumpAndSettle();
@@ -66,7 +71,7 @@ Future<void> tapSheetItem(WidgetTester tester, String label) async {
   await tester.scrollUntilVisible(
     find.text(label).last,
     200,
-    scrollable: find.byType(ListView),
+    scrollable: sheetScrollable(),
   );
   await tester.tap(find.text(label).last);
   await tester.pumpAndSettle();
@@ -79,8 +84,6 @@ void main() {
     await pumpSheet(tester);
 
     expect(find.text('Money Control'), findsOneWidget);
-    expect(find.text('Work Control'), findsOneWidget);
-    expect(find.text('Macros'), findsOneWidget);
     expect(find.text('Expense'), findsOneWidget);
     expect(find.text('New account'), findsOneWidget);
     expect(find.text('New held amount'), findsOneWidget);
@@ -190,7 +193,7 @@ void main() {
     await tester.scrollUntilVisible(
       find.text('New adjustment'),
       200,
-      scrollable: find.byType(ListView),
+      scrollable: sheetScrollable(),
     );
     expect(find.text('New adjustment'), findsOneWidget);
 
@@ -198,7 +201,7 @@ void main() {
     await tester.scrollUntilVisible(
       find.text('Manage macros'),
       200,
-      scrollable: find.byType(ListView),
+      scrollable: sheetScrollable(),
     );
     expect(find.text('Manage macros'), findsOneWidget);
   });
@@ -213,7 +216,7 @@ void main() {
     await tester.scrollUntilVisible(
       find.text('Macros'),
       200,
-      scrollable: find.byType(ListView),
+      scrollable: sheetScrollable(),
     );
     await tester.tap(find.text('Macros'));
     await tester.pump(const Duration(milliseconds: 300));
@@ -231,7 +234,7 @@ void main() {
     await tester.scrollUntilVisible(
       find.byTooltip('Retry'),
       200,
-      scrollable: find.byType(ListView),
+      scrollable: sheetScrollable(),
     );
     await tester.tap(find.byTooltip('Retry'));
     expect(retried, isTrue);
