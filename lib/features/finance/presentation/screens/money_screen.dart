@@ -149,8 +149,6 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
           return EmptyStateView(
             icon: Icons.account_balance_wallet_outlined,
             message: l10n.moneyNoAccounts,
-            actionLabel: l10n.moneyNewAccount,
-            onAction: () => context.push('${AppRoutes.money}/accounts/new'),
           );
         }
 
@@ -195,15 +193,6 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
                   l10n: l10n,
                   onAction: (action) => _accountAction(account, action),
                 ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: OutlinedButton.icon(
-                  onPressed: () =>
-                      context.push('${AppRoutes.money}/accounts/new'),
-                  icon: const Icon(Icons.add),
-                  label: Text(l10n.moneyNewAccount),
-                ),
-              ),
               if (archived.isNotEmpty)
                 SwitchListTile(
                   title: Text(l10n.moneyShowArchived),
@@ -322,8 +311,6 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
           return EmptyStateView(
             icon: Icons.pause_circle_outline,
             message: l10n.heldEmpty,
-            actionLabel: l10n.heldNew,
-            onAction: () => context.push('${AppRoutes.money}/held/new'),
           );
         }
         final active = all.where((h) => !h.isSettled).toList();
@@ -375,14 +362,6 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
                   l10n: l10n,
                   onAction: (action) => _heldAction(held, action),
                 ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: OutlinedButton.icon(
-                  onPressed: () => context.push('${AppRoutes.money}/held/new'),
-                  icon: const Icon(Icons.add),
-                  label: Text(l10n.heldNew),
-                ),
-              ),
               if (settled.isNotEmpty)
                 SwitchListTile(
                   title: Text(l10n.heldShowSettled),

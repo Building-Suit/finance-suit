@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
+import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/work/data/work_repository.dart';
@@ -21,22 +22,20 @@ class HolidaysScreen extends ConsumerWidget {
 
   Future<void> _edit(
     BuildContext context,
-    WidgetRef ref, {
-    OfficialHoliday? existing,
-  }) async {
+    WidgetRef ref,
+    OfficialHoliday existing,
+  ) async {
     final l10n = AppLocalizations.of(context);
-    final nameController = TextEditingController(text: existing?.name ?? '');
-    final notesController = TextEditingController(text: existing?.notes ?? '');
-    var date = existing?.date ?? PlainDate.today();
+    final nameController = TextEditingController(text: existing.name);
+    final notesController = TextEditingController(text: existing.notes ?? '');
+    var date = existing.date;
     final formKey = GlobalKey<FormState>();
 
     final saved = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => AlertDialog(
-          title: Text(
-            existing == null ? l10n.workNewHoliday : l10n.workEditHoliday,
-          ),
+          title: Text(l10n.workEditHoliday),
           content: Form(
             key: formKey,
             child: Column(
@@ -44,11 +43,17 @@ class HolidaysScreen extends ConsumerWidget {
               children: [
                 TextFormField(
                   controller: nameController,
-                  autofocus: existing == null,
                   textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(labelText: l10n.workHolidayName),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? l10n.valRequired : null,
+                  validator: (value) {
+                    final error = Validators.requiredText(
+                      value,
+                      maxLength: 120,
+                    );
+                    return error == null
+                        ? null
+                        : validationMessage(dialogContext, error);
+                  },
                 ),
                 const SizedBox(height: 8),
                 ListTile(
@@ -75,6 +80,12 @@ class HolidaysScreen extends ConsumerWidget {
                   decoration: InputDecoration(
                     labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
                   ),
+                  validator: (value) {
+                    final error = Validators.optionalText(value);
+                    return error == null
+                        ? null
+                        : validationMessage(dialogContext, error);
+                  },
                 ),
               ],
             ),
@@ -99,19 +110,14 @@ class HolidaysScreen extends ConsumerWidget {
     if (saved != true) return;
     final name = nameController.text.trim();
     final notes = notesController.text.trim();
-    final repo = ref.read(workRepositoryProvider);
-    final result = existing == null
-        ? await repo.createHoliday(
-            date: date,
-            name: name,
-            notes: notes.isEmpty ? null : notes,
-          )
-        : await repo.updateHoliday(
-            id: existing.id,
-            date: date,
-            name: name,
-            notes: notes.isEmpty ? null : notes,
-          );
+    final result = await ref
+        .read(workRepositoryProvider)
+        .updateHoliday(
+          id: existing.id,
+          date: date,
+          name: name,
+          notes: notes.isEmpty ? null : notes,
+        );
     result.when(
       ok: (_) => ref.invalidate(holidaysProvider),
       err: (failure) {
@@ -165,11 +171,6 @@ class HolidaysScreen extends ConsumerWidget {
     final holidaysAsync = ref.watch(holidaysProvider);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.workHolidays)),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _edit(context, ref),
-        tooltip: l10n.workNewHoliday,
-        child: const Icon(Icons.add),
-      ),
       body: AsyncView(
         value: holidaysAsync,
         onRetry: () => ref.invalidate(holidaysProvider),
@@ -198,7 +199,7 @@ class HolidaysScreen extends ConsumerWidget {
                   ),
                   trailing: PopupMenuButton<String>(
                     onSelected: (action) => action == 'edit'
-                        ? _edit(context, ref, existing: holiday)
+                        ? _edit(context, ref, holiday)
                         : _delete(context, ref, holiday),
                     itemBuilder: (context) => [
                       PopupMenuItem(
@@ -211,7 +212,7 @@ class HolidaysScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  onTap: () => _edit(context, ref, existing: holiday),
+                  onTap: () => _edit(context, ref, holiday),
                 );
               },
             ),

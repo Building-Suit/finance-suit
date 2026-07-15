@@ -39,14 +39,14 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
     }
   }
 
-  Future<String?> _promptName({String? initial}) async {
+  Future<String?> _promptName(String initial) async {
     final l10n = AppLocalizations.of(context);
-    final controller = TextEditingController(text: initial ?? '');
+    final controller = TextEditingController(text: initial);
     final formKey = GlobalKey<FormState>();
     final saved = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text(initial == null ? l10n.catNew : l10n.commonEdit),
+        title: Text(l10n.commonEdit),
         content: Form(
           key: formKey,
           child: TextFormField(
@@ -85,19 +85,8 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
     ).showSnackBar(SnackBar(content: Text(failureMessage(context, failure))));
   }
 
-  Future<void> _addCategory() async {
-    final kind = _kinds[_tabController.index];
-    final name = await _promptName();
-    if (name == null || !mounted) return;
-    final result = await ref
-        .read(financeRepositoryProvider)
-        .createCategory(name: name, kind: kind);
-    if (!mounted) return;
-    result.when(ok: (_) => _invalidate(), err: _showFailure);
-  }
-
   Future<void> _renameCategory(TransactionCategory category) async {
-    final name = await _promptName(initial: category.name);
+    final name = await _promptName(category.name);
     if (name == null || !mounted) return;
     final result = await ref
         .read(financeRepositoryProvider)
@@ -121,8 +110,6 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
       return EmptyStateView(
         icon: Icons.label_outline,
         message: l10n.catNoneYet,
-        actionLabel: l10n.catNew,
-        onAction: _addCategory,
       );
     }
     return ListView(
@@ -181,11 +168,6 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
           controller: _tabController,
           children: [for (final kind in _kinds) _kindTab(kind, all)],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addCategory,
-        tooltip: l10n.catNew,
-        child: const Icon(Icons.add),
       ),
     );
   }

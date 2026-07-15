@@ -334,8 +334,6 @@ class _BalanceSection extends StatelessWidget {
       return EmptyStateView(
         icon: Icons.account_balance_wallet_outlined,
         message: l10n.moneyNoAccounts,
-        actionLabel: l10n.moneyNewAccount,
-        onAction: () => context.push('${AppRoutes.money}/accounts/new'),
       );
     }
     final totals = <String, int>{};
