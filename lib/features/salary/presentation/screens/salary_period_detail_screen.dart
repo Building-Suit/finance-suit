@@ -245,30 +245,26 @@ class SalaryPeriodDetailScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     SalaryPeriod period,
-    String currencyCode, {
-    SalaryAdjustment? existing,
-  }) async {
+    String currencyCode,
+    SalaryAdjustment existing,
+  ) async {
     final l10n = AppLocalizations.of(context);
     final amountController = TextEditingController(
-      text: existing == null
-          ? ''
-          : (existing.amountMinor / Money.minorUnitsPerMajor).toStringAsFixed(
-              2,
-            ),
+      text: (existing.amountMinor / Money.minorUnitsPerMajor).toStringAsFixed(
+        2,
+      ),
     );
-    final titleController = TextEditingController(text: existing?.title ?? '');
-    final notesController = TextEditingController(text: existing?.notes ?? '');
-    var type = existing?.adjustmentType ?? AdjustmentType.bonus;
-    var date = existing?.effectiveDate ?? _clampToday(period);
+    final titleController = TextEditingController(text: existing.title ?? '');
+    final notesController = TextEditingController(text: existing.notes ?? '');
+    var type = existing.adjustmentType;
+    var date = existing.effectiveDate;
     final formKey = GlobalKey<FormState>();
 
     final saved = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => AlertDialog(
-          title: Text(
-            existing == null ? l10n.salNewAdjustment : l10n.salEditAdjustment,
-          ),
+          title: Text(l10n.salEditAdjustment),
           content: Form(
             key: formKey,
             child: SingleChildScrollView(
@@ -336,12 +332,27 @@ class SalaryPeriodDetailScreen extends ConsumerWidget {
                       labelText:
                           '${l10n.txTitleField} (${l10n.commonOptional})',
                     ),
+                    validator: (value) {
+                      final error = Validators.optionalText(
+                        value,
+                        maxLength: 120,
+                      );
+                      return error == null
+                          ? null
+                          : validationMessage(dialogContext, error);
+                    },
                   ),
                   TextFormField(
                     controller: notesController,
                     decoration: InputDecoration(
                       labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
                     ),
+                    validator: (value) {
+                      final error = Validators.optionalText(value);
+                      return error == null
+                          ? null
+                          : validationMessage(dialogContext, error);
+                    },
                   ),
                 ],
               ),
@@ -378,10 +389,9 @@ class SalaryPeriodDetailScreen extends ConsumerWidget {
       title: title.isEmpty ? null : title,
       notes: notes.isEmpty ? null : notes,
     );
-    final repo = ref.read(salaryRepositoryProvider);
-    final result = existing == null
-        ? await repo.createAdjustment(draft)
-        : await repo.updateAdjustment(existing.id, draft);
+    final result = await ref
+        .read(salaryRepositoryProvider)
+        .updateAdjustment(existing.id, draft);
     if (!context.mounted) return;
     result.when(
       ok: (_) => invalidateSalaryData(ref),
@@ -412,13 +422,6 @@ class SalaryPeriodDetailScreen extends ConsumerWidget {
     );
   }
 
-  static PlainDate _clampToday(SalaryPeriod period) {
-    final today = PlainDate.today();
-    if (today.isBefore(period.periodStart)) return period.periodStart;
-    if (today.isAfter(period.periodEnd)) return period.periodEnd;
-    return today;
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
@@ -434,15 +437,8 @@ class SalaryPeriodDetailScreen extends ConsumerWidget {
           onFinalize: (estimate) => _finalize(context, ref, estimate),
           onReopen: () => _reopen(context, ref),
           onMarkPaid: (estimate) => _markPaid(context, ref, period, estimate),
-          onNewAdjustment: (currency) =>
-              _editAdjustment(context, ref, period, currency),
-          onEditAdjustment: (currency, adjustment) => _editAdjustment(
-            context,
-            ref,
-            period,
-            currency,
-            existing: adjustment,
-          ),
+          onEditAdjustment: (currency, adjustment) =>
+              _editAdjustment(context, ref, period, currency, adjustment),
           onDeleteAdjustment: (adjustment) =>
               _deleteAdjustment(context, ref, adjustment),
         ),
@@ -457,7 +453,6 @@ class _PeriodBody extends ConsumerWidget {
     required this.onFinalize,
     required this.onReopen,
     required this.onMarkPaid,
-    required this.onNewAdjustment,
     required this.onEditAdjustment,
     required this.onDeleteAdjustment,
   });
@@ -466,7 +461,6 @@ class _PeriodBody extends ConsumerWidget {
   final void Function(SalaryEstimate estimate) onFinalize;
   final VoidCallback onReopen;
   final void Function(SalaryEstimate estimate) onMarkPaid;
-  final void Function(String currencyCode) onNewAdjustment;
   final void Function(String currencyCode, SalaryAdjustment adjustment)
   onEditAdjustment;
   final void Function(SalaryAdjustment adjustment) onDeleteAdjustment;
@@ -556,12 +550,6 @@ class _PeriodBody extends ConsumerWidget {
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                 ),
-                if (period.isOpen)
-                  TextButton.icon(
-                    onPressed: () => onNewAdjustment(currency),
-                    icon: const Icon(Icons.add),
-                    label: Text(l10n.salNewAdjustment),
-                  ),
               ],
             ),
             AsyncView(

@@ -101,8 +101,6 @@ class _MacrosScreenState extends ConsumerState<MacrosScreen> {
             return EmptyStateView(
               icon: Icons.bolt_outlined,
               message: l10n.macroEmpty,
-              actionLabel: l10n.macroNew,
-              onAction: () => context.push('${AppRoutes.money}/macros/new'),
             );
           }
           return RefreshIndicator(
@@ -115,15 +113,6 @@ class _MacrosScreenState extends ConsumerState<MacrosScreen> {
                     l10n: l10n,
                     onAction: (action) => _onAction(macro, action),
                   ),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: OutlinedButton.icon(
-                    onPressed: () =>
-                        context.push('${AppRoutes.money}/macros/new'),
-                    icon: const Icon(Icons.add),
-                    label: Text(l10n.macroNew),
-                  ),
-                ),
                 const SizedBox(height: 88),
               ],
             ),

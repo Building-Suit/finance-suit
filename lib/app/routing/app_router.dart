@@ -17,6 +17,7 @@ import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/transaction_macro.dart';
 import 'package:work_tracker/features/finance/presentation/screens/account_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/categories_screen.dart';
+import 'package:work_tracker/features/finance/presentation/screens/category_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/held_amount_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/macro_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/macros_screen.dart';
@@ -27,6 +28,7 @@ import 'package:work_tracker/features/history/presentation/screens/history_scree
 import 'package:work_tracker/features/onboarding/presentation/providers/onboarding_status_provider.dart';
 import 'package:work_tracker/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:work_tracker/features/reports/presentation/screens/reports_screen.dart';
+import 'package:work_tracker/features/salary/presentation/screens/salary_adjustment_form_screen.dart';
 import 'package:work_tracker/features/salary/presentation/screens/salary_period_detail_screen.dart';
 import 'package:work_tracker/features/salary/presentation/screens/salary_periods_screen.dart';
 import 'package:work_tracker/features/settings/presentation/screens/change_email_screen.dart';
@@ -34,6 +36,7 @@ import 'package:work_tracker/features/settings/presentation/screens/change_passw
 import 'package:work_tracker/features/settings/presentation/screens/salary_settings_screen.dart';
 import 'package:work_tracker/features/settings/presentation/screens/settings_screen.dart';
 import 'package:work_tracker/features/work/domain/work_entry.dart';
+import 'package:work_tracker/features/work/presentation/screens/holiday_form_screen.dart';
 import 'package:work_tracker/features/work/presentation/screens/holidays_screen.dart';
 import 'package:work_tracker/features/work/presentation/screens/work_entry_form_screen.dart';
 import 'package:work_tracker/features/work/presentation/screens/work_screen.dart';
@@ -132,8 +135,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const OnboardingScreen(),
       ),
       StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) =>
-            AppShell(navigationShell: navigationShell),
+        builder: (context, state, navigationShell) => AppShell(
+          navigationShell: navigationShell,
+          currentLocation: state.uri.path,
+        ),
         branches: [
           StatefulShellBranch(
             routes: [
@@ -171,6 +176,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'holidays',
                     builder: (context, state) => const HolidaysScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'new',
+                        builder: (context, state) => const HolidayFormScreen(),
+                      ),
+                    ],
                   ),
                   GoRoute(
                     path: 'periods',
@@ -183,6 +194,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                         ),
                       ),
                     ],
+                  ),
+                  GoRoute(
+                    path: 'adjustments/new',
+                    builder: (context, state) => SalaryAdjustmentFormScreen(
+                      preferredPeriodId: state.uri.queryParameters['periodId'],
+                    ),
                   ),
                 ],
               ),
@@ -226,6 +243,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'categories',
                     builder: (context, state) => const CategoriesScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'new',
+                        builder: (context, state) => const CategoryFormScreen(),
+                      ),
+                    ],
                   ),
                   GoRoute(
                     path: 'macros',

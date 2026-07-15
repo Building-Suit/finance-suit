@@ -103,6 +103,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonAdd => 'Add';
 
   @override
+  String get addSectionMoneyControl => 'Money Control';
+
+  @override
+  String get addSectionWorkControl => 'Work Control';
+
+  @override
   String get errInvalidCredentials => 'Incorrect email or password.';
 
   @override
@@ -623,6 +629,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get macrosTitle => 'Macros';
 
   @override
+  String get macroManage => 'Manage macros';
+
+  @override
   String get macroNew => 'New macro';
 
   @override
@@ -748,6 +757,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get catName => 'Category name';
+
+  @override
+  String get catKind => 'Category type';
 
   @override
   String get catKindExpense => 'Expense category';
@@ -879,6 +891,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get salNoPeriods => 'No salary periods yet.';
+
+  @override
+  String get salNoOpenPeriods => 'No open salary periods are available.';
+
+  @override
+  String get salPeriodNoLongerOpen =>
+      'This salary period is no longer open. Refresh and choose an open period.';
 
   @override
   String get salWarnBaseZero => 'Base salary is not configured yet.';

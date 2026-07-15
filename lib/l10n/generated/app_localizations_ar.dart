@@ -103,6 +103,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonAdd => 'إضافة';
 
   @override
+  String get addSectionMoneyControl => 'إدارة المال';
+
+  @override
+  String get addSectionWorkControl => 'إدارة العمل';
+
+  @override
   String get errInvalidCredentials =>
       'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
 
@@ -622,6 +628,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get macrosTitle => 'الماكرو';
 
   @override
+  String get macroManage => 'إدارة الماكرو';
+
+  @override
   String get macroNew => 'ماكرو جديد';
 
   @override
@@ -748,6 +757,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get catName => 'اسم الفئة';
+
+  @override
+  String get catKind => 'نوع الفئة';
 
   @override
   String get catKindExpense => 'فئة مصروفات';
@@ -879,6 +891,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get salNoPeriods => 'لا توجد فترات راتب بعد.';
+
+  @override
+  String get salNoOpenPeriods => 'لا توجد فترات راتب مفتوحة متاحة.';
+
+  @override
+  String get salPeriodNoLongerOpen =>
+      'لم تعد فترة الراتب هذه مفتوحة. حدّث القائمة واختر فترة مفتوحة.';
 
   @override
   String get salWarnBaseZero => 'لم يتم ضبط الراتب الأساسي بعد.';

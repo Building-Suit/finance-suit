@@ -284,6 +284,18 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get commonAdd;
 
+  /// No description provided for @addSectionMoneyControl.
+  ///
+  /// In en, this message translates to:
+  /// **'Money Control'**
+  String get addSectionMoneyControl;
+
+  /// No description provided for @addSectionWorkControl.
+  ///
+  /// In en, this message translates to:
+  /// **'Work Control'**
+  String get addSectionWorkControl;
+
   /// No description provided for @errInvalidCredentials.
   ///
   /// In en, this message translates to:
@@ -1274,6 +1286,12 @@ abstract class AppLocalizations {
   /// **'Macros'**
   String get macrosTitle;
 
+  /// No description provided for @macroManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage macros'**
+  String get macroManage;
+
   /// No description provided for @macroNew.
   ///
   /// In en, this message translates to:
@@ -1501,6 +1519,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Category name'**
   String get catName;
+
+  /// No description provided for @catKind.
+  ///
+  /// In en, this message translates to:
+  /// **'Category type'**
+  String get catKind;
 
   /// No description provided for @catKindExpense.
   ///
@@ -1747,6 +1771,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No salary periods yet.'**
   String get salNoPeriods;
+
+  /// No description provided for @salNoOpenPeriods.
+  ///
+  /// In en, this message translates to:
+  /// **'No open salary periods are available.'**
+  String get salNoOpenPeriods;
+
+  /// No description provided for @salPeriodNoLongerOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'This salary period is no longer open. Refresh and choose an open period.'**
+  String get salPeriodNoLongerOpen;
 
   /// No description provided for @salWarnBaseZero.
   ///
