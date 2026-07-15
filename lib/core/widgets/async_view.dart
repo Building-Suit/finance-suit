@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
@@ -48,8 +49,8 @@ class ErrorRetryView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.error_outline,
+            FinanceSuitIcon(
+              FinanceSuitIcons.error,
               size: 40,
               color: Theme.of(context).colorScheme.error,
             ),
@@ -59,7 +60,7 @@ class ErrorRetryView extends StatelessWidget {
               const SizedBox(height: 16),
               OutlinedButton.icon(
                 onPressed: onRetry,
-                icon: const Icon(Icons.refresh),
+                icon: const FinanceSuitIcon(FinanceSuitIcons.refresh),
                 label: Text(l10n.commonRetry),
               ),
             ],
@@ -79,7 +80,7 @@ class EmptyStateView extends StatelessWidget {
     this.onAction,
   });
 
-  final IconData icon;
+  final FinanceSuitGlyph icon;
   final String message;
   final String? actionLabel;
   final VoidCallback? onAction;
@@ -92,7 +93,11 @@ class EmptyStateView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 48, color: Theme.of(context).colorScheme.outline),
+            FinanceSuitIcon(
+              icon,
+              size: 48,
+              color: Theme.of(context).colorScheme.outline,
+            ),
             const SizedBox(height: 12),
             Text(
               message,

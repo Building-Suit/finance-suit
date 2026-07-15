@@ -1,4 +1,4 @@
--- Work Tracker initial schema.
+-- Finance Suit initial schema.
 -- Money: bigint minor units (piastres). Durations: integer minutes.
 -- Multipliers: integer percent (150 = 1.5x). Day units: integer hundredths
 -- (100 = full day, 50 = half day). Business dates: date. Audit: timestamptz.

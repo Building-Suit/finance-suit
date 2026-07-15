@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/core/date_time/date_range.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
@@ -224,7 +225,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           PopupMenuButton<HistorySort>(
             tooltip: _sortLabel(l10n, _sort),
             initialValue: _sort,
-            icon: const Icon(Icons.sort),
+            icon: const FinanceSuitIcon(FinanceSuitIcons.sort),
             onSelected: (sort) {
               setState(() => _sort = sort);
               _load(reset: true);
@@ -298,7 +299,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               )
             else if (_items.isEmpty)
               EmptyStateView(
-                icon: Icons.manage_search,
+                icon: FinanceSuitIcons.manageSearch,
                 message: l10n.historyNoItems,
               )
             else ...[
@@ -314,7 +315,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                             dimension: 18,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Icon(Icons.expand_more),
+                        : const FinanceSuitIcon(FinanceSuitIcons.expandMore),
                     label: Text(l10n.historyLoadMore),
                   ),
                 ),
@@ -462,7 +463,7 @@ class _AdvancedFilters extends StatelessWidget {
           controller: keywordController,
           decoration: InputDecoration(
             labelText: l10n.txTitleField,
-            prefixIcon: const Icon(Icons.search),
+            prefixIcon: const FinanceSuitIcon(FinanceSuitIcons.search),
           ),
           textInputAction: TextInputAction.search,
           onSubmitted: (_) => onApply(),
@@ -500,7 +501,7 @@ class _AdvancedFilters extends StatelessWidget {
           alignment: AlignmentDirectional.centerEnd,
           child: FilledButton.icon(
             onPressed: onApply,
-            icon: const Icon(Icons.check),
+            icon: const FinanceSuitIcon(FinanceSuitIcons.check),
             label: Text(l10n.commonApply),
           ),
         ),

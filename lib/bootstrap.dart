@@ -20,5 +20,5 @@ Future<void> bootstrap() async {
     debug: kDebugMode,
   );
 
-  runApp(const ProviderScope(child: WorkTrackerApp()));
+  runApp(const ProviderScope(child: FinanceSuitApp()));
 }

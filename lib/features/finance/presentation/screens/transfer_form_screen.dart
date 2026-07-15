@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
@@ -150,10 +151,10 @@ class _TransferFormScreenState extends ConsumerState<TransferFormScreen> {
               const SizedBox(height: 8),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.calendar_today_outlined),
+                leading: const FinanceSuitIcon(FinanceSuitIcons.calendarToday),
                 title: Text(l10n.commonDate),
                 subtitle: Text(_date.toIso()),
-                trailing: const Icon(Icons.edit_outlined),
+                trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
                 onTap: _pickDate,
               ),
               const SizedBox(height: 8),

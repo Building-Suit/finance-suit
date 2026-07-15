@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
+import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
@@ -53,12 +55,12 @@ class _WorkScreenState extends ConsumerState<WorkScreen> {
         title: Text(l10n.tabWork),
         actions: [
           IconButton(
-            icon: const Icon(Icons.request_quote_outlined),
+            icon: const FinanceSuitIcon(FinanceSuitIcons.requestQuote),
             tooltip: l10n.salPeriodsTitle,
             onPressed: () => context.push('${AppRoutes.work}/periods'),
           ),
           IconButton(
-            icon: const Icon(Icons.event_outlined),
+            icon: const FinanceSuitIcon(FinanceSuitIcons.event),
             tooltip: l10n.workHolidays,
             onPressed: () => context.push('${AppRoutes.work}/holidays'),
           ),
@@ -97,7 +99,7 @@ class _WorkScreenState extends ConsumerState<WorkScreen> {
                   ),
                   child: Card(
                     child: ListTile(
-                      leading: const Icon(Icons.payments_outlined),
+                      leading: const FinanceSuitIcon(FinanceSuitIcons.payments),
                       title: Text(l10n.workMonthTotal),
                       trailing: Text(
                         Money(
@@ -114,7 +116,7 @@ class _WorkScreenState extends ConsumerState<WorkScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: 32),
                     child: EmptyStateView(
-                      icon: Icons.work_outline,
+                      icon: FinanceSuitIcons.work,
                       message: _selectedDay == null
                           ? l10n.workNoEntries
                           : l10n.workNoEntriesForDay,
@@ -149,7 +151,7 @@ class _MonthNavigator extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.chevron_left),
+            icon: const FinanceSuitIcon(FinanceSuitIcons.chevronLeft),
             onPressed: () => onShift(-1),
           ),
           Expanded(
@@ -160,7 +162,7 @@ class _MonthNavigator extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.chevron_right),
+            icon: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
             onPressed: () => onShift(1),
           ),
         ],
@@ -186,7 +188,7 @@ class _CalendarGrid extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return switch (type) {
       WorkEntryType.regular => scheme.outline,
-      WorkEntryType.overtime => scheme.primary,
+      WorkEntryType.overtime => AppTheme.infoColor(context),
       WorkEntryType.extraDay => scheme.tertiary,
       WorkEntryType.holidayWorked => scheme.error,
     };
@@ -317,11 +319,11 @@ class _WorkEntryTile extends ConsumerWidget {
   final WorkEntry entry;
   final String currencyCode;
 
-  IconData get _icon => switch (entry.entryType) {
-    WorkEntryType.regular => Icons.work_outline,
-    WorkEntryType.overtime => Icons.more_time,
-    WorkEntryType.extraDay => Icons.event_available_outlined,
-    WorkEntryType.holidayWorked => Icons.celebration_outlined,
+  FinanceSuitGlyph get _icon => switch (entry.entryType) {
+    WorkEntryType.regular => FinanceSuitIcons.work,
+    WorkEntryType.overtime => FinanceSuitIcons.moreTime,
+    WorkEntryType.extraDay => FinanceSuitIcons.eventAvailable,
+    WorkEntryType.holidayWorked => FinanceSuitIcons.celebration,
   };
 
   @override
@@ -338,7 +340,7 @@ class _WorkEntryTile extends ConsumerWidget {
     }
     final amount = entry.amount(currencyCode);
     return ListTile(
-      leading: Icon(_icon),
+      leading: FinanceSuitIcon(_icon),
       title: Text(workEntryTypeLabel(l10n, entry.entryType)),
       subtitle: Text(parts.join(' · ')),
       trailing: amount == null || amount.isZero

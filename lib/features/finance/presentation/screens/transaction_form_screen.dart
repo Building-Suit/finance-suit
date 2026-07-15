@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
@@ -200,7 +201,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
         actions: [
           if (_isEdit)
             IconButton(
-              icon: const Icon(Icons.delete_outline),
+              icon: const FinanceSuitIcon(FinanceSuitIcons.delete),
               tooltip: l10n.commonDelete,
               onPressed: _busy ? null : _delete,
             ),
@@ -251,10 +252,10 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
               const SizedBox(height: 16),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.calendar_today_outlined),
+                leading: const FinanceSuitIcon(FinanceSuitIcons.calendarToday),
                 title: Text(l10n.commonDate),
                 subtitle: Text(_date.toIso()),
-                trailing: const Icon(Icons.edit_outlined),
+                trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
                 onTap: _pickDate,
               ),
               const SizedBox(height: 8),
@@ -351,7 +352,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                       ),
                     );
                   },
-                  icon: const Icon(Icons.pause_circle_outline),
+                  icon: const FinanceSuitIcon(FinanceSuitIcons.pauseCircle),
                   label: Text(l10n.heldHoldForTransaction),
                 ),
               ],

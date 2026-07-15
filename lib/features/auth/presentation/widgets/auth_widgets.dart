@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
+import 'package:work_tracker/app/branding/finance_suit_mark.dart';
+import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
@@ -18,6 +21,7 @@ class AuthScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     return Scaffold(
       body: SafeArea(
@@ -29,12 +33,16 @@ class AuthScaffold extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(
-                    Icons.work_history_outlined,
-                    size: 48,
-                    color: theme.colorScheme.primary,
+                  const Align(
+                    child: FinanceSuitMark(size: 72, semanticLabel: null),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
+                  Text(
+                    l10n.appTitle,
+                    style: theme.textTheme.titleLarge,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
                   Text(
                     title,
                     style: theme.textTheme.headlineSmall,
@@ -104,9 +112,13 @@ class _PasswordFieldState extends State<PasswordField> {
       validator: widget.validator,
       decoration: InputDecoration(
         labelText: widget.label,
-        prefixIcon: const Icon(Icons.lock_outline),
+        prefixIcon: const FinanceSuitIcon(FinanceSuitIcons.lock),
         suffixIcon: IconButton(
-          icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
+          icon: FinanceSuitIcon(
+            _obscure
+                ? FinanceSuitIcons.visibilityOff
+                : FinanceSuitIcons.visibility,
+          ),
           onPressed: () => setState(() => _obscure = !_obscure),
         ),
       ),
@@ -135,7 +147,10 @@ class AuthErrorBanner extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(Icons.error_outline, color: theme.colorScheme.error),
+            FinanceSuitIcon(
+              FinanceSuitIcons.error,
+              color: theme.colorScheme.error,
+            ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -208,8 +223,9 @@ class PasswordStrengthIndicator extends StatelessWidget {
     final score = _score;
     final (label, color) = switch (score) {
       <= 2 => (l10n.authPasswordStrengthWeak, theme.colorScheme.error),
-      3 || 4 => (l10n.authPasswordStrengthFair, Colors.orange),
-      _ => (l10n.authPasswordStrengthStrong, Colors.green),
+      3 ||
+      4 => (l10n.authPasswordStrengthFair, AppTheme.allowanceColor(context)),
+      _ => (l10n.authPasswordStrengthStrong, AppTheme.incomeColor(context)),
     };
     return Padding(
       padding: const EdgeInsets.only(top: 8),

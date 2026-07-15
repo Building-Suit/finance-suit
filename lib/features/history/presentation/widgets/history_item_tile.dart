@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
+import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
@@ -18,19 +20,19 @@ class HistoryItemTile extends StatelessWidget {
   final Map<String, String> accountNames;
   final VoidCallback? onTap;
 
-  IconData get _icon {
+  FinanceSuitGlyph get _icon {
     final transactionKind = item.transactionKind;
     if (transactionKind != null) return transactionKindIcon(transactionKind);
     final workType = item.workEntryType;
     if (workType != null) {
       return switch (workType) {
-        WorkEntryType.regular => Icons.work_outline,
-        WorkEntryType.overtime => Icons.more_time,
-        WorkEntryType.extraDay => Icons.event_available_outlined,
-        WorkEntryType.holidayWorked => Icons.celebration_outlined,
+        WorkEntryType.regular => FinanceSuitIcons.work,
+        WorkEntryType.overtime => FinanceSuitIcons.moreTime,
+        WorkEntryType.extraDay => FinanceSuitIcons.eventAvailable,
+        WorkEntryType.holidayWorked => FinanceSuitIcons.celebration,
       };
     }
-    return Icons.tune_outlined;
+    return FinanceSuitIcons.tune;
   }
 
   String _title(AppLocalizations l10n) {
@@ -47,7 +49,7 @@ class HistoryItemTile extends StatelessWidget {
         : l10n.salAdjBonus;
   }
 
-  String _subtitle(AppLocalizations l10n) {
+  String _subtitle(BuildContext context, AppLocalizations l10n) {
     final parts = <String>[item.recordDate.toIso()];
     final source = item.sourceAccountId == null
         ? null
@@ -56,7 +58,8 @@ class HistoryItemTile extends StatelessWidget {
         ? null
         : accountNames[item.destinationAccountId];
     if (source != null && destination != null) {
-      parts.add('$source -> $destination');
+      final arrow = Directionality.of(context) == TextDirection.rtl ? '←' : '→';
+      parts.add('$source $arrow $destination');
     } else if (source != null) {
       parts.add(source);
     } else if (destination != null) {
@@ -82,7 +85,7 @@ class HistoryItemTile extends StatelessWidget {
         ? scheme.onSurfaceVariant
         : item.isOutgoing
         ? scheme.error
-        : scheme.primary;
+        : AppTheme.incomeColor(context);
     final String? amountText = amount == null
         ? null
         : isNeutral
@@ -97,11 +100,11 @@ class HistoryItemTile extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: scheme.surfaceContainerHighest,
-        child: Icon(_icon, color: scheme.onSurface),
+        child: FinanceSuitIcon(_icon, color: scheme.onSurface),
       ),
       title: Text(_title(l10n), maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Text(
-        _subtitle(l10n),
+        _subtitle(context, l10n),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
@@ -44,7 +45,9 @@ class GlobalAddSheet extends StatelessWidget {
           ExpansionTile(
             key: const Key('global-add-money-control'),
             initiallyExpanded: true,
-            leading: const Icon(Icons.account_balance_wallet_outlined),
+            leading: const FinanceSuitIcon(
+              FinanceSuitIcons.accountBalanceWallet,
+            ),
             title: Text(l10n.addSectionMoneyControl),
             children: [
               for (final kind in const [
@@ -67,20 +70,20 @@ class GlobalAddSheet extends StatelessWidget {
               ),
               _routeTile(
                 context,
-                icon: Icons.pause_circle_outline,
+                icon: FinanceSuitIcons.pauseCircle,
                 label: l10n.heldNew,
                 route: '/money/held/new',
               ),
               const Divider(indent: 16, endIndent: 16),
               _routeTile(
                 context,
-                icon: Icons.account_balance_wallet_outlined,
+                icon: FinanceSuitIcons.accountBalanceWallet,
                 label: l10n.moneyNewAccount,
                 route: '/money/accounts/new',
               ),
               _routeTile(
                 context,
-                icon: Icons.label_outline,
+                icon: FinanceSuitIcons.label,
                 label: l10n.catNew,
                 route: '/money/categories/new',
               ),
@@ -88,24 +91,24 @@ class GlobalAddSheet extends StatelessWidget {
           ),
           ExpansionTile(
             key: const Key('global-add-work-control'),
-            leading: const Icon(Icons.work_outline),
+            leading: const FinanceSuitIcon(FinanceSuitIcons.work),
             title: Text(l10n.addSectionWorkControl),
             children: [
               _routeTile(
                 context,
-                icon: Icons.work_outline,
+                icon: FinanceSuitIcons.work,
                 label: l10n.workAddEntry,
                 route: '/work/entry/new',
               ),
               _routeTile(
                 context,
-                icon: Icons.celebration_outlined,
+                icon: FinanceSuitIcons.celebration,
                 label: l10n.workNewHoliday,
                 route: '/work/holidays/new',
               ),
               _routeTile(
                 context,
-                icon: Icons.price_change_outlined,
+                icon: FinanceSuitIcons.priceChange,
                 label: l10n.salNewAdjustment,
                 route: salaryAdjustmentRoute,
               ),
@@ -113,12 +116,12 @@ class GlobalAddSheet extends StatelessWidget {
           ),
           ExpansionTile(
             key: const Key('global-add-macros'),
-            leading: const Icon(Icons.bolt_outlined),
+            leading: const FinanceSuitIcon(FinanceSuitIcons.bolt),
             title: Text(l10n.macrosTitle),
             children: [
               _routeTile(
                 context,
-                icon: Icons.add_circle_outline,
+                icon: FinanceSuitIcons.addCircle,
                 label: l10n.macroNew,
                 route: '/money/macros/new',
               ),
@@ -128,7 +131,7 @@ class GlobalAddSheet extends StatelessWidget {
                     const Divider(indent: 16, endIndent: 16),
                   for (final macro in value) ...[
                     ListTile(
-                      leading: const Icon(Icons.bolt_outlined),
+                      leading: const FinanceSuitIcon(FinanceSuitIcons.bolt),
                       title: Text(
                         macro.isReversible
                             ? l10n.macroRunTo(macro.name)
@@ -140,7 +143,7 @@ class GlobalAddSheet extends StatelessWidget {
                     ),
                     if (macro.isReversible)
                       ListTile(
-                        leading: const Icon(Icons.undo),
+                        leading: const FinanceSuitIcon(FinanceSuitIcons.undo),
                         title: Text(l10n.macroRunFrom(macro.name)),
                         onTap: () => Navigator.of(
                           context,
@@ -150,7 +153,7 @@ class GlobalAddSheet extends StatelessWidget {
                 ],
                 AsyncValue(hasError: true, :final error) => [
                   ListTile(
-                    leading: const Icon(Icons.error_outline),
+                    leading: const FinanceSuitIcon(FinanceSuitIcons.error),
                     title: Text(
                       error is AppFailure
                           ? failureMessage(context, error)
@@ -159,7 +162,7 @@ class GlobalAddSheet extends StatelessWidget {
                     trailing: IconButton(
                       onPressed: onRetryMacros,
                       tooltip: l10n.commonRetry,
-                      icon: const Icon(Icons.refresh),
+                      icon: const FinanceSuitIcon(FinanceSuitIcons.refresh),
                     ),
                   ),
                 ],
@@ -175,7 +178,7 @@ class GlobalAddSheet extends StatelessWidget {
               const Divider(indent: 16, endIndent: 16),
               _routeTile(
                 context,
-                icon: Icons.tune,
+                icon: FinanceSuitIcons.tune,
                 label: l10n.macroManage,
                 route: '/money/macros',
               ),
@@ -188,12 +191,12 @@ class GlobalAddSheet extends StatelessWidget {
 
   Widget _routeTile(
     BuildContext context, {
-    required IconData icon,
+    required FinanceSuitGlyph icon,
     required String label,
     required String route,
   }) {
     return ListTile(
-      leading: Icon(icon),
+      leading: FinanceSuitIcon(icon),
       title: Text(label),
       onTap: () => Navigator.of(context).pop(route),
     );

@@ -1,36 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
+import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
-IconData transactionKindIcon(TransactionKind kind) {
+FinanceSuitGlyph transactionKindIcon(TransactionKind kind) {
   return switch (kind) {
-    TransactionKind.expense => Icons.shopping_cart_outlined,
-    TransactionKind.allowanceGiven => Icons.volunteer_activism_outlined,
-    TransactionKind.customIncome => Icons.attach_money,
-    TransactionKind.freelanceIncome => Icons.work_outline,
-    TransactionKind.salaryIncome => Icons.payments_outlined,
-    TransactionKind.transfer => Icons.swap_horiz,
+    TransactionKind.expense => FinanceSuitIcons.shoppingCart,
+    TransactionKind.allowanceGiven => FinanceSuitIcons.volunteerActivism,
+    TransactionKind.customIncome => FinanceSuitIcons.attachMoney,
+    TransactionKind.freelanceIncome => FinanceSuitIcons.work,
+    TransactionKind.salaryIncome => FinanceSuitIcons.payments,
+    TransactionKind.transfer => FinanceSuitIcons.swapHoriz,
   };
 }
 
-IconData accountTypeIcon(AccountType type) {
+FinanceSuitGlyph accountTypeIcon(AccountType type) {
   return switch (type) {
-    AccountType.current => Icons.account_balance_wallet_outlined,
-    AccountType.savings => Icons.savings_outlined,
-    AccountType.cash => Icons.money_outlined,
-    AccountType.bank => Icons.account_balance_outlined,
-    AccountType.wallet => Icons.wallet_outlined,
-    AccountType.emergency => Icons.medical_services_outlined,
-    AccountType.vacation => Icons.beach_access_outlined,
-    AccountType.custom => Icons.category_outlined,
+    AccountType.current => FinanceSuitIcons.accountBalanceWallet,
+    AccountType.savings => FinanceSuitIcons.savings,
+    AccountType.cash => FinanceSuitIcons.money,
+    AccountType.bank => FinanceSuitIcons.accountBalance,
+    AccountType.wallet => FinanceSuitIcons.wallet,
+    AccountType.emergency => FinanceSuitIcons.medicalServices,
+    AccountType.vacation => FinanceSuitIcons.beachAccess,
+    AccountType.custom => FinanceSuitIcons.category,
   };
 }
 
 /// List tile for a transaction. Amount is colored by direction:
-/// income green-ish (primary), outgoing error, transfer neutral.
+/// income success, outgoing error, transfer neutral.
 class TransactionTile extends StatelessWidget {
   const TransactionTile({
     super.key,
@@ -45,7 +47,7 @@ class TransactionTile extends StatelessWidget {
   final VoidCallback? onTap;
   final Widget? trailingMenu;
 
-  String _accountLine() {
+  String _accountLine(BuildContext context) {
     final source = transaction.sourceAccountId == null
         ? null
         : accountNames[transaction.sourceAccountId];
@@ -53,7 +55,8 @@ class TransactionTile extends StatelessWidget {
         ? null
         : accountNames[transaction.destinationAccountId];
     if (source != null && destination != null) {
-      return '$source → $destination';
+      final arrow = Directionality.of(context) == TextDirection.rtl ? '←' : '→';
+      return '$source $arrow $destination';
     }
     return source ?? destination ?? '';
   }
@@ -70,7 +73,7 @@ class TransactionTile extends StatelessWidget {
       amountColor = scheme.onSurfaceVariant;
       amountText = tx.amount.format();
     } else if (tx.isIncome) {
-      amountColor = scheme.primary;
+      amountColor = AppTheme.incomeColor(context);
       amountText = '+${tx.amount.format()}';
     } else {
       amountColor = scheme.error;
@@ -82,7 +85,7 @@ class TransactionTile extends StatelessWidget {
         : transactionKindLabel(l10n, tx.kind);
     final subtitleParts = [
       tx.occurredOn.toIso(),
-      _accountLine(),
+      _accountLine(context),
       if (tx.kind == TransactionKind.allowanceGiven &&
           (tx.counterparty?.isNotEmpty ?? false))
         tx.counterparty!,
@@ -91,7 +94,10 @@ class TransactionTile extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: scheme.surfaceContainerHighest,
-        child: Icon(transactionKindIcon(tx.kind), color: scheme.onSurface),
+        child: FinanceSuitIcon(
+          transactionKindIcon(tx.kind),
+          color: scheme.onSurface,
+        ),
       ),
       title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Text(

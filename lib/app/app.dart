@@ -6,19 +6,21 @@ import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/features/settings/presentation/providers/app_settings_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
-class WorkTrackerApp extends ConsumerWidget {
-  const WorkTrackerApp({super.key});
+class FinanceSuitApp extends ConsumerWidget {
+  const FinanceSuitApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(appLocaleProvider);
+    final effectiveLocale =
+        locale ?? WidgetsBinding.instance.platformDispatcher.locale;
 
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
+      theme: AppTheme.light(locale: effectiveLocale),
+      darkTheme: AppTheme.dark(locale: effectiveLocale),
       themeMode: themeMode,
       locale: locale,
       localizationsDelegates: const [

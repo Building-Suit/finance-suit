@@ -4,7 +4,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
+import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/date_time/date_range.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/money/money.dart';
@@ -113,7 +115,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           IconButton(
             onPressed: () => context.push(AppRoutes.history),
             tooltip: l10n.historyTitle,
-            icon: const Icon(Icons.history),
+            icon: const FinanceSuitIcon(FinanceSuitIcons.history),
           ),
         ],
       ),
@@ -206,7 +208,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   const SizedBox(height: 16),
                   if (selectedAccountId == null)
                     EmptyStateView(
-                      icon: Icons.account_balance_wallet_outlined,
+                      icon: FinanceSuitIcons.accountBalanceWallet,
                       message: l10n.moneyNoAccounts,
                     )
                   else
@@ -387,6 +389,12 @@ class _CashFlowChart extends StatelessWidget {
       label: l10n.reportsCashFlow,
       values: values,
       currencyCode: currencyCode,
+      barColors: [
+        AppTheme.incomeColor(context),
+        AppTheme.expenseColor(context),
+        AppTheme.allowanceColor(context),
+        AppTheme.transferColor(context),
+      ],
     );
   }
 }
@@ -396,18 +404,19 @@ class _BarAmountChart extends StatelessWidget {
     required this.label,
     required this.values,
     required this.currencyCode,
-  });
+    required this.barColors,
+  }) : assert(barColors.length > 0);
 
   final String label;
   final List<ChartValue> values;
   final String currencyCode;
+  final List<Color> barColors;
 
   @override
   Widget build(BuildContext context) {
     if (values.every((value) => value.valueMinor == 0)) {
       return _NoData();
     }
-    final scheme = Theme.of(context).colorScheme;
     final maxY = values
         .map((v) => v.valueMinor.abs() / Money.minorUnitsPerMajor)
         .fold<double>(1, math.max);
@@ -432,7 +441,7 @@ class _BarAmountChart extends StatelessWidget {
                   barRods: [
                     BarChartRodData(
                       toY: values[i].valueMinor / Money.minorUnitsPerMajor,
-                      color: i == 1 || i == 2 ? scheme.error : scheme.primary,
+                      color: barColors[i % barColors.length],
                       width: 26,
                       borderRadius: BorderRadius.circular(4),
                     ),
@@ -492,7 +501,6 @@ class _LineNumberChart extends StatelessWidget {
     ];
     final maxY = spots.map((s) => s.y).fold<double>(0, math.max);
     final minY = spots.map((s) => s.y).fold<double>(0, math.min);
-    final scheme = Theme.of(context).colorScheme;
     return Semantics(
       label: label,
       child: Column(
@@ -511,7 +519,7 @@ class _LineNumberChart extends StatelessWidget {
                   LineChartBarData(
                     spots: spots,
                     isCurved: false,
-                    color: scheme.primary,
+                    color: AppTheme.transferColor(context),
                     barWidth: 3,
                     dotData: FlDotData(show: spots.length <= 1),
                   ),
@@ -521,7 +529,7 @@ class _LineNumberChart extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '${values.first.label} - ${values.last.label} · '
+            '${values.first.label} – ${values.last.label} · '
             '${values.last.valueMinor / scale} $valueSuffix',
             style: Theme.of(context).textTheme.bodySmall,
           ),
@@ -595,13 +603,14 @@ class _SalaryComparisonChart extends StatelessWidget {
               ),
           ],
           currencyCode: currency,
+          barColors: [AppTheme.infoColor(context)],
         ),
         const SizedBox(height: 8),
         for (final row in rows.take(6))
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(
-              '${row.periodStart.toIso()} - ${row.periodEnd.toIso()}',
+              '${row.periodStart.toIso()} – ${row.periodEnd.toIso()}',
             ),
             subtitle: Text(row.status.dbValue),
             trailing: Text(
@@ -633,7 +642,7 @@ class _SalaryWorkList extends StatelessWidget {
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(
-              '${row.periodStart.toIso()} - ${row.periodEnd.toIso()}',
+              '${row.periodStart.toIso()} – ${row.periodEnd.toIso()}',
             ),
             subtitle: Text(
               '${l10n.reportOvertime}: ${row.overtimeMinutes ~/ 60}h '
@@ -662,7 +671,7 @@ class _NoData extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return EmptyStateView(
-      icon: Icons.bar_chart_outlined,
+      icon: FinanceSuitIcons.barChart,
       message: l10n.reportsNoData,
     );
   }

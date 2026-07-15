@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/money/money.dart';
@@ -147,7 +148,7 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
         final archived = all.where((a) => a.isArchived).toList();
         if (all.isEmpty) {
           return EmptyStateView(
-            icon: Icons.account_balance_wallet_outlined,
+            icon: FinanceSuitIcons.accountBalanceWallet,
             message: l10n.moneyNoAccounts,
           );
         }
@@ -226,7 +227,7 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
       data: (list) {
         if (list.isEmpty) {
           return EmptyStateView(
-            icon: Icons.receipt_long_outlined,
+            icon: FinanceSuitIcons.receiptLong,
             message: l10n.moneyNoTransactions,
           );
         }
@@ -309,7 +310,7 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
       data: (all) {
         if (all.isEmpty) {
           return EmptyStateView(
-            icon: Icons.pause_circle_outline,
+            icon: FinanceSuitIcons.pauseCircle,
             message: l10n.heldEmpty,
           );
         }
@@ -393,12 +394,12 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
           title: Text(l10n.tabMoney),
           actions: [
             IconButton(
-              icon: const Icon(Icons.bolt_outlined),
+              icon: const FinanceSuitIcon(FinanceSuitIcons.bolt),
               tooltip: l10n.macrosTitle,
               onPressed: () => context.push('${AppRoutes.money}/macros'),
             ),
             IconButton(
-              icon: const Icon(Icons.label_outline),
+              icon: const FinanceSuitIcon(FinanceSuitIcons.label),
               tooltip: l10n.catManage,
               onPressed: () => context.push('${AppRoutes.money}/categories'),
             ),
@@ -448,10 +449,10 @@ class _HeldTile extends StatelessWidget {
         '${l10n.heldSettledLabel} · ${held.settledOn!.toIso()}',
     ];
     return ListTile(
-      leading: Icon(
+      leading: FinanceSuitIcon(
         held.isSettled
-            ? Icons.check_circle_outline
-            : Icons.pause_circle_outline,
+            ? FinanceSuitIcons.checkCircle
+            : FinanceSuitIcons.pauseCircle,
       ),
       title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Text(
@@ -509,7 +510,7 @@ class _AccountTile extends StatelessWidget {
       if (account.isArchived) l10n.moneyArchivedLabel,
     ];
     return ListTile(
-      leading: Icon(accountTypeIcon(account.accountType)),
+      leading: FinanceSuitIcon(accountTypeIcon(account.accountType)),
       title: Text(account.name),
       subtitle: Text(badges.join(' · ')),
       onTap: () => onAction('edit'),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
@@ -79,7 +80,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
                     labelText: l10n.authFullName,
-                    prefixIcon: const Icon(Icons.person_outline),
+                    prefixIcon: const FinanceSuitIcon(FinanceSuitIcons.person),
                   ),
                   validator: (v) {
                     final e = Validators.requiredText(v, maxLength: 120);
@@ -95,7 +96,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
                     labelText: l10n.authEmail,
-                    prefixIcon: const Icon(Icons.email_outlined),
+                    prefixIcon: const FinanceSuitIcon(FinanceSuitIcons.email),
                   ),
                   validator: (v) {
                     final e = Validators.email(v);

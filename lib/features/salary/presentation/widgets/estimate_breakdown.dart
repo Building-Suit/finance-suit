@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/features/salary/domain/salary_estimate.dart';
@@ -98,8 +99,8 @@ class EstimateBreakdownCard extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 8),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.warning_amber_outlined,
+                    FinanceSuitIcon(
+                      FinanceSuitIcons.warning,
                       size: 18,
                       color: Theme.of(context).colorScheme.error,
                     ),

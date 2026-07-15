@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/global_add_sheet.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/supabase/realtime_invalidation.dart';
@@ -116,7 +117,7 @@ class AppShell extends ConsumerWidget {
           ? FloatingActionButton(
               onPressed: () => _openAddSheet(context, ref),
               tooltip: l10n.commonAdd,
-              child: const Icon(Icons.add),
+              child: const FinanceSuitIcon(FinanceSuitIcons.add),
             )
           : null,
       bottomNavigationBar: NavigationBar(
@@ -127,28 +128,30 @@ class AppShell extends ConsumerWidget {
         ),
         destinations: [
           NavigationDestination(
-            icon: const Icon(Icons.home_outlined),
-            selectedIcon: const Icon(Icons.home),
+            icon: const FinanceSuitIcon(FinanceSuitIcons.home),
+            selectedIcon: const FinanceSuitIcon(FinanceSuitIcons.home),
             label: l10n.tabHome,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.work_outline),
-            selectedIcon: const Icon(Icons.work),
+            icon: const FinanceSuitIcon(FinanceSuitIcons.work),
+            selectedIcon: const FinanceSuitIcon(FinanceSuitIcons.work),
             label: l10n.tabWork,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.account_balance_wallet_outlined),
-            selectedIcon: const Icon(Icons.account_balance_wallet),
+            icon: const FinanceSuitIcon(FinanceSuitIcons.accountBalanceWallet),
+            selectedIcon: const FinanceSuitIcon(
+              FinanceSuitIcons.accountBalanceWallet,
+            ),
             label: l10n.tabMoney,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.bar_chart_outlined),
-            selectedIcon: const Icon(Icons.bar_chart),
+            icon: const FinanceSuitIcon(FinanceSuitIcons.barChart),
+            selectedIcon: const FinanceSuitIcon(FinanceSuitIcons.barChart),
             label: l10n.tabReports,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.settings_outlined),
-            selectedIcon: const Icon(Icons.settings),
+            icon: const FinanceSuitIcon(FinanceSuitIcons.settings),
+            selectedIcon: const FinanceSuitIcon(FinanceSuitIcons.settings),
             label: l10n.tabSettings,
           ),
         ],

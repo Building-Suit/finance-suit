@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/core/date_time/date_range.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
@@ -172,7 +173,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           IconButton(
             onPressed: () => context.push(AppRoutes.history),
             tooltip: l10n.historyTitle,
-            icon: const Icon(Icons.history),
+            icon: const FinanceSuitIcon(FinanceSuitIcons.history),
           ),
         ],
       ),
@@ -228,7 +229,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               data: (page) {
                 if (page.items.isEmpty) {
                   return EmptyStateView(
-                    icon: Icons.history,
+                    icon: FinanceSuitIcons.history,
                     message: l10n.homeNoRecentActivity,
                   );
                 }
@@ -332,7 +333,7 @@ class _BalanceSection extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     if (accounts.isEmpty) {
       return EmptyStateView(
-        icon: Icons.account_balance_wallet_outlined,
+        icon: FinanceSuitIcons.accountBalanceWallet,
         message: l10n.moneyNoAccounts,
       );
     }
@@ -361,7 +362,7 @@ class _BalanceSection extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               children: [
                 _MetricCard(
-                  icon: Icons.account_balance_wallet_outlined,
+                  icon: FinanceSuitIcons.accountBalanceWallet,
                   label: l10n.moneyTotalBalance,
                   value: totals.entries
                       .map(
@@ -371,14 +372,14 @@ class _BalanceSection extends StatelessWidget {
                       .join(' / '),
                 ),
                 _MetricCard(
-                  icon: Icons.star_outline,
+                  icon: FinanceSuitIcons.star,
                   label: l10n.homeDefaultAccount,
                   value: defaultAccount == null
                       ? l10n.commonNone
                       : defaultAccount.balance.format(),
                 ),
                 _MetricCard(
-                  icon: Icons.savings_outlined,
+                  icon: FinanceSuitIcons.savings,
                   label: l10n.homeSavings,
                   value: Money(
                     minor: savingsTotal,
@@ -393,7 +394,7 @@ class _BalanceSection extends StatelessWidget {
         for (final account in accounts.take(4))
           Card(
             child: ListTile(
-              leading: Icon(accountTypeIcon(account.accountType)),
+              leading: FinanceSuitIcon(accountTypeIcon(account.accountType)),
               title: Text(account.name),
               trailing: BalanceText(money: account.balance),
               onTap: () => context.push(
@@ -427,7 +428,7 @@ class _CashFlowSection extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           children: [
             _MetricCard(
-              icon: Icons.trending_up,
+              icon: FinanceSuitIcons.trendingUp,
               label: l10n.reportIncome,
               value: Money(
                 minor: summary.incomeMinor,
@@ -435,7 +436,7 @@ class _CashFlowSection extends StatelessWidget {
               ).format(),
             ),
             _MetricCard(
-              icon: Icons.shopping_cart_outlined,
+              icon: FinanceSuitIcons.shoppingCart,
               label: l10n.reportExpenses,
               value: Money(
                 minor: summary.expensesMinor,
@@ -443,7 +444,7 @@ class _CashFlowSection extends StatelessWidget {
               ).format(),
             ),
             _MetricCard(
-              icon: Icons.volunteer_activism_outlined,
+              icon: FinanceSuitIcons.volunteerActivism,
               label: l10n.reportAllowances,
               value: Money(
                 minor: summary.allowancesMinor,
@@ -451,7 +452,7 @@ class _CashFlowSection extends StatelessWidget {
               ).format(),
             ),
             _MetricCard(
-              icon: Icons.account_balance,
+              icon: FinanceSuitIcons.accountBalance,
               label: l10n.reportNet,
               value: Money(
                 minor: summary.netMinor,
@@ -472,7 +473,7 @@ class _MetricCard extends StatelessWidget {
     required this.value,
   });
 
-  final IconData icon;
+  final FinanceSuitGlyph icon;
   final String label;
   final String value;
 
@@ -484,7 +485,7 @@ class _MetricCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon),
+            FinanceSuitIcon(icon),
             const Spacer(),
             Text(
               label,

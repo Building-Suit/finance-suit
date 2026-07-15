@@ -1,6 +1,6 @@
 # Product Spec
 
-Work Tracker is a private personal app for:
+Finance Suit is a private personal app for:
 
 - Salary configuration and salary estimates.
 - Work days, overtime, extra days, and official holidays worked.

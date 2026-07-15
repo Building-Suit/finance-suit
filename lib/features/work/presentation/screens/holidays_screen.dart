@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/validation/validators.dart';
@@ -58,7 +59,9 @@ class HolidaysScreen extends ConsumerWidget {
                 const SizedBox(height: 8),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.calendar_today_outlined),
+                  leading: const FinanceSuitIcon(
+                    FinanceSuitIcons.calendarToday,
+                  ),
                   title: Text(l10n.commonDate),
                   subtitle: Text(date.toIso()),
                   onTap: () async {
@@ -177,7 +180,7 @@ class HolidaysScreen extends ConsumerWidget {
         data: (holidays) {
           if (holidays.isEmpty) {
             return EmptyStateView(
-              icon: Icons.event_outlined,
+              icon: FinanceSuitIcons.event,
               message: l10n.workNoHolidays,
             );
           }
@@ -189,7 +192,7 @@ class HolidaysScreen extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final holiday = holidays[index];
                 return ListTile(
-                  leading: const Icon(Icons.celebration_outlined),
+                  leading: const FinanceSuitIcon(FinanceSuitIcons.celebration),
                   title: Text(holiday.name),
                   subtitle: Text(
                     [

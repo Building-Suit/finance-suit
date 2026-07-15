@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
@@ -155,7 +156,7 @@ class _MacroFormScreenState extends ConsumerState<MacroFormScreen> {
                 ),
               OutlinedButton.icon(
                 onPressed: _addItem,
-                icon: const Icon(Icons.add),
+                icon: const FinanceSuitIcon(FinanceSuitIcons.add),
                 label: Text(l10n.macroAddAction),
               ),
               const SizedBox(height: 16),
@@ -212,7 +213,7 @@ class _MacroItemTile extends StatelessWidget {
       contentPadding: EdgeInsets.zero,
       leading: CircleAvatar(
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-        child: Icon(
+        child: FinanceSuitIcon(
           transactionKindIcon(item.kind),
           color: Theme.of(context).colorScheme.onSurface,
         ),
@@ -241,7 +242,7 @@ class _MacroItemTile extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.close),
+            icon: const FinanceSuitIcon(FinanceSuitIcons.close),
             tooltip: l10n.commonDelete,
             onPressed: onRemove,
           ),

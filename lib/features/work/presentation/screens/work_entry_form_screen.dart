@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
@@ -308,7 +309,7 @@ class _WorkEntryFormScreenState extends ConsumerState<WorkEntryFormScreen> {
         actions: [
           if (_isEdit)
             IconButton(
-              icon: const Icon(Icons.delete_outline),
+              icon: const FinanceSuitIcon(FinanceSuitIcons.delete),
               tooltip: l10n.commonDelete,
               onPressed: _busy ? null : _delete,
             ),
@@ -338,10 +339,10 @@ class _WorkEntryFormScreenState extends ConsumerState<WorkEntryFormScreen> {
               const SizedBox(height: 8),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.calendar_today_outlined),
+                leading: const FinanceSuitIcon(FinanceSuitIcons.calendarToday),
                 title: Text(l10n.commonDate),
                 subtitle: Text(_date.toIso()),
-                trailing: const Icon(Icons.edit_outlined),
+                trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
                 onTap: _pickDate,
               ),
               if (_type == WorkEntryType.holidayWorked) ...[
@@ -513,7 +514,7 @@ class _WorkEntryFormScreenState extends ConsumerState<WorkEntryFormScreen> {
               const SizedBox(height: 16),
               Card(
                 child: ListTile(
-                  leading: const Icon(Icons.calculate_outlined),
+                  leading: const FinanceSuitIcon(FinanceSuitIcons.calculate),
                   title: Text(l10n.workEstimatedPay),
                   trailing: Text(
                     estimate?.amount.format() ?? '—',

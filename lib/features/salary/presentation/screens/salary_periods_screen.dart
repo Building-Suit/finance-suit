@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
@@ -55,7 +56,7 @@ class SalaryPeriodsScreen extends ConsumerWidget {
             switch (estimateAsync) {
               AsyncValue(:final value?) => Card(
                 child: ListTile(
-                  leading: const Icon(Icons.trending_up),
+                  leading: const FinanceSuitIcon(FinanceSuitIcons.trendingUp),
                   title: Text(
                     l10n.salEstimatedFor(
                       DateFormat.yMMMM(
@@ -97,7 +98,7 @@ class SalaryPeriodsScreen extends ConsumerWidget {
               data: (periods) {
                 if (periods.isEmpty) {
                   return EmptyStateView(
-                    icon: Icons.history,
+                    icon: FinanceSuitIcons.history,
                     message: l10n.salNoPeriods,
                   );
                 }
@@ -128,12 +129,12 @@ class _PeriodTile extends ConsumerWidget {
         ? period.actualAmountMinor
         : period.snapshotTotalMinor;
     return ListTile(
-      leading: Icon(
+      leading: FinanceSuitIcon(
         period.isPaid
-            ? Icons.check_circle_outline
+            ? FinanceSuitIcons.checkCircle
             : period.isFinalized
-            ? Icons.lock_outline
-            : Icons.pending_outlined,
+            ? FinanceSuitIcons.lock
+            : FinanceSuitIcons.pending,
       ),
       title: Text(
         '${period.periodStart.toIso()} → ${period.periodEnd.toIso()}',

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/configuration/env.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/core/validation/validators.dart';
@@ -109,7 +110,7 @@ class SettingsScreen extends ConsumerWidget {
         children: [
           _SectionHeader(title: l10n.setAppearance),
           ListTile(
-            leading: const Icon(Icons.brightness_6_outlined),
+            leading: const FinanceSuitIcon(FinanceSuitIcons.brightness),
             title: Text(l10n.setTheme),
             trailing: DropdownButton<ThemeMode>(
               value: themeMode,
@@ -136,7 +137,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.language),
+            leading: const FinanceSuitIcon(FinanceSuitIcons.language),
             title: Text(l10n.onbLanguage),
             trailing: DropdownButton<String>(
               value: locale?.languageCode ?? 'en',
@@ -156,52 +157,52 @@ class SettingsScreen extends ConsumerWidget {
           _SectionHeader(title: l10n.setProfileSection),
           profile.when(
             data: (p) => ListTile(
-              leading: const Icon(Icons.person_outline),
+              leading: const FinanceSuitIcon(FinanceSuitIcons.person),
               title: Text(l10n.setDisplayName),
               subtitle: Text(p.displayName),
-              trailing: const Icon(Icons.edit_outlined),
+              trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
               onTap: () => _editDisplayName(context, ref, p.displayName),
             ),
             loading: () => ListTile(
-              leading: const Icon(Icons.person_outline),
+              leading: const FinanceSuitIcon(FinanceSuitIcons.person),
               title: Text(l10n.setDisplayName),
               subtitle: Text(l10n.commonLoading),
             ),
             error: (e, _) => ListTile(
-              leading: const Icon(Icons.person_outline),
+              leading: const FinanceSuitIcon(FinanceSuitIcons.person),
               title: Text(l10n.setDisplayName),
               subtitle: Text(l10n.commonError),
               trailing: IconButton(
-                icon: const Icon(Icons.refresh),
+                icon: const FinanceSuitIcon(FinanceSuitIcons.refresh),
                 onPressed: () => ref.invalidate(profileProvider),
               ),
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.email_outlined),
+            leading: const FinanceSuitIcon(FinanceSuitIcons.email),
             title: Text(l10n.setChangeEmail),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
             onTap: () => context.go('${AppRoutes.settings}/email'),
           ),
           ListTile(
-            leading: const Icon(Icons.password_outlined),
+            leading: const FinanceSuitIcon(FinanceSuitIcons.password),
             title: Text(l10n.setChangePassword),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
             onTap: () => context.go('${AppRoutes.settings}/password'),
           ),
           const Divider(),
           _SectionHeader(title: l10n.setSalarySection),
           ListTile(
-            leading: const Icon(Icons.payments_outlined),
+            leading: const FinanceSuitIcon(FinanceSuitIcons.payments),
             title: Text(l10n.setSalarySection),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
             onTap: () => context.go('${AppRoutes.settings}/salary'),
           ),
           const Divider(),
           _SectionHeader(title: l10n.setAccountSection),
           ListTile(
-            leading: Icon(
-              Icons.logout,
+            leading: FinanceSuitIcon(
+              FinanceSuitIcons.logout,
               color: Theme.of(context).colorScheme.error,
             ),
             title: Text(
@@ -213,7 +214,7 @@ class SettingsScreen extends ConsumerWidget {
           const Divider(),
           _SectionHeader(title: l10n.setAboutSection),
           ListTile(
-            leading: const Icon(Icons.info_outline),
+            leading: const FinanceSuitIcon(FinanceSuitIcons.info),
             title: Text(l10n.setAppVersion),
             subtitle: Text(Env.appVersion),
           ),
@@ -233,12 +234,7 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-        ),
-      ),
+      child: Text(title, style: Theme.of(context).textTheme.labelLarge),
     );
   }
 }

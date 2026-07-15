@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/validation/validators.dart';
@@ -108,7 +109,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
     final categories = all.where((c) => c.kind == kind).toList();
     if (categories.isEmpty) {
       return EmptyStateView(
-        icon: Icons.label_outline,
+        icon: FinanceSuitIcons.label,
         message: l10n.catNoneYet,
       );
     }
@@ -116,7 +117,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
       children: [
         for (final category in categories)
           ListTile(
-            leading: const Icon(Icons.label_outline),
+            leading: const FinanceSuitIcon(FinanceSuitIcons.label),
             title: Text(category.name),
             subtitle: category.isArchived
                 ? Text(l10n.moneyArchivedLabel)

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
@@ -172,7 +173,9 @@ class SalaryPeriodDetailScreen extends ConsumerWidget {
                   ),
                   ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.calendar_today_outlined),
+                    leading: const FinanceSuitIcon(
+                      FinanceSuitIcons.calendarToday,
+                    ),
                     title: Text(l10n.salReceivedDate),
                     subtitle: Text(receivedDate.toIso()),
                     onTap: () async {
@@ -308,7 +311,9 @@ class SalaryPeriodDetailScreen extends ConsumerWidget {
                   ),
                   ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.calendar_today_outlined),
+                    leading: const FinanceSuitIcon(
+                      FinanceSuitIcons.calendarToday,
+                    ),
                     title: Text(l10n.salEffectiveDate),
                     subtitle: Text(date.toIso()),
                     onTap: () async {
@@ -567,10 +572,10 @@ class _PeriodBody extends ConsumerWidget {
                     for (final adjustment in adjustments)
                       ListTile(
                         contentPadding: EdgeInsets.zero,
-                        leading: Icon(
+                        leading: FinanceSuitIcon(
                           adjustment.adjustmentType == AdjustmentType.bonus
-                              ? Icons.add_circle_outline
-                              : Icons.remove_circle_outline,
+                              ? FinanceSuitIcons.addCircle
+                              : FinanceSuitIcons.removeCircle,
                         ),
                         title: Text(
                           adjustment.title ??
@@ -607,19 +612,19 @@ class _PeriodBody extends ConsumerWidget {
             if (period.isOpen)
               FilledButton.icon(
                 onPressed: () => onFinalize(estimate),
-                icon: const Icon(Icons.lock_outline),
+                icon: const FinanceSuitIcon(FinanceSuitIcons.lock),
                 label: Text(l10n.salFinalize),
               ),
             if (period.isFinalized) ...[
               FilledButton.icon(
                 onPressed: () => onMarkPaid(estimate),
-                icon: const Icon(Icons.payments_outlined),
+                icon: const FinanceSuitIcon(FinanceSuitIcons.payments),
                 label: Text(l10n.salMarkPaid),
               ),
               const SizedBox(height: 8),
               OutlinedButton.icon(
                 onPressed: onReopen,
-                icon: const Icon(Icons.lock_open_outlined),
+                icon: const FinanceSuitIcon(FinanceSuitIcons.lockOpen),
                 label: Text(l10n.salReopen),
               ),
             ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
@@ -99,7 +100,7 @@ class _MacrosScreenState extends ConsumerState<MacrosScreen> {
         data: (list) {
           if (list.isEmpty) {
             return EmptyStateView(
-              icon: Icons.bolt_outlined,
+              icon: FinanceSuitIcons.bolt,
               message: l10n.macroEmpty,
             );
           }
@@ -141,7 +142,7 @@ class _MacroTile extends StatelessWidget {
       if (macro.isReversible) l10n.macroReversibleBadge,
     ];
     return ListTile(
-      leading: const Icon(Icons.bolt_outlined),
+      leading: const FinanceSuitIcon(FinanceSuitIcons.bolt),
       title: Text(macro.name),
       subtitle: Text(subtitleParts.join(' · ')),
       onTap: () => onAction('edit'),
@@ -149,7 +150,7 @@ class _MacroTile extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: const Icon(Icons.play_arrow_outlined),
+            icon: const FinanceSuitIcon(FinanceSuitIcons.play),
             tooltip: macro.isReversible
                 ? l10n.macroRunTo(macro.name)
                 : l10n.macroRun,
@@ -157,7 +158,7 @@ class _MacroTile extends StatelessWidget {
           ),
           if (macro.isReversible)
             IconButton(
-              icon: const Icon(Icons.undo),
+              icon: const FinanceSuitIcon(FinanceSuitIcons.undo),
               tooltip: l10n.macroRunFrom(macro.name),
               onPressed: () => onAction('runReverse'),
             ),

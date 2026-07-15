@@ -1,4 +1,4 @@
-# Work Tracker
+# Finance Suit
 
 Private Flutter application for personal salary estimation, work tracking, account balances, and cash-flow reporting.
 
@@ -16,10 +16,18 @@ As of 2026-07-10:
 
 - Flutter 3.41.6 / Dart 3.11.4
 - Material 3
+- Shared Suit visual language: navy/gold role tokens, Manrope, IBM Plex Sans
+  Arabic, and free Hugeicons Stroke Rounded glyphs
 - Riverpod
 - go_router
 - Supabase Auth, PostgreSQL, RLS, Realtime
 - fl_chart
+
+## Product Identity
+
+Finance Suit is a standalone product with its own finance-ledger `F` mark. It
+uses the shared Suit visual system without copying another product's logo or
+changing its existing technical identifiers, database, or deep links.
 
 ## Local Setup
 

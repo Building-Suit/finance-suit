@@ -1,4 +1,4 @@
-name: Android APK Release
+name: Finance Suit Android APK Release
 
 on:
   push:
@@ -70,7 +70,7 @@ jobs:
           fi
 
           echo "RELEASE_TAG=${release_tag}" >> "${GITHUB_ENV}"
-          echo "APK_NAME=work-tracker-${release_tag}.apk" >> "${GITHUB_ENV}"
+          echo "APK_NAME=finance-suit-${release_tag}.apk" >> "${GITHUB_ENV}"
 
       - name: Validate required Supabase secrets
         shell: bash
@@ -176,7 +176,7 @@ jobs:
             gh release create "${RELEASE_TAG}" \
               "release/${APK_NAME}" \
               "release/${APK_NAME}.sha256" \
-              --title "Work Tracker ${RELEASE_TAG}" \
+              --title "Finance Suit ${RELEASE_TAG}" \
               --notes "Production Android APK built from ${GITHUB_SHA}." \
               "${prerelease_flag[@]}"
           fi

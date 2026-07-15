@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
@@ -286,7 +287,7 @@ class _SalaryAdjustmentFormScreenState
           ? ErrorRetryView(failure: _failure!, onRetry: _retryLoadPeriods)
           : _periods.isEmpty
           ? EmptyStateView(
-              icon: Icons.event_busy_outlined,
+              icon: FinanceSuitIcons.eventBusy,
               message: l10n.salNoOpenPeriods,
             )
           : SingleChildScrollView(
@@ -368,7 +369,9 @@ class _SalaryAdjustmentFormScreenState
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       enabled: !_busy,
-                      leading: const Icon(Icons.calendar_today_outlined),
+                      leading: const FinanceSuitIcon(
+                        FinanceSuitIcons.calendarToday,
+                      ),
                       title: Text(l10n.salEffectiveDate),
                       subtitle: Text(_date.toIso()),
                       onTap: _pickDate,
