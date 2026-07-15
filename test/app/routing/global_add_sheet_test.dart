@@ -17,6 +17,7 @@ Future<void> pumpSheet(
 }) async {
   await tester.pumpWidget(
     MaterialApp(
+      key: UniqueKey(),
       theme: AppTheme.light(),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
@@ -52,28 +53,29 @@ Future<void> pumpSheet(
   await tester.pumpAndSettle();
 }
 
-Finder sheetScrollable() => find.descendant(
-  of: find.byKey(const Key('global-add-list')),
-  matching: find.byType(Scrollable),
-);
+Future<void> scrollSheetTo(WidgetTester tester, Finder target) async {
+  for (var attempt = 0; attempt < 40; attempt++) {
+    if (target.hitTestable().evaluate().isNotEmpty) return;
+    await tester.drag(
+      find.byKey(const Key('global-add-list')),
+      const Offset(0, -80),
+    );
+    await tester.pumpAndSettle();
+  }
+  expect(target.hitTestable(), findsWidgets);
+}
 
 Future<void> expandSection(WidgetTester tester, String label) async {
-  await tester.scrollUntilVisible(
-    find.text(label).first,
-    200,
-    scrollable: sheetScrollable(),
-  );
-  await tester.tap(find.text(label).first);
+  final target = find.text(label);
+  await scrollSheetTo(tester, target);
+  await tester.tap(target.hitTestable().first);
   await tester.pumpAndSettle();
 }
 
 Future<void> tapSheetItem(WidgetTester tester, String label) async {
-  await tester.scrollUntilVisible(
-    find.text(label).last,
-    200,
-    scrollable: sheetScrollable(),
-  );
-  await tester.tap(find.text(label).last);
+  final target = find.text(label);
+  await scrollSheetTo(tester, target);
+  await tester.tap(target.hitTestable().first);
   await tester.pumpAndSettle();
 }
 
@@ -190,19 +192,11 @@ void main() {
     await pumpSheet(tester);
 
     await expandSection(tester, 'Work Control');
-    await tester.scrollUntilVisible(
-      find.text('New adjustment'),
-      200,
-      scrollable: sheetScrollable(),
-    );
+    await scrollSheetTo(tester, find.text('New adjustment'));
     expect(find.text('New adjustment'), findsOneWidget);
 
     await expandSection(tester, 'Macros');
-    await tester.scrollUntilVisible(
-      find.text('Manage macros'),
-      200,
-      scrollable: sheetScrollable(),
-    );
+    await scrollSheetTo(tester, find.text('Manage macros'));
     expect(find.text('Manage macros'), findsOneWidget);
   });
 
@@ -213,12 +207,8 @@ void main() {
       macrosState: const AsyncLoading<List<TransactionMacro>>(),
       onRetryMacros: () => retried = true,
     );
-    await tester.scrollUntilVisible(
-      find.text('Macros'),
-      200,
-      scrollable: sheetScrollable(),
-    );
-    await tester.tap(find.text('Macros'));
+    await scrollSheetTo(tester, find.text('Macros'));
+    await tester.tap(find.text('Macros').hitTestable());
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
@@ -231,12 +221,8 @@ void main() {
       onRetryMacros: () => retried = true,
     );
     await expandSection(tester, 'Macros');
-    await tester.scrollUntilVisible(
-      find.byTooltip('Retry'),
-      200,
-      scrollable: sheetScrollable(),
-    );
-    await tester.tap(find.byTooltip('Retry'));
+    await scrollSheetTo(tester, find.byTooltip('Retry'));
+    await tester.tap(find.byTooltip('Retry').hitTestable());
     expect(retried, isTrue);
   });
 
