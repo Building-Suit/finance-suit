@@ -31,6 +31,7 @@ class GlobalAddSheet extends StatelessWidget {
     return SafeArea(
       top: false,
       child: ListView(
+        key: const Key('global-add-list'),
         padding: const EdgeInsets.only(bottom: 16),
         children: [
           Padding(
