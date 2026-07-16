@@ -1,14 +1,16 @@
 import 'package:meta/meta.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
+import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
 
-/// A row from `app_finance.held_amounts`: money the user owes someone,
+/// A row from `app_finance.held_amounts`: money owed in either direction,
 /// optionally linked to the transaction it originated from. Deleting that
-/// transaction unlinks the hold but keeps the record.
+/// transaction unlinks the held amount but keeps the record.
 @immutable
 class HeldAmount {
   const HeldAmount({
     required this.id,
+    required this.direction,
     required this.amountMinor,
     required this.currencyCode,
     required this.counterparty,
@@ -21,6 +23,7 @@ class HeldAmount {
 
   factory HeldAmount.fromJson(Map<String, dynamic> json) => HeldAmount(
     id: json['id'] as String,
+    direction: HeldAmountDirection.fromDb(json['direction'] as String),
     amountMinor: (json['amount_minor'] as num).toInt(),
     currencyCode: json['currency_code'] as String,
     counterparty: json['counterparty'] as String,
@@ -35,6 +38,7 @@ class HeldAmount {
   );
 
   final String id;
+  final HeldAmountDirection direction;
   final int amountMinor;
   final String currencyCode;
   final String counterparty;
@@ -54,6 +58,7 @@ class HeldAmount {
 @immutable
 class HeldAmountDraft {
   const HeldAmountDraft({
+    required this.direction,
     required this.amountMinor,
     required this.currencyCode,
     required this.counterparty,
@@ -63,6 +68,7 @@ class HeldAmountDraft {
     this.notes,
   });
 
+  final HeldAmountDirection direction;
   final int amountMinor;
   final String currencyCode;
   final String counterparty;
@@ -72,6 +78,7 @@ class HeldAmountDraft {
   final String? notes;
 
   Map<String, dynamic> toJson() => {
+    'direction': direction.dbValue,
     'amount_minor': amountMinor,
     'currency_code': currencyCode,
     'counterparty': counterparty,
@@ -80,4 +87,44 @@ class HeldAmountDraft {
     'title': title,
     'notes': notes,
   };
+}
+
+/// Active held amounts aggregated independently by direction and currency.
+///
+/// Stored amounts remain positive magnitudes; [HeldAmount.direction] carries
+/// their financial meaning. Settled rows never contribute to active totals.
+@immutable
+class ActiveHeldAmountTotals {
+  ActiveHeldAmountTotals._(
+    Map<String, int> iOweByCurrency,
+    Map<String, int> owedToMeByCurrency,
+  ) : iOweByCurrency = Map.unmodifiable(iOweByCurrency),
+      owedToMeByCurrency = Map.unmodifiable(owedToMeByCurrency);
+
+  factory ActiveHeldAmountTotals.from(Iterable<HeldAmount> heldAmounts) {
+    final iOweByCurrency = <String, int>{};
+    final owedToMeByCurrency = <String, int>{};
+
+    for (final held in heldAmounts) {
+      if (held.isSettled) continue;
+      final totals = switch (held.direction) {
+        HeldAmountDirection.iOwe => iOweByCurrency,
+        HeldAmountDirection.owedToMe => owedToMeByCurrency,
+      };
+      totals[held.currencyCode] =
+          (totals[held.currencyCode] ?? 0) + held.amountMinor;
+    }
+
+    return ActiveHeldAmountTotals._(iOweByCurrency, owedToMeByCurrency);
+  }
+
+  final Map<String, int> iOweByCurrency;
+  final Map<String, int> owedToMeByCurrency;
+
+  Map<String, int> forDirection(HeldAmountDirection direction) {
+    return switch (direction) {
+      HeldAmountDirection.iOwe => iOweByCurrency,
+      HeldAmountDirection.owedToMe => owedToMeByCurrency,
+    };
+  }
 }

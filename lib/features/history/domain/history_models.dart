@@ -44,23 +44,23 @@ enum HistorySort {
 class HistoryCursor {
   const HistoryCursor({
     required this.recordDate,
-    required this.createdAt,
+    required this.sortAt,
     required this.id,
   });
 
   final PlainDate recordDate;
-  final DateTime createdAt;
+  final DateTime sortAt;
   final String id;
 
   @override
   bool operator ==(Object other) =>
       other is HistoryCursor &&
       other.recordDate == recordDate &&
-      other.createdAt == createdAt &&
+      other.sortAt == sortAt &&
       other.id == id;
 
   @override
-  int get hashCode => Object.hash(recordDate, createdAt, id);
+  int get hashCode => Object.hash(recordDate, sortAt, id);
 }
 
 @immutable
@@ -176,6 +176,7 @@ class HistoryItem {
     required this.recordType,
     required this.recordDate,
     required this.createdAt,
+    required this.sortAt,
     this.amountMinor,
     this.currencyCode,
     this.sourceAccountId,
@@ -187,28 +188,38 @@ class HistoryItem {
     this.notes,
   });
 
-  factory HistoryItem.fromJson(Map<String, dynamic> json) => HistoryItem(
-    id: json['id'] as String,
-    group: HistoryItemGroup.fromDb(json['record_group'] as String),
-    recordType: json['record_type'] as String,
-    recordDate: PlainDate.parse(json['record_date'] as String),
-    createdAt: DateTime.parse(json['created_at'] as String),
-    amountMinor: (json['amount_minor'] as num?)?.toInt(),
-    currencyCode: json['currency_code'] as String?,
-    sourceAccountId: json['source_account_id'] as String?,
-    destinationAccountId: json['destination_account_id'] as String?,
-    categoryId: json['category_id'] as String?,
-    counterparty: json['counterparty'] as String?,
-    salaryPeriodId: json['salary_period_id'] as String?,
-    title: json['title'] as String?,
-    notes: json['notes'] as String?,
-  );
+  factory HistoryItem.fromJson(Map<String, dynamic> json) {
+    final createdAt = DateTime.parse(json['created_at'] as String);
+    final sortAtValue = json['sort_at'] as String?;
+    return HistoryItem(
+      id: json['id'] as String,
+      group: HistoryItemGroup.fromDb(json['record_group'] as String),
+      recordType: json['record_type'] as String,
+      recordDate: PlainDate.parse(json['record_date'] as String),
+      createdAt: createdAt,
+      sortAt: sortAtValue == null ? createdAt : DateTime.parse(sortAtValue),
+      amountMinor: (json['amount_minor'] as num?)?.toInt(),
+      currencyCode: json['currency_code'] as String?,
+      sourceAccountId: json['source_account_id'] as String?,
+      destinationAccountId: json['destination_account_id'] as String?,
+      categoryId: json['category_id'] as String?,
+      counterparty: json['counterparty'] as String?,
+      salaryPeriodId: json['salary_period_id'] as String?,
+      title: json['title'] as String?,
+      notes: json['notes'] as String?,
+    );
+  }
 
   final String id;
   final HistoryItemGroup group;
   final String recordType;
   final PlainDate recordDate;
+
+  /// Immutable audit timestamp for when the record was created.
   final DateTime createdAt;
+
+  /// Stable display-order timestamp, including ordering within macro runs.
+  final DateTime sortAt;
   final int? amountMinor;
   final String? currencyCode;
   final String? sourceAccountId;
@@ -220,7 +231,7 @@ class HistoryItem {
   final String? notes;
 
   HistoryCursor get cursor =>
-      HistoryCursor(recordDate: recordDate, createdAt: createdAt, id: id);
+      HistoryCursor(recordDate: recordDate, sortAt: sortAt, id: id);
 
   Money? get amount => amountMinor == null
       ? null

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
+import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
@@ -14,9 +15,8 @@ import 'package:work_tracker/features/finance/presentation/providers/finance_pro
 import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
-/// Create or edit a held amount: money the user owes someone. Standalone,
-/// or created from a transaction editor with a [prefill] that carries the
-/// linked transaction id.
+/// Create or edit money owed in either direction. A held amount may stand
+/// alone or carry a linked transaction through [prefill].
 class HeldAmountFormScreen extends ConsumerStatefulWidget {
   const HeldAmountFormScreen({super.key, this.existing, this.prefill});
 
@@ -37,6 +37,10 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
 
   late PlainDate _date =
       widget.existing?.heldOn ?? widget.prefill?.heldOn ?? PlainDate.today();
+  late HeldAmountDirection _direction =
+      widget.existing?.direction ??
+      widget.prefill?.direction ??
+      HeldAmountDirection.iOwe;
   late final String? _transactionId =
       widget.existing?.transactionId ?? widget.prefill?.transactionId;
 
@@ -98,6 +102,7 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
     final title = _titleController.text.trim();
     final notes = _notesController.text.trim();
     final draft = HeldAmountDraft(
+      direction: _direction,
       amountMinor: amount.minor,
       currencyCode: _currencyCode,
       counterparty: _counterpartyController.text.trim(),
@@ -190,6 +195,28 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
                 ),
                 const SizedBox(height: 8),
               ],
+              Text(
+                l10n.heldDirection,
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+              const SizedBox(height: 8),
+              SegmentedButton<HeldAmountDirection>(
+                segments: [
+                  ButtonSegment(
+                    value: HeldAmountDirection.iOwe,
+                    label: Text(l10n.heldDirectionIOwe),
+                  ),
+                  ButtonSegment(
+                    value: HeldAmountDirection.owedToMe,
+                    label: Text(l10n.heldDirectionOwedToMe),
+                  ),
+                ],
+                selected: {_direction},
+                onSelectionChanged: (selection) {
+                  setState(() => _direction = selection.first);
+                },
+              ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _amountController,
                 keyboardType: const TextInputType.numberWithOptions(
@@ -211,7 +238,11 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
               TextFormField(
                 controller: _counterpartyController,
                 textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(labelText: l10n.heldOwedTo),
+                decoration: InputDecoration(
+                  labelText: _direction == HeldAmountDirection.iOwe
+                      ? l10n.heldOwedTo
+                      : l10n.heldOwedBy,
+                ),
                 validator: (v) {
                   final e = Validators.requiredText(v, maxLength: 120);
                   return e == null ? null : validationMessage(context, e);

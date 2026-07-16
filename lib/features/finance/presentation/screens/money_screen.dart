@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
+import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
+import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
@@ -316,13 +318,7 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
         }
         final active = all.where((h) => !h.isSettled).toList();
         final settled = all.where((h) => h.isSettled).toList();
-
-        // Total owed per currency (mixing currencies is meaningless).
-        final totals = <String, int>{};
-        for (final held in active) {
-          totals[held.currencyCode] =
-              (totals[held.currencyCode] ?? 0) + held.amountMinor;
-        }
+        final totals = ActiveHeldAmountTotals.from(all);
 
         return RefreshIndicator(
           onRefresh: () async => ref.invalidate(heldAmountsProvider),
@@ -335,24 +331,17 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        l10n.heldTotal,
-                        style: Theme.of(context).textTheme.labelLarge,
+                      _HeldTotalsSection(
+                        label: l10n.heldTotalOwedToMe,
+                        totals: totals.owedToMeByCurrency,
+                        color: AppTheme.incomeColor(context),
                       ),
-                      const SizedBox(height: 4),
-                      if (totals.isEmpty)
-                        Text(
-                          l10n.commonNone,
-                          style: Theme.of(context).textTheme.headlineSmall,
-                        ),
-                      for (final entry in totals.entries)
-                        BalanceText(
-                          money: Money(
-                            minor: entry.value,
-                            currencyCode: entry.key,
-                          ),
-                          style: Theme.of(context).textTheme.headlineSmall,
-                        ),
+                      const Divider(height: 24),
+                      _HeldTotalsSection(
+                        label: l10n.heldTotalIOwe,
+                        totals: totals.iOweByCurrency,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                     ],
                   ),
                 ),
@@ -438,10 +427,23 @@ class _HeldTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final directionLabel = switch (held.direction) {
+      HeldAmountDirection.iOwe => l10n.heldDirectionIOwe,
+      HeldAmountDirection.owedToMe => l10n.heldDirectionOwedToMe,
+    };
+    final amountColor = held.isSettled
+        ? scheme.onSurfaceVariant
+        : held.direction == HeldAmountDirection.owedToMe
+        ? AppTheme.incomeColor(context)
+        : scheme.error;
+    final amountPrefix = held.direction == HeldAmountDirection.owedToMe
+        ? '+'
+        : '-';
     final title = held.title?.isNotEmpty == true
         ? held.title!
         : held.counterparty;
     final subtitleParts = [
+      directionLabel,
       held.heldOn.toIso(),
       if (held.title?.isNotEmpty == true) held.counterparty,
       if (held.isLinked) l10n.heldLinkedTransaction,
@@ -465,9 +467,9 @@ class _HeldTile extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            held.amount.format(),
+            '$amountPrefix${held.amount.format()}',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: held.isSettled ? scheme.onSurfaceVariant : scheme.error,
+              color: amountColor,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
@@ -487,6 +489,44 @@ class _HeldTile extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _HeldTotalsSection extends StatelessWidget {
+  const _HeldTotalsSection({
+    required this.label,
+    required this.totals,
+    required this.color,
+  });
+
+  final String label;
+  final Map<String, int> totals;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: textTheme.labelLarge),
+        const SizedBox(height: 4),
+        if (totals.isEmpty)
+          Text(
+            AppLocalizations.of(context).commonNone,
+            style: textTheme.headlineSmall,
+          )
+        else
+          for (final entry in totals.entries)
+            Text(
+              Money(minor: entry.value, currencyCode: entry.key).format(),
+              style: textTheme.headlineSmall?.copyWith(
+                color: color,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+      ],
     );
   }
 }

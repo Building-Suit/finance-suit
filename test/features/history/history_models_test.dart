@@ -16,7 +16,7 @@ void main() {
     test('uses default keyset only for default sort with a cursor', () {
       final cursor = HistoryCursor(
         recordDate: const PlainDate(2026, 7, 10),
-        createdAt: DateTime.utc(2026, 7, 10, 10),
+        sortAt: DateTime.utc(2026, 7, 10, 10),
         id: 'abc',
       );
       final base = HistoryQuery(
@@ -42,6 +42,28 @@ void main() {
 
       expect(HistoryQuery(range: range), HistoryQuery(range: range));
     });
+
+    test('cursor equality includes display sort time', () {
+      final first = HistoryCursor(
+        recordDate: const PlainDate(2026, 7, 10),
+        sortAt: DateTime.utc(2026, 7, 10, 10),
+        id: 'abc',
+      );
+      final same = HistoryCursor(
+        recordDate: const PlainDate(2026, 7, 10),
+        sortAt: DateTime.utc(2026, 7, 10, 10),
+        id: 'abc',
+      );
+      final differentlySorted = HistoryCursor(
+        recordDate: const PlainDate(2026, 7, 10),
+        sortAt: DateTime.utc(2026, 7, 10, 9),
+        id: 'abc',
+      );
+
+      expect(first, same);
+      expect(first.hashCode, same.hashCode);
+      expect(first, isNot(differentlySorted));
+    });
   });
 
   group('HistoryItem', () {
@@ -52,14 +74,16 @@ void main() {
         'record_type': 'allowance_given',
         'record_date': '2026-07-09',
         'created_at': '2026-07-10T10:00:00Z',
+        'sort_at': '2026-07-10T09:59:59.999999Z',
         'amount_minor': 100000,
         'currency_code': 'EGP',
       });
 
       expect(item.isOutgoing, isTrue);
       expect(item.isIncome, isFalse);
+      expect(item.createdAt, DateTime.utc(2026, 7, 10, 10));
       expect(item.cursor.recordDate, const PlainDate(2026, 7, 9));
-      expect(item.cursor.createdAt, DateTime.utc(2026, 7, 10, 10));
+      expect(item.cursor.sortAt, DateTime.parse('2026-07-10T09:59:59.999999Z'));
     });
 
     test('parses signed salary adjustment', () {
@@ -75,6 +99,7 @@ void main() {
 
       expect(item.amount!.minor, -25000);
       expect(item.isOutgoing, isTrue);
+      expect(item.sortAt, item.createdAt);
     });
   });
 }

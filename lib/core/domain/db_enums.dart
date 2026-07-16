@@ -114,3 +114,14 @@ enum TransactionKind {
   static TransactionKind fromDb(String value) =>
       values.firstWhere((e) => e.dbValue == value);
 }
+
+enum HeldAmountDirection {
+  iOwe('i_owe'),
+  owedToMe('owed_to_me');
+
+  const HeldAmountDirection(this.dbValue);
+  final String dbValue;
+
+  static HeldAmountDirection fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}

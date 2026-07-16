@@ -80,27 +80,67 @@ Future<void> tapSheetItem(WidgetTester tester, String label) async {
 }
 
 void main() {
-  testWidgets('Money Control is expanded and other sections start collapsed', (
+  testWidgets(
+    'Money Control opens by default and only one section stays open',
+    (tester) async {
+      await pumpSheet(tester);
+
+      expect(find.text('Money Control'), findsOneWidget);
+      expect(find.text('Expense'), findsOneWidget);
+      expect(find.text('New account'), findsOneWidget);
+      expect(find.text('New held amount'), findsOneWidget);
+      expect(find.text('New category'), findsOneWidget);
+      expect(find.text('Add work entry'), findsNothing);
+      expect(find.text('New macro'), findsNothing);
+
+      await expandSection(tester, 'Work Control');
+      expect(find.text('Expense'), findsNothing);
+      expect(find.text('Add work entry'), findsOneWidget);
+      expect(find.text('New holiday'), findsOneWidget);
+      expect(find.text('New adjustment'), findsOneWidget);
+
+      await expandSection(tester, 'Macros');
+      expect(find.text('Add work entry'), findsNothing);
+      expect(find.text('New macro'), findsOneWidget);
+      expect(find.text('Manage macros'), findsOneWidget);
+    },
+  );
+
+  testWidgets('accordion content has a readable horizontal inset', (
     tester,
   ) async {
     await pumpSheet(tester);
 
-    expect(find.text('Money Control'), findsOneWidget);
-    expect(find.text('Expense'), findsOneWidget);
-    expect(find.text('New account'), findsOneWidget);
-    expect(find.text('New held amount'), findsOneWidget);
-    expect(find.text('New category'), findsOneWidget);
-    expect(find.text('Add work entry'), findsNothing);
-    expect(find.text('New macro'), findsNothing);
+    const expectedPadding = EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8);
+
+    final moneyTile = tester.widget<ExpansionTile>(
+      find.byKey(const Key('global-add-money-control')),
+    );
+    expect(moneyTile.childrenPadding, expectedPadding);
+
+    final moneyRect = tester.getRect(
+      find.byKey(const Key('global-add-money-control')),
+    );
+    final expenseTile = find.ancestor(
+      of: find.text('Expense'),
+      matching: find.byType(ListTile),
+    );
+    final expenseRect = tester.getRect(expenseTile.first);
+
+    expect(expenseRect.left, greaterThanOrEqualTo(moneyRect.left + 16));
+    expect(expenseRect.right, lessThanOrEqualTo(moneyRect.right - 16));
 
     await expandSection(tester, 'Work Control');
-    expect(find.text('Add work entry'), findsOneWidget);
-    expect(find.text('New holiday'), findsOneWidget);
-    expect(find.text('New adjustment'), findsOneWidget);
+    final workTile = tester.widget<ExpansionTile>(
+      find.byKey(const Key('global-add-work-control')),
+    );
+    expect(workTile.childrenPadding, expectedPadding);
 
     await expandSection(tester, 'Macros');
-    expect(find.text('New macro'), findsOneWidget);
-    expect(find.text('Manage macros'), findsOneWidget);
+    final macrosTile = tester.widget<ExpansionTile>(
+      find.byKey(const Key('global-add-macros')),
+    );
+    expect(macrosTile.childrenPadding, expectedPadding);
   });
 
   testWidgets('every static Add action returns its exact route', (

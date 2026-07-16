@@ -715,14 +715,29 @@ class AppLocalizationsAr extends AppLocalizations {
   String get heldEditTitle => 'تعديل المبلغ المحجوز';
 
   @override
+  String get heldDirection => 'الاتجاه';
+
+  @override
+  String get heldDirectionIOwe => 'أنا مدين لشخص';
+
+  @override
+  String get heldDirectionOwedToMe => 'مستحق لي';
+
+  @override
   String get heldOwedTo => 'مستحق لـ';
 
   @override
-  String get heldTotal => 'إجمالي المحجوز';
+  String get heldOwedBy => 'مستحق على';
+
+  @override
+  String get heldTotalIOwe => 'إجمالي ما عليّ';
+
+  @override
+  String get heldTotalOwedToMe => 'إجمالي المستحق لي';
 
   @override
   String get heldEmpty =>
-      'لا توجد مبالغ محجوزة بعد. تتبّع المال المستحق عليك لشخص ما، بمفرده أو مرتبطًا بمعاملة.';
+      'لا توجد مبالغ محجوزة بعد. تتبّع ما عليك من أموال أو ما هو مستحق لك، بشكل مستقل أو مرتبط بمعاملة.';
 
   @override
   String get heldSettle => 'تحديد كمُسدد';

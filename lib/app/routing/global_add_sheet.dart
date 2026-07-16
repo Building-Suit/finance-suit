@@ -14,7 +14,7 @@ typedef MacroRunSelection = ({String macroId, bool reverse});
 
 /// All top-level creation entry points live here so nested pages never compete
 /// with the shell's global Add button.
-class GlobalAddSheet extends StatelessWidget {
+class GlobalAddSheet extends StatefulWidget {
   const GlobalAddSheet({
     super.key,
     required this.macros,
@@ -25,6 +25,39 @@ class GlobalAddSheet extends StatelessWidget {
   final AsyncValue<List<TransactionMacro>> macros;
   final VoidCallback onRetryMacros;
   final String salaryAdjustmentRoute;
+
+  @override
+  State<GlobalAddSheet> createState() => _GlobalAddSheetState();
+}
+
+class _GlobalAddSheetState extends State<GlobalAddSheet> {
+  static const _childrenPadding = EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8);
+
+  final _moneyController = ExpansibleController();
+  final _workController = ExpansibleController();
+  final _macrosController = ExpansibleController();
+
+  @override
+  void dispose() {
+    _moneyController.dispose();
+    _workController.dispose();
+    _macrosController.dispose();
+    super.dispose();
+  }
+
+  void _openOnly(ExpansibleController opened, bool expanded) {
+    if (!expanded) return;
+
+    for (final controller in [
+      _moneyController,
+      _workController,
+      _macrosController,
+    ]) {
+      if (!identical(controller, opened) && controller.isExpanded) {
+        controller.collapse();
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +77,11 @@ class GlobalAddSheet extends StatelessWidget {
           ),
           ExpansionTile(
             key: const Key('global-add-money-control'),
+            controller: _moneyController,
             initiallyExpanded: true,
+            childrenPadding: _childrenPadding,
+            onExpansionChanged: (expanded) =>
+                _openOnly(_moneyController, expanded),
             leading: const FinanceSuitIcon(
               FinanceSuitIcons.accountBalanceWallet,
             ),
@@ -91,6 +128,10 @@ class GlobalAddSheet extends StatelessWidget {
           ),
           ExpansionTile(
             key: const Key('global-add-work-control'),
+            controller: _workController,
+            childrenPadding: _childrenPadding,
+            onExpansionChanged: (expanded) =>
+                _openOnly(_workController, expanded),
             leading: const FinanceSuitIcon(FinanceSuitIcons.work),
             title: Text(l10n.addSectionWorkControl),
             children: [
@@ -110,12 +151,16 @@ class GlobalAddSheet extends StatelessWidget {
                 context,
                 icon: FinanceSuitIcons.priceChange,
                 label: l10n.salNewAdjustment,
-                route: salaryAdjustmentRoute,
+                route: widget.salaryAdjustmentRoute,
               ),
             ],
           ),
           ExpansionTile(
             key: const Key('global-add-macros'),
+            controller: _macrosController,
+            childrenPadding: _childrenPadding,
+            onExpansionChanged: (expanded) =>
+                _openOnly(_macrosController, expanded),
             leading: const FinanceSuitIcon(FinanceSuitIcons.bolt),
             title: Text(l10n.macrosTitle),
             children: [
@@ -125,7 +170,7 @@ class GlobalAddSheet extends StatelessWidget {
                 label: l10n.macroNew,
                 route: '/money/macros/new',
               ),
-              ...switch (macros) {
+              ...switch (widget.macros) {
                 AsyncValue(:final value?) => [
                   if (value.isNotEmpty)
                     const Divider(indent: 16, endIndent: 16),
@@ -160,7 +205,7 @@ class GlobalAddSheet extends StatelessWidget {
                           : l10n.commonError,
                     ),
                     trailing: IconButton(
-                      onPressed: onRetryMacros,
+                      onPressed: widget.onRetryMacros,
                       tooltip: l10n.commonRetry,
                       icon: const FinanceSuitIcon(FinanceSuitIcons.refresh),
                     ),

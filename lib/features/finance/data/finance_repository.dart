@@ -185,14 +185,15 @@ class FinanceRepository {
     int limit = 50,
   }) {
     return guard(() async {
-      // Business date first, then insertion order, so lists line up with
-      // history and reports everywhere.
+      // Business date first, then the explicit display order. Macro runs give
+      // each generated row a stable sort_at so authored action order survives
+      // their shared transaction timestamp.
       final rows = await _db
           .from('financial_transactions')
           .select()
           .eq('user_id', _userId)
           .order('occurred_on', ascending: false)
-          .order('created_at', ascending: false)
+          .order('sort_at', ascending: false)
           .order('id', ascending: false)
           .limit(limit);
       return rows.map(FinancialTransaction.fromJson).toList();

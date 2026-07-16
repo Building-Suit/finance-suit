@@ -73,11 +73,11 @@ class HistoryRepository {
       if (query.usesDefaultKeyset) {
         final cursor = query.cursor!;
         final date = cursor.recordDate.toIso();
-        final createdAt = cursor.createdAt.toUtc().toIso8601String();
+        final sortAt = cursor.sortAt.toUtc().toIso8601String();
         request = request.or(
           'record_date.lt.$date,'
-          'and(record_date.eq.$date,created_at.lt.$createdAt),'
-          'and(record_date.eq.$date,created_at.eq.$createdAt,id.lt.${cursor.id})',
+          'and(record_date.eq.$date,sort_at.lt.$sortAt),'
+          'and(record_date.eq.$date,sort_at.eq.$sortAt,id.lt.${cursor.id})',
         );
       }
 
@@ -162,34 +162,37 @@ class HistoryRepository {
     PostgrestFilterBuilder<PostgrestList> request,
     HistorySort sort,
   ) {
-    // Ties on the business date resolve by insertion order (created_at)
-    // so every list stays aligned with the transaction screens.
+    // Ties use the explicit display order. created_at remains an immutable
+    // audit timestamp and macro-run rows may intentionally share it.
     switch (sort) {
       case HistorySort.recordDateDesc:
         return request
             .order('record_date', ascending: false)
-            .order('created_at', ascending: false)
+            .order('sort_at', ascending: false)
             .order('id', ascending: false);
       case HistorySort.recordDateAsc:
         return request
             .order('record_date', ascending: true)
-            .order('created_at', ascending: true)
-            .order('id', ascending: true);
+            // A date-direction change must not invert actions inside one
+            // macro run; sort_at always represents logical display order.
+            .order('sort_at', ascending: false)
+            .order('id', ascending: false);
       case HistorySort.amountDesc:
         return request
             .order('amount_abs_minor', ascending: false)
             .order('record_date', ascending: false)
-            .order('created_at', ascending: false)
+            .order('sort_at', ascending: false)
             .order('id', ascending: false);
       case HistorySort.amountAsc:
         return request
             .order('amount_abs_minor', ascending: true)
             .order('record_date', ascending: false)
-            .order('created_at', ascending: false)
+            .order('sort_at', ascending: false)
             .order('id', ascending: false);
       case HistorySort.createdAtDesc:
         return request
             .order('created_at', ascending: false)
+            .order('sort_at', ascending: false)
             .order('id', ascending: false);
     }
   }

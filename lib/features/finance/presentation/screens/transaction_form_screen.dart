@@ -335,14 +335,15 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
               ),
               if (_isEdit) ...[
                 const SizedBox(height: 16),
-                // Track part (or all) of this transaction as money still
-                // owed to someone; the hold links back to this transaction.
+                // Preserve the original I-owe behavior for linked prefills;
+                // the held-amount form lets the user change the direction.
                 OutlinedButton.icon(
                   onPressed: () {
                     final existing = widget.existing!;
                     context.push(
                       '${AppRoutes.money}/held/new',
                       extra: HeldAmountDraft(
+                        direction: HeldAmountDirection.iOwe,
                         amountMinor: existing.amountMinor,
                         currencyCode: existing.currencyCode,
                         counterparty: '',

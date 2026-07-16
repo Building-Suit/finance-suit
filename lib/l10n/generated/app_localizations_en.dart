@@ -715,14 +715,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get heldEditTitle => 'Edit held amount';
 
   @override
+  String get heldDirection => 'Direction';
+
+  @override
+  String get heldDirectionIOwe => 'I owe someone';
+
+  @override
+  String get heldDirectionOwedToMe => 'Owed to me';
+
+  @override
   String get heldOwedTo => 'Owed to';
 
   @override
-  String get heldTotal => 'Total held';
+  String get heldOwedBy => 'Owed by';
+
+  @override
+  String get heldTotalIOwe => 'Total I owe';
+
+  @override
+  String get heldTotalOwedToMe => 'Total owed to me';
 
   @override
   String get heldEmpty =>
-      'No held amounts yet. Track money you owe someone, on its own or linked to a transaction.';
+      'No held amounts yet. Track money you owe or money owed to you, on its own or linked to a transaction.';
 
   @override
   String get heldSettle => 'Mark as settled';

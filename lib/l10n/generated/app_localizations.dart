@@ -1436,22 +1436,52 @@ abstract class AppLocalizations {
   /// **'Edit held amount'**
   String get heldEditTitle;
 
+  /// No description provided for @heldDirection.
+  ///
+  /// In en, this message translates to:
+  /// **'Direction'**
+  String get heldDirection;
+
+  /// No description provided for @heldDirectionIOwe.
+  ///
+  /// In en, this message translates to:
+  /// **'I owe someone'**
+  String get heldDirectionIOwe;
+
+  /// No description provided for @heldDirectionOwedToMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Owed to me'**
+  String get heldDirectionOwedToMe;
+
   /// No description provided for @heldOwedTo.
   ///
   /// In en, this message translates to:
   /// **'Owed to'**
   String get heldOwedTo;
 
-  /// No description provided for @heldTotal.
+  /// No description provided for @heldOwedBy.
   ///
   /// In en, this message translates to:
-  /// **'Total held'**
-  String get heldTotal;
+  /// **'Owed by'**
+  String get heldOwedBy;
+
+  /// No description provided for @heldTotalIOwe.
+  ///
+  /// In en, this message translates to:
+  /// **'Total I owe'**
+  String get heldTotalIOwe;
+
+  /// No description provided for @heldTotalOwedToMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Total owed to me'**
+  String get heldTotalOwedToMe;
 
   /// No description provided for @heldEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No held amounts yet. Track money you owe someone, on its own or linked to a transaction.'**
+  /// **'No held amounts yet. Track money you owe or money owed to you, on its own or linked to a transaction.'**
   String get heldEmpty;
 
   /// No description provided for @heldSettle.
