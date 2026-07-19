@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(13);
+select plan(17);
 
 insert into auth.users (
   id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -115,6 +115,41 @@ select is(
     where name = 'Current Balance'),
   105000::bigint,
   'settled receivable increases account balance'
+);
+
+insert into app_finance.held_amounts (
+  user_id, direction, amount_minor, currency_code, counterparty, held_on,
+  title
+) values (
+  '00000000-0000-0000-0000-00000000000f', 'i_owe', 1000, 'EGP',
+  'Legacy counterparty', current_date, 'Legacy held'
+);
+
+select lives_ok(
+  $$select app_finance.set_held_amount_settled(
+    (select id from app_finance.held_amounts where title = 'Legacy held'),
+    current_date
+  )$$,
+  'settling a legacy unlinked hold succeeds'
+);
+
+select ok(
+  (select manages_transaction and account_id is not null
+    from app_finance.held_amounts where title = 'Legacy held'),
+  'legacy hold is assigned to an active account'
+);
+
+select is(
+  (select count(*)::integer from app_finance.financial_transactions),
+  2,
+  'legacy settlement creates one additional transaction'
+);
+
+select is(
+  (select balance_minor from app_finance.account_balances
+    where name = 'Current Balance'),
+  104000::bigint,
+  'legacy settlement affects the assigned account balance'
 );
 
 select * from finish();
