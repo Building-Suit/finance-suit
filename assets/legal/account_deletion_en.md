@@ -20,7 +20,7 @@ We may send a verification message to the registered address. Once verified, we 
 
 ## Data deleted
 
-- Supabase authentication account, identities, and active sessions.
+- Supabase authentication account, identities, and server-side refresh sessions. A previously issued access token may remain cryptographically valid for up to one hour, but it cannot retrieve deleted Finance Suit records or restore the deleted account.
 - Profile and application preferences.
 - Salary settings, adjustments, periods, and calculation snapshots.
 - Work entries and official holidays.
