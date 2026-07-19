@@ -226,6 +226,12 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
+# Account deletion performs its own server-side JWT verification with
+# `auth.admin.getUser`. This avoids the legacy gateway JWT check rejecting
+# projects that use Supabase's newer asymmetric signing keys.
+[functions.delete-account]
+verify_jwt = false
+
 # Use a production-ready SMTP server
 # [auth.email.smtp]
 # enabled = true

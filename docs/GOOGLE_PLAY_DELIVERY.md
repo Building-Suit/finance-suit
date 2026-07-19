@@ -61,6 +61,15 @@ base64 < finance-suit-upload.jks | tr -d '\n'
 The existing repository secrets `SUPABASE_URL` and `SUPABASE_ANON_KEY` are
 used for both stages.
 
+Add these repository variables before producing a signed Play build:
+
+- `LEGAL_DEVELOPER_NAME`: the public publisher/developer identity
+- `PRIVACY_CONTACT_EMAIL`: the monitored public privacy/support address
+
+The in-app policy and terms use these values. Public legal-page sources and
+account-deletion deployment instructions are documented in
+`docs/PRIVACY_AND_ACCOUNT_DELETION.md`.
+
 ## 2. Build the first signed app bundle
 
 After all four signing secrets exist, set the repository variable

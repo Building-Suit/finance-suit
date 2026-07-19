@@ -1082,6 +1082,90 @@ abstract class AppLocalizations {
   /// **'App version'**
   String get setAppVersion;
 
+  /// No description provided for @setPrivacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get setPrivacyPolicy;
+
+  /// No description provided for @setTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms and conditions'**
+  String get setTerms;
+
+  /// No description provided for @setDeleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get setDeleteAccount;
+
+  /// No description provided for @setDeleteAccountSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete your account and app data'**
+  String get setDeleteAccountSubtitle;
+
+  /// No description provided for @deleteAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete your account'**
+  String get deleteAccountTitle;
+
+  /// No description provided for @deleteAccountWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This action is permanent and cannot be undone.'**
+  String get deleteAccountWarning;
+
+  /// No description provided for @deleteAccountDataList.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile, salary settings, work records, accounts, categories, transactions, macros, held amounts, and authentication account will be deleted.'**
+  String get deleteAccountDataList;
+
+  /// No description provided for @deleteAccountPasswordPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your password'**
+  String get deleteAccountPasswordPrompt;
+
+  /// No description provided for @deleteAccountAcknowledge.
+  ///
+  /// In en, this message translates to:
+  /// **'I understand that my account and data will be permanently deleted.'**
+  String get deleteAccountAcknowledge;
+
+  /// No description provided for @deleteAccountFinalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete account?'**
+  String get deleteAccountFinalTitle;
+
+  /// No description provided for @deleteAccountFinalBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Finance Suit will delete your account and active app data now. You will be logged out on this device.'**
+  String get deleteAccountFinalBody;
+
+  /// No description provided for @deleteAccountConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete my account'**
+  String get deleteAccountConfirmButton;
+
+  /// No description provided for @deleteAccountFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not delete your account. Check your connection and password, then try again or contact support.'**
+  String get deleteAccountFailure;
+
+  /// No description provided for @deleteAccountPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'How account deletion works'**
+  String get deleteAccountPolicy;
+
   /// No description provided for @moneyAccountsTab.
   ///
   /// In en, this message translates to:
@@ -1529,7 +1613,7 @@ abstract class AppLocalizations {
   /// No description provided for @heldDeleteConfirmBody.
   ///
   /// In en, this message translates to:
-  /// **'Only this record is removed; transactions are not changed.'**
+  /// **'This removes the held amount. If it created an account transaction, that transaction is also removed and the balance is updated.'**
   String get heldDeleteConfirmBody;
 
   /// No description provided for @catManage.

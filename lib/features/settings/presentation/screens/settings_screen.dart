@@ -202,6 +202,19 @@ class SettingsScreen extends ConsumerWidget {
           _SectionHeader(title: l10n.setAccountSection),
           ListTile(
             leading: FinanceSuitIcon(
+              FinanceSuitIcons.delete,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            title: Text(
+              l10n.setDeleteAccount,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+            subtitle: Text(l10n.setDeleteAccountSubtitle),
+            trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+            onTap: () => context.go('${AppRoutes.settings}/delete-account'),
+          ),
+          ListTile(
+            leading: FinanceSuitIcon(
               FinanceSuitIcons.logout,
               color: Theme.of(context).colorScheme.error,
             ),
@@ -213,6 +226,18 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const Divider(),
           _SectionHeader(title: l10n.setAboutSection),
+          ListTile(
+            leading: const FinanceSuitIcon(FinanceSuitIcons.lock),
+            title: Text(l10n.setPrivacyPolicy),
+            trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+            onTap: () => context.push(AppRoutes.privacyPolicy),
+          ),
+          ListTile(
+            leading: const FinanceSuitIcon(FinanceSuitIcons.receiptLong),
+            title: Text(l10n.setTerms),
+            trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+            onTap: () => context.push(AppRoutes.terms),
+          ),
           ListTile(
             leading: const FinanceSuitIcon(FinanceSuitIcons.info),
             title: Text(l10n.setAppVersion),

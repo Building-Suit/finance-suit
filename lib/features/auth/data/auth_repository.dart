@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:work_tracker/app/configuration/env.dart';
 import 'package:work_tracker/core/result/result.dart';
@@ -50,6 +51,47 @@ class AuthRepository {
 
   Future<Result<void>> signOut() {
     return guard(() => _client.auth.signOut());
+  }
+
+  /// Permanently deletes the signed-in account after confirming the user's
+  /// password. The privileged Auth deletion happens only in the server-side
+  /// Edge Function; the service-role key is never present in the app.
+  Future<Result<void>> deleteAccount({required String password}) {
+    return guard(() async {
+      final user = _client.auth.currentUser;
+      final email = user?.email;
+      if (user == null || email == null || email.isEmpty) {
+        throw const AuthFailure(AuthFailureKind.sessionMissing);
+      }
+
+      // Refresh proof of account ownership immediately before the destructive
+      // request. Finance Suit currently supports email/password accounts only.
+      await _client.auth.signInWithPassword(email: email, password: password);
+
+      await _client.functions.invoke(
+        'delete-account',
+        body: const {'confirmation': 'DELETE'},
+      );
+
+      // signOut(local) removes the persisted session before making its best-
+      // effort server call, and deliberately tolerates an already-deleted user.
+      try {
+        await _client.auth.signOut(scope: SignOutScope.local);
+      } catch (_) {
+        // The Auth user no longer exists and the SDK removes its persisted
+        // session before making the best-effort server logout request.
+      }
+
+      // Remove report filters, locale, and theme values stored on this device.
+      // No user-entered finance records are stored in SharedPreferences.
+      try {
+        final preferences = await SharedPreferences.getInstance();
+        await preferences.clear();
+      } catch (_) {
+        // Server deletion already succeeded. A local storage failure must not
+        // misreport the permanent account deletion as failed.
+      }
+    });
   }
 
   Future<Result<void>> sendPasswordReset({required String email}) {

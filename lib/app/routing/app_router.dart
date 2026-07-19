@@ -33,6 +33,8 @@ import 'package:work_tracker/features/salary/presentation/screens/salary_period_
 import 'package:work_tracker/features/salary/presentation/screens/salary_periods_screen.dart';
 import 'package:work_tracker/features/settings/presentation/screens/change_email_screen.dart';
 import 'package:work_tracker/features/settings/presentation/screens/change_password_screen.dart';
+import 'package:work_tracker/features/settings/presentation/screens/delete_account_screen.dart';
+import 'package:work_tracker/features/settings/presentation/screens/legal_document_screen.dart';
 import 'package:work_tracker/features/settings/presentation/screens/salary_settings_screen.dart';
 import 'package:work_tracker/features/settings/presentation/screens/settings_screen.dart';
 import 'package:work_tracker/features/work/domain/work_entry.dart';
@@ -48,6 +50,9 @@ abstract final class AppRoutes {
   static const confirmEmail = '/auth/confirm-email';
   static const forgotPassword = '/auth/forgot-password';
   static const resetPassword = '/auth/reset-password';
+  static const privacyPolicy = '/legal/privacy';
+  static const terms = '/legal/terms';
+  static const accountDeletionPolicy = '/legal/account-deletion';
   static const onboarding = '/onboarding';
   static const home = '/home';
   static const work = '/work';
@@ -77,6 +82,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final onboarding = ref.read(onboardingStatusProvider);
       final location = state.matchedLocation;
       final onAuthRoute = location.startsWith('/auth');
+      final onLegalRoute = location.startsWith('/legal');
       final onSplash = location == AppRoutes.splash;
       final onOnboarding = location == AppRoutes.onboarding;
 
@@ -85,17 +91,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           // Never flash a protected screen while the session restores.
           return onSplash ? null : AppRoutes.splash;
         case AuthPhase.signedOut:
-          return onAuthRoute ? null : AppRoutes.login;
+          return onAuthRoute || onLegalRoute ? null : AppRoutes.login;
         case AuthPhase.passwordRecovery:
-          return location == AppRoutes.resetPassword
+          return location == AppRoutes.resetPassword || onLegalRoute
               ? null
               : AppRoutes.resetPassword;
         case AuthPhase.signedIn:
           switch (onboarding) {
             case OnboardingStatus.unknown:
-              return onSplash ? null : AppRoutes.splash;
+              return onSplash || onLegalRoute ? null : AppRoutes.splash;
             case OnboardingStatus.incomplete:
-              return onOnboarding ? null : AppRoutes.onboarding;
+              return onOnboarding || onLegalRoute ? null : AppRoutes.onboarding;
             case OnboardingStatus.complete:
               if (onAuthRoute || onSplash || onOnboarding) {
                 return AppRoutes.home;
@@ -129,6 +135,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.resetPassword,
         builder: (context, state) => const ResetPasswordScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.privacyPolicy,
+        builder: (context, state) =>
+            const LegalDocumentScreen(document: LegalDocument.privacyPolicy),
+      ),
+      GoRoute(
+        path: AppRoutes.terms,
+        builder: (context, state) =>
+            const LegalDocumentScreen(document: LegalDocument.terms),
+      ),
+      GoRoute(
+        path: AppRoutes.accountDeletionPolicy,
+        builder: (context, state) =>
+            const LegalDocumentScreen(document: LegalDocument.accountDeletion),
       ),
       GoRoute(
         path: AppRoutes.onboarding,
@@ -311,6 +332,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'email',
                     builder: (context, state) => const ChangeEmailScreen(),
+                  ),
+                  GoRoute(
+                    path: 'delete-account',
+                    builder: (context, state) => const DeleteAccountScreen(),
                   ),
                 ],
               ),

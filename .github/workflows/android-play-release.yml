@@ -97,6 +97,8 @@ jobs:
             --dart-define="SUPABASE_URL=https://example.invalid" \
             --dart-define="SUPABASE_ANON_KEY=ci-placeholder" \
             --dart-define="APP_ENVIRONMENT=test" \
+            --dart-define="LEGAL_DEVELOPER_NAME=Building Suit" \
+            --dart-define="PRIVACY_CONTACT_EMAIL=ci@example.invalid" \
             --dart-define="AUTH_CALLBACK_SCHEME=${AUTH_CALLBACK_SCHEME}" \
             --dart-define="AUTH_CALLBACK_HOST=${AUTH_CALLBACK_HOST}"
 
@@ -187,6 +189,8 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           PLAY_DELIVERY_ENABLED: ${{ vars.PLAY_DELIVERY_ENABLED }}
+          LEGAL_DEVELOPER_NAME: ${{ vars.LEGAL_DEVELOPER_NAME }}
+          PRIVACY_CONTACT_EMAIL: ${{ vars.PRIVACY_CONTACT_EMAIL }}
         run: |
           set -euo pipefail
 
@@ -197,6 +201,8 @@ jobs:
           [[ -n "${ANDROID_KEYSTORE_PASSWORD}" ]] || missing+=(PLAY_UPLOAD_KEYSTORE_PASSWORD)
           [[ -n "${ANDROID_KEY_ALIAS}" ]] || missing+=(PLAY_UPLOAD_KEY_ALIAS)
           [[ -n "${ANDROID_KEY_PASSWORD}" ]] || missing+=(PLAY_UPLOAD_KEY_PASSWORD)
+          [[ -n "${LEGAL_DEVELOPER_NAME}" ]] || missing+=(LEGAL_DEVELOPER_NAME)
+          [[ -n "${PRIVACY_CONTACT_EMAIL}" ]] || missing+=(PRIVACY_CONTACT_EMAIL)
           if [[ "${PLAY_DELIVERY_ENABLED}" == "true" && -z "${PLAY_SERVICE_ACCOUNT_JSON}" ]]; then
             missing+=(PLAY_SERVICE_ACCOUNT_JSON)
           fi
@@ -239,6 +245,8 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           APP_ENVIRONMENT: ${{ steps.delivery.outputs.stage }}
+          LEGAL_DEVELOPER_NAME: ${{ vars.LEGAL_DEVELOPER_NAME }}
+          PRIVACY_CONTACT_EMAIL: ${{ vars.PRIVACY_CONTACT_EMAIL }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
@@ -254,6 +262,8 @@ jobs:
             --dart-define="SUPABASE_URL=${SUPABASE_URL}" \
             --dart-define="SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}" \
             --dart-define="APP_ENVIRONMENT=${APP_ENVIRONMENT}" \
+            --dart-define="LEGAL_DEVELOPER_NAME=${LEGAL_DEVELOPER_NAME}" \
+            --dart-define="PRIVACY_CONTACT_EMAIL=${PRIVACY_CONTACT_EMAIL}" \
             --dart-define="AUTH_CALLBACK_SCHEME=${AUTH_CALLBACK_SCHEME}" \
             --dart-define="AUTH_CALLBACK_HOST=${AUTH_CALLBACK_HOST}"
 

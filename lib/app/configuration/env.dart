@@ -29,6 +29,17 @@ class Env {
     defaultValue: 'dev',
   );
 
+  /// Public identity shown in the in-app legal documents. CI may override
+  /// these values after the Play Console publisher details are finalized.
+  static const String legalDeveloperName = String.fromEnvironment(
+    'LEGAL_DEVELOPER_NAME',
+    defaultValue: 'Building Suit',
+  );
+  static const String privacyContactEmail = String.fromEnvironment(
+    'PRIVACY_CONTACT_EMAIL',
+    defaultValue: '[privacy contact email pending]',
+  );
+
   static bool get isProduction => appEnvironment == 'production';
 
   static Uri get authCallbackUri =>
