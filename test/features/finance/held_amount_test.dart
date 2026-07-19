@@ -50,11 +50,15 @@ void main() {
         'currency_code': 'EGP',
         'counterparty': 'Mona',
         'held_on': '2026-07-16',
+        'account_id': 'account-1',
+        'manages_transaction': true,
       });
 
       expect(held.direction, HeldAmountDirection.owedToMe);
       expect(held.amountMinor, 12500);
       expect(held.isSettled, isFalse);
+      expect(held.accountId, 'account-1');
+      expect(held.managesTransaction, isTrue);
     });
 
     test('draft serializes direction explicitly', () {
@@ -67,6 +71,19 @@ void main() {
       );
 
       expect(draft.toJson()['direction'], 'i_owe');
+    });
+
+    test('draft serializes the account used by a managed transaction', () {
+      const draft = HeldAmountDraft(
+        direction: HeldAmountDirection.owedToMe,
+        amountMinor: 2500,
+        currencyCode: 'EGP',
+        counterparty: 'Ahmed',
+        heldOn: PlainDate(2026, 7, 16),
+        accountId: 'account-1',
+      );
+
+      expect(draft.toJson()['account_id'], 'account-1');
     });
   });
 

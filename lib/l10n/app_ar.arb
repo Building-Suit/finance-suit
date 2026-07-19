@@ -304,7 +304,7 @@
   "heldLinkedTransaction": "مرتبط بمعاملة",
   "heldHoldForTransaction": "حجز مبلغ لهذه المعاملة",
   "heldDeleteConfirmTitle": "حذف المبلغ المحجوز؟",
-  "heldDeleteConfirmBody": "يُحذف هذا السجل فقط؛ لن تتغير أي معاملة.",
+  "heldDeleteConfirmBody": "سيُحذف المبلغ المحجوز. إذا أنشأ معاملة حساب، فستُحذف المعاملة أيضًا ويتحدث الرصيد.",
   "catManage": "إدارة الفئات",
   "catNew": "فئة جديدة",
   "catName": "اسم الفئة",

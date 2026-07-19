@@ -342,53 +342,16 @@ class _BalanceSection extends StatelessWidget {
       totals[account.currencyCode] =
           (totals[account.currencyCode] ?? 0) + account.balanceMinor;
     }
-    final defaultAccount = accounts.where((a) => a.isDefault).firstOrNull;
-    final savingsTotal = accounts
-        .where((a) => a.accountType == AccountType.savings)
-        .fold<int>(0, (sum, account) => sum + account.balanceMinor);
-    final currency = accounts.first.currencyCode;
-
     return Column(
       children: [
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final compact = constraints.maxWidth < 520;
-            return GridView.count(
-              crossAxisCount: compact ? 1 : 3,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
-              childAspectRatio: compact ? 3.2 : 1.65,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                _MetricCard(
-                  icon: FinanceSuitIcons.accountBalanceWallet,
-                  label: l10n.moneyTotalBalance,
-                  value: totals.entries
-                      .map(
-                        (e) =>
-                            Money(minor: e.value, currencyCode: e.key).format(),
-                      )
-                      .join(' / '),
-                ),
-                _MetricCard(
-                  icon: FinanceSuitIcons.star,
-                  label: l10n.homeDefaultAccount,
-                  value: defaultAccount == null
-                      ? l10n.commonNone
-                      : defaultAccount.balance.format(),
-                ),
-                _MetricCard(
-                  icon: FinanceSuitIcons.savings,
-                  label: l10n.homeSavings,
-                  value: Money(
-                    minor: savingsTotal,
-                    currencyCode: currency,
-                  ).format(),
-                ),
-              ],
-            );
-          },
+        _MetricCard(
+          icon: FinanceSuitIcons.accountBalanceWallet,
+          label: l10n.moneyTotalBalance,
+          value: totals.entries
+              .map(
+                (e) => Money(minor: e.value, currencyCode: e.key).format(),
+              )
+              .join(' / '),
         ),
         const SizedBox(height: 8),
         for (final account in accounts.take(4))

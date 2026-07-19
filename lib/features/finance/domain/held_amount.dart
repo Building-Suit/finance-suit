@@ -4,8 +4,8 @@ import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
 
 /// A row from `app_finance.held_amounts`: money owed in either direction,
-/// optionally linked to the transaction it originated from. Deleting that
-/// transaction unlinks the held amount but keeps the record.
+/// optionally linked to the transaction it originated from. Standalone held
+/// amounts own a generated transaction so they affect an account balance.
 @immutable
 class HeldAmount {
   const HeldAmount({
@@ -17,6 +17,8 @@ class HeldAmount {
     required this.heldOn,
     this.settledOn,
     this.transactionId,
+    this.accountId,
+    this.managesTransaction = false,
     this.title,
     this.notes,
   });
@@ -33,6 +35,8 @@ class HeldAmount {
       null => null,
     },
     transactionId: json['transaction_id'] as String?,
+    accountId: json['account_id'] as String?,
+    managesTransaction: json['manages_transaction'] as bool? ?? false,
     title: json['title'] as String?,
     notes: json['notes'] as String?,
   );
@@ -45,6 +49,8 @@ class HeldAmount {
   final PlainDate heldOn;
   final PlainDate? settledOn;
   final String? transactionId;
+  final String? accountId;
+  final bool managesTransaction;
   final String? title;
   final String? notes;
 
@@ -64,6 +70,7 @@ class HeldAmountDraft {
     required this.counterparty,
     required this.heldOn,
     this.transactionId,
+    this.accountId,
     this.title,
     this.notes,
   });
@@ -74,6 +81,7 @@ class HeldAmountDraft {
   final String counterparty;
   final PlainDate heldOn;
   final String? transactionId;
+  final String? accountId;
   final String? title;
   final String? notes;
 
@@ -84,6 +92,7 @@ class HeldAmountDraft {
     'counterparty': counterparty,
     'held_on': heldOn.toIso(),
     'transaction_id': transactionId,
+    'account_id': accountId,
     'title': title,
     'notes': notes,
   };

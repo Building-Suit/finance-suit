@@ -304,7 +304,7 @@
   "heldLinkedTransaction": "Linked to a transaction",
   "heldHoldForTransaction": "Hold an amount for this transaction",
   "heldDeleteConfirmTitle": "Delete held amount?",
-  "heldDeleteConfirmBody": "Only this record is removed; transactions are not changed.",
+  "heldDeleteConfirmBody": "This removes the held amount. If it created an account transaction, that transaction is also removed and the balance is updated.",
   "catManage": "Manage categories",
   "catNew": "New category",
   "catName": "Category name",

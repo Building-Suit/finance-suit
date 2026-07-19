@@ -10,6 +10,7 @@ import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
+import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
@@ -43,6 +44,7 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
       HeldAmountDirection.iOwe;
   late final String? _transactionId =
       widget.existing?.transactionId ?? widget.prefill?.transactionId;
+  String? _accountId;
 
   AppFailure? _failure;
   bool _busy = false;
@@ -63,6 +65,7 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
         existing?.counterparty ?? prefill?.counterparty ?? '';
     _titleController.text = existing?.title ?? prefill?.title ?? '';
     _notesController.text = existing?.notes ?? prefill?.notes ?? '';
+    _accountId = existing?.accountId;
   }
 
   @override
@@ -108,6 +111,7 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
       counterparty: _counterpartyController.text.trim(),
       heldOn: _date,
       transactionId: _transactionId,
+      accountId: _accountId,
       title: title.isEmpty ? null : title,
       notes: notes.isEmpty ? null : notes,
     );
@@ -120,7 +124,7 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
     setState(() => _busy = false);
     result.when(
       ok: (_) {
-        ref.invalidate(heldAmountsProvider);
+        invalidateFinanceData(ref);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(AppLocalizations.of(context).setSaved)),
         );
@@ -158,7 +162,7 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
     setState(() => _busy = false);
     result.when(
       ok: (_) {
-        ref.invalidate(heldAmountsProvider);
+        invalidateFinanceData(ref);
         context.pop();
       },
       err: (failure) => setState(() => _failure = failure),
@@ -168,6 +172,16 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final accounts = ref.watch(accountBalancesProvider);
+    final accountList = accounts.value ?? <AccountBalance>[];
+    final needsAccount =
+        _transactionId == null || widget.existing?.managesTransaction == true;
+    if (needsAccount && _accountId == null && accountList.isNotEmpty) {
+      _accountId =
+          (accountList.where((a) => a.isDefault).firstOrNull ??
+                  accountList.first)
+              .accountId;
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEdit ? l10n.heldEditTitle : l10n.heldNew),
@@ -194,6 +208,30 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
                   title: Text(l10n.heldLinkedTransaction),
                 ),
                 const SizedBox(height: 8),
+              ],
+              if (needsAccount) ...[
+                DropdownButtonFormField<String>(
+                  initialValue: accountList.any((a) => a.accountId == _accountId)
+                      ? _accountId
+                      : null,
+                  decoration: InputDecoration(labelText: l10n.txAccount),
+                  items: [
+                    for (final account in accountList)
+                      DropdownMenuItem(
+                        value: account.accountId,
+                        child: Text(
+                          '${account.name} (${account.balance.format()})',
+                        ),
+                      ),
+                  ],
+                  onChanged: _busy
+                      ? null
+                      : (value) => setState(() => _accountId = value),
+                  validator: (value) => value == null
+                      ? validationMessage(context, ValidationError.required)
+                      : null,
+                ),
+                const SizedBox(height: 16),
               ],
               Text(
                 l10n.heldDirection,

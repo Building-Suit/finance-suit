@@ -762,7 +762,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get heldDeleteConfirmBody =>
-      'يُحذف هذا السجل فقط؛ لن تتغير أي معاملة.';
+      'سيُحذف المبلغ المحجوز. إذا أنشأ معاملة حساب، فستُحذف المعاملة أيضًا ويتحدث الرصيد.';
 
   @override
   String get catManage => 'إدارة الفئات';

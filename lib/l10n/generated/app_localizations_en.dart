@@ -762,7 +762,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get heldDeleteConfirmBody =>
-      'Only this record is removed; transactions are not changed.';
+      'This removes the held amount. If it created an account transaction, that transaction is also removed and the balance is updated.';
 
   @override
   String get catManage => 'Manage categories';
