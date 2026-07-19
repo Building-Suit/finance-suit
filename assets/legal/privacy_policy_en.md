@@ -2,11 +2,11 @@
 
 Effective date: 19 July 2026
 
-Finance Suit is provided by {{DEVELOPER_NAME}} ("we", "us", or "our"). This policy explains how Finance Suit collects, uses, stores, and deletes information when you use the mobile application.
+Finance Suit is provided by Tareq Abdelwhap ("we", "us", or "our"). This policy explains how Finance Suit collects, uses, stores, and deletes information when you use the mobile application.
 
 ## Information you provide
 
-- Account information: display name, email address, Supabase user ID, and authentication credentials. Passwords are processed by Supabase Auth and are not available to us in readable form.
+- Account information: display name, email address, Supabase user ID, and authentication credentials. Finance Suit uses a shared Supabase sign-in that may also be used by another Building Suit or legacy finance portal. Passwords are processed by Supabase Auth and are not available to us in readable form.
 - Financial records: account names and types, currencies, opening and calculated balances, transactions, categories, amounts, dates, counterparties, notes, transfers, salary records, debts, and held amounts.
 - Work records: work dates, start and end times, breaks, durations, rates, overtime, holidays, adjustments, salary periods, and notes.
 - Preferences: language, timezone, currency, week and weekend settings, theme, and report date ranges.
@@ -47,7 +47,9 @@ Data is transmitted over encrypted HTTPS connections. Product tables use Supabas
 
 ## Retention and deletion
 
-Active account and product data is retained while your account exists. You may delete it from Settings > Delete account. After password confirmation, Finance Suit hard-deletes the Supabase Auth user and the active profile, preferences, salary, work, account, transaction, category, macro, and held-amount records associated with that user.
+Active Finance Suit product data is retained while your Finance Suit profile exists. You may delete it from Settings > Delete account. After password confirmation, Finance Suit permanently and atomically deletes its profile, preferences, salary, work, account, transaction, category, macro, and held-amount records associated with your verified user ID.
+
+Finance Suit deletion does not delete the shared Supabase authentication identity, email/password credential, authentication metadata, or records belonging to another Building Suit or legacy finance portal. Those are retained so deletion from Finance Suit does not remove access to another product. Contact us separately if you want help concerning the shared identity or another portal. If you later sign in to Finance Suit again, you may create a new Finance Suit profile through onboarding, but deleted Finance Suit records are not restored.
 
 Supabase operational logs are retained according to the hosting plan; the current plan exposes logs for up to one day. Provider backup copies, if maintained, may remain in protected disaster-recovery systems for up to seven days before automatic expiry. Deleted data in backups is not restored for ordinary product use. Limited records may be retained longer only when necessary for security, fraud prevention, dispute resolution, or legal compliance.
 
@@ -73,6 +75,6 @@ We may update this policy when the application, providers, or legal requirements
 
 ## Contact
 
-Developer: {{DEVELOPER_NAME}}
+Developer: Tareq Abdelwhap
 
-Privacy and support email: {{PRIVACY_EMAIL}}
+Privacy and support email: tarekian99@gmail.com

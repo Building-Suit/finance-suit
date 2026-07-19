@@ -1,7 +1,22 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(14);
+select plan(17);
+
+select is(
+  has_function_privilege(
+    'authenticated', 'app_core.delete_finance_suit_data(uuid)', 'EXECUTE'
+  ),
+  false,
+  'authenticated clients cannot call privileged deletion directly'
+);
+select is(
+  has_function_privilege(
+    'service_role', 'app_core.delete_finance_suit_data(uuid)', 'EXECUTE'
+  ),
+  true,
+  'Edge Function service role can call deletion'
+);
 
 insert into auth.users (
   id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -98,36 +113,42 @@ insert into app_finance.held_amounts (
 );
 
 reset role;
-delete from auth.users where id = '00000000-0000-0000-0000-000000000010';
+set local role service_role;
+select app_core.delete_finance_suit_data(
+  '00000000-0000-0000-0000-000000000010'
+);
+reset role;
 
 select is((select count(*)::integer from auth.users where id =
-  '00000000-0000-0000-0000-000000000010'), 0, 'Auth user is deleted');
+  '00000000-0000-0000-0000-000000000010'), 1, 'shared Auth user remains');
+select is((select count(*)::integer from public.profiles where id =
+  '00000000-0000-0000-0000-000000000010'), 1, 'legacy profile remains');
 select is((select count(*)::integer from app_core.profiles where id =
-  '00000000-0000-0000-0000-000000000010'), 0, 'profile cascades');
+  '00000000-0000-0000-0000-000000000010'), 0, 'Finance Suit profile deletes');
 select is((select count(*)::integer from app_core.user_preferences where user_id =
-  '00000000-0000-0000-0000-000000000010'), 0, 'preferences cascade');
+  '00000000-0000-0000-0000-000000000010'), 0, 'preferences delete');
 select is((select count(*)::integer from app_salary.salary_settings where user_id =
-  '00000000-0000-0000-0000-000000000010'), 0, 'salary settings cascade');
+  '00000000-0000-0000-0000-000000000010'), 0, 'salary settings delete');
 select is((select count(*)::integer from app_salary.salary_adjustments where user_id =
-  '00000000-0000-0000-0000-000000000010'), 0, 'salary adjustments cascade');
+  '00000000-0000-0000-0000-000000000010'), 0, 'salary adjustments delete');
 select is((select count(*)::integer from app_salary.salary_periods where user_id =
-  '00000000-0000-0000-0000-000000000010'), 0, 'salary periods cascade');
+  '00000000-0000-0000-0000-000000000010'), 0, 'salary periods delete');
 select is((select count(*)::integer from app_work.official_holidays where user_id =
-  '00000000-0000-0000-0000-000000000010'), 0, 'holidays cascade');
+  '00000000-0000-0000-0000-000000000010'), 0, 'holidays delete');
 select is((select count(*)::integer from app_work.work_entries where user_id =
-  '00000000-0000-0000-0000-000000000010'), 0, 'work entries cascade');
+  '00000000-0000-0000-0000-000000000010'), 0, 'work entries delete');
 select is((select count(*)::integer from app_finance.accounts where user_id =
-  '00000000-0000-0000-0000-000000000010'), 0, 'accounts cascade');
+  '00000000-0000-0000-0000-000000000010'), 0, 'accounts delete');
 select is((select count(*)::integer from app_finance.transaction_categories where user_id =
-  '00000000-0000-0000-0000-000000000010'), 0, 'categories cascade');
+  '00000000-0000-0000-0000-000000000010'), 0, 'categories delete');
 select is((select count(*)::integer from app_finance.financial_transactions where user_id =
-  '00000000-0000-0000-0000-000000000010'), 0, 'transactions cascade');
+  '00000000-0000-0000-0000-000000000010'), 0, 'transactions delete');
 select is((select count(*)::integer from app_finance.transaction_macros where user_id =
-  '00000000-0000-0000-0000-000000000010'), 0, 'macros cascade');
+  '00000000-0000-0000-0000-000000000010'), 0, 'macros delete');
 select is((select count(*)::integer from app_finance.transaction_macro_items where user_id =
-  '00000000-0000-0000-0000-000000000010'), 0, 'macro items cascade');
+  '00000000-0000-0000-0000-000000000010'), 0, 'macro items delete');
 select is((select count(*)::integer from app_finance.held_amounts where user_id =
-  '00000000-0000-0000-0000-000000000010'), 0, 'held amounts cascade');
+  '00000000-0000-0000-0000-000000000010'), 0, 'held amounts delete');
 
 select * from finish();
 rollback;

@@ -2,8 +2,8 @@
   "SUPABASE_URL": "http://127.0.0.1:54321",
   "SUPABASE_ANON_KEY": "",
   "APP_ENVIRONMENT": "development",
-  "LEGAL_DEVELOPER_NAME": "Building Suit",
-  "PRIVACY_CONTACT_EMAIL": "privacy@example.com",
+  "LEGAL_DEVELOPER_NAME": "Tareq Abdelwhap",
+  "PRIVACY_CONTACT_EMAIL": "tarekian99@gmail.com",
   "AUTH_CALLBACK_SCHEME": "worktracker",
   "AUTH_CALLBACK_HOST": "auth-callback"
 }

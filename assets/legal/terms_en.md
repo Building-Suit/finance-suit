@@ -2,7 +2,7 @@
 
 Effective date: 19 July 2026
 
-These terms form an agreement between you and {{DEVELOPER_NAME}} for your use of Finance Suit. By creating an account or using the application, you agree to these terms and the Privacy Policy.
+These terms form an agreement between you and Tareq Abdelwhap for your use of Finance Suit. By creating an account or using the application, you agree to these terms and the Privacy Policy.
 
 ## Eligibility
 
@@ -45,13 +45,13 @@ Finance Suit relies on Supabase and platform services provided by Google Play, A
 
 ## Account termination and deletion
 
-You may stop using Finance Suit at any time. You can permanently delete your account from Settings > Delete account or use the public deletion-request page. Deletion is governed by the Privacy Policy and account-deletion policy.
+You may stop using Finance Suit at any time. You can permanently delete your Finance Suit profile and associated Finance Suit product data from Settings > Delete account or use the public deletion-request page. The shared authentication identity and data belonging to another Building Suit or legacy portal are retained so that Finance Suit deletion does not remove access to another product. Deletion is governed by the Privacy Policy and account-deletion policy.
 
 We may suspend or terminate an account when reasonably necessary to prevent abuse, respond to a security threat, comply with law, or address a serious breach of these terms. Where practical and lawful, we will provide notice.
 
 ## Intellectual property
 
-Finance Suit, including its software, design, branding, and documentation, is owned by {{DEVELOPER_NAME}} or its licensors and is protected by applicable intellectual-property laws. These terms grant you a personal, limited, revocable, non-exclusive, non-transferable right to use the application.
+Finance Suit, including its software, design, branding, and documentation, is owned by Tareq Abdelwhap or its licensors and is protected by applicable intellectual-property laws. These terms grant you a personal, limited, revocable, non-exclusive, non-transferable right to use the application.
 
 ## Disclaimers
 
@@ -61,7 +61,7 @@ Nothing in these terms excludes warranties or consumer rights that cannot legall
 
 ## Limitation of liability
 
-To the maximum extent permitted by law, {{DEVELOPER_NAME}} is not liable for indirect, incidental, special, consequential, or punitive loss, lost profits, lost opportunities, or loss caused by reliance on user-entered calculations. Any limitation applies only to the extent allowed by mandatory consumer law.
+To the maximum extent permitted by law, Tareq Abdelwhap is not liable for indirect, incidental, special, consequential, or punitive loss, lost profits, lost opportunities, or loss caused by reliance on user-entered calculations. Any limitation applies only to the extent allowed by mandatory consumer law.
 
 ## Governing rules and disputes
 
@@ -73,6 +73,6 @@ We may update these terms when Finance Suit or applicable requirements change. W
 
 ## Contact
 
-Developer: {{DEVELOPER_NAME}}
+Developer: Tareq Abdelwhap
 
-Support email: {{PRIVACY_EMAIL}}
+Support email: tarekian99@gmail.com

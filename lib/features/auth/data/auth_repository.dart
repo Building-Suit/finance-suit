@@ -54,9 +54,9 @@ class AuthRepository {
     return guard(() => _client.auth.signOut());
   }
 
-  /// Permanently deletes the signed-in account after confirming the user's
-  /// password. The privileged Auth deletion happens only in the server-side
-  /// Edge Function; the service-role key is never present in the app.
+  /// Permanently deletes the signed-in user's Finance Suit profile and product
+  /// data after confirming the password. The shared Building Suit Auth
+  /// identity and legacy portal data remain available to the user.
   Future<Result<void>> deleteAccount({required String password}) {
     return guard(() async {
       final user = _client.auth.currentUser;
@@ -74,13 +74,13 @@ class AuthRepository {
         body: const {'confirmation': 'DELETE'},
       );
 
-      // signOut(local) removes the persisted session before making its best-
-      // effort server call, and deliberately tolerates an already-deleted user.
+      // Finance Suit deletion preserves the shared Auth identity, but this app
+      // still signs out locally so the deleted portal is not left open.
       try {
         await _client.auth.signOut(scope: SignOutScope.local);
       } catch (_) {
-        // The Auth user no longer exists and the SDK removes its persisted
-        // session before making the best-effort server logout request.
+        // Product deletion already succeeded. Local session cleanup is best
+        // effort and must not misreport the permanent data deletion as failed.
       }
 
       // Remove report filters, locale, and theme values stored on this device.

@@ -35,29 +35,47 @@ before adding a new SDK or permission.
 5. The function independently validates the JWT with Supabase Auth, requires a
    sign-in no more than five minutes old, and derives the user id from that
    verified account. It never accepts a caller-supplied user id.
-6. The server-side Supabase client hard-deletes that Auth user. Every Finance
-   Suit product table has an ownership foreign key to `auth.users` with
-   `ON DELETE CASCADE`; `supabase/tests/0008_account_deletion_test.sql` covers
-   every current product table.
+6. The server-side Supabase client calls the service-role-only
+   `app_core.delete_finance_suit_data` database function. It deletes every
+   current Finance Suit product row in one transaction and deliberately
+   preserves `auth.*` plus the legacy `public` schema.
+   `supabase/tests/0008_account_deletion_test.sql` covers every current product
+   table and asserts that the shared Auth user and legacy profile remain.
 7. The app removes the local session and SharedPreferences values.
 
 The Edge Function intentionally has gateway `verify_jwt = false` and performs
 explicit `auth.admin.getUser` validation. This supports both legacy symmetric
 JWTs and current asymmetric signing keys while keeping authorization inside
-the function. `SUPABASE_SERVICE_ROLE_KEY` is an automatically provisioned Edge
-Function secret and must never be passed to Flutter or GitHub build defines.
+the function. The verified user id is the only id passed to the deletion RPC.
+`SUPABASE_SERVICE_ROLE_KEY` is an automatically provisioned Edge Function
+secret and must never be passed to Flutter or GitHub build defines.
+
+Finance Suit and the legacy finance tracker share a Supabase Auth identity.
+Deleting Finance Suit therefore signs the user out of this device and deletes
+the Finance Suit portal profile/data only. Signing in again starts Finance Suit
+onboarding as a new portal profile; deleted Finance Suit records are not
+restored.
 
 ## Deployment
 
-Deploy the backend before releasing an app build that exposes the delete UI:
+Apply the migration and deploy the backend before releasing an app build that
+exposes the delete UI:
 
 ```bash
+supabase link --project-ref kedjrbwnznvfqlzszawa
+supabase db push --linked
 supabase functions deploy delete-account --project-ref kedjrbwnznvfqlzszawa
 ```
 
+For deployment without a local checkout, add `SUPABASE_ACCESS_TOKEN` and
+`SUPABASE_DB_PASSWORD` as GitHub repository secrets, then run **Deploy Finance
+Suit account deletion** manually with confirmation `DEPLOY`. The workflow first
+previews pending migrations, applies them, and then deploys the Edge Function.
+
 Then test deletion with a dedicated disposable user containing data in every
-feature. Verify the user disappears from **Supabase Dashboard > Authentication
-> Users** and no owned rows remain.
+feature. Verify the user remains in **Supabase Dashboard > Authentication >
+Users**, the corresponding legacy `public.profiles` row remains, and no rows
+remain for that user in the Finance Suit schemas.
 
 ## Legal documents
 
@@ -68,8 +86,8 @@ static Google Play pages are in `legal`:
 - `terms.html`
 - `delete-account.html`
 
-Replace `{{DEVELOPER_NAME}}` and `{{PRIVACY_EMAIL}}` before publishing the
-static pages. Builds may supply the same values with:
+The current legal publisher is **Tareq Abdelwhap** and the privacy/support
+address is **tarekian99@gmail.com**. Builds may override the same values with:
 
 ```text
 --dart-define=LEGAL_DEVELOPER_NAME=...

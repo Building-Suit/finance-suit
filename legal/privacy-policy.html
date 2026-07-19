@@ -11,11 +11,11 @@
   <nav><a href="index.html">Legal home</a><a href="terms.html">Terms</a><a href="delete-account.html">Delete account</a></nav>
   <h1>Finance Suit Privacy Policy</h1>
   <p class="meta">Effective 19 July 2026</p>
-  <p>Finance Suit is provided by {{DEVELOPER_NAME}} ("we", "us", or "our"). This policy explains how Finance Suit collects, uses, stores, and deletes information when you use the mobile application.</p>
+  <p>Finance Suit is provided by Tareq Abdelwhap ("we", "us", or "our"). This policy explains how Finance Suit collects, uses, stores, and deletes information when you use the mobile application.</p>
 
   <h2>Information you provide</h2>
   <ul>
-    <li><strong>Account information:</strong> display name, email address, Supabase user ID, and authentication credentials. Passwords are processed by Supabase Auth and are not available to us in readable form.</li>
+    <li><strong>Account information:</strong> display name, email address, Supabase user ID, and authentication credentials. Finance Suit uses a shared Supabase sign-in that may also be used by another Building Suit or legacy finance portal. Passwords are processed by Supabase Auth and are not available to us in readable form.</li>
     <li><strong>Financial records:</strong> account names and types, currencies, opening and calculated balances, transactions, categories, amounts, dates, counterparties, notes, transfers, salary records, debts, and held amounts.</li>
     <li><strong>Work records:</strong> work dates, times, breaks, durations, rates, overtime, holidays, adjustments, salary periods, calculation snapshots, and notes.</li>
     <li><strong>Preferences:</strong> language, timezone, currency, week and weekend settings, theme, and report date ranges.</li>
@@ -48,7 +48,8 @@
   <p>Data is transmitted over encrypted HTTPS connections. Product tables use Supabase Row Level Security so authenticated users can access only their own records. Privileged credentials remain in server-side secrets and are not included in the mobile application. No system guarantees absolute security, so protect your password and promptly report suspected unauthorized access.</p>
 
   <h2>Retention and deletion</h2>
-  <p>Active account and product data is retained while your account exists. Settings &gt; Delete account hard-deletes the Supabase Auth user and active profile, preference, salary, work, account, transaction, category, macro, and held-amount records associated with that user.</p>
+  <p>Active Finance Suit product data is retained while your Finance Suit profile exists. Settings &gt; Delete account permanently and atomically deletes the profile, preferences, salary, work, account, transaction, category, macro, and held-amount records associated with your verified user ID.</p>
+  <p>Finance Suit deletion does not delete the shared Supabase authentication identity, email/password credential, authentication metadata, or records belonging to another Building Suit or legacy finance portal. Those are retained so Finance Suit deletion does not remove access to another product. Contact us separately for help concerning the shared identity or another portal. Signing in to Finance Suit later may create a new profile through onboarding, but deleted Finance Suit records are not restored.</p>
   <p>Supabase operational logs are retained according to the hosting plan; the current plan exposes logs for up to one day. Provider backup copies, if maintained, may remain in protected disaster-recovery systems for up to seven days before automatic expiry and are not restored for ordinary product use. Limited records may be retained longer only for security, fraud prevention, dispute resolution, or legal compliance.</p>
   <p>Support correspondence may be retained for up to 24 months after resolution. Anonymous or aggregated information that cannot reasonably identify you may be retained.</p>
 
@@ -63,6 +64,6 @@
 
   <h2>Changes and contact</h2>
   <p>We may update this policy as the app, providers, or legal requirements change. We will change the effective date and provide additional notice when required.</p>
-  <p>Developer: {{DEVELOPER_NAME}}<br>Privacy and support email: <a href="mailto:{{PRIVACY_EMAIL}}">{{PRIVACY_EMAIL}}</a></p>
+  <p>Developer: Tareq Abdelwhap<br>Privacy and support email: <a href="mailto:tarekian99@gmail.com">tarekian99@gmail.com</a></p>
 </main></body>
 </html>

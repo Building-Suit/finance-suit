@@ -545,21 +545,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAccountDataList =>
-      'Your profile, salary settings, work records, accounts, categories, transactions, macros, held amounts, and authentication account will be deleted.';
+      'Your Finance Suit profile, salary settings, work records, accounts, categories, transactions, macros, and held amounts will be deleted. Your shared sign-in and other portal data will be kept.';
 
   @override
   String get deleteAccountPasswordPrompt => 'Confirm your password';
 
   @override
   String get deleteAccountAcknowledge =>
-      'I understand that my account and data will be permanently deleted.';
+      'I understand that my Finance Suit profile and data will be permanently deleted.';
 
   @override
   String get deleteAccountFinalTitle => 'Permanently delete account?';
 
   @override
   String get deleteAccountFinalBody =>
-      'Finance Suit will delete your account and active app data now. You will be logged out on this device.';
+      'Finance Suit will delete your Finance Suit profile and active app data now. Your shared sign-in and other portal data will remain, and you will be logged out on this device.';
 
   @override
   String get deleteAccountConfirmButton => 'Delete my account';

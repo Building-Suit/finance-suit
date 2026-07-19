@@ -1121,7 +1121,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteAccountDataList.
   ///
   /// In en, this message translates to:
-  /// **'Your profile, salary settings, work records, accounts, categories, transactions, macros, held amounts, and authentication account will be deleted.'**
+  /// **'Your Finance Suit profile, salary settings, work records, accounts, categories, transactions, macros, and held amounts will be deleted. Your shared sign-in and other portal data will be kept.'**
   String get deleteAccountDataList;
 
   /// No description provided for @deleteAccountPasswordPrompt.
@@ -1133,7 +1133,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteAccountAcknowledge.
   ///
   /// In en, this message translates to:
-  /// **'I understand that my account and data will be permanently deleted.'**
+  /// **'I understand that my Finance Suit profile and data will be permanently deleted.'**
   String get deleteAccountAcknowledge;
 
   /// No description provided for @deleteAccountFinalTitle.
@@ -1145,7 +1145,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteAccountFinalBody.
   ///
   /// In en, this message translates to:
-  /// **'Finance Suit will delete your account and active app data now. You will be logged out on this device.'**
+  /// **'Finance Suit will delete your Finance Suit profile and active app data now. Your shared sign-in and other portal data will remain, and you will be logged out on this device.'**
   String get deleteAccountFinalBody;
 
   /// No description provided for @deleteAccountConfirmButton.

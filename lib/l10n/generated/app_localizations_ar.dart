@@ -542,21 +542,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get deleteAccountDataList =>
-      'سيتم حذف ملفك الشخصي وإعدادات الراتب وسجلات العمل والحسابات والفئات والمعاملات والماكرو والمبالغ المعلّقة وحساب المصادقة.';
+      'سيتم حذف ملف Finance Suit وإعدادات الراتب وسجلات العمل والحسابات والفئات والمعاملات والماكرو والمبالغ المعلّقة. سيبقى تسجيل الدخول المشترك وبيانات البوابات الأخرى.';
 
   @override
   String get deleteAccountPasswordPrompt => 'أكّد كلمة المرور';
 
   @override
   String get deleteAccountAcknowledge =>
-      'أفهم أنه سيتم حذف حسابي وبياناتي نهائياً.';
+      'أفهم أنه سيتم حذف ملف Finance Suit وبياناته نهائياً.';
 
   @override
   String get deleteAccountFinalTitle => 'هل تريد حذف الحساب نهائياً؟';
 
   @override
   String get deleteAccountFinalBody =>
-      'سيحذف Finance Suit حسابك وبيانات التطبيق النشطة الآن، وسيتم تسجيل خروجك من هذا الجهاز.';
+      'سيحذف Finance Suit ملفك وبيانات التطبيق النشطة الآن. سيبقى تسجيل الدخول المشترك وبيانات البوابات الأخرى، وسيتم تسجيل خروجك من هذا الجهاز.';
 
   @override
   String get deleteAccountConfirmButton => 'حذف حسابي';

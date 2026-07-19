@@ -30,14 +30,14 @@ class Env {
   );
 
   /// Public identity shown in the in-app legal documents. CI may override
-  /// these values after the Play Console publisher details are finalized.
+  /// these values for a future publisher change.
   static const String legalDeveloperName = String.fromEnvironment(
     'LEGAL_DEVELOPER_NAME',
-    defaultValue: 'Building Suit',
+    defaultValue: 'Tareq Abdelwhap',
   );
   static const String privacyContactEmail = String.fromEnvironment(
     'PRIVACY_CONTACT_EMAIL',
-    defaultValue: '[privacy contact email pending]',
+    defaultValue: 'tarekian99@gmail.com',
   );
 
   static bool get isProduction => appEnvironment == 'production';
