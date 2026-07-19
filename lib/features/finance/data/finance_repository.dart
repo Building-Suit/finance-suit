@@ -335,10 +335,10 @@ class FinanceRepository {
   /// Marks a held amount settled on [settledOn], or active again when null.
   Future<Result<void>> setHeldAmountSettled(String id, PlainDate? settledOn) {
     return guard(() async {
-      await _db
-          .from('held_amounts')
-          .update({'settled_on': settledOn?.toIso()})
-          .eq('id', id);
+      await _db.rpc<void>(
+        'set_held_amount_settled',
+        params: {'p_held_id': id, 'p_settled_on': settledOn?.toIso()},
+      );
     });
   }
 

@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(8);
+select plan(13);
 
 insert into auth.users (
   id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -35,21 +35,63 @@ select lives_ok(
 
 select is(
   (select count(*)::integer from app_finance.financial_transactions),
+  0,
+  'active hold does not create an actual transaction'
+);
+
+select is(
+  (select balance_minor from app_finance.account_balances
+    where name = 'Current Balance'),
+  100000::bigint,
+  'active hold does not affect account balance'
+);
+
+select ok(
+  (select manages_transaction and transaction_id is null
+    from app_finance.held_amounts where title = 'Held expense'),
+  'standalone hold is ready to manage a transaction on settlement'
+);
+
+select lives_ok(
+  $$select app_finance.set_held_amount_settled(
+    (select id from app_finance.held_amounts where title = 'Held expense'),
+    current_date
+  )$$,
+  'settling a payable succeeds'
+);
+
+select is(
+  (select count(*)::integer from app_finance.financial_transactions),
   1,
-  'standalone hold creates one actual transaction'
+  'settlement creates one actual transaction'
 );
 
 select is(
   (select balance_minor from app_finance.account_balances
     where name = 'Current Balance'),
   97500::bigint,
-  'payable hold immediately reduces account balance'
+  'settled payable reduces account balance'
 );
 
-select ok(
-  (select manages_transaction and transaction_id is not null
-    from app_finance.held_amounts where title = 'Held expense'),
-  'held amount owns its generated transaction'
+select lives_ok(
+  $$select app_finance.set_held_amount_settled(
+    (select id from app_finance.held_amounts where title = 'Held expense'),
+    null
+  )$$,
+  'reactivating a payable succeeds'
+);
+
+select is(
+  (select count(*)::integer from app_finance.financial_transactions),
+  0,
+  'reactivating removes the generated transaction'
+);
+
+select is(
+  (select balance_minor from app_finance.account_balances
+    where name = 'Current Balance'),
+  100000::bigint,
+  'reactivating restores account balance'
 );
 
 select lives_ok(
@@ -60,25 +102,19 @@ select lives_ok(
   'standalone receivable is saved atomically'
 );
 
-select is(
-  (select balance_minor from app_finance.account_balances
-    where name = 'Current Balance'),
-  102500::bigint,
-  'receivable hold immediately increases account balance'
-);
-
 select lives_ok(
-  $$select app_finance.delete_held_amount(
-    (select id from app_finance.held_amounts where title = 'Held expense')
+  $$select app_finance.set_held_amount_settled(
+    (select id from app_finance.held_amounts where title = 'Held income'),
+    current_date
   )$$,
-  'deleting a managed hold succeeds'
+  'settling a receivable succeeds'
 );
 
 select is(
   (select balance_minor from app_finance.account_balances
     where name = 'Current Balance'),
   105000::bigint,
-  'deleting a managed hold removes its transaction and restores balance'
+  'settled receivable increases account balance'
 );
 
 select * from finish();

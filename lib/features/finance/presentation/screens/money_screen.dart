@@ -267,7 +267,7 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
         );
         if (!mounted) return;
         result.when(
-          ok: (_) => ref.invalidate(heldAmountsProvider),
+          ok: (_) => invalidateFinanceData(ref),
           err: (failure) => ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(failureMessage(context, failure))),
           ),
@@ -295,7 +295,7 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
         final result = await repo.deleteHeldAmount(held.id);
         if (!mounted) return;
         result.when(
-          ok: (_) => ref.invalidate(heldAmountsProvider),
+          ok: (_) => invalidateFinanceData(ref),
           err: (failure) => ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(failureMessage(context, failure))),
           ),

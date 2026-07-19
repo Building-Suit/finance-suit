@@ -341,30 +341,62 @@ class _BalanceSection extends StatelessWidget {
       totals[account.currencyCode] =
           (totals[account.currencyCode] ?? 0) + account.balanceMinor;
     }
+    final visibleAccounts = accounts.take(4).toList();
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _MetricCard(
-          icon: FinanceSuitIcons.accountBalanceWallet,
-          label: l10n.moneyTotalBalance,
-          value: totals.entries
-              .map(
-                (e) => Money(minor: e.value, currencyCode: e.key).format(),
-              )
-              .join(' / '),
+        SizedBox(
+          width: double.infinity,
+          child: _MetricCard(
+            icon: FinanceSuitIcons.accountBalanceWallet,
+            label: l10n.moneyTotalBalance,
+            value: totals.entries
+                .map(
+                  (e) => Money(minor: e.value, currencyCode: e.key).format(),
+                )
+                .join(' / '),
+          ),
         ),
         const SizedBox(height: 8),
-        for (final account in accounts.take(4))
-          Card(
-            child: ListTile(
-              leading: FinanceSuitIcon(accountTypeIcon(account.accountType)),
-              title: Text(account.name),
-              trailing: BalanceText(money: account.balance),
-              onTap: () => context.push(
-                '${AppRoutes.money}/accounts/${account.accountId}',
+        for (var index = 0; index < visibleAccounts.length; index += 2) ...[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _HomeAccountCard(account: visibleAccounts[index]),
               ),
-            ),
+              if (index + 1 < visibleAccounts.length) ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _HomeAccountCard(account: visibleAccounts[index + 1]),
+                ),
+              ],
+            ],
           ),
+          if (index + 2 < visibleAccounts.length) const SizedBox(height: 8),
+        ],
       ],
+    );
+  }
+}
+
+class _HomeAccountCard extends StatelessWidget {
+  const _HomeAccountCard({required this.account});
+
+  final AccountBalance account;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: ListTile(
+        leading: FinanceSuitIcon(accountTypeIcon(account.accountType)),
+        title: Text(account.name),
+        subtitle: BalanceText(money: account.balance),
+        onTap: () => context.push(
+          '${AppRoutes.money}/accounts/${account.accountId}',
+        ),
+      ),
     );
   }
 }
