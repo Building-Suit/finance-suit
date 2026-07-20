@@ -45,6 +45,7 @@ String _dbValidationMessage(AppLocalizations l10n, String raw) {
     'macro_not_reversible' => l10n.errMacroNotReversible,
     'macro_empty' => l10n.errMacroEmpty,
     'not_found' => l10n.errNotFound,
+    'account_deletion_failed' => l10n.deleteAccountFailure,
     _ => l10n.commonError,
   };
 }

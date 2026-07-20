@@ -26,8 +26,17 @@ As of 2026-07-10:
 ## Product Identity
 
 Finance Suit is a standalone product with its own finance-ledger `F` mark. It
-uses the shared Suit visual system without copying another product's logo or
-changing its existing technical identifiers, database, or deep links.
+uses the shared Suit visual system as the finance portal in the Building Suit
+product family. Its permanent Android application ID is
+`com.buildingsuit.finance`.
+
+## Google Play delivery
+
+Google Play builds use signed Android App Bundles for smaller device-specific
+downloads. The `test` branch delivers to Internal Testing, while version tags
+on `main` are delivered to Production by an explicit manual workflow run. See
+[docs/GOOGLE_PLAY_DELIVERY.md](docs/GOOGLE_PLAY_DELIVERY.md) for signing,
+Play Console, service-account, and rollout setup.
 
 ## Local Setup
 

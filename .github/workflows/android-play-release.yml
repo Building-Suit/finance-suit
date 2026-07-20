@@ -1,0 +1,323 @@
+name: Finance Suit Google Play Delivery
+
+on:
+  push:
+    branches:
+      - test
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: Google Play delivery stage.
+        required: true
+        default: test
+        type: choice
+        options:
+          - test
+          - production
+      release_tag:
+        description: Existing v* tag on main; required for production.
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: google-play-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: '3.41.6'
+  PACKAGE_NAME: com.buildingsuit.finance
+  AUTH_CALLBACK_SCHEME: worktracker
+  AUTH_CALLBACK_HOST: auth-callback
+
+jobs:
+  quality:
+    name: Analyze and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          ref: ${{ inputs.stage == 'production' && inputs.release_tag || github.ref }}
+
+      - name: Set up Java
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Smoke-test optimized release bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ci_keystore="${RUNNER_TEMP}/ci-upload.jks"
+          keytool -genkeypair -noprompt \
+            -keystore "${ci_keystore}" \
+            -storetype JKS \
+            -storepass ci-only-password \
+            -keypass ci-only-password \
+            -alias ci-upload \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 1 \
+            -dname "CN=CI, OU=Finance Suit, O=Building Suit, C=EG"
+
+          export ANDROID_KEYSTORE_PATH="${ci_keystore}"
+          export ANDROID_KEYSTORE_PASSWORD="ci-only-password"
+          export ANDROID_KEY_ALIAS="ci-upload"
+          export ANDROID_KEY_PASSWORD="ci-only-password"
+
+          flutter build appbundle --release \
+            --build-name="0.0.0-ci.${GITHUB_RUN_NUMBER}" \
+            --build-number="${GITHUB_RUN_NUMBER}" \
+            --obfuscate \
+            --split-debug-info="${RUNNER_TEMP}/ci-symbols" \
+            --dart-define="APP_VERSION=ci+${GITHUB_RUN_NUMBER}" \
+            --dart-define="SUPABASE_URL=https://example.invalid" \
+            --dart-define="SUPABASE_ANON_KEY=ci-placeholder" \
+            --dart-define="APP_ENVIRONMENT=test" \
+            --dart-define="LEGAL_DEVELOPER_NAME=Building Suit" \
+            --dart-define="PRIVACY_CONTACT_EMAIL=ci@example.invalid" \
+            --dart-define="AUTH_CALLBACK_SCHEME=${AUTH_CALLBACK_SCHEME}" \
+            --dart-define="AUTH_CALLBACK_HOST=${AUTH_CALLBACK_HOST}"
+
+          test -s build/app/outputs/bundle/release/app-release.aab
+          test -s build/app/outputs/mapping/release/mapping.txt
+          du -h build/app/outputs/bundle/release/app-release.aab
+
+  build-and-deliver:
+    name: Build and deliver ${{ inputs.stage || 'test' }} AAB
+    needs: quality
+    if: vars.PLAY_SIGNING_READY == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: ${{ inputs.stage == 'production' && 'play-production' || 'play-test' }}
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.stage == 'production' && inputs.release_tag || github.ref }}
+
+      - name: Resolve delivery metadata
+        id: delivery
+        shell: bash
+        env:
+          REQUESTED_STAGE: ${{ inputs.stage }}
+          REQUESTED_RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && "${REQUESTED_STAGE}" == "production" ]]; then
+            if [[ ! "${REQUESTED_RELEASE_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$ ]]; then
+              echo "Production requires an existing semantic v* tag." >&2
+              exit 1
+            fi
+            stage="production"
+            track="production"
+            build_name="${REQUESTED_RELEASE_TAG#v}"
+            artifact_name="finance-suit-${REQUESTED_RELEASE_TAG}"
+            release_tag="${REQUESTED_RELEASE_TAG}"
+          else
+            stage="test"
+            track="internal"
+            base_version="$(sed -n 's/^version: \([^+]*\).*/\1/p' pubspec.yaml)"
+            build_name="${base_version}-test.${GITHUB_RUN_NUMBER}"
+            artifact_name="finance-suit-test-${GITHUB_RUN_NUMBER}"
+            release_tag=""
+          fi
+
+          if [[ ! "${build_name}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$ ]]; then
+            echo "Invalid Android version name: ${build_name}" >&2
+            exit 1
+          fi
+
+          echo "stage=${stage}" >> "${GITHUB_OUTPUT}"
+          echo "track=${track}" >> "${GITHUB_OUTPUT}"
+          echo "build_name=${build_name}" >> "${GITHUB_OUTPUT}"
+          echo "artifact_name=${artifact_name}" >> "${GITHUB_OUTPUT}"
+          echo "release_tag=${release_tag}" >> "${GITHUB_OUTPUT}"
+
+      - name: Require production tags from main
+        if: steps.delivery.outputs.stage == 'production'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --tags origin main
+          release_commit="$(git rev-list -n 1 "${{ steps.delivery.outputs.release_tag }}")"
+          if [[ "$(git rev-parse HEAD)" != "${release_commit}" ]]; then
+            echo "The checked-out commit does not match the requested tag." >&2
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "${release_commit}" origin/main; then
+            echo "The production tag must point to a commit on main." >&2
+            exit 1
+          fi
+
+      - name: Validate build secrets
+        shell: bash
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          PLAY_UPLOAD_KEYSTORE_BASE64: ${{ secrets.PLAY_UPLOAD_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          PLAY_DELIVERY_ENABLED: ${{ vars.PLAY_DELIVERY_ENABLED }}
+          LEGAL_DEVELOPER_NAME: ${{ vars.LEGAL_DEVELOPER_NAME }}
+          PRIVACY_CONTACT_EMAIL: ${{ vars.PRIVACY_CONTACT_EMAIL }}
+        run: |
+          set -euo pipefail
+
+          missing=()
+          [[ -n "${SUPABASE_URL}" ]] || missing+=(SUPABASE_URL)
+          [[ -n "${SUPABASE_ANON_KEY}" ]] || missing+=(SUPABASE_ANON_KEY)
+          [[ -n "${PLAY_UPLOAD_KEYSTORE_BASE64}" ]] || missing+=(PLAY_UPLOAD_KEYSTORE_BASE64)
+          [[ -n "${ANDROID_KEYSTORE_PASSWORD}" ]] || missing+=(PLAY_UPLOAD_KEYSTORE_PASSWORD)
+          [[ -n "${ANDROID_KEY_ALIAS}" ]] || missing+=(PLAY_UPLOAD_KEY_ALIAS)
+          [[ -n "${ANDROID_KEY_PASSWORD}" ]] || missing+=(PLAY_UPLOAD_KEY_PASSWORD)
+          [[ -n "${LEGAL_DEVELOPER_NAME}" ]] || missing+=(LEGAL_DEVELOPER_NAME)
+          [[ -n "${PRIVACY_CONTACT_EMAIL}" ]] || missing+=(PRIVACY_CONTACT_EMAIL)
+          if [[ "${PLAY_DELIVERY_ENABLED}" == "true" && -z "${PLAY_SERVICE_ACCOUNT_JSON}" ]]; then
+            missing+=(PLAY_SERVICE_ACCOUNT_JSON)
+          fi
+
+          if (( ${#missing[@]} > 0 )); then
+            printf 'Missing GitHub configuration: %s\n' "${missing[@]}" >&2
+            exit 1
+          fi
+
+      - name: Set up Java
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Restore upload keystore
+        shell: bash
+        env:
+          PLAY_UPLOAD_KEYSTORE_BASE64: ${{ secrets.PLAY_UPLOAD_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          keystore_path="${RUNNER_TEMP}/finance-suit-upload.jks"
+          printf '%s' "${PLAY_UPLOAD_KEYSTORE_BASE64}" | base64 --decode > "${keystore_path}"
+          chmod 600 "${keystore_path}"
+          echo "ANDROID_KEYSTORE_PATH=${keystore_path}" >> "${GITHUB_ENV}"
+
+      - name: Build optimized signed app bundle
+        shell: bash
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          APP_ENVIRONMENT: ${{ steps.delivery.outputs.stage }}
+          LEGAL_DEVELOPER_NAME: ${{ vars.LEGAL_DEVELOPER_NAME }}
+          PRIVACY_CONTACT_EMAIL: ${{ vars.PRIVACY_CONTACT_EMAIL }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          flutter build appbundle --release \
+            --build-name="${{ steps.delivery.outputs.build_name }}" \
+            --build-number="${GITHUB_RUN_NUMBER}" \
+            --obfuscate \
+            --split-debug-info=build/symbols \
+            --dart-define="APP_VERSION=${{ steps.delivery.outputs.build_name }}+${GITHUB_RUN_NUMBER}" \
+            --dart-define="SUPABASE_URL=${SUPABASE_URL}" \
+            --dart-define="SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}" \
+            --dart-define="APP_ENVIRONMENT=${APP_ENVIRONMENT}" \
+            --dart-define="LEGAL_DEVELOPER_NAME=${LEGAL_DEVELOPER_NAME}" \
+            --dart-define="PRIVACY_CONTACT_EMAIL=${PRIVACY_CONTACT_EMAIL}" \
+            --dart-define="AUTH_CALLBACK_SCHEME=${AUTH_CALLBACK_SCHEME}" \
+            --dart-define="AUTH_CALLBACK_HOST=${AUTH_CALLBACK_HOST}"
+
+          mkdir -p release
+          cp build/app/outputs/bundle/release/app-release.aab \
+            "release/${{ steps.delivery.outputs.artifact_name }}.aab"
+          sha256sum "release/${{ steps.delivery.outputs.artifact_name }}.aab" \
+            > "release/${{ steps.delivery.outputs.artifact_name }}.aab.sha256"
+          tar -czf "release/${{ steps.delivery.outputs.artifact_name }}-dart-symbols.tar.gz" \
+            -C build symbols
+
+      - name: Upload signed bundle and symbols
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: ${{ steps.delivery.outputs.artifact_name }}
+          path: |
+            release/${{ steps.delivery.outputs.artifact_name }}.aab
+            release/${{ steps.delivery.outputs.artifact_name }}.aab.sha256
+            release/${{ steps.delivery.outputs.artifact_name }}-dart-symbols.tar.gz
+            build/app/outputs/mapping/release/mapping.txt
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Publish to Google Play
+        if: vars.PLAY_DELIVERY_ENABLED == 'true'
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1.1.5
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ env.PACKAGE_NAME }}
+          releaseFiles: release/${{ steps.delivery.outputs.artifact_name }}.aab
+          tracks: ${{ steps.delivery.outputs.track }}
+          status: completed
+          releaseName: ${{ steps.delivery.outputs.build_name }}
+          whatsNewDirectory: distribution/whatsnew
+          mappingFile: build/app/outputs/mapping/release/mapping.txt
+
+      - name: Publish production GitHub release
+        if: steps.delivery.outputs.stage == 'production'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          release_tag="${{ steps.delivery.outputs.release_tag }}"
+          release_commit="$(git rev-parse HEAD)"
+          if gh release view "${release_tag}" >/dev/null 2>&1; then
+            gh release upload "${release_tag}" \
+              "release/${{ steps.delivery.outputs.artifact_name }}.aab" \
+              "release/${{ steps.delivery.outputs.artifact_name }}.aab.sha256" \
+              --clobber
+          else
+            gh release create "${release_tag}" \
+              "release/${{ steps.delivery.outputs.artifact_name }}.aab" \
+              "release/${{ steps.delivery.outputs.artifact_name }}.aab.sha256" \
+              --title "Finance Suit ${release_tag}" \
+              --notes "Google Play app bundle built from ${release_commit}."
+          fi

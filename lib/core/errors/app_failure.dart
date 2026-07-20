@@ -155,6 +155,18 @@ AppFailure mapSupabaseError(Object error) {
     }
     return UnknownFailure(debugDetails: '${error.code}: ${error.message}');
   }
+  if (error is FunctionException) {
+    if (error.status == 401 || error.status == 403) {
+      return AuthorizationFailure(debugDetails: error.toString());
+    }
+    if (error.status == 400) {
+      return ValidationFailure(
+        'account_deletion_failed',
+        debugDetails: error.toString(),
+      );
+    }
+    return UnknownFailure(debugDetails: error.toString());
+  }
   final text = error.toString();
   if (text.contains('SocketException') ||
       text.contains('Connection refused') ||

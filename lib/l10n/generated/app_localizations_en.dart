@@ -524,6 +524,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setAppVersion => 'App version';
 
   @override
+  String get setPrivacyPolicy => 'Privacy policy';
+
+  @override
+  String get setTerms => 'Terms and conditions';
+
+  @override
+  String get setDeleteAccount => 'Delete account';
+
+  @override
+  String get setDeleteAccountSubtitle =>
+      'Permanently delete your account and app data';
+
+  @override
+  String get deleteAccountTitle => 'Delete your account';
+
+  @override
+  String get deleteAccountWarning =>
+      'This action is permanent and cannot be undone.';
+
+  @override
+  String get deleteAccountDataList =>
+      'Your Finance Suit profile, salary settings, work records, accounts, categories, transactions, macros, and held amounts will be deleted. Your shared sign-in and other portal data will be kept.';
+
+  @override
+  String get deleteAccountPasswordPrompt => 'Confirm your password';
+
+  @override
+  String get deleteAccountAcknowledge =>
+      'I understand that my Finance Suit profile and data will be permanently deleted.';
+
+  @override
+  String get deleteAccountFinalTitle => 'Permanently delete account?';
+
+  @override
+  String get deleteAccountFinalBody =>
+      'Finance Suit will delete your Finance Suit profile and active app data now. Your shared sign-in and other portal data will remain, and you will be logged out on this device.';
+
+  @override
+  String get deleteAccountConfirmButton => 'Delete my account';
+
+  @override
+  String get deleteAccountFailure =>
+      'We could not delete your account. Check your connection and password, then try again or contact support.';
+
+  @override
+  String get deleteAccountPolicy => 'How account deletion works';
+
+  @override
   String get moneyAccountsTab => 'Accounts';
 
   @override

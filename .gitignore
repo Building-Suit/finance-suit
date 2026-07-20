@@ -44,6 +44,12 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Android release signing material must never be committed
+*.jks
+*.keystore
+/android/key.properties
+/build/symbols/
+
 # Local environment configuration (real values). Examples are tracked.
 config/*.json
 !config/*.example.json

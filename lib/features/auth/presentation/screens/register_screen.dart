@@ -143,6 +143,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   onPressed: () => context.go(AppRoutes.login),
                   child: Text(l10n.authHaveAccount),
                 ),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () => context.push(AppRoutes.privacyPolicy),
+                      child: Text(l10n.setPrivacyPolicy),
+                    ),
+                    TextButton(
+                      onPressed: () => context.push(AppRoutes.terms),
+                      child: Text(l10n.setTerms),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

@@ -149,6 +149,10 @@ class AuthActionController extends Notifier<AsyncValue<void>> {
 
   Future<AppFailure?> signOut() =>
       _run(() async => (await _repo.signOut()).failureOrNull);
+
+  Future<AppFailure?> deleteAccount(String password) => _run(
+    () async => (await _repo.deleteAccount(password: password)).failureOrNull,
+  );
 }
 
 final authActionProvider =

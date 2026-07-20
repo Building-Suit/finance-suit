@@ -2,6 +2,8 @@
   "SUPABASE_URL": "",
   "SUPABASE_ANON_KEY": "",
   "APP_ENVIRONMENT": "production",
+  "LEGAL_DEVELOPER_NAME": "Tareq Abdelwhap",
+  "PRIVACY_CONTACT_EMAIL": "tarekian99@gmail.com",
   "AUTH_CALLBACK_SCHEME": "worktracker",
   "AUTH_CALLBACK_HOST": "auth-callback"
 }

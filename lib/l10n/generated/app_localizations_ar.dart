@@ -523,6 +523,52 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setAppVersion => 'إصدار التطبيق';
 
   @override
+  String get setPrivacyPolicy => 'سياسة الخصوصية';
+
+  @override
+  String get setTerms => 'الشروط والأحكام';
+
+  @override
+  String get setDeleteAccount => 'حذف الحساب';
+
+  @override
+  String get setDeleteAccountSubtitle => 'حذف حسابك وبيانات التطبيق نهائياً';
+
+  @override
+  String get deleteAccountTitle => 'حذف حسابك';
+
+  @override
+  String get deleteAccountWarning => 'هذا الإجراء نهائي ولا يمكن التراجع عنه.';
+
+  @override
+  String get deleteAccountDataList =>
+      'سيتم حذف ملف Finance Suit وإعدادات الراتب وسجلات العمل والحسابات والفئات والمعاملات والماكرو والمبالغ المعلّقة. سيبقى تسجيل الدخول المشترك وبيانات البوابات الأخرى.';
+
+  @override
+  String get deleteAccountPasswordPrompt => 'أكّد كلمة المرور';
+
+  @override
+  String get deleteAccountAcknowledge =>
+      'أفهم أنه سيتم حذف ملف Finance Suit وبياناته نهائياً.';
+
+  @override
+  String get deleteAccountFinalTitle => 'هل تريد حذف الحساب نهائياً؟';
+
+  @override
+  String get deleteAccountFinalBody =>
+      'سيحذف Finance Suit ملفك وبيانات التطبيق النشطة الآن. سيبقى تسجيل الدخول المشترك وبيانات البوابات الأخرى، وسيتم تسجيل خروجك من هذا الجهاز.';
+
+  @override
+  String get deleteAccountConfirmButton => 'حذف حسابي';
+
+  @override
+  String get deleteAccountFailure =>
+      'تعذّر حذف حسابك. تحقق من الاتصال وكلمة المرور ثم حاول مرة أخرى أو تواصل مع الدعم.';
+
+  @override
+  String get deleteAccountPolicy => 'كيف يعمل حذف الحساب';
+
+  @override
   String get moneyAccountsTab => 'الحسابات';
 
   @override
