@@ -5,17 +5,18 @@ Finance Suit uses the permanent Android application ID
 
 | Source | GitHub environment | Play track | Approval |
 | --- | --- | --- | --- |
-| Push to `test` | `play-test` | Internal testing | Automatic |
-| Manual run for a `v*` tag on `main` | `play-production` | Production | Manual dispatch |
+| Merge a feature into `test` | `play-test` | Internal testing | Automatic |
+| Promote `test` into `main` | `play-production` | Production | Automatic after the production environment gate |
 
 Both stages use the production Supabase project. The mobile bundle contains
 only the public Supabase URL and anon key; never add a Supabase `service_role`
 key to GitHub Actions.
 
-The workflow stays disabled until `PLAY_SIGNING_READY=true`. Play API uploads
-stay disabled separately until `PLAY_DELIVERY_ENABLED=true`. This allows the
-first signed bundle to be created and uploaded manually before automation is
-given Play Console access.
+The workflow stays disabled until `PLAY_SIGNING_READY=true`. Test and
+production delivery are controlled independently by
+`PLAY_TEST_DELIVERY_ENABLED` and `PLAY_PRODUCTION_DELIVERY_ENABLED`. Keep the
+production variable `false` until Play Console grants production access and
+the `play-production` environment has its own service-account credential.
 
 ## 1. Create and retain the upload key
 
@@ -78,9 +79,9 @@ Account-deletion deployment instructions are documented in
 ## 2. Build the first signed app bundle
 
 After all four signing secrets exist, set the repository variable
-`PLAY_SIGNING_READY` to `true`. Leave `PLAY_DELIVERY_ENABLED` set to `false`.
-Run **Finance Suit Google Play Delivery** manually from the `test` branch with
-stage `test`, then download the signed `.aab` artifact from that workflow run.
+`PLAY_SIGNING_READY` to `true`. Set `PLAY_TEST_DELIVERY_ENABLED` to `true`
+after the first signed bundle has been uploaded manually. A push to `test`
+then builds, signs, and publishes the next bundle to Internal testing.
 
 The workflow builds an Android App Bundle rather than a universal APK. Google
 Play generates device-specific APKs from it, avoiding the download of unused
@@ -110,12 +111,19 @@ use `com.buildingsuit.finance` and the exported upload certificate.
 3. Create a dedicated service account and JSON key.
 4. In Play Console **Users and permissions**, invite the service-account email.
 5. Grant app access to Finance Suit and only these permissions:
-   - View app information and download bulk reports (read-only)
+   - View app information (read-only)
    - Release apps to testing tracks
-   - Release to production, exclude devices, and use Play App Signing
-6. Save the complete JSON key as the repository secret
-   `PLAY_SERVICE_ACCOUNT_JSON`.
-7. Set repository variable `PLAY_DELIVERY_ENABLED` to `true`.
+6. Save the complete JSON key as the `PLAY_SERVICE_ACCOUNT_JSON` secret in the
+   `play-test` GitHub environment.
+7. Set repository variable `PLAY_TEST_DELIVERY_ENABLED` to `true`.
+
+For production, create a separate service account with Finance Suit app access,
+**View app information (read-only)**, and **Release to production, exclude
+devices, and use Play App Signing**. Save its JSON key as
+`PLAY_SERVICE_ACCOUNT_JSON` in the `play-production` environment. Restrict that
+environment to the `main` branch and set
+`PLAY_PRODUCTION_DELIVERY_ENABLED=true` only after Play grants production
+access.
 
 Do not put the service-account JSON in the app bundle, repository, workflow
 artifacts, issue comments, or chat messages.
@@ -126,37 +134,42 @@ New Personal Play Console accounts must complete a Closed Test with at least
 12 testers continuously opted in for 14 days, then apply for production
 access. Internal Testing remains the regular fast test stage, but it does not
 satisfy that one-time production eligibility requirement. Complete the Closed
-Test in Play Console before pushing the first production tag.
+Test in Play Console before enabling production delivery or promoting a
+release to `main`.
 
 ## Versioning and releases
 
 - Every run uses the workflow-wide run number as Android `versionCode`, so a
   later production build is newer than earlier Internal Testing builds.
 - Test builds use `<pubspec-version>-test.<run-number>` as `versionName`.
-- A production tag such as `v1.0.0` uses `1.0.0` as `versionName`.
-- Production tags must point to a commit contained in `main`.
-- Production can only run through an explicit manual workflow dispatch for an
-  existing `v*` tag whose commit is contained in `main`.
-- A production tag also publishes the AAB and checksum to GitHub Releases.
+- Production uses the base `pubspec.yaml` version as `versionName`.
+- Before promoting `test` to `main`, bump `pubspec.yaml` to a version that has
+  never been released. The workflow rejects a tag already used by another
+  commit.
+- After Google Play accepts the production bundle, the workflow creates the
+  matching `v<pubspec-version>` tag and publishes the AAB and checksum to a
+  GitHub Release.
 
 ## Rollout commands
 
-Merge changes to `test` for an Internal Testing build:
+Create feature branches from `test` and merge them back through a pull request.
+Each merge publishes a new Internal Testing build:
 
 ```bash
 git switch test
-git merge --ff-only main
-git push origin test
+git pull --ff-only origin test
+git switch -c feature/my-change
+# Commit and push, then open a pull request targeting test.
 ```
 
-Publish production after Play Console grants production access:
+After QA approves the Internal Testing build, bump the version on `test` if
+needed and open a promotion pull request from `test` to `main`. Merging that
+pull request publishes the exact `main` commit to Production:
 
 ```bash
-git switch main
-git tag -a v1.0.0 -m "Finance Suit v1.0.0"
-git push origin v1.0.0
-gh workflow run android-play-release.yml \
-  --ref main \
-  -f stage=production \
-  -f release_tag=v1.0.0
+gh pr create --base main --head test \
+  --title "release: promote Finance Suit v1.0.0"
 ```
+
+The workflow can also be dispatched manually on either `test` or `main`; the
+selected branch still determines the Play track and cannot be overridden.

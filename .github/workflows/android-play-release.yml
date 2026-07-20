@@ -4,20 +4,8 @@ on:
   push:
     branches:
       - test
+      - main
   workflow_dispatch:
-    inputs:
-      stage:
-        description: Google Play delivery stage.
-        required: true
-        default: test
-        type: choice
-        options:
-          - test
-          - production
-      release_tag:
-        description: Existing v* tag on main; required for production.
-        required: false
-        type: string
 
 permissions:
   contents: read
@@ -41,8 +29,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
-        with:
-          ref: ${{ inputs.stage == 'production' && inputs.release_tag || github.ref }}
 
       - name: Set up Java
         uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
@@ -107,12 +93,17 @@ jobs:
           du -h build/app/outputs/bundle/release/app-release.aab
 
   build-and-deliver:
-    name: Build and deliver ${{ inputs.stage || 'test' }} AAB
+    name: Build and deliver ${{ github.ref_name }} AAB
     needs: quality
-    if: vars.PLAY_SIGNING_READY == 'true'
+    if: >-
+      vars.PLAY_SIGNING_READY == 'true' &&
+      ((github.ref == 'refs/heads/test' &&
+      vars.PLAY_TEST_DELIVERY_ENABLED == 'true') ||
+      (github.ref == 'refs/heads/main' &&
+      vars.PLAY_PRODUCTION_DELIVERY_ENABLED == 'true'))
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    environment: ${{ inputs.stage == 'production' && 'play-production' || 'play-test' }}
+    environment: ${{ github.ref == 'refs/heads/main' && 'play-production' || 'play-test' }}
     permissions:
       contents: write
 
@@ -121,60 +112,65 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
           fetch-depth: 0
-          ref: ${{ inputs.stage == 'production' && inputs.release_tag || github.ref }}
 
       - name: Resolve delivery metadata
         id: delivery
         shell: bash
-        env:
-          REQUESTED_STAGE: ${{ inputs.stage }}
-          REQUESTED_RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           set -euo pipefail
 
-          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && "${REQUESTED_STAGE}" == "production" ]]; then
-            if [[ ! "${REQUESTED_RELEASE_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$ ]]; then
-              echo "Production requires an existing semantic v* tag." >&2
+          base_version="$(sed -n 's/^version: \([^+]*\).*/\1/p' pubspec.yaml)"
+          case "${GITHUB_REF}" in
+            refs/heads/test)
+              stage="test"
+              track="internal"
+              build_name="${base_version}-test.${GITHUB_RUN_NUMBER}"
+              artifact_name="finance-suit-test-${GITHUB_RUN_NUMBER}"
+              release_tag=""
+              ;;
+            refs/heads/main)
+              stage="production"
+              track="production"
+              build_name="${base_version}"
+              artifact_name="finance-suit-v${base_version}"
+              release_tag="v${base_version}"
+              ;;
+            *)
+              echo "Releases are allowed only from test or main." >&2
               exit 1
-            fi
-            stage="production"
-            track="production"
-            build_name="${REQUESTED_RELEASE_TAG#v}"
-            artifact_name="finance-suit-${REQUESTED_RELEASE_TAG}"
-            release_tag="${REQUESTED_RELEASE_TAG}"
-          else
-            stage="test"
-            track="internal"
-            base_version="$(sed -n 's/^version: \([^+]*\).*/\1/p' pubspec.yaml)"
-            build_name="${base_version}-test.${GITHUB_RUN_NUMBER}"
-            artifact_name="finance-suit-test-${GITHUB_RUN_NUMBER}"
-            release_tag=""
-          fi
+              ;;
+          esac
 
           if [[ ! "${build_name}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$ ]]; then
             echo "Invalid Android version name: ${build_name}" >&2
             exit 1
           fi
 
-          echo "stage=${stage}" >> "${GITHUB_OUTPUT}"
-          echo "track=${track}" >> "${GITHUB_OUTPUT}"
-          echo "build_name=${build_name}" >> "${GITHUB_OUTPUT}"
-          echo "artifact_name=${artifact_name}" >> "${GITHUB_OUTPUT}"
-          echo "release_tag=${release_tag}" >> "${GITHUB_OUTPUT}"
+          {
+            echo "stage=${stage}"
+            echo "track=${track}"
+            echo "build_name=${build_name}"
+            echo "artifact_name=${artifact_name}"
+            echo "release_tag=${release_tag}"
+          } >> "${GITHUB_OUTPUT}"
 
-      - name: Require production tags from main
+      - name: Validate production version
         if: steps.delivery.outputs.stage == 'production'
         shell: bash
         run: |
           set -euo pipefail
           git fetch --tags origin main
-          release_commit="$(git rev-list -n 1 "${{ steps.delivery.outputs.release_tag }}")"
-          if [[ "$(git rev-parse HEAD)" != "${release_commit}" ]]; then
-            echo "The checked-out commit does not match the requested tag." >&2
-            exit 1
+          release_tag="${{ steps.delivery.outputs.release_tag }}"
+          if git rev-parse --verify --quiet "${release_tag}^{commit}" >/dev/null; then
+            tagged_commit="$(git rev-parse "${release_tag}^{commit}")"
+            if [[ "${tagged_commit}" != "$(git rev-parse HEAD)" ]]; then
+              echo "${release_tag} already belongs to another release." >&2
+              echo "Bump version in pubspec.yaml before promoting test to main." >&2
+              exit 1
+            fi
           fi
-          if ! git merge-base --is-ancestor "${release_commit}" origin/main; then
-            echo "The production tag must point to a commit on main." >&2
+          if [[ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]]; then
+            echo "Production must build the current main commit." >&2
             exit 1
           fi
 
@@ -188,7 +184,6 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
-          PLAY_DELIVERY_ENABLED: ${{ vars.PLAY_DELIVERY_ENABLED }}
           LEGAL_DEVELOPER_NAME: ${{ vars.LEGAL_DEVELOPER_NAME }}
           PRIVACY_CONTACT_EMAIL: ${{ vars.PRIVACY_CONTACT_EMAIL }}
         run: |
@@ -203,9 +198,7 @@ jobs:
           [[ -n "${ANDROID_KEY_PASSWORD}" ]] || missing+=(PLAY_UPLOAD_KEY_PASSWORD)
           [[ -n "${LEGAL_DEVELOPER_NAME}" ]] || missing+=(LEGAL_DEVELOPER_NAME)
           [[ -n "${PRIVACY_CONTACT_EMAIL}" ]] || missing+=(PRIVACY_CONTACT_EMAIL)
-          if [[ "${PLAY_DELIVERY_ENABLED}" == "true" && -z "${PLAY_SERVICE_ACCOUNT_JSON}" ]]; then
-            missing+=(PLAY_SERVICE_ACCOUNT_JSON)
-          fi
+          [[ -n "${PLAY_SERVICE_ACCOUNT_JSON}" ]] || missing+=(PLAY_SERVICE_ACCOUNT_JSON)
 
           if (( ${#missing[@]} > 0 )); then
             printf 'Missing GitHub configuration: %s\n' "${missing[@]}" >&2
@@ -288,7 +281,6 @@ jobs:
           retention-days: 90
 
       - name: Publish to Google Play
-        if: vars.PLAY_DELIVERY_ENABLED == 'true'
         uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1.1.5
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
@@ -318,6 +310,7 @@ jobs:
             gh release create "${release_tag}" \
               "release/${{ steps.delivery.outputs.artifact_name }}.aab" \
               "release/${{ steps.delivery.outputs.artifact_name }}.aab.sha256" \
+              --target "${release_commit}" \
               --title "Finance Suit ${release_tag}" \
               --notes "Google Play app bundle built from ${release_commit}."
           fi

@@ -6,6 +6,8 @@
 - [ ] `supabase test db`
 - [ ] Android debug build
 - [ ] Android release signing configured
+- [ ] `pubspec.yaml` version is unique before promoting `test` to `main`
+- [ ] Internal Testing build approved before the `test` to `main` PR is merged
 - [ ] iOS signing configured
 - [ ] Supabase production migrations reviewed
 - [ ] RLS verified on production project
