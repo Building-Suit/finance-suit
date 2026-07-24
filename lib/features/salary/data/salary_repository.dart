@@ -40,6 +40,7 @@ class SalaryRepository {
           .from('salary_periods')
           .select()
           .eq('id', id)
+          .eq('user_id', _userId)
           .single();
       return SalaryPeriod.fromJson(row);
     });
@@ -84,6 +85,7 @@ class SalaryRepository {
             'finalized_at': DateTime.now().toUtc().toIso8601String(),
           })
           .eq('id', id)
+          .eq('user_id', _userId)
           .eq('status', 'open');
     });
   }
@@ -95,6 +97,7 @@ class SalaryRepository {
           .from('salary_periods')
           .update({'status': 'open', 'finalized_at': null})
           .eq('id', id)
+          .eq('user_id', _userId)
           .eq('status', 'finalized');
     });
   }
@@ -153,13 +156,21 @@ class SalaryRepository {
     SalaryAdjustmentDraft draft,
   ) {
     return guard(() async {
-      await _db.from('salary_adjustments').update(draft.toJson()).eq('id', id);
+      await _db
+          .from('salary_adjustments')
+          .update(draft.toJson())
+          .eq('id', id)
+          .eq('user_id', _userId);
     });
   }
 
   Future<Result<void>> deleteAdjustment(String id) {
     return guard(() async {
-      await _db.from('salary_adjustments').delete().eq('id', id);
+      await _db
+          .from('salary_adjustments')
+          .delete()
+          .eq('id', id)
+          .eq('user_id', _userId);
     });
   }
 }
