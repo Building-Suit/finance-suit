@@ -32,15 +32,22 @@ class OnboardingStatusNotifier extends Notifier<OnboardingStatus> {
           .select('onboarding_completed_at')
           .eq('user_id', userId)
           .maybeSingle();
+      if (!_isStillCurrentUser(userId)) return;
       state = (row != null && row['onboarding_completed_at'] != null)
           ? OnboardingStatus.complete
           : OnboardingStatus.incomplete;
     } catch (_) {
+      if (!_isStillCurrentUser(userId)) return;
       // Network hiccup during startup: treat as incomplete so the user is
       // never stuck on the splash screen; onboarding completion is an
       // idempotent upsert, so re-entering the wizard is safe.
       state = OnboardingStatus.incomplete;
     }
+  }
+
+  bool _isStillCurrentUser(String userId) {
+    final auth = ref.read(authStateProvider);
+    return auth.phase == AuthPhase.signedIn && auth.userId == userId;
   }
 
   /// Called by the onboarding wizard after `complete_onboarding` succeeds.

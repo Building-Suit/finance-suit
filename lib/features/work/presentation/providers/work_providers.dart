@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
+import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/work/data/work_repository.dart';
 import 'package:work_tracker/features/work/domain/official_holiday.dart';
 import 'package:work_tracker/features/work/domain/work_entry.dart';
@@ -10,6 +11,7 @@ typedef WorkMonth = ({int year, int month});
 /// Entries within one calendar month.
 final workEntriesForMonthProvider = FutureProvider.family
     .autoDispose<List<WorkEntry>, WorkMonth>((ref, month) async {
+      ref.watch(currentUserIdProvider);
       final start = PlainDate(month.year, month.month, 1);
       final end = start
           .addMonths(1)
@@ -22,6 +24,7 @@ final workEntriesForMonthProvider = FutureProvider.family
     });
 
 final holidaysProvider = FutureProvider<List<OfficialHoliday>>((ref) async {
+  ref.watch(currentUserIdProvider);
   final result = await ref.watch(workRepositoryProvider).fetchHolidays();
   return result.when(ok: (h) => h, err: (f) => throw f);
 });

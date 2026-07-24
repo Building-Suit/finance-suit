@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(16);
+select plan(20);
 
 -- Two deterministic test users.
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -17,8 +17,8 @@ select is(
 -- Seed data as superuser (bypasses RLS for setup).
 insert into app_finance.accounts (id, user_id, name, opening_balance_minor, is_default)
 values
-  ('10000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-00000000000a', 'A Current', 1000000, true),
-  ('10000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-00000000000b', 'B Current', 500000, true);
+  ('10000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-00000000000a', 'Current Balance', 1000000, true),
+  ('10000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-00000000000b', 'Current Balance', 500000, true);
 
 insert into app_finance.financial_transactions (user_id, transaction_kind, occurred_on, amount_minor, source_account_id)
 values ('00000000-0000-0000-0000-00000000000a', 'expense', current_date, 50000, '10000000-0000-0000-0000-00000000000a');
@@ -40,6 +40,8 @@ select is((select count(*)::int from app_finance.account_balances where user_id 
 -- B sees own data.
 select is((select count(*)::int from app_finance.accounts), 1, 'B sees only own account');
 select is((select balance_minor from app_finance.account_balances where account_id = '10000000-0000-0000-0000-00000000000b'), 500000::bigint, 'B balance correct');
+select is((select count(*)::int from app_finance.account_balances where name = 'Current Balance'), 1, 'B sees one duplicate-named balance');
+select is((select balance_minor from app_finance.account_balances where name = 'Current Balance'), 500000::bigint, 'B duplicate-named balance is scoped');
 
 -- B cannot update or delete A's rows (0 rows affected).
 update app_finance.accounts set name = 'hacked' where id = '10000000-0000-0000-0000-00000000000a';
@@ -57,6 +59,11 @@ select throws_ok(
   $$insert into app_finance.financial_transactions (user_id, transaction_kind, occurred_on, amount_minor, source_account_id)
     values ('00000000-0000-0000-0000-00000000000b', 'expense', current_date, 100, '10000000-0000-0000-0000-00000000000a')$$,
   '23503', null, 'ownership FK blocks cross-user account reference');
+
+-- User A has the same account name but gets a separate balance.
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select is((select count(*)::int from app_finance.account_balances where name = 'Current Balance'), 1, 'A sees one duplicate-named balance');
+select is((select balance_minor from app_finance.account_balances where name = 'Current Balance'), 950000::bigint, 'A duplicate-named balance is scoped');
 
 -- Anonymous role has no table privileges.
 set local role anon;

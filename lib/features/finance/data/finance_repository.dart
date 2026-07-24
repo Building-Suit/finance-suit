@@ -45,7 +45,12 @@ class FinanceRepository {
 
   Future<Result<Account>> fetchAccount(String id) {
     return guard(() async {
-      final row = await _db.from('accounts').select().eq('id', id).single();
+      final row = await _db
+          .from('accounts')
+          .select()
+          .eq('id', id)
+          .eq('user_id', _userId)
+          .single();
       return Account.fromJson(row);
     });
   }
@@ -89,7 +94,8 @@ class FinanceRepository {
             'allow_negative_balance': allowNegativeBalance,
             'notes': notes,
           })
-          .eq('id', id);
+          .eq('id', id)
+          .eq('user_id', _userId);
     });
   }
 
@@ -99,19 +105,39 @@ class FinanceRepository {
       // the archived account also loses its default flag.
       final patch = <String, dynamic>{'is_archived': archived};
       if (archived) patch['is_default'] = false;
-      await _db.from('accounts').update(patch).eq('id', id);
+      await _db
+          .from('accounts')
+          .update(patch)
+          .eq('id', id)
+          .eq('user_id', _userId);
     });
   }
 
   Future<Result<void>> setDefaultAccount(String id) {
     return guard(() async {
+      final userId = _userId;
+      final target = await _db
+          .from('accounts')
+          .select('id')
+          .eq('id', id)
+          .eq('user_id', userId)
+          .eq('is_archived', false)
+          .maybeSingle();
+      if (target == null) {
+        throw const NotFoundFailure(debugDetails: 'account not found');
+      }
+
       // Partial unique index allows one default among active accounts.
       await _db
           .from('accounts')
           .update({'is_default': false})
-          .eq('user_id', _userId)
+          .eq('user_id', userId)
           .eq('is_default', true);
-      await _db.from('accounts').update({'is_default': true}).eq('id', id);
+      await _db
+          .from('accounts')
+          .update({'is_default': true})
+          .eq('id', id)
+          .eq('user_id', userId);
     });
   }
 
@@ -161,7 +187,8 @@ class FinanceRepository {
       await _db
           .from('transaction_categories')
           .update({'name': name})
-          .eq('id', id);
+          .eq('id', id)
+          .eq('user_id', _userId);
     });
   }
 
@@ -173,7 +200,8 @@ class FinanceRepository {
       await _db
           .from('transaction_categories')
           .update({'is_archived': archived})
-          .eq('id', id);
+          .eq('id', id)
+          .eq('user_id', _userId);
     });
   }
 
@@ -214,13 +242,18 @@ class FinanceRepository {
       await _db
           .from('financial_transactions')
           .update(draft.toJson())
-          .eq('id', id);
+          .eq('id', id)
+          .eq('user_id', _userId);
     });
   }
 
   Future<Result<void>> deleteTransaction(String id) {
     return guard(() async {
-      await _db.from('financial_transactions').delete().eq('id', id);
+      await _db
+          .from('financial_transactions')
+          .delete()
+          .eq('id', id)
+          .eq('user_id', _userId);
     });
   }
 
@@ -263,7 +296,11 @@ class FinanceRepository {
 
   Future<Result<void>> deleteMacro(String id) {
     return guard(() async {
-      await _db.from('transaction_macros').delete().eq('id', id);
+      await _db
+          .from('transaction_macros')
+          .delete()
+          .eq('id', id)
+          .eq('user_id', _userId);
     });
   }
 

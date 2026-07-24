@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_tracker/core/date_time/date_range.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
+import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/reports/data/report_repository.dart';
 import 'package:work_tracker/features/reports/domain/report_models.dart';
 
@@ -10,6 +11,7 @@ typedef CategoryTotalsKey = ({DateRange range, String transactionKind});
 
 final cashFlowSummaryProvider =
     FutureProvider.family<CashFlowSummary, DateRange>((ref, range) async {
+      ref.watch(currentUserIdProvider);
       final result = await ref
           .watch(reportRepositoryProvider)
           .fetchCashFlowSummary(range);
@@ -24,6 +26,7 @@ final financeSeriesProvider =
       ref,
       key,
     ) async {
+      ref.watch(currentUserIdProvider);
       final result = await ref
           .watch(reportRepositoryProvider)
           .fetchFinanceSeries(range: key.range, bucket: key.bucket);
@@ -32,6 +35,7 @@ final financeSeriesProvider =
 
 final expenseCategoryTotalsProvider =
     FutureProvider.family<List<CategoryTotal>, DateRange>((ref, range) async {
+      ref.watch(currentUserIdProvider);
       final result = await ref
           .watch(reportRepositoryProvider)
           .fetchCategoryTotals(range: range, kind: TransactionKind.expense);
@@ -40,6 +44,7 @@ final expenseCategoryTotalsProvider =
 
 final allowanceCategoryTotalsProvider =
     FutureProvider.family<List<CategoryTotal>, DateRange>((ref, range) async {
+      ref.watch(currentUserIdProvider);
       final result = await ref
           .watch(reportRepositoryProvider)
           .fetchCategoryTotals(
@@ -51,6 +56,7 @@ final allowanceCategoryTotalsProvider =
 
 final incomeCategoryTotalsProvider =
     FutureProvider.family<List<CategoryTotal>, DateRange>((ref, range) async {
+      ref.watch(currentUserIdProvider);
       final result = await ref
           .watch(reportRepositoryProvider)
           .fetchIncomeCategoryTotals(range: range);
@@ -62,6 +68,7 @@ final accountBalanceHistoryProvider =
       ref,
       key,
     ) async {
+      ref.watch(currentUserIdProvider);
       final result = await ref
           .watch(reportRepositoryProvider)
           .fetchAccountBalanceHistory(
@@ -73,6 +80,7 @@ final accountBalanceHistoryProvider =
 
 final workSummaryProvider =
     FutureProvider.family<List<WorkSummaryRow>, DateRange>((ref, range) async {
+      ref.watch(currentUserIdProvider);
       final result = await ref
           .watch(reportRepositoryProvider)
           .fetchWorkSummary(range);
@@ -84,6 +92,7 @@ final workMinutesSeriesProvider =
       ref,
       key,
     ) async {
+      ref.watch(currentUserIdProvider);
       final result = await ref
           .watch(reportRepositoryProvider)
           .fetchWorkMinutesSeries(range: key.range, bucket: key.bucket);
@@ -95,6 +104,7 @@ final salaryComparisonProvider =
       ref,
       range,
     ) async {
+      ref.watch(currentUserIdProvider);
       final result = await ref
           .watch(reportRepositoryProvider)
           .fetchSalaryComparison(range);
@@ -106,6 +116,7 @@ final salaryWorkPeriodsProvider =
       ref,
       range,
     ) async {
+      ref.watch(currentUserIdProvider);
       final result = await ref
           .watch(reportRepositoryProvider)
           .fetchSalaryWorkPeriods(range);

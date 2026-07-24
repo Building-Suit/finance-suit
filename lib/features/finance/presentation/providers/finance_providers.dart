@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
+import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
@@ -11,6 +12,7 @@ import 'package:work_tracker/features/finance/domain/transaction_macro.dart';
 final accountBalancesProvider = FutureProvider<List<AccountBalance>>((
   ref,
 ) async {
+  ref.watch(currentUserIdProvider);
   final result = await ref
       .watch(financeRepositoryProvider)
       .fetchAccountBalances();
@@ -21,6 +23,7 @@ final accountBalancesProvider = FutureProvider<List<AccountBalance>>((
 final allAccountBalancesProvider = FutureProvider<List<AccountBalance>>((
   ref,
 ) async {
+  ref.watch(currentUserIdProvider);
   final result = await ref
       .watch(financeRepositoryProvider)
       .fetchAccountBalances(includeArchived: true);
@@ -30,6 +33,7 @@ final allAccountBalancesProvider = FutureProvider<List<AccountBalance>>((
 /// Active categories of one kind, for pickers.
 final categoriesProvider = FutureProvider.family
     .autoDispose<List<TransactionCategory>, CategoryKind>((ref, kind) async {
+      ref.watch(currentUserIdProvider);
       final result = await ref
           .watch(financeRepositoryProvider)
           .fetchCategories(kind: kind);
@@ -40,6 +44,7 @@ final categoriesProvider = FutureProvider.family
 final allCategoriesProvider = FutureProvider<List<TransactionCategory>>((
   ref,
 ) async {
+  ref.watch(currentUserIdProvider);
   final result = await ref
       .watch(financeRepositoryProvider)
       .fetchCategories(includeArchived: true);
@@ -50,6 +55,7 @@ final allCategoriesProvider = FutureProvider<List<TransactionCategory>>((
 final recentTransactionsProvider = FutureProvider<List<FinancialTransaction>>((
   ref,
 ) async {
+  ref.watch(currentUserIdProvider);
   final result = await ref
       .watch(financeRepositoryProvider)
       .fetchRecentTransactions();
@@ -58,12 +64,14 @@ final recentTransactionsProvider = FutureProvider<List<FinancialTransaction>>((
 
 /// Saved macros with their items, for the macros screen and the add sheet.
 final macrosProvider = FutureProvider<List<TransactionMacro>>((ref) async {
+  ref.watch(currentUserIdProvider);
   final result = await ref.watch(financeRepositoryProvider).fetchMacros();
   return result.when(ok: (m) => m, err: (f) => throw f);
 });
 
 /// All held amounts, newest first; settled entries are filtered in the UI.
 final heldAmountsProvider = FutureProvider<List<HeldAmount>>((ref) async {
+  ref.watch(currentUserIdProvider);
   final result = await ref.watch(financeRepositoryProvider).fetchHeldAmounts();
   return result.when(ok: (h) => h, err: (f) => throw f);
 });

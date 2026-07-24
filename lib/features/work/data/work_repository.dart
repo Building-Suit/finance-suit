@@ -50,13 +50,21 @@ class WorkRepository {
 
   Future<Result<void>> updateEntry(String id, WorkEntryDraft draft) {
     return guard(() async {
-      await _db.from('work_entries').update(draft.toJson()).eq('id', id);
+      await _db
+          .from('work_entries')
+          .update(draft.toJson())
+          .eq('id', id)
+          .eq('user_id', _userId);
     });
   }
 
   Future<Result<void>> deleteEntry(String id) {
     return guard(() async {
-      await _db.from('work_entries').delete().eq('id', id);
+      await _db
+          .from('work_entries')
+          .delete()
+          .eq('id', id)
+          .eq('user_id', _userId);
     });
   }
 
@@ -96,13 +104,18 @@ class WorkRepository {
       await _db
           .from('official_holidays')
           .update({'holiday_date': date.toIso(), 'name': name, 'notes': notes})
-          .eq('id', id);
+          .eq('id', id)
+          .eq('user_id', _userId);
     });
   }
 
   Future<Result<void>> deleteHoliday(String id) {
     return guard(() async {
-      await _db.from('official_holidays').delete().eq('id', id);
+      await _db
+          .from('official_holidays')
+          .delete()
+          .eq('id', id)
+          .eq('user_id', _userId);
     });
   }
 }
