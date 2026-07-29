@@ -29,6 +29,28 @@ abstract final class SalaryPeriods {
     ).addMonths(s.paymentMonthOffset).withDay(s.paymentDay);
     return (start: start, end: end, expectedPaymentDate: expected);
   }
+
+  /// The earning period paid by a scheduled salary occurrence. This keeps an
+  /// early or delayed acceptance attached to its original period instead of
+  /// whichever period happens to contain the day the user taps Accept.
+  static PeriodBounds boundsForExpectedPayment(
+    SalarySettings s,
+    PlainDate expectedPaymentDate,
+  ) {
+    final earningMonth = PlainDate(
+      expectedPaymentDate.year,
+      expectedPaymentDate.month,
+      1,
+    ).addMonths(-s.paymentMonthOffset);
+    final start = earningMonth.withDay(s.salaryPeriodStartDay);
+    final end = start.addMonths(1).addDays(-1);
+    final expected = PlainDate(
+      start.year,
+      start.month,
+      1,
+    ).addMonths(s.paymentMonthOffset).withDay(s.paymentDay);
+    return (start: start, end: end, expectedPaymentDate: expected);
+  }
 }
 
 /// Warning codes surfaced with an estimate; screens localize them.

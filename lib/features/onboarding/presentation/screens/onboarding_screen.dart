@@ -15,6 +15,8 @@ import 'package:work_tracker/features/onboarding/presentation/providers/onboardi
 import 'package:work_tracker/features/settings/presentation/providers/app_settings_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
+enum _PrimaryIncomeChoice { salary, allowance, other, none }
+
 /// Weekday label for ISO weekday 1 (Mon) .. 7 (Sun) in the current locale.
 String weekdayName(BuildContext context, int isoWeekday) {
   // 2024-01-01 is a Monday.
@@ -50,7 +52,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final Set<int> _weekendDays = {5, 6}; // Fri, Sat
 
   // Step 2: salary
+  _PrimaryIncomeChoice _primaryIncome = _PrimaryIncomeChoice.salary;
   final _baseSalaryController = TextEditingController();
+  final _incomeNameController = TextEditingController();
+  final _incomeAmountController = TextEditingController();
+  int _promptDaysBefore = 7;
   int _periodStartDay = 1;
   int _paymentDay = 1;
   int _paymentMonthOffset = 1;
@@ -84,6 +90,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       _displayNameController,
       _currencyController,
       _baseSalaryController,
+      _incomeNameController,
+      _incomeAmountController,
       _paidDaysController,
       _hoursPerDayController,
       _manualDayRateController,
@@ -163,7 +171,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       locale: _locale,
       weekStartsOn: _weekStartsOn,
       weekendDays: _weekendDays.toList()..sort(),
-      baseSalaryMinor: _baseSalary!.minor,
+      salaryEnabled: _primaryIncome == _PrimaryIncomeChoice.salary,
+      baseSalaryMinor: _primaryIncome == _PrimaryIncomeChoice.salary
+          ? _baseSalary!.minor
+          : 0,
       salaryPeriodStartDay: _periodStartDay,
       paymentDay: _paymentDay,
       paymentMonthOffset: _paymentMonthOffset,
@@ -194,6 +205,34 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         currencyCode: _currency,
       )!.minor,
       allowNegativeBalance: _allowNegative,
+      incomeSourceKind: switch (_primaryIncome) {
+        _PrimaryIncomeChoice.salary => IncomeSourceKind.salary,
+        _PrimaryIncomeChoice.allowance => IncomeSourceKind.allowance,
+        _PrimaryIncomeChoice.other => IncomeSourceKind.other,
+        _PrimaryIncomeChoice.none => null,
+      },
+      incomeSourceName: switch (_primaryIncome) {
+        _PrimaryIncomeChoice.salary =>
+          _incomeNameController.text.trim().isEmpty
+              ? AppLocalizations.of(context).incomeKindSalary
+              : _incomeNameController.text.trim(),
+        _PrimaryIncomeChoice.allowance ||
+        _PrimaryIncomeChoice.other => _incomeNameController.text.trim(),
+        _PrimaryIncomeChoice.none => null,
+      },
+      expectedIncomeMinor: switch (_primaryIncome) {
+        _PrimaryIncomeChoice.salary => _baseSalary!.minor,
+        _PrimaryIncomeChoice.allowance ||
+        _PrimaryIncomeChoice.other => Money.tryParse(
+          _incomeAmountController.text,
+          currencyCode: _currency,
+        )!.minor,
+        _PrimaryIncomeChoice.none => null,
+      },
+      incomePaymentDay: _primaryIncome == _PrimaryIncomeChoice.none
+          ? null
+          : _paymentDay,
+      promptDaysBefore: _promptDaysBefore,
     );
     final result = await ref
         .read(onboardingRepositoryProvider)
@@ -405,189 +444,305 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextFormField(
-            onFieldSubmitted: (_) => _submitCurrentStep(),
-            controller: _baseSalaryController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-              labelText: l10n.salBaseSalary,
-              suffixText: _currency,
-            ),
-            onChanged: (_) => setState(() {}),
-            validator: (v) {
-              final e = Validators.positiveAmount(v, currencyCode: _currency);
-              return e == null ? null : validationMessage(context, e);
+          DropdownButtonFormField<_PrimaryIncomeChoice>(
+            initialValue: _primaryIncome,
+            isExpanded: true,
+            decoration: InputDecoration(labelText: l10n.incomePrimaryType),
+            items: [
+              DropdownMenuItem(
+                value: _PrimaryIncomeChoice.salary,
+                child: Text(l10n.incomeKindSalary),
+              ),
+              DropdownMenuItem(
+                value: _PrimaryIncomeChoice.allowance,
+                child: Text(l10n.incomeKindAllowance),
+              ),
+              DropdownMenuItem(
+                value: _PrimaryIncomeChoice.other,
+                child: Text(l10n.incomeKindOther),
+              ),
+              DropdownMenuItem(
+                value: _PrimaryIncomeChoice.none,
+                child: Text(l10n.incomeKindNone),
+              ),
+            ],
+            onChanged: (choice) {
+              if (choice == null) return;
+              setState(() {
+                _primaryIncome = choice;
+                if (_incomeNameController.text.trim().isEmpty) {
+                  _incomeNameController.text = switch (choice) {
+                    _PrimaryIncomeChoice.salary => l10n.incomeKindSalary,
+                    _PrimaryIncomeChoice.allowance => l10n.incomeKindAllowance,
+                    _PrimaryIncomeChoice.other => '',
+                    _PrimaryIncomeChoice.none => '',
+                  };
+                }
+              });
             },
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: DropdownButtonFormField<int>(
-                  initialValue: _periodStartDay,
-                  decoration: InputDecoration(
-                    labelText: l10n.salPeriodStartDay,
-                  ),
-                  items: [
-                    for (var d = 1; d <= 28; d++)
-                      DropdownMenuItem(value: d, child: Text('$d')),
-                  ],
-                  onChanged: (v) => setState(() => _periodStartDay = v ?? 1),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: DropdownButtonFormField<int>(
-                  initialValue: _paymentDay,
-                  decoration: InputDecoration(labelText: l10n.salPaymentDay),
-                  items: [
-                    for (var d = 1; d <= 28; d++)
-                      DropdownMenuItem(value: d, child: Text('$d')),
-                  ],
-                  onChanged: (v) => setState(() => _paymentDay = v ?? 1),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          DropdownButtonFormField<int>(
-            initialValue: _paymentMonthOffset,
-            decoration: InputDecoration(labelText: l10n.salPaymentMonthOffset),
-            items: [
-              DropdownMenuItem(value: 0, child: Text(l10n.salOffsetSameMonth)),
-              DropdownMenuItem(value: 1, child: Text(l10n.salOffsetNextMonth)),
-              DropdownMenuItem(
-                value: 2,
-                child: Text(l10n.salOffsetSecondMonth),
-              ),
-            ],
-            onChanged: (v) => setState(() => _paymentMonthOffset = v ?? 1),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  onFieldSubmitted: (_) => _submitCurrentStep(),
-                  controller: _paidDaysController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: l10n.salStandardPaidDays,
-                  ),
-                  onChanged: (_) => setState(() {}),
-                  validator: (v) {
-                    final n = int.tryParse(v ?? '');
-                    if (n == null || n < 1 || n > 31) {
-                      return validationMessage(
-                        context,
-                        ValidationError.invalidDuration,
-                      );
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextFormField(
-                  onFieldSubmitted: (_) => _submitCurrentStep(),
-                  controller: _hoursPerDayController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: l10n.salStandardHours),
-                  onChanged: (_) => setState(() {}),
-                  validator: (v) {
-                    final n = int.tryParse(v ?? '');
-                    if (n == null || n < 1 || n > 24) {
-                      return validationMessage(
-                        context,
-                        ValidationError.invalidDuration,
-                      );
-                    }
-                    return null;
-                  },
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          _rateModeSection(
-            l10n: l10n,
-            label: l10n.salDayRate,
-            mode: _dayRateMode,
-            onModeChanged: (m) => setState(() => _dayRateMode = m),
-            manualController: _manualDayRateController,
-            manualLabel: l10n.salManualDayRate,
-            derivedPreview: _derivedDayRate == null
-                ? null
-                : l10n.salDerivedDayRate(
-                    _derivedDayRate!.format(
-                      locale: Localizations.localeOf(context).toString(),
-                    ),
-                  ),
-          ),
-          const SizedBox(height: 16),
-          _rateModeSection(
-            l10n: l10n,
-            label: l10n.salHourRate,
-            mode: _hourRateMode,
-            onModeChanged: (m) => setState(() => _hourRateMode = m),
-            manualController: _manualHourRateController,
-            manualLabel: l10n.salManualHourRate,
-            derivedPreview: _derivedHourRate == null
-                ? null
-                : l10n.salDerivedHourRate(
-                    _derivedHourRate!.format(
-                      locale: Localizations.localeOf(context).toString(),
-                    ),
-                  ),
-          ),
-          const SizedBox(height: 24),
-          Text(l10n.salMultipliers, style: theme.textTheme.titleMedium),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _pctField(
-                  controller: _extraDayPctController,
-                  label: l10n.salExtraDayMultiplier,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _pctField(
-                  controller: _holidayPctController,
-                  label: l10n.salHolidayMultiplier,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _pctField(
-                  controller: _overtimePctController,
-                  label: l10n.salOvertimeMultiplier,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(l10n.salHolidaySemantics, style: theme.textTheme.labelLarge),
-          RadioGroup<HolidayMultiplierSemantics>(
-            groupValue: _semantics,
-            onChanged: (v) => setState(
-              () => _semantics = v ?? HolidayMultiplierSemantics.additionalPay,
+          if (_primaryIncome == _PrimaryIncomeChoice.none)
+            Text(l10n.incomeNoPrimaryHelp),
+          if (_primaryIncome == _PrimaryIncomeChoice.allowance ||
+              _primaryIncome == _PrimaryIncomeChoice.other) ...[
+            TextFormField(
+              controller: _incomeNameController,
+              textCapitalization: TextCapitalization.words,
+              decoration: InputDecoration(labelText: l10n.incomeSourceName),
+              validator: (value) {
+                final error = Validators.requiredText(value, maxLength: 80);
+                return error == null ? null : validationMessage(context, error);
+              },
             ),
-            child: Column(
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _incomeAmountController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: InputDecoration(
+                labelText: l10n.incomeExpectedAmount,
+                suffixText: _currency,
+              ),
+              validator: (value) {
+                final error = Validators.positiveAmount(
+                  value,
+                  currencyCode: _currency,
+                );
+                return error == null ? null : validationMessage(context, error);
+              },
+            ),
+            const SizedBox(height: 16),
+            Row(
               children: [
-                RadioListTile<HolidayMultiplierSemantics>(
-                  value: HolidayMultiplierSemantics.additionalPay,
-                  title: Text(l10n.salSemanticsAdditional),
+                Expanded(
+                  child: DropdownButtonFormField<int>(
+                    initialValue: _paymentDay,
+                    decoration: InputDecoration(labelText: l10n.salPaymentDay),
+                    items: [
+                      for (var day = 1; day <= 28; day++)
+                        DropdownMenuItem(value: day, child: Text('$day')),
+                    ],
+                    onChanged: (day) => setState(() => _paymentDay = day ?? 1),
+                  ),
                 ),
-                RadioListTile<HolidayMultiplierSemantics>(
-                  value: HolidayMultiplierSemantics.totalIncludingBase,
-                  title: Text(l10n.salSemanticsTotal),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonFormField<int>(
+                    initialValue: _promptDaysBefore,
+                    decoration: InputDecoration(
+                      labelText: l10n.incomePromptBefore,
+                    ),
+                    items: [
+                      for (final days in const [0, 1, 3, 5, 7, 14])
+                        DropdownMenuItem(value: days, child: Text('$days')),
+                    ],
+                    onChanged: (days) =>
+                        setState(() => _promptDaysBefore = days ?? 7),
+                  ),
                 ),
               ],
             ),
-          ),
+          ],
+          if (_primaryIncome == _PrimaryIncomeChoice.salary) ...[
+            TextFormField(
+              onFieldSubmitted: (_) => _submitCurrentStep(),
+              controller: _baseSalaryController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: InputDecoration(
+                labelText: l10n.salBaseSalary,
+                suffixText: _currency,
+              ),
+              onChanged: (_) => setState(() {}),
+              validator: (v) {
+                final e = Validators.positiveAmount(v, currencyCode: _currency);
+                return e == null ? null : validationMessage(context, e);
+              },
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<int>(
+                    initialValue: _periodStartDay,
+                    decoration: InputDecoration(
+                      labelText: l10n.salPeriodStartDay,
+                    ),
+                    items: [
+                      for (var d = 1; d <= 28; d++)
+                        DropdownMenuItem(value: d, child: Text('$d')),
+                    ],
+                    onChanged: (v) => setState(() => _periodStartDay = v ?? 1),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonFormField<int>(
+                    initialValue: _paymentDay,
+                    decoration: InputDecoration(labelText: l10n.salPaymentDay),
+                    items: [
+                      for (var d = 1; d <= 28; d++)
+                        DropdownMenuItem(value: d, child: Text('$d')),
+                    ],
+                    onChanged: (v) => setState(() => _paymentDay = v ?? 1),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<int>(
+              initialValue: _paymentMonthOffset,
+              decoration: InputDecoration(
+                labelText: l10n.salPaymentMonthOffset,
+              ),
+              items: [
+                DropdownMenuItem(
+                  value: 0,
+                  child: Text(l10n.salOffsetSameMonth),
+                ),
+                DropdownMenuItem(
+                  value: 1,
+                  child: Text(l10n.salOffsetNextMonth),
+                ),
+                DropdownMenuItem(
+                  value: 2,
+                  child: Text(l10n.salOffsetSecondMonth),
+                ),
+              ],
+              onChanged: (v) => setState(() => _paymentMonthOffset = v ?? 1),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    onFieldSubmitted: (_) => _submitCurrentStep(),
+                    controller: _paidDaysController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: l10n.salStandardPaidDays,
+                    ),
+                    onChanged: (_) => setState(() {}),
+                    validator: (v) {
+                      final n = int.tryParse(v ?? '');
+                      if (n == null || n < 1 || n > 31) {
+                        return validationMessage(
+                          context,
+                          ValidationError.invalidDuration,
+                        );
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
+                    onFieldSubmitted: (_) => _submitCurrentStep(),
+                    controller: _hoursPerDayController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: l10n.salStandardHours,
+                    ),
+                    onChanged: (_) => setState(() {}),
+                    validator: (v) {
+                      final n = int.tryParse(v ?? '');
+                      if (n == null || n < 1 || n > 24) {
+                        return validationMessage(
+                          context,
+                          ValidationError.invalidDuration,
+                        );
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            _rateModeSection(
+              l10n: l10n,
+              label: l10n.salDayRate,
+              mode: _dayRateMode,
+              onModeChanged: (m) => setState(() => _dayRateMode = m),
+              manualController: _manualDayRateController,
+              manualLabel: l10n.salManualDayRate,
+              derivedPreview: _derivedDayRate == null
+                  ? null
+                  : l10n.salDerivedDayRate(
+                      _derivedDayRate!.format(
+                        locale: Localizations.localeOf(context).toString(),
+                      ),
+                    ),
+            ),
+            const SizedBox(height: 16),
+            _rateModeSection(
+              l10n: l10n,
+              label: l10n.salHourRate,
+              mode: _hourRateMode,
+              onModeChanged: (m) => setState(() => _hourRateMode = m),
+              manualController: _manualHourRateController,
+              manualLabel: l10n.salManualHourRate,
+              derivedPreview: _derivedHourRate == null
+                  ? null
+                  : l10n.salDerivedHourRate(
+                      _derivedHourRate!.format(
+                        locale: Localizations.localeOf(context).toString(),
+                      ),
+                    ),
+            ),
+            const SizedBox(height: 24),
+            Text(l10n.salMultipliers, style: theme.textTheme.titleMedium),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _pctField(
+                    controller: _extraDayPctController,
+                    label: l10n.salExtraDayMultiplier,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _pctField(
+                    controller: _holidayPctController,
+                    label: l10n.salHolidayMultiplier,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _pctField(
+                    controller: _overtimePctController,
+                    label: l10n.salOvertimeMultiplier,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(l10n.salHolidaySemantics, style: theme.textTheme.labelLarge),
+            RadioGroup<HolidayMultiplierSemantics>(
+              groupValue: _semantics,
+              onChanged: (v) => setState(
+                () =>
+                    _semantics = v ?? HolidayMultiplierSemantics.additionalPay,
+              ),
+              child: Column(
+                children: [
+                  RadioListTile<HolidayMultiplierSemantics>(
+                    value: HolidayMultiplierSemantics.additionalPay,
+                    title: Text(l10n.salSemanticsAdditional),
+                  ),
+                  RadioListTile<HolidayMultiplierSemantics>(
+                    value: HolidayMultiplierSemantics.totalIncludingBase,
+                    title: Text(l10n.salSemanticsTotal),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -766,56 +921,78 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       .join('، '),
                 ),
                 const Divider(),
-                row(l10n.salBaseSalary, money(base)),
-                row(l10n.salPeriodStartDay, '$_periodStartDay'),
-                row(l10n.salPaymentDay, '$_paymentDay'),
-                row(l10n.salPaymentMonthOffset, switch (_paymentMonthOffset) {
-                  0 => l10n.salOffsetSameMonth,
-                  1 => l10n.salOffsetNextMonth,
-                  _ => l10n.salOffsetSecondMonth,
+                row(l10n.incomePrimaryType, switch (_primaryIncome) {
+                  _PrimaryIncomeChoice.salary => l10n.incomeKindSalary,
+                  _PrimaryIncomeChoice.allowance => l10n.incomeKindAllowance,
+                  _PrimaryIncomeChoice.other => l10n.incomeKindOther,
+                  _PrimaryIncomeChoice.none => l10n.incomeKindNone,
                 }),
-                row(l10n.salStandardPaidDays, _paidDaysController.text),
-                row(l10n.salStandardHours, _hoursPerDayController.text),
-                row(
-                  l10n.salDayRate,
-                  _dayRateMode == RateMode.manual
-                      ? money(
-                          Money.tryParse(
-                            _manualDayRateController.text,
-                            currencyCode: _currency,
-                          ),
-                        )
-                      : money(_derivedDayRate),
-                ),
-                row(
-                  l10n.salHourRate,
-                  _hourRateMode == RateMode.manual
-                      ? money(
-                          Money.tryParse(
-                            _manualHourRateController.text,
-                            currencyCode: _currency,
-                          ),
-                        )
-                      : money(_derivedHourRate),
-                ),
-                row(
-                  l10n.salExtraDayMultiplier,
-                  '${_extraDayPctController.text}%',
-                ),
-                row(
-                  l10n.salHolidayMultiplier,
-                  '${_holidayPctController.text}%',
-                ),
-                row(
-                  l10n.salOvertimeMultiplier,
-                  '${_overtimePctController.text}%',
-                ),
-                row(
-                  l10n.salHolidaySemantics,
-                  _semantics == HolidayMultiplierSemantics.additionalPay
-                      ? l10n.salSemanticsAdditional
-                      : l10n.salSemanticsTotal,
-                ),
+                if (_primaryIncome == _PrimaryIncomeChoice.salary) ...[
+                  row(l10n.salBaseSalary, money(base)),
+                  row(l10n.salPeriodStartDay, '$_periodStartDay'),
+                  row(l10n.salPaymentDay, '$_paymentDay'),
+                  row(l10n.salPaymentMonthOffset, switch (_paymentMonthOffset) {
+                    0 => l10n.salOffsetSameMonth,
+                    1 => l10n.salOffsetNextMonth,
+                    _ => l10n.salOffsetSecondMonth,
+                  }),
+                  row(l10n.salStandardPaidDays, _paidDaysController.text),
+                  row(l10n.salStandardHours, _hoursPerDayController.text),
+                  row(
+                    l10n.salDayRate,
+                    _dayRateMode == RateMode.manual
+                        ? money(
+                            Money.tryParse(
+                              _manualDayRateController.text,
+                              currencyCode: _currency,
+                            ),
+                          )
+                        : money(_derivedDayRate),
+                  ),
+                  row(
+                    l10n.salHourRate,
+                    _hourRateMode == RateMode.manual
+                        ? money(
+                            Money.tryParse(
+                              _manualHourRateController.text,
+                              currencyCode: _currency,
+                            ),
+                          )
+                        : money(_derivedHourRate),
+                  ),
+                  row(
+                    l10n.salExtraDayMultiplier,
+                    '${_extraDayPctController.text}%',
+                  ),
+                  row(
+                    l10n.salHolidayMultiplier,
+                    '${_holidayPctController.text}%',
+                  ),
+                  row(
+                    l10n.salOvertimeMultiplier,
+                    '${_overtimePctController.text}%',
+                  ),
+                  row(
+                    l10n.salHolidaySemantics,
+                    _semantics == HolidayMultiplierSemantics.additionalPay
+                        ? l10n.salSemanticsAdditional
+                        : l10n.salSemanticsTotal,
+                  ),
+                ],
+                if (_primaryIncome == _PrimaryIncomeChoice.allowance ||
+                    _primaryIncome == _PrimaryIncomeChoice.other) ...[
+                  row(l10n.incomeSourceName, _incomeNameController.text.trim()),
+                  row(
+                    l10n.incomeExpectedAmount,
+                    money(
+                      Money.tryParse(
+                        _incomeAmountController.text,
+                        currencyCode: _currency,
+                      ),
+                    ),
+                  ),
+                  row(l10n.salPaymentDay, '$_paymentDay'),
+                ],
                 const Divider(),
                 row(l10n.accName, _accountNameController.text.trim()),
                 row(l10n.accType, accountTypeLabel(l10n, _accountType)),

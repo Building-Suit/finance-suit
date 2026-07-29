@@ -13,6 +13,7 @@ class OnboardingSubmission {
     required this.locale,
     required this.weekStartsOn,
     required this.weekendDays,
+    required this.salaryEnabled,
     required this.baseSalaryMinor,
     required this.salaryPeriodStartDay,
     required this.paymentDay,
@@ -31,6 +32,11 @@ class OnboardingSubmission {
     required this.accountType,
     required this.openingBalanceMinor,
     required this.allowNegativeBalance,
+    this.incomeSourceKind,
+    this.incomeSourceName,
+    this.expectedIncomeMinor,
+    this.incomePaymentDay,
+    this.promptDaysBefore = 7,
   });
 
   final String displayName;
@@ -39,6 +45,7 @@ class OnboardingSubmission {
   final String locale;
   final int weekStartsOn;
   final List<int> weekendDays;
+  final bool salaryEnabled;
   final int baseSalaryMinor;
   final int salaryPeriodStartDay;
   final int paymentDay;
@@ -57,6 +64,11 @@ class OnboardingSubmission {
   final AccountType accountType;
   final int openingBalanceMinor;
   final bool allowNegativeBalance;
+  final IncomeSourceKind? incomeSourceKind;
+  final String? incomeSourceName;
+  final int? expectedIncomeMinor;
+  final int? incomePaymentDay;
+  final int promptDaysBefore;
 }
 
 class OnboardingRepository {
@@ -69,7 +81,7 @@ class OnboardingRepository {
   Future<Result<String>> completeOnboarding(OnboardingSubmission s) {
     return guard(() async {
       final result = await _db.rpc<String>(
-        'complete_onboarding',
+        'complete_onboarding_v2',
         params: {
           'p_display_name': s.displayName,
           'p_currency_code': s.currencyCode,
@@ -77,6 +89,7 @@ class OnboardingRepository {
           'p_locale': s.locale,
           'p_week_starts_on': s.weekStartsOn,
           'p_weekend_days': s.weekendDays,
+          'p_salary_enabled': s.salaryEnabled,
           'p_base_salary_minor': s.baseSalaryMinor,
           'p_salary_period_start_day': s.salaryPeriodStartDay,
           'p_payment_day': s.paymentDay,
@@ -95,6 +108,11 @@ class OnboardingRepository {
           'p_account_type': s.accountType.dbValue,
           'p_opening_balance_minor': s.openingBalanceMinor,
           'p_allow_negative_balance': s.allowNegativeBalance,
+          'p_income_source_kind': s.incomeSourceKind?.dbValue,
+          'p_income_source_name': s.incomeSourceName,
+          'p_expected_income_minor': s.expectedIncomeMinor,
+          'p_income_payment_day': s.incomePaymentDay,
+          'p_prompt_days_before': s.promptDaysBefore,
         },
       );
       return result;

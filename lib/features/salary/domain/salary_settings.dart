@@ -7,6 +7,7 @@ import 'package:work_tracker/core/domain/db_enums.dart';
 @immutable
 class SalarySettings {
   const SalarySettings({
+    required this.salaryEnabled,
     required this.baseSalaryMinor,
     required this.currencyCode,
     required this.salaryPeriodStartDay,
@@ -26,6 +27,7 @@ class SalarySettings {
   });
 
   factory SalarySettings.fromJson(Map<String, dynamic> json) => SalarySettings(
+    salaryEnabled: json['salary_enabled'] as bool? ?? true,
     baseSalaryMinor: json['base_salary_minor'] as int,
     currencyCode: json['currency_code'] as String,
     salaryPeriodStartDay: json['salary_period_start_day'] as int,
@@ -47,6 +49,7 @@ class SalarySettings {
     roundingMode: RoundingMode.fromDb(json['rounding_mode'] as String),
   );
 
+  final bool salaryEnabled;
   final int baseSalaryMinor;
   final String currencyCode;
   final int salaryPeriodStartDay;
@@ -65,6 +68,7 @@ class SalarySettings {
   final RoundingMode roundingMode;
 
   Map<String, dynamic> toUpdateJson() => {
+    'salary_enabled': salaryEnabled,
     'base_salary_minor': baseSalaryMinor,
     'currency_code': currencyCode,
     'salary_period_start_day': salaryPeriodStartDay,
@@ -84,6 +88,7 @@ class SalarySettings {
   };
 
   SalarySettings copyWith({
+    bool? salaryEnabled,
     int? baseSalaryMinor,
     String? currencyCode,
     int? salaryPeriodStartDay,
@@ -102,6 +107,7 @@ class SalarySettings {
     RoundingMode? roundingMode,
   }) {
     return SalarySettings(
+      salaryEnabled: salaryEnabled ?? this.salaryEnabled,
       baseSalaryMinor: baseSalaryMinor ?? this.baseSalaryMinor,
       currencyCode: currencyCode ?? this.currencyCode,
       salaryPeriodStartDay: salaryPeriodStartDay ?? this.salaryPeriodStartDay,
@@ -131,6 +137,7 @@ class SalarySettings {
   }
 
   static const defaults = SalarySettings(
+    salaryEnabled: true,
     baseSalaryMinor: 0,
     currencyCode: 'EGP',
     salaryPeriodStartDay: 1,

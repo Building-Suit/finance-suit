@@ -125,3 +125,28 @@ enum HeldAmountDirection {
   static HeldAmountDirection fromDb(String value) =>
       values.firstWhere((e) => e.dbValue == value);
 }
+
+enum IncomeSourceKind {
+  salary('salary'),
+  allowance('allowance'),
+  freelance('freelance'),
+  other('other');
+
+  const IncomeSourceKind(this.dbValue);
+  final String dbValue;
+
+  static IncomeSourceKind fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+enum IncomeOccurrenceStatus {
+  pending('pending'),
+  accepted('accepted'),
+  skipped('skipped');
+
+  const IncomeOccurrenceStatus(this.dbValue);
+  final String dbValue;
+
+  static IncomeOccurrenceStatus fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}

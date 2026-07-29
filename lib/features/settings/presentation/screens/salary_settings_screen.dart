@@ -44,6 +44,7 @@ class _SalarySettingsForm extends ConsumerStatefulWidget {
 
 class _SalarySettingsFormState extends ConsumerState<_SalarySettingsForm> {
   final _formKey = GlobalKey<FormState>();
+  late bool _salaryEnabled;
   late final TextEditingController _baseSalaryController;
   late int _periodStartDay;
   late int _paymentDay;
@@ -68,6 +69,7 @@ class _SalarySettingsFormState extends ConsumerState<_SalarySettingsForm> {
   void initState() {
     super.initState();
     final s = widget.initial;
+    _salaryEnabled = s.salaryEnabled;
     String moneyText(int? minor) => minor == null
         ? ''
         : (Money(minor: minor, currencyCode: s.currencyCode).minor / 100)
@@ -148,7 +150,8 @@ class _SalarySettingsFormState extends ConsumerState<_SalarySettingsForm> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _busy = true);
     final updated = SalarySettings(
-      baseSalaryMinor: _baseSalary!.minor,
+      salaryEnabled: _salaryEnabled,
+      baseSalaryMinor: _salaryEnabled ? _baseSalary!.minor : 0,
       currencyCode: _currency,
       salaryPeriodStartDay: _periodStartDay,
       paymentDay: _paymentDay,
@@ -205,6 +208,14 @@ class _SalarySettingsFormState extends ConsumerState<_SalarySettingsForm> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.incomeHasSalary),
+              subtitle: Text(l10n.incomeHasSalaryHelp),
+              value: _salaryEnabled,
+              onChanged: (value) => setState(() => _salaryEnabled = value),
+            ),
+            const SizedBox(height: 8),
             TextFormField(
               controller: _baseSalaryController,
               keyboardType: const TextInputType.numberWithOptions(
@@ -216,6 +227,7 @@ class _SalarySettingsFormState extends ConsumerState<_SalarySettingsForm> {
               ),
               onChanged: (_) => setState(() {}),
               validator: (v) {
+                if (!_salaryEnabled) return null;
                 final e = Validators.positiveAmount(v, currencyCode: _currency);
                 return e == null ? null : validationMessage(context, e);
               },

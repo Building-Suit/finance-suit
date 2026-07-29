@@ -472,7 +472,11 @@ class _MacroItemFormScreenState extends ConsumerState<_MacroItemFormScreen> {
                         in categories.value ?? <TransactionCategory>[])
                       DropdownMenuItem<String?>(
                         value: category.id,
-                        child: Text(category.name),
+                        child: Text(
+                          category.displayName(
+                            categories.value ?? <TransactionCategory>[],
+                          ),
+                        ),
                       ),
                   ],
                   onChanged: (v) => setState(() => _categoryId = v),

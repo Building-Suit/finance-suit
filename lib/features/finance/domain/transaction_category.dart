@@ -11,6 +11,7 @@ class TransactionCategory {
     required this.icon,
     required this.sortOrder,
     required this.isArchived,
+    this.parentCategoryId,
   });
 
   factory TransactionCategory.fromJson(Map<String, dynamic> json) =>
@@ -21,6 +22,7 @@ class TransactionCategory {
         icon: json['icon'] as String,
         sortOrder: (json['sort_order'] as num).toInt(),
         isArchived: json['is_archived'] as bool,
+        parentCategoryId: json['parent_category_id'] as String?,
       );
 
   final String id;
@@ -29,4 +31,15 @@ class TransactionCategory {
   final String icon;
   final int sortOrder;
   final bool isArchived;
+  final String? parentCategoryId;
+
+  bool get isSubcategory => parentCategoryId != null;
+
+  String displayName(Iterable<TransactionCategory> categories) {
+    if (parentCategoryId == null) return name;
+    final parent = categories
+        .where((category) => category.id == parentCategoryId)
+        .firstOrNull;
+    return parent == null ? name : '${parent.name} › $name';
+  }
 }

@@ -683,7 +683,7 @@ abstract class AppLocalizations {
   /// No description provided for @onbStepSalary.
   ///
   /// In en, this message translates to:
-  /// **'Salary'**
+  /// **'Income source'**
   String get onbStepSalary;
 
   /// No description provided for @onbStepAccount.
@@ -2389,6 +2389,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hours'**
   String get reportHours;
+
+  /// No description provided for @catParent.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent category (optional)'**
+  String get catParent;
+
+  /// No description provided for @catTopLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'No parent — regular category'**
+  String get catTopLevel;
+
+  /// No description provided for @catSubcategoryOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Subcategory of {parent}'**
+  String catSubcategoryOf(String parent);
+
+  /// No description provided for @incomeHasSalary.
+  ///
+  /// In en, this message translates to:
+  /// **'I receive a salary'**
+  String get incomeHasSalary;
+
+  /// No description provided for @incomeHasSalaryHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn this off if your income is allowance-based or comes from other sources.'**
+  String get incomeHasSalaryHelp;
+
+  /// No description provided for @incomeSourcesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Income automation'**
+  String get incomeSourcesTitle;
+
+  /// No description provided for @incomeSourcesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule salary, allowance, and other recurring income'**
+  String get incomeSourcesSubtitle;
+
+  /// No description provided for @incomeAddSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Add income source'**
+  String get incomeAddSource;
+
+  /// No description provided for @incomeEditSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit income source'**
+  String get incomeEditSource;
+
+  /// No description provided for @incomeNoSources.
+  ///
+  /// In en, this message translates to:
+  /// **'No automated income sources yet.'**
+  String get incomeNoSources;
+
+  /// No description provided for @incomeMonthlyOnDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly on day {day}'**
+  String incomeMonthlyOnDay(int day);
+
+  /// No description provided for @incomeSourceType.
+  ///
+  /// In en, this message translates to:
+  /// **'Income type'**
+  String get incomeSourceType;
+
+  /// No description provided for @incomeSourceName.
+  ///
+  /// In en, this message translates to:
+  /// **'Income source name'**
+  String get incomeSourceName;
+
+  /// No description provided for @incomeExpectedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected amount'**
+  String get incomeExpectedAmount;
+
+  /// No description provided for @incomeRemainderAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit and remainder account'**
+  String get incomeRemainderAccount;
+
+  /// No description provided for @incomePromptBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Prompt days before'**
+  String get incomePromptBefore;
+
+  /// No description provided for @incomeStartDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Automation start date'**
+  String get incomeStartDate;
+
+  /// No description provided for @incomeSplitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic account split'**
+  String get incomeSplitTitle;
+
+  /// No description provided for @incomeSplitHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the percentage sent to each account. Anything left stays in the deposit account.'**
+  String get incomeSplitHelp;
+
+  /// No description provided for @incomeInvalidPercentage.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a percentage from 0 to 100.'**
+  String get incomeInvalidPercentage;
+
+  /// No description provided for @incomeKindSalary.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary'**
+  String get incomeKindSalary;
+
+  /// No description provided for @incomeKindAllowance.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowance received'**
+  String get incomeKindAllowance;
+
+  /// No description provided for @incomeKindFreelance.
+  ///
+  /// In en, this message translates to:
+  /// **'Freelance income'**
+  String get incomeKindFreelance;
+
+  /// No description provided for @incomeKindOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other income'**
+  String get incomeKindOther;
+
+  /// No description provided for @incomeKindNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No regular income for now'**
+  String get incomeKindNone;
+
+  /// No description provided for @incomePrimaryType.
+  ///
+  /// In en, this message translates to:
+  /// **'How do you usually receive income?'**
+  String get incomePrimaryType;
+
+  /// No description provided for @incomeNoPrimaryHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'You can finish setup without a salary and add any income source later from Settings.'**
+  String get incomeNoPrimaryHelp;
+
+  /// No description provided for @incomePendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Income waiting for your approval'**
+  String get incomePendingTitle;
+
+  /// No description provided for @incomeDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected on {date} — confirm when it arrives'**
+  String incomeDue(String date);
+
+  /// No description provided for @incomeUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected on {date} — you can accept it early'**
+  String incomeUpcoming(String date);
+
+  /// No description provided for @incomeAcceptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept {name}?'**
+  String incomeAcceptTitle(String name);
+
+  /// No description provided for @incomeAcceptHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The income transaction and its account splits are created only after you confirm.'**
+  String get incomeAcceptHelp;
+
+  /// No description provided for @incomeAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept income'**
+  String get incomeAccept;
+
+  /// No description provided for @incomeSkipTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip this income?'**
+  String get incomeSkipTitle;
+
+  /// No description provided for @incomeSkipHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will not create a transaction for this month.'**
+  String incomeSkipHelp(String name);
+
+  /// No description provided for @incomeSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get incomeSkip;
+
+  /// No description provided for @incomeLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get incomeLater;
+
+  /// No description provided for @incomeRemindLater.
+  ///
+  /// In en, this message translates to:
+  /// **'It will remain here until you accept or skip it.'**
+  String get incomeRemindLater;
 }
 
 class _AppLocalizationsDelegate

@@ -59,6 +59,19 @@ void main() {
       );
       expect(bounds.expectedPaymentDate, const PlainDate(2026, 7, 25));
     });
+
+    test(
+      'scheduled payment resolves its earning period when accepted late',
+      () {
+        final bounds = SalaryPeriods.boundsForExpectedPayment(
+          settings,
+          const PlainDate(2026, 8, 25),
+        );
+        expect(bounds.start, const PlainDate(2026, 7, 1));
+        expect(bounds.end, const PlainDate(2026, 7, 31));
+        expect(bounds.expectedPaymentDate, const PlainDate(2026, 8, 25));
+      },
+    );
   });
 
   group('SalaryEstimate.compute', () {

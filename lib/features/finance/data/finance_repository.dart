@@ -8,6 +8,7 @@ import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
+import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 import 'package:work_tracker/features/finance/domain/transaction_macro.dart';
 
@@ -171,6 +172,7 @@ class FinanceRepository {
     required String name,
     required CategoryKind kind,
     String icon = 'category',
+    String? parentCategoryId,
   }) {
     return guard(() async {
       await _db.from('transaction_categories').insert({
@@ -178,7 +180,143 @@ class FinanceRepository {
         'name': name,
         'category_kind': kind.dbValue,
         'icon': icon,
+        'parent_category_id': parentCategoryId,
       });
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // Recurring income automation
+  // ---------------------------------------------------------------------
+
+  Future<Result<List<IncomeSource>>> fetchIncomeSources({
+    bool includeInactive = true,
+  }) {
+    return guard(() async {
+      var query = _db
+          .from('income_sources')
+          .select('*, income_source_allocations(*)')
+          .eq('user_id', _userId);
+      if (!includeInactive) query = query.eq('is_active', true);
+      final rows = await query.order('name', ascending: true);
+      return rows.map(IncomeSource.fromJson).toList();
+    });
+  }
+
+  Future<Result<List<PendingIncome>>> fetchPendingIncome(PlainDate today) {
+    return guard(() async {
+      await _db.rpc<int>(
+        'materialize_income_occurrences',
+        params: {'p_through_date': today.addDays(31).toIso()},
+      );
+      final sourceRows = await _db
+          .from('income_sources')
+          .select('*, income_source_allocations(*)')
+          .eq('user_id', _userId)
+          .eq('is_active', true);
+      final sources = sourceRows.map(IncomeSource.fromJson).toList();
+      final byId = {for (final source in sources) source.id: source};
+      final occurrenceRows = await _db
+          .from('income_occurrences')
+          .select()
+          .eq('user_id', _userId)
+          .eq('status', IncomeOccurrenceStatus.pending.dbValue)
+          .order('scheduled_on', ascending: true);
+      return occurrenceRows
+          .map(IncomeOccurrence.fromJson)
+          .where((occurrence) {
+            final source = byId[occurrence.incomeSourceId];
+            return source != null &&
+                occurrence.scheduledOn <=
+                    today.addDays(source.promptDaysBefore);
+          })
+          .map(
+            (occurrence) => PendingIncome(
+              occurrence: occurrence,
+              source: byId[occurrence.incomeSourceId]!,
+            ),
+          )
+          .toList();
+    });
+  }
+
+  Future<Result<String>> saveIncomeSource({
+    required String name,
+    required IncomeSourceKind kind,
+    required int expectedAmountMinor,
+    required String currencyCode,
+    required int paymentDay,
+    required PlainDate startDate,
+    required int promptDaysBefore,
+    required String primaryAccountId,
+    required List<IncomeAllocation> allocations,
+    String? categoryId,
+    String? notes,
+    String? sourceId,
+  }) {
+    return guard(() async {
+      return _db.rpc<String>(
+        'save_income_source',
+        params: {
+          'p_name': name,
+          'p_source_kind': kind.dbValue,
+          'p_expected_amount_minor': expectedAmountMinor,
+          'p_currency_code': currencyCode,
+          'p_payment_day': paymentDay,
+          'p_start_date': startDate.toIso(),
+          'p_prompt_days_before': promptDaysBefore,
+          'p_primary_account_id': primaryAccountId,
+          'p_category_id': categoryId,
+          'p_allocations': [
+            for (final allocation in allocations) allocation.toPayload(),
+          ],
+          'p_notes': notes,
+          'p_source_id': sourceId,
+        },
+      );
+    });
+  }
+
+  Future<Result<void>> setIncomeSourceActive(
+    String id, {
+    required bool active,
+  }) {
+    return guard(() async {
+      await _db
+          .from('income_sources')
+          .update({'is_active': active})
+          .eq('id', id)
+          .eq('user_id', _userId);
+    });
+  }
+
+  Future<Result<String>> acceptIncomeOccurrence({
+    required String occurrenceId,
+    required int actualAmountMinor,
+    required PlainDate receivedOn,
+    String? notes,
+    String? salaryPeriodId,
+  }) {
+    return guard(() async {
+      return _db.rpc<String>(
+        'accept_income_occurrence',
+        params: {
+          'p_occurrence_id': occurrenceId,
+          'p_actual_amount_minor': actualAmountMinor,
+          'p_received_on': receivedOn.toIso(),
+          'p_notes': notes,
+          'p_salary_period_id': salaryPeriodId,
+        },
+      );
+    });
+  }
+
+  Future<Result<void>> skipIncomeOccurrence(String occurrenceId) {
+    return guard(() async {
+      await _db.rpc<void>(
+        'skip_income_occurrence',
+        params: {'p_occurrence_id': occurrenceId},
+      );
     });
   }
 

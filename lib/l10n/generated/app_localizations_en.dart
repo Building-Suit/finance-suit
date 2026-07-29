@@ -316,7 +316,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onbStepProfile => 'About you';
 
   @override
-  String get onbStepSalary => 'Salary';
+  String get onbStepSalary => 'Income source';
 
   @override
   String get onbStepAccount => 'First account';
@@ -1211,4 +1211,136 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportHours => 'Hours';
+
+  @override
+  String get catParent => 'Parent category (optional)';
+
+  @override
+  String get catTopLevel => 'No parent — regular category';
+
+  @override
+  String catSubcategoryOf(String parent) {
+    return 'Subcategory of $parent';
+  }
+
+  @override
+  String get incomeHasSalary => 'I receive a salary';
+
+  @override
+  String get incomeHasSalaryHelp =>
+      'Turn this off if your income is allowance-based or comes from other sources.';
+
+  @override
+  String get incomeSourcesTitle => 'Income automation';
+
+  @override
+  String get incomeSourcesSubtitle =>
+      'Schedule salary, allowance, and other recurring income';
+
+  @override
+  String get incomeAddSource => 'Add income source';
+
+  @override
+  String get incomeEditSource => 'Edit income source';
+
+  @override
+  String get incomeNoSources => 'No automated income sources yet.';
+
+  @override
+  String incomeMonthlyOnDay(int day) {
+    return 'Monthly on day $day';
+  }
+
+  @override
+  String get incomeSourceType => 'Income type';
+
+  @override
+  String get incomeSourceName => 'Income source name';
+
+  @override
+  String get incomeExpectedAmount => 'Expected amount';
+
+  @override
+  String get incomeRemainderAccount => 'Deposit and remainder account';
+
+  @override
+  String get incomePromptBefore => 'Prompt days before';
+
+  @override
+  String get incomeStartDate => 'Automation start date';
+
+  @override
+  String get incomeSplitTitle => 'Automatic account split';
+
+  @override
+  String get incomeSplitHelp =>
+      'Enter the percentage sent to each account. Anything left stays in the deposit account.';
+
+  @override
+  String get incomeInvalidPercentage => 'Enter a percentage from 0 to 100.';
+
+  @override
+  String get incomeKindSalary => 'Salary';
+
+  @override
+  String get incomeKindAllowance => 'Allowance received';
+
+  @override
+  String get incomeKindFreelance => 'Freelance income';
+
+  @override
+  String get incomeKindOther => 'Other income';
+
+  @override
+  String get incomeKindNone => 'No regular income for now';
+
+  @override
+  String get incomePrimaryType => 'How do you usually receive income?';
+
+  @override
+  String get incomeNoPrimaryHelp =>
+      'You can finish setup without a salary and add any income source later from Settings.';
+
+  @override
+  String get incomePendingTitle => 'Income waiting for your approval';
+
+  @override
+  String incomeDue(String date) {
+    return 'Expected on $date — confirm when it arrives';
+  }
+
+  @override
+  String incomeUpcoming(String date) {
+    return 'Expected on $date — you can accept it early';
+  }
+
+  @override
+  String incomeAcceptTitle(String name) {
+    return 'Accept $name?';
+  }
+
+  @override
+  String get incomeAcceptHelp =>
+      'The income transaction and its account splits are created only after you confirm.';
+
+  @override
+  String get incomeAccept => 'Accept income';
+
+  @override
+  String get incomeSkipTitle => 'Skip this income?';
+
+  @override
+  String incomeSkipHelp(String name) {
+    return '$name will not create a transaction for this month.';
+  }
+
+  @override
+  String get incomeSkip => 'Skip';
+
+  @override
+  String get incomeLater => 'Later';
+
+  @override
+  String get incomeRemindLater =>
+      'It will remain here until you accept or skip it.';
 }

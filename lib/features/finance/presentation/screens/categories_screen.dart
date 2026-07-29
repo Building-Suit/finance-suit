@@ -113,14 +113,47 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
         message: l10n.catNoneYet,
       );
     }
+    final topLevel = categories.where((category) => !category.isSubcategory);
+    final ordered = <TransactionCategory>[
+      for (final parent in topLevel) ...[
+        parent,
+        ...categories.where(
+          (category) => category.parentCategoryId == parent.id,
+        ),
+      ],
+      ...categories.where(
+        (category) =>
+            category.isSubcategory &&
+            !categories.any((parent) => parent.id == category.parentCategoryId),
+      ),
+    ];
     return ListView(
       children: [
-        for (final category in categories)
+        for (final category in ordered)
           ListTile(
+            contentPadding: EdgeInsetsDirectional.only(
+              start: category.isSubcategory ? 40 : 16,
+              end: 8,
+            ),
             leading: const FinanceSuitIcon(FinanceSuitIcons.label),
             title: Text(category.name),
-            subtitle: category.isArchived
-                ? Text(l10n.moneyArchivedLabel)
+            subtitle: category.isSubcategory || category.isArchived
+                ? Text(
+                    [
+                      if (category.isSubcategory)
+                        l10n.catSubcategoryOf(
+                          all
+                                  .where(
+                                    (parent) =>
+                                        parent.id == category.parentCategoryId,
+                                  )
+                                  .firstOrNull
+                                  ?.name ??
+                              l10n.catTopLevel,
+                        ),
+                      if (category.isArchived) l10n.moneyArchivedLabel,
+                    ].join(' · '),
+                  )
                 : null,
             onTap: () => _renameCategory(category),
             trailing: PopupMenuButton<String>(

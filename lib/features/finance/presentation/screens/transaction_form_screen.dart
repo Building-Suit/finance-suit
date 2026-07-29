@@ -292,7 +292,11 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                       in categories.value ?? <TransactionCategory>[])
                     DropdownMenuItem<String?>(
                       value: category.id,
-                      child: Text(category.name),
+                      child: Text(
+                        category.displayName(
+                          categories.value ?? <TransactionCategory>[],
+                        ),
+                      ),
                     ),
                 ],
                 onChanged: (v) => setState(() => _categoryId = v),
