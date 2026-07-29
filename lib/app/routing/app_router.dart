@@ -14,11 +14,14 @@ import 'package:work_tracker/features/auth/presentation/screens/reset_password_s
 import 'package:work_tracker/features/dashboard/presentation/screens/home_screen.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
+import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/domain/transaction_macro.dart';
 import 'package:work_tracker/features/finance/presentation/screens/account_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/categories_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/category_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/held_amount_form_screen.dart';
+import 'package:work_tracker/features/finance/presentation/screens/income_source_form_screen.dart';
+import 'package:work_tracker/features/finance/presentation/screens/income_sources_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/macro_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/macros_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/money_screen.dart';
@@ -324,6 +327,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'salary',
                     builder: (context, state) => const SalarySettingsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'income-sources',
+                    builder: (context, state) => const IncomeSourcesScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'new',
+                        builder: (context, state) =>
+                            const IncomeSourceFormScreen(),
+                      ),
+                      GoRoute(
+                        path: 'edit',
+                        builder: (context, state) => IncomeSourceFormScreen(
+                          existing: state.extra! as IncomeSource,
+                        ),
+                      ),
+                    ],
                   ),
                   GoRoute(
                     path: 'password',

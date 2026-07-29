@@ -3,6 +3,15 @@ create extension if not exists pgtap with schema extensions;
 
 select plan(17);
 
+-- The hosted project owns this legacy table, while a clean local Supabase
+-- stack does not. Create the minimal fixture so this test deterministically
+-- proves that Finance Suit deletion leaves legacy product data untouched.
+create table if not exists public.profiles (
+  id uuid primary key,
+  email text not null,
+  updated_at timestamptz not null default now()
+);
+
 select is(
   has_function_privilege(
     'authenticated', 'app_core.delete_finance_suit_data(uuid)', 'EXECUTE'
@@ -27,6 +36,10 @@ insert into auth.users (
   'authenticated', 'authenticated', 'delete-me@test.local', '', now(),
   '{"provider":"email","providers":["email"]}',
   '{"display_name":"Delete Me"}', now(), now()
+);
+
+insert into public.profiles (id, email) values (
+  '00000000-0000-0000-0000-000000000010', 'delete-me@test.local'
 );
 
 set local role authenticated;

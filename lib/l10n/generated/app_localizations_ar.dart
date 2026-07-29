@@ -315,7 +315,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get onbStepProfile => 'عنك';
 
   @override
-  String get onbStepSalary => 'الراتب';
+  String get onbStepSalary => 'مصدر الدخل';
 
   @override
   String get onbStepAccount => 'الحساب الأول';
@@ -1208,4 +1208,135 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reportHours => 'ساعات';
+
+  @override
+  String get catParent => 'الفئة الرئيسية (اختياري)';
+
+  @override
+  String get catTopLevel => 'بدون فئة رئيسية — فئة عادية';
+
+  @override
+  String catSubcategoryOf(String parent) {
+    return 'فئة فرعية من $parent';
+  }
+
+  @override
+  String get incomeHasSalary => 'أتقاضى راتبًا';
+
+  @override
+  String get incomeHasSalaryHelp =>
+      'أوقف هذا الخيار إذا كان دخلك مصروفًا دوريًا أو من مصادر أخرى.';
+
+  @override
+  String get incomeSourcesTitle => 'أتمتة الدخل';
+
+  @override
+  String get incomeSourcesSubtitle =>
+      'جدولة الراتب والمصروف الدوري ومصادر الدخل الأخرى';
+
+  @override
+  String get incomeAddSource => 'إضافة مصدر دخل';
+
+  @override
+  String get incomeEditSource => 'تعديل مصدر الدخل';
+
+  @override
+  String get incomeNoSources => 'لا توجد مصادر دخل آلية بعد.';
+
+  @override
+  String incomeMonthlyOnDay(int day) {
+    return 'شهريًا في يوم $day';
+  }
+
+  @override
+  String get incomeSourceType => 'نوع الدخل';
+
+  @override
+  String get incomeSourceName => 'اسم مصدر الدخل';
+
+  @override
+  String get incomeExpectedAmount => 'المبلغ المتوقع';
+
+  @override
+  String get incomeRemainderAccount => 'حساب الإيداع والمتبقي';
+
+  @override
+  String get incomePromptBefore => 'التنبيه قبل الموعد بأيام';
+
+  @override
+  String get incomeStartDate => 'تاريخ بدء الأتمتة';
+
+  @override
+  String get incomeSplitTitle => 'تقسيم تلقائي بين الحسابات';
+
+  @override
+  String get incomeSplitHelp =>
+      'أدخل النسبة المحولة إلى كل حساب. يبقى المتبقي في حساب الإيداع.';
+
+  @override
+  String get incomeInvalidPercentage => 'أدخل نسبة من 0 إلى 100.';
+
+  @override
+  String get incomeKindSalary => 'راتب';
+
+  @override
+  String get incomeKindAllowance => 'مصروف دوري مستلم';
+
+  @override
+  String get incomeKindFreelance => 'دخل عمل حر';
+
+  @override
+  String get incomeKindOther => 'دخل آخر';
+
+  @override
+  String get incomeKindNone => 'لا يوجد دخل دوري حاليًا';
+
+  @override
+  String get incomePrimaryType => 'كيف تستلم دخلك عادةً؟';
+
+  @override
+  String get incomeNoPrimaryHelp =>
+      'يمكنك إكمال الإعداد بدون راتب وإضافة أي مصدر دخل لاحقًا من الإعدادات.';
+
+  @override
+  String get incomePendingTitle => 'دخل ينتظر موافقتك';
+
+  @override
+  String incomeDue(String date) {
+    return 'كان متوقعًا في $date — أكّده عند وصوله';
+  }
+
+  @override
+  String incomeUpcoming(String date) {
+    return 'متوقع في $date — يمكنك قبوله مبكرًا';
+  }
+
+  @override
+  String incomeAcceptTitle(String name) {
+    return 'قبول $name؟';
+  }
+
+  @override
+  String get incomeAcceptHelp =>
+      'لن تُنشأ معاملة الدخل وتقسيماتها بين الحسابات إلا بعد التأكيد.';
+
+  @override
+  String get incomeAccept => 'قبول الدخل';
+
+  @override
+  String get incomeSkipTitle => 'تخطي هذا الدخل؟';
+
+  @override
+  String incomeSkipHelp(String name) {
+    return 'لن ينشئ $name معاملة لهذا الشهر.';
+  }
+
+  @override
+  String get incomeSkip => 'تخطي';
+
+  @override
+  String get incomeLater => 'لاحقًا';
+
+  @override
+  String get incomeRemindLater => 'سيظل هنا حتى تقبله أو تتخطاه.';
 }

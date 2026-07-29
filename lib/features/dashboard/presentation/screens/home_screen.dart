@@ -6,10 +6,16 @@ import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/core/date_time/date_range.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
+import 'package:work_tracker/core/domain/db_enums.dart';
+import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
+import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
+import 'package:work_tracker/core/widgets/failure_text.dart';
+import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
+import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/finance_widgets.dart';
 import 'package:work_tracker/features/history/domain/history_models.dart';
@@ -17,8 +23,12 @@ import 'package:work_tracker/features/history/presentation/providers/history_pro
 import 'package:work_tracker/features/history/presentation/widgets/history_item_tile.dart';
 import 'package:work_tracker/features/reports/domain/report_models.dart';
 import 'package:work_tracker/features/reports/presentation/providers/report_providers.dart';
+import 'package:work_tracker/features/salary/data/salary_repository.dart';
+import 'package:work_tracker/features/salary/domain/salary_estimate.dart';
+import 'package:work_tracker/features/salary/domain/salary_period.dart';
 import 'package:work_tracker/features/salary/presentation/providers/salary_providers.dart';
 import 'package:work_tracker/features/salary/presentation/widgets/estimate_breakdown.dart';
+import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -130,6 +140,210 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ..invalidate(currentEstimateProvider)
       ..invalidate(historyPageProvider)
       ..invalidate(cashFlowSummaryProvider);
+    ref.invalidate(pendingIncomeProvider);
+  }
+
+  void _showFailure(AppFailure failure) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(failureMessage(context, failure))));
+  }
+
+  Future<void> _acceptIncome(PendingIncome pending) async {
+    final l10n = AppLocalizations.of(context);
+    SalaryEstimate? salaryEstimate;
+    SalaryPeriod? salaryPeriod;
+    if (pending.source.kind == IncomeSourceKind.salary) {
+      final settings = await ref.read(salarySettingsProvider.future);
+      final bounds = SalaryPeriods.boundsForExpectedPayment(
+        settings,
+        pending.occurrence.scheduledOn,
+      );
+      salaryEstimate = await ref.read(
+        estimateForRangeProvider((start: bounds.start, end: bounds.end)).future,
+      );
+      final periodResult = await ref
+          .read(salaryRepositoryProvider)
+          .ensurePeriod(bounds);
+      salaryPeriod = periodResult.when(
+        ok: (period) => period,
+        err: (failure) {
+          _showFailure(failure);
+          return null;
+        },
+      );
+      if (salaryPeriod == null || !mounted) return;
+      if (salaryPeriod.isPaid) {
+        _showFailure(
+          const ConstraintFailure(
+            'salary_period_already_paid',
+            debugDetails: 'automated salary period is already paid',
+          ),
+        );
+        return;
+      }
+      if (salaryPeriod.isFinalized) {
+        salaryEstimate = SalaryEstimate.fromSnapshot(salaryPeriod.snapshot!);
+      }
+    }
+
+    final defaultMinor =
+        salaryEstimate?.totalMinor ?? pending.occurrence.expectedAmountMinor;
+    final amountController = TextEditingController(
+      text: (defaultMinor / Money.minorUnitsPerMajor).toStringAsFixed(2),
+    );
+    final notesController = TextEditingController();
+    var receivedOn = PlainDate.today();
+    final formKey = GlobalKey<FormState>();
+    final accepted = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: Text(l10n.incomeAcceptTitle(pending.source.name)),
+          content: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(l10n.incomeAcceptHelp),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: amountController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: InputDecoration(
+                      labelText: l10n.salActualAmount,
+                      suffixText: pending.source.currencyCode,
+                    ),
+                    validator: (value) {
+                      final error = Validators.positiveAmount(
+                        value,
+                        currencyCode: pending.source.currencyCode,
+                      );
+                      return error == null
+                          ? null
+                          : validationMessage(dialogContext, error);
+                    },
+                  ),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const FinanceSuitIcon(
+                      FinanceSuitIcons.calendarToday,
+                    ),
+                    title: Text(l10n.salReceivedDate),
+                    subtitle: Text(receivedOn.toIso()),
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: dialogContext,
+                        initialDate: receivedOn.toDateTime(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (picked != null) {
+                        setDialogState(
+                          () => receivedOn = PlainDate.fromDateTime(picked),
+                        );
+                      }
+                    },
+                  ),
+                  TextFormField(
+                    controller: notesController,
+                    decoration: InputDecoration(
+                      labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(l10n.commonCancel),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  Navigator.of(dialogContext).pop(true);
+                }
+              },
+              child: Text(l10n.incomeAccept),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (accepted != true || !mounted) return;
+
+    if (salaryPeriod?.isOpen == true) {
+      final finalizeResult = await ref
+          .read(salaryRepositoryProvider)
+          .finalizePeriod(salaryPeriod!.id, salaryEstimate!.toSnapshotJson());
+      final failed = finalizeResult.when(
+        ok: (_) => false,
+        err: (failure) {
+          _showFailure(failure);
+          return true;
+        },
+      );
+      if (failed || !mounted) return;
+    }
+
+    final amount = Money.tryParse(
+      amountController.text,
+      currencyCode: pending.source.currencyCode,
+    )!;
+    final notes = notesController.text.trim();
+    final result = await ref
+        .read(financeRepositoryProvider)
+        .acceptIncomeOccurrence(
+          occurrenceId: pending.occurrence.id,
+          actualAmountMinor: amount.minor,
+          receivedOn: receivedOn,
+          notes: notes.isEmpty ? null : notes,
+          salaryPeriodId: salaryPeriod?.id,
+        );
+    if (!mounted) return;
+    result.when(
+      ok: (_) {
+        invalidateIncomeAutomation(ref);
+        invalidateFinanceData(ref);
+        invalidateSalaryData(ref);
+        ref
+          ..invalidate(historyPageProvider)
+          ..invalidate(cashFlowSummaryProvider);
+      },
+      err: _showFailure,
+    );
+  }
+
+  Future<void> _skipIncome(PendingIncome pending) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.incomeSkipTitle),
+        content: Text(l10n.incomeSkipHelp(pending.source.name)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.incomeSkip),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    final result = await ref
+        .read(financeRepositoryProvider)
+        .skipIncomeOccurrence(pending.occurrence.id);
+    if (!mounted) return;
+    result.when(ok: (_) => invalidateIncomeAutomation(ref), err: _showFailure);
   }
 
   String _rangeLabel(AppLocalizations l10n, DateRangePreset preset) {
@@ -152,6 +366,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final allAccountsAsync = ref.watch(allAccountBalancesProvider);
     final summaryAsync = ref.watch(cashFlowSummaryProvider(_range.range));
     final estimateAsync = ref.watch(currentEstimateProvider);
+    final salaryEnabled =
+        ref.watch(salarySettingsProvider).value?.salaryEnabled ?? true;
+    final pendingIncomeAsync = ref.watch(pendingIncomeProvider);
     final recentAsync = ref.watch(
       historyPageProvider(
         HistoryQuery(
@@ -181,6 +398,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
           children: [
+            AsyncView(
+              value: pendingIncomeAsync,
+              onRetry: () => ref.invalidate(pendingIncomeProvider),
+              loading: const SizedBox.shrink(),
+              data: (items) => items.isEmpty
+                  ? const SizedBox.shrink()
+                  : _PendingIncomeSection(
+                      items: items,
+                      today: PlainDate.today(),
+                      onAccept: _acceptIncome,
+                      onSkip: _skipIncome,
+                    ),
+            ),
             _SectionHeader(title: l10n.homeBalance),
             AsyncView(
               value: accountsAsync,
@@ -205,17 +435,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     accountsAsync.value?.firstOrNull?.currencyCode ?? 'EGP',
               ),
             ),
-            _SectionHeader(
-              title: l10n.homeSalary,
-              actionLabel: l10n.commonSeeAll,
-              onAction: () => context.push('${AppRoutes.work}/periods'),
-            ),
-            AsyncView(
-              value: estimateAsync,
-              onRetry: () => ref.invalidate(currentEstimateProvider),
-              loading: const _SectionLoader(),
-              data: (estimate) => EstimateBreakdownCard(estimate: estimate),
-            ),
+            if (salaryEnabled) ...[
+              _SectionHeader(
+                title: l10n.homeSalary,
+                actionLabel: l10n.commonSeeAll,
+                onAction: () => context.push('${AppRoutes.work}/periods'),
+              ),
+              AsyncView(
+                value: estimateAsync,
+                onRetry: () => ref.invalidate(currentEstimateProvider),
+                loading: const _SectionLoader(),
+                data: (estimate) => EstimateBreakdownCard(estimate: estimate),
+              ),
+            ],
             _SectionHeader(
               title: l10n.homeRecentActivity,
               actionLabel: l10n.commonSeeAll,
@@ -240,6 +472,93 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 );
               },
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PendingIncomeSection extends StatelessWidget {
+  const _PendingIncomeSection({
+    required this.items,
+    required this.today,
+    required this.onAccept,
+    required this.onSkip,
+  });
+
+  final List<PendingIncome> items;
+  final PlainDate today;
+  final ValueChanged<PendingIncome> onAccept;
+  final ValueChanged<PendingIncome> onSkip;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Card(
+      color: Theme.of(context).colorScheme.secondaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const FinanceSuitIcon(FinanceSuitIcons.pending),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.incomePendingTitle,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            for (final item in items) ...[
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(item.source.name),
+                subtitle: Text(
+                  item.isDueOn(today)
+                      ? l10n.incomeDue(item.occurrence.scheduledOn.toIso())
+                      : l10n.incomeUpcoming(
+                          item.occurrence.scheduledOn.toIso(),
+                        ),
+                ),
+                trailing: Text(
+                  Money(
+                    minor: item.occurrence.expectedAmountMinor,
+                    currencyCode: item.source.currencyCode,
+                  ).format(),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ),
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 8,
+                children: [
+                  TextButton(
+                    onPressed: () => onSkip(item),
+                    child: Text(l10n.incomeSkip),
+                  ),
+                  TextButton(
+                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(l10n.incomeRemindLater)),
+                    ),
+                    child: Text(l10n.incomeLater),
+                  ),
+                  FilledButton(
+                    onPressed: () => onAccept(item),
+                    child: Text(l10n.incomeAccept),
+                  ),
+                ],
+              ),
+              if (item != items.last) const Divider(),
+            ],
           ],
         ),
       ),
@@ -351,9 +670,7 @@ class _BalanceSection extends StatelessWidget {
             icon: FinanceSuitIcons.accountBalanceWallet,
             label: l10n.moneyTotalBalance,
             value: totals.entries
-                .map(
-                  (e) => Money(minor: e.value, currencyCode: e.key).format(),
-                )
+                .map((e) => Money(minor: e.value, currencyCode: e.key).format())
                 .join(' / '),
           ),
         ),
@@ -393,9 +710,8 @@ class _HomeAccountCard extends StatelessWidget {
         leading: FinanceSuitIcon(accountTypeIcon(account.accountType)),
         title: Text(account.name),
         subtitle: BalanceText(money: account.balance),
-        onTap: () => context.push(
-          '${AppRoutes.money}/accounts/${account.accountId}',
-        ),
+        onTap: () =>
+            context.push('${AppRoutes.money}/accounts/${account.accountId}'),
       ),
     );
   }

@@ -198,6 +198,13 @@ class SettingsScreen extends ConsumerWidget {
             trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
             onTap: () => context.go('${AppRoutes.settings}/salary'),
           ),
+          ListTile(
+            leading: const FinanceSuitIcon(FinanceSuitIcons.trendingUp),
+            title: Text(l10n.incomeSourcesTitle),
+            subtitle: Text(l10n.incomeSourcesSubtitle),
+            trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+            onTap: () => context.go('${AppRoutes.settings}/income-sources'),
+          ),
           const Divider(),
           _SectionHeader(title: l10n.setAccountSection),
           ListTile(

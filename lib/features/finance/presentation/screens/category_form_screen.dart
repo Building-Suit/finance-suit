@@ -8,6 +8,7 @@ import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
+import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
@@ -25,6 +26,7 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
   final _nameController = TextEditingController();
 
   CategoryKind _kind = CategoryKind.expense;
+  String? _parentCategoryId;
   AppFailure? _failure;
   bool _busy = false;
 
@@ -40,7 +42,11 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
     setState(() => _busy = true);
     final result = await ref
         .read(financeRepositoryProvider)
-        .createCategory(name: _nameController.text.trim(), kind: _kind);
+        .createCategory(
+          name: _nameController.text.trim(),
+          kind: _kind,
+          parentCategoryId: _parentCategoryId,
+        );
     if (!mounted) return;
     setState(() => _busy = false);
     result.when(
@@ -60,6 +66,10 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final categories = ref.watch(categoriesProvider(_kind));
+    final parents = (categories.value ?? <TransactionCategory>[])
+        .where((category) => !category.isSubcategory)
+        .toList();
     return Scaffold(
       appBar: AppBar(title: Text(l10n.catNew)),
       body: SingleChildScrollView(
@@ -82,8 +92,33 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
                 onChanged: _busy
                     ? null
                     : (kind) {
-                        if (kind != null) setState(() => _kind = kind);
+                        if (kind != null) {
+                          setState(() {
+                            _kind = kind;
+                            _parentCategoryId = null;
+                          });
+                        }
                       },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String?>(
+                key: ValueKey(_kind),
+                initialValue: _parentCategoryId,
+                decoration: InputDecoration(labelText: l10n.catParent),
+                items: [
+                  DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text(l10n.catTopLevel),
+                  ),
+                  for (final category in parents)
+                    DropdownMenuItem<String?>(
+                      value: category.id,
+                      child: Text(category.name),
+                    ),
+                ],
+                onChanged: _busy
+                    ? null
+                    : (value) => setState(() => _parentCategoryId = value),
               ),
               const SizedBox(height: 16),
               TextFormField(

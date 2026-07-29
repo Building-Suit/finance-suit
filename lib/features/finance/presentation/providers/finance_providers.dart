@@ -1,10 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
+import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 import 'package:work_tracker/features/finance/domain/transaction_macro.dart';
 
@@ -76,10 +78,33 @@ final heldAmountsProvider = FutureProvider<List<HeldAmount>>((ref) async {
   return result.when(ok: (h) => h, err: (f) => throw f);
 });
 
+final incomeSourcesProvider = FutureProvider<List<IncomeSource>>((ref) async {
+  ref.watch(currentUserIdProvider);
+  final result = await ref
+      .watch(financeRepositoryProvider)
+      .fetchIncomeSources();
+  return result.when(ok: (sources) => sources, err: (failure) => throw failure);
+});
+
+final pendingIncomeProvider = FutureProvider<List<PendingIncome>>((ref) async {
+  ref.watch(currentUserIdProvider);
+  final result = await ref
+      .watch(financeRepositoryProvider)
+      .fetchPendingIncome(PlainDate.today());
+  return result.when(ok: (items) => items, err: (failure) => throw failure);
+});
+
 /// Invalidate everything that depends on transaction or account rows.
 void invalidateFinanceData(WidgetRef ref) {
   ref.invalidate(accountBalancesProvider);
   ref.invalidate(allAccountBalancesProvider);
   ref.invalidate(recentTransactionsProvider);
   ref.invalidate(heldAmountsProvider);
+  ref.invalidate(pendingIncomeProvider);
+}
+
+void invalidateIncomeAutomation(WidgetRef ref) {
+  ref
+    ..invalidate(incomeSourcesProvider)
+    ..invalidate(pendingIncomeProvider);
 }
