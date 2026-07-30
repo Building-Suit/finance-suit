@@ -2,16 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
+import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
 import 'package:work_tracker/features/onboarding/data/onboarding_repository.dart';
 import 'package:work_tracker/features/onboarding/presentation/providers/onboarding_status_provider.dart';
+import 'package:work_tracker/features/salary/presentation/models/salary_configuration_draft.dart';
+import 'package:work_tracker/features/salary/presentation/widgets/salary_configuration_fields.dart';
 import 'package:work_tracker/features/settings/presentation/providers/app_settings_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
@@ -53,24 +55,32 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   // Step 2: salary
   _PrimaryIncomeChoice _primaryIncome = _PrimaryIncomeChoice.salary;
-  final _baseSalaryController = TextEditingController();
+  final _salaryDraft = SalaryConfigurationDraft.defaults();
   final _incomeNameController = TextEditingController();
   final _incomeAmountController = TextEditingController();
   int _promptDaysBefore = 7;
-  int _periodStartDay = 1;
-  int _paymentDay = 1;
-  int _paymentMonthOffset = 1;
-  final _paidDaysController = TextEditingController(text: '22');
-  final _hoursPerDayController = TextEditingController(text: '8');
-  RateMode _dayRateMode = RateMode.derived;
-  final _manualDayRateController = TextEditingController();
-  RateMode _hourRateMode = RateMode.derived;
-  final _manualHourRateController = TextEditingController();
-  final _extraDayPctController = TextEditingController(text: '100');
-  final _holidayPctController = TextEditingController(text: '200');
-  final _overtimePctController = TextEditingController(text: '150');
-  HolidayMultiplierSemantics _semantics =
-      HolidayMultiplierSemantics.additionalPay;
+
+  int get _periodStartDay => _salaryDraft.periodStartDay;
+  int get _paymentDay => _salaryDraft.paymentDay;
+  set _paymentDay(int value) => _salaryDraft.paymentDay = value;
+  int get _paymentMonthOffset => _salaryDraft.paymentMonthOffset;
+  TextEditingController get _paidDaysController =>
+      _salaryDraft.paidDaysController;
+  TextEditingController get _hoursPerDayController =>
+      _salaryDraft.hoursPerDayController;
+  RateMode get _dayRateMode => _salaryDraft.dayRateMode;
+  TextEditingController get _manualDayRateController =>
+      _salaryDraft.manualDayRateController;
+  RateMode get _hourRateMode => _salaryDraft.hourRateMode;
+  TextEditingController get _manualHourRateController =>
+      _salaryDraft.manualHourRateController;
+  TextEditingController get _extraDayPctController =>
+      _salaryDraft.extraDayPctController;
+  TextEditingController get _holidayPctController =>
+      _salaryDraft.holidayPctController;
+  TextEditingController get _overtimePctController =>
+      _salaryDraft.overtimePctController;
+  HolidayMultiplierSemantics get _semantics => _salaryDraft.semantics;
 
   // Step 3: account
   final _accountNameController = TextEditingController();
@@ -89,47 +99,29 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     for (final c in [
       _displayNameController,
       _currencyController,
-      _baseSalaryController,
       _incomeNameController,
       _incomeAmountController,
-      _paidDaysController,
-      _hoursPerDayController,
-      _manualDayRateController,
-      _manualHourRateController,
-      _extraDayPctController,
-      _holidayPctController,
-      _overtimePctController,
       _accountNameController,
       _openingBalanceController,
     ]) {
       c.dispose();
     }
+    _salaryDraft.dispose();
     super.dispose();
   }
 
   String get _currency => _currencyController.text.trim().toUpperCase();
 
-  Money? get _baseSalary =>
-      Money.tryParse(_baseSalaryController.text, currencyCode: _currency);
+  Money? get _baseSalary => _salaryDraft.baseSalary(_currency);
 
   /// Live derived day-rate preview: base / standard paid days.
   Money? get _derivedDayRate {
-    final base = _baseSalary;
-    final days = int.tryParse(_paidDaysController.text);
-    if (base == null || days == null || days < 1 || days > 31) return null;
-    return base.divideBy(days);
+    return _salaryDraft.derivedDayRate(_currency);
   }
 
   /// Live derived hourly-rate preview: day rate / standard hours.
   Money? get _derivedHourRate {
-    final dayRate = _dayRateMode == RateMode.manual
-        ? Money.tryParse(_manualDayRateController.text, currencyCode: _currency)
-        : _derivedDayRate;
-    final hours = int.tryParse(_hoursPerDayController.text);
-    if (dayRate == null || hours == null || hours < 1 || hours > 24) {
-      return null;
-    }
-    return dayRate.divideBy(hours);
+    return _salaryDraft.derivedHourRate(_currency);
   }
 
   bool _validateStep(int step) {
@@ -159,10 +151,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void _back() => setState(() => _step--);
 
   Future<void> _finish() async {
+    if (_busy) return;
     setState(() {
       _failure = null;
       _busy = true;
     });
+    final isSalary = _primaryIncome == _PrimaryIncomeChoice.salary;
+    final baseSalary = isSalary ? _baseSalary : null;
+    final dayRateMode = isSalary ? _dayRateMode : RateMode.derived;
+    final hourRateMode = isSalary ? _hourRateMode : RateMode.derived;
     final submission = OnboardingSubmission(
       displayName: _displayNameController.text.trim(),
       currencyCode: _currency,
@@ -171,33 +168,43 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       locale: _locale,
       weekStartsOn: _weekStartsOn,
       weekendDays: _weekendDays.toList()..sort(),
-      salaryEnabled: _primaryIncome == _PrimaryIncomeChoice.salary,
-      baseSalaryMinor: _primaryIncome == _PrimaryIncomeChoice.salary
-          ? _baseSalary!.minor
-          : 0,
-      salaryPeriodStartDay: _periodStartDay,
+      salaryEnabled: isSalary,
+      baseSalaryMinor: baseSalary?.minor ?? 0,
+      salaryPeriodStartDay: isSalary ? _periodStartDay : 1,
       paymentDay: _paymentDay,
-      paymentMonthOffset: _paymentMonthOffset,
-      standardPaidDays: int.parse(_paidDaysController.text),
-      standardMinutesPerDay: int.parse(_hoursPerDayController.text) * 60,
-      dayRateMode: _dayRateMode,
-      manualDayRateMinor: _dayRateMode == RateMode.manual
+      paymentMonthOffset: isSalary ? _paymentMonthOffset : 1,
+      standardPaidDays: isSalary
+          ? (int.tryParse(_paidDaysController.text) ?? 22)
+          : 22,
+      standardMinutesPerDay: isSalary
+          ? (int.tryParse(_hoursPerDayController.text) ?? 8) * 60
+          : 480,
+      dayRateMode: dayRateMode,
+      manualDayRateMinor: isSalary && dayRateMode == RateMode.manual
           ? Money.tryParse(
               _manualDayRateController.text,
               currencyCode: _currency,
             )?.minor
           : null,
-      hourRateMode: _hourRateMode,
-      manualHourRateMinor: _hourRateMode == RateMode.manual
+      hourRateMode: hourRateMode,
+      manualHourRateMinor: isSalary && hourRateMode == RateMode.manual
           ? Money.tryParse(
               _manualHourRateController.text,
               currencyCode: _currency,
             )?.minor
           : null,
-      extraDayMultiplierPct: int.parse(_extraDayPctController.text),
-      officialHolidayMultiplierPct: int.parse(_holidayPctController.text),
-      overtimeMultiplierPct: int.parse(_overtimePctController.text),
-      holidaySemantics: _semantics,
+      extraDayMultiplierPct: isSalary
+          ? (int.tryParse(_extraDayPctController.text) ?? 100)
+          : 100,
+      officialHolidayMultiplierPct: isSalary
+          ? (int.tryParse(_holidayPctController.text) ?? 200)
+          : 200,
+      overtimeMultiplierPct: isSalary
+          ? (int.tryParse(_overtimePctController.text) ?? 150)
+          : 150,
+      holidaySemantics: isSalary
+          ? _semantics
+          : HolidayMultiplierSemantics.additionalPay,
       accountName: _accountNameController.text.trim(),
       accountType: _accountType,
       openingBalanceMinor: Money.tryParse(
@@ -221,7 +228,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         _PrimaryIncomeChoice.none => null,
       },
       expectedIncomeMinor: switch (_primaryIncome) {
-        _PrimaryIncomeChoice.salary => _baseSalary!.minor,
+        _PrimaryIncomeChoice.salary => baseSalary?.minor,
         _PrimaryIncomeChoice.allowance ||
         _PrimaryIncomeChoice.other => Money.tryParse(
           _incomeAmountController.text,
@@ -361,7 +368,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             },
           ),
           const SizedBox(height: 16),
-          DropdownButtonFormField<String>(
+          AppSelectionField<String>(
             initialValue: _locale,
             decoration: InputDecoration(labelText: l10n.onbLanguage),
             items: const [
@@ -392,7 +399,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             },
           ),
           const SizedBox(height: 16),
-          DropdownButtonFormField<int>(
+          AppSelectionField<int>(
             initialValue: _weekStartsOn,
             decoration: InputDecoration(labelText: l10n.onbWeekStart),
             items: [
@@ -438,13 +445,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Widget _buildSalaryStep(AppLocalizations l10n) {
-    final theme = Theme.of(context);
     return Form(
       key: _salaryFormKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          DropdownButtonFormField<_PrimaryIncomeChoice>(
+          AppSelectionField<_PrimaryIncomeChoice>(
             initialValue: _primaryIncome,
             isExpanded: true,
             decoration: InputDecoration(labelText: l10n.incomePrimaryType),
@@ -517,7 +523,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             Row(
               children: [
                 Expanded(
-                  child: DropdownButtonFormField<int>(
+                  child: AppSelectionField<int>(
                     initialValue: _paymentDay,
                     decoration: InputDecoration(labelText: l10n.salPaymentDay),
                     items: [
@@ -529,7 +535,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: DropdownButtonFormField<int>(
+                  child: AppSelectionField<int>(
                     initialValue: _promptDaysBefore,
                     decoration: InputDecoration(
                       labelText: l10n.incomePromptBefore,
@@ -545,279 +551,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ],
             ),
           ],
-          if (_primaryIncome == _PrimaryIncomeChoice.salary) ...[
-            TextFormField(
-              onFieldSubmitted: (_) => _submitCurrentStep(),
-              controller: _baseSalaryController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              decoration: InputDecoration(
-                labelText: l10n.salBaseSalary,
-                suffixText: _currency,
-              ),
-              onChanged: (_) => setState(() {}),
-              validator: (v) {
-                final e = Validators.positiveAmount(v, currencyCode: _currency);
-                return e == null ? null : validationMessage(context, e);
-              },
+          if (_primaryIncome == _PrimaryIncomeChoice.salary)
+            SalaryConfigurationFields(
+              draft: _salaryDraft,
+              currencyCode: _currency,
+              onChanged: () => setState(() {}),
+              onFieldSubmitted: _submitCurrentStep,
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<int>(
-                    initialValue: _periodStartDay,
-                    decoration: InputDecoration(
-                      labelText: l10n.salPeriodStartDay,
-                    ),
-                    items: [
-                      for (var d = 1; d <= 28; d++)
-                        DropdownMenuItem(value: d, child: Text('$d')),
-                    ],
-                    onChanged: (v) => setState(() => _periodStartDay = v ?? 1),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonFormField<int>(
-                    initialValue: _paymentDay,
-                    decoration: InputDecoration(labelText: l10n.salPaymentDay),
-                    items: [
-                      for (var d = 1; d <= 28; d++)
-                        DropdownMenuItem(value: d, child: Text('$d')),
-                    ],
-                    onChanged: (v) => setState(() => _paymentDay = v ?? 1),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<int>(
-              initialValue: _paymentMonthOffset,
-              decoration: InputDecoration(
-                labelText: l10n.salPaymentMonthOffset,
-              ),
-              items: [
-                DropdownMenuItem(
-                  value: 0,
-                  child: Text(l10n.salOffsetSameMonth),
-                ),
-                DropdownMenuItem(
-                  value: 1,
-                  child: Text(l10n.salOffsetNextMonth),
-                ),
-                DropdownMenuItem(
-                  value: 2,
-                  child: Text(l10n.salOffsetSecondMonth),
-                ),
-              ],
-              onChanged: (v) => setState(() => _paymentMonthOffset = v ?? 1),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    onFieldSubmitted: (_) => _submitCurrentStep(),
-                    controller: _paidDaysController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: l10n.salStandardPaidDays,
-                    ),
-                    onChanged: (_) => setState(() {}),
-                    validator: (v) {
-                      final n = int.tryParse(v ?? '');
-                      if (n == null || n < 1 || n > 31) {
-                        return validationMessage(
-                          context,
-                          ValidationError.invalidDuration,
-                        );
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextFormField(
-                    onFieldSubmitted: (_) => _submitCurrentStep(),
-                    controller: _hoursPerDayController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: l10n.salStandardHours,
-                    ),
-                    onChanged: (_) => setState(() {}),
-                    validator: (v) {
-                      final n = int.tryParse(v ?? '');
-                      if (n == null || n < 1 || n > 24) {
-                        return validationMessage(
-                          context,
-                          ValidationError.invalidDuration,
-                        );
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            _rateModeSection(
-              l10n: l10n,
-              label: l10n.salDayRate,
-              mode: _dayRateMode,
-              onModeChanged: (m) => setState(() => _dayRateMode = m),
-              manualController: _manualDayRateController,
-              manualLabel: l10n.salManualDayRate,
-              derivedPreview: _derivedDayRate == null
-                  ? null
-                  : l10n.salDerivedDayRate(
-                      _derivedDayRate!.format(
-                        locale: Localizations.localeOf(context).toString(),
-                      ),
-                    ),
-            ),
-            const SizedBox(height: 16),
-            _rateModeSection(
-              l10n: l10n,
-              label: l10n.salHourRate,
-              mode: _hourRateMode,
-              onModeChanged: (m) => setState(() => _hourRateMode = m),
-              manualController: _manualHourRateController,
-              manualLabel: l10n.salManualHourRate,
-              derivedPreview: _derivedHourRate == null
-                  ? null
-                  : l10n.salDerivedHourRate(
-                      _derivedHourRate!.format(
-                        locale: Localizations.localeOf(context).toString(),
-                      ),
-                    ),
-            ),
-            const SizedBox(height: 24),
-            Text(l10n.salMultipliers, style: theme.textTheme.titleMedium),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _pctField(
-                    controller: _extraDayPctController,
-                    label: l10n.salExtraDayMultiplier,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _pctField(
-                    controller: _holidayPctController,
-                    label: l10n.salHolidayMultiplier,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _pctField(
-                    controller: _overtimePctController,
-                    label: l10n.salOvertimeMultiplier,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(l10n.salHolidaySemantics, style: theme.textTheme.labelLarge),
-            RadioGroup<HolidayMultiplierSemantics>(
-              groupValue: _semantics,
-              onChanged: (v) => setState(
-                () =>
-                    _semantics = v ?? HolidayMultiplierSemantics.additionalPay,
-              ),
-              child: Column(
-                children: [
-                  RadioListTile<HolidayMultiplierSemantics>(
-                    value: HolidayMultiplierSemantics.additionalPay,
-                    title: Text(l10n.salSemanticsAdditional),
-                  ),
-                  RadioListTile<HolidayMultiplierSemantics>(
-                    value: HolidayMultiplierSemantics.totalIncludingBase,
-                    title: Text(l10n.salSemanticsTotal),
-                  ),
-                ],
-              ),
-            ),
-          ],
         ],
       ),
-    );
-  }
-
-  Widget _rateModeSection({
-    required AppLocalizations l10n,
-    required String label,
-    required RateMode mode,
-    required ValueChanged<RateMode> onModeChanged,
-    required TextEditingController manualController,
-    required String manualLabel,
-    required String? derivedPreview,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 8),
-        SegmentedButton<RateMode>(
-          segments: [
-            ButtonSegment(
-              value: RateMode.derived,
-              label: Text(l10n.salRateDerived),
-            ),
-            ButtonSegment(
-              value: RateMode.manual,
-              label: Text(l10n.salRateManual),
-            ),
-          ],
-          selected: {mode},
-          onSelectionChanged: (s) => onModeChanged(s.first),
-        ),
-        if (mode == RateMode.manual) ...[
-          const SizedBox(height: 12),
-          TextFormField(
-            onFieldSubmitted: (_) => _submitCurrentStep(),
-            controller: manualController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-              labelText: manualLabel,
-              suffixText: _currency,
-            ),
-            onChanged: (_) => setState(() {}),
-            validator: (v) {
-              final e = Validators.positiveAmount(v, currencyCode: _currency);
-              return e == null ? null : validationMessage(context, e);
-            },
-          ),
-        ] else if (derivedPreview != null) ...[
-          const SizedBox(height: 8),
-          Text(
-            derivedPreview,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppTheme.infoColor(context),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _pctField({
-    required TextEditingController controller,
-    required String label,
-  }) {
-    return TextFormField(
-      onFieldSubmitted: (_) => _submitCurrentStep(),
-      controller: controller,
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(labelText: label),
-      validator: (v) {
-        final e = Validators.multiplierPct(int.tryParse(v ?? ''));
-        return e == null ? null : validationMessage(context, e);
-      },
     );
   }
 
@@ -838,7 +580,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             },
           ),
           const SizedBox(height: 16),
-          DropdownButtonFormField<AccountType>(
+          AppSelectionField<AccountType>(
             initialValue: _accountType,
             decoration: InputDecoration(labelText: l10n.accType),
             items: [

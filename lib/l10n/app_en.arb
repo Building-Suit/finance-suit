@@ -550,5 +550,14 @@
   "@incomeSplitAccount": {"placeholders": {"percentage": {"type": "String"}, "account": {"type": "String"}}},
   "incomeRemainderSplit": "{percentage}% remains in {account}",
   "@incomeRemainderSplit": {"placeholders": {"percentage": {"type": "String"}, "account": {"type": "String"}}},
-  "incomeNoPending": "No income is waiting for approval."
+  "incomeNoPending": "No income is waiting for approval.",
+  "addSectionAutomationControl": "Automation Control",
+  "addAutomation": "Add automation",
+  "manageAutomations": "Manage automations",
+  "addAutomationControlHelp": "Schedule salary or recurring income and approve it before balances change.",
+  "incomeAddAutomationEmpty": "Add an automation to schedule recurring income. Nothing changes your balance until you approve it.",
+  "incomeTypeLockedOnEdit": "Automation type cannot be changed while editing. Create a new automation to use another type.",
+  "incomeSalaryAlreadyExists": "A salary automation already exists. Edit or resume it instead.",
+  "homePartialDataError": "Some dashboard sections could not be loaded. Other available data is still shown.",
+  "onboardingSubmitFailed": "Setup could not be completed. Check your entries and try again."
 }

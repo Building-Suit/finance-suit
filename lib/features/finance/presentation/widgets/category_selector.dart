@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
@@ -35,7 +36,7 @@ class CategorySelector extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DropdownButtonFormField<String?>(
+        AppSelectionField<String?>(
           key: ValueKey('category-parent-$selectedParentId'),
           initialValue: selectedParentId,
           decoration: InputDecoration(labelText: l10n.txCategory),
@@ -54,7 +55,7 @@ class CategorySelector extends StatelessWidget {
         ),
         if (selectedParentId != null && children.isNotEmpty) ...[
           const SizedBox(height: 16),
-          DropdownButtonFormField<String?>(
+          AppSelectionField<String?>(
             key: ValueKey('category-child-$selectedCategoryId'),
             initialValue: selected?.isSubcategory == true ? selected!.id : null,
             decoration: InputDecoration(labelText: l10n.catSubcategoryOptional),

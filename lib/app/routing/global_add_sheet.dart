@@ -35,12 +35,14 @@ class _GlobalAddSheetState extends State<GlobalAddSheet> {
 
   final _moneyController = ExpansibleController();
   final _workController = ExpansibleController();
+  final _automationController = ExpansibleController();
   final _macrosController = ExpansibleController();
 
   @override
   void dispose() {
     _moneyController.dispose();
     _workController.dispose();
+    _automationController.dispose();
     _macrosController.dispose();
     super.dispose();
   }
@@ -51,6 +53,7 @@ class _GlobalAddSheetState extends State<GlobalAddSheet> {
     for (final controller in [
       _moneyController,
       _workController,
+      _automationController,
       _macrosController,
     ]) {
       if (!identical(controller, opened) && controller.isExpanded) {
@@ -66,6 +69,10 @@ class _GlobalAddSheetState extends State<GlobalAddSheet> {
       top: false,
       child: ListView(
         key: const Key('global-add-list'),
+        // ExpansionTile controllers keep cross-section state. Retain this
+        // short control surface while scrolling so an off-screen tile is not
+        // detached and reattached while another controller is notifying it.
+        cacheExtent: 10000,
         padding: const EdgeInsets.only(bottom: 16),
         children: [
           Padding(
@@ -152,6 +159,30 @@ class _GlobalAddSheetState extends State<GlobalAddSheet> {
                 icon: FinanceSuitIcons.priceChange,
                 label: l10n.salNewAdjustment,
                 route: widget.salaryAdjustmentRoute,
+              ),
+            ],
+          ),
+          ExpansionTile(
+            key: const Key('global-add-automation-control'),
+            controller: _automationController,
+            childrenPadding: _childrenPadding,
+            onExpansionChanged: (expanded) =>
+                _openOnly(_automationController, expanded),
+            leading: const FinanceSuitIcon(FinanceSuitIcons.bolt),
+            title: Text(l10n.addSectionAutomationControl),
+            subtitle: Text(l10n.addAutomationControlHelp),
+            children: [
+              _routeTile(
+                context,
+                icon: FinanceSuitIcons.addCircle,
+                label: l10n.addAutomation,
+                route: '/settings/income-sources/new',
+              ),
+              _routeTile(
+                context,
+                icon: FinanceSuitIcons.tune,
+                label: l10n.manageAutomations,
+                route: '/settings/income-sources',
               ),
             ],
           ),

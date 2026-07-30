@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
+import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
@@ -59,6 +60,7 @@ class IncomeSourcesScreen extends ConsumerWidget {
     Map<String, String> accountNames,
   ) {
     final l10n = AppLocalizations.of(context);
+    final status = source.isActive ? context.suitColors.success : null;
     final primaryName = accountNames[source.primaryAccountId] ?? '—';
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -87,8 +89,22 @@ class IncomeSourcesScreen extends ConsumerWidget {
                   ),
                 ),
                 Chip(
+                  avatar: FinanceSuitIcon(
+                    source.isActive
+                        ? FinanceSuitIcons.checkCircle
+                        : FinanceSuitIcons.pauseCircle,
+                    color: status?.icon ?? context.suitColors.textMuted,
+                  ),
+                  backgroundColor:
+                      status?.background ?? context.suitColors.surfaceMuted,
+                  side: BorderSide(
+                    color: status?.border ?? context.suitColors.borderSubtle,
+                  ),
                   label: Text(
                     source.isActive ? l10n.incomeActive : l10n.incomePaused,
+                    style: TextStyle(
+                      color: status?.text ?? context.suitColors.textMuted,
+                    ),
                   ),
                 ),
               ],
@@ -143,6 +159,7 @@ class IncomeSourcesScreen extends ConsumerWidget {
     PendingIncome pending,
   ) {
     final l10n = AppLocalizations.of(context);
+    final warning = context.suitColors.warning;
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: Padding(
@@ -154,10 +171,21 @@ class IncomeSourcesScreen extends ConsumerWidget {
               pending.source.name,
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            Text(
-              pending.isDueOn(PlainDate.today())
-                  ? l10n.incomeDue(pending.occurrence.scheduledOn.toIso())
-                  : l10n.incomeUpcoming(pending.occurrence.scheduledOn.toIso()),
+            Row(
+              children: [
+                FinanceSuitIcon(FinanceSuitIcons.moreTime, color: warning.icon),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    pending.isDueOn(PlainDate.today())
+                        ? l10n.incomeDue(pending.occurrence.scheduledOn.toIso())
+                        : l10n.incomeUpcoming(
+                            pending.occurrence.scheduledOn.toIso(),
+                          ),
+                    style: TextStyle(color: warning.text),
+                  ),
+                ),
+              ],
             ),
             Text(pending.source.expectedAmount.format()),
             const SizedBox(height: 8),
@@ -281,9 +309,21 @@ class IncomeSourcesScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 if (items.isEmpty)
-                  EmptyStateView(
-                    icon: FinanceSuitIcons.payments,
-                    message: l10n.incomeNoSources,
+                  Column(
+                    children: [
+                      EmptyStateView(
+                        icon: FinanceSuitIcons.payments,
+                        message: l10n.incomeAddAutomationEmpty,
+                      ),
+                      const SizedBox(height: 12),
+                      FilledButton.icon(
+                        onPressed: () => context.push(
+                          '${AppRoutes.settings}/income-sources/new',
+                        ),
+                        icon: const FinanceSuitIcon(FinanceSuitIcons.addCircle),
+                        label: Text(l10n.addAutomation),
+                      ),
+                    ],
                   )
                 else
                   for (final source in items)

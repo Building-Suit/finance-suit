@@ -90,5 +90,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Step 2 of 4'), findsOneWidget);
+    expect(
+      find.byKey(const Key('salary-configuration-fields')),
+      findsOneWidget,
+    );
   });
 }

@@ -2749,6 +2749,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No income is waiting for approval.'**
   String get incomeNoPending;
+
+  /// No description provided for @addSectionAutomationControl.
+  ///
+  /// In en, this message translates to:
+  /// **'Automation Control'**
+  String get addSectionAutomationControl;
+
+  /// No description provided for @addAutomation.
+  ///
+  /// In en, this message translates to:
+  /// **'Add automation'**
+  String get addAutomation;
+
+  /// No description provided for @manageAutomations.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage automations'**
+  String get manageAutomations;
+
+  /// No description provided for @addAutomationControlHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule salary or recurring income and approve it before balances change.'**
+  String get addAutomationControlHelp;
+
+  /// No description provided for @incomeAddAutomationEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an automation to schedule recurring income. Nothing changes your balance until you approve it.'**
+  String get incomeAddAutomationEmpty;
+
+  /// No description provided for @incomeTypeLockedOnEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Automation type cannot be changed while editing. Create a new automation to use another type.'**
+  String get incomeTypeLockedOnEdit;
+
+  /// No description provided for @incomeSalaryAlreadyExists.
+  ///
+  /// In en, this message translates to:
+  /// **'A salary automation already exists. Edit or resume it instead.'**
+  String get incomeSalaryAlreadyExists;
+
+  /// No description provided for @homePartialDataError.
+  ///
+  /// In en, this message translates to:
+  /// **'Some dashboard sections could not be loaded. Other available data is still shown.'**
+  String get homePartialDataError;
+
+  /// No description provided for @onboardingSubmitFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup could not be completed. Check your entries and try again.'**
+  String get onboardingSubmitFailed;
 }
 
 class _AppLocalizationsDelegate

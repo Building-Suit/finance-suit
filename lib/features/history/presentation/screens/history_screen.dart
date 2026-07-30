@@ -6,6 +6,7 @@ import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
+import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
@@ -434,7 +435,7 @@ class _AdvancedFilters extends StatelessWidget {
       tilePadding: EdgeInsets.zero,
       title: Text(l10n.historyActiveFilters),
       children: [
-        DropdownButtonFormField<String?>(
+        AppSelectionField<String?>(
           initialValue: accountId,
           decoration: InputDecoration(labelText: l10n.txAccount),
           items: [
@@ -448,7 +449,7 @@ class _AdvancedFilters extends StatelessWidget {
           onChanged: onAccountChanged,
         ),
         const SizedBox(height: 8),
-        DropdownButtonFormField<String?>(
+        AppSelectionField<String?>(
           initialValue: categoryId,
           decoration: InputDecoration(labelText: l10n.txCategory),
           items: [

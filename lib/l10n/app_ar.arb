@@ -550,5 +550,14 @@
   "@incomeSplitAccount": {"placeholders": {"percentage": {"type": "String"}, "account": {"type": "String"}}},
   "incomeRemainderSplit": "يبقى {percentage}% في {account}",
   "@incomeRemainderSplit": {"placeholders": {"percentage": {"type": "String"}, "account": {"type": "String"}}},
-  "incomeNoPending": "لا يوجد دخل ينتظر موافقتك."
+  "incomeNoPending": "لا يوجد دخل ينتظر موافقتك.",
+  "addSectionAutomationControl": "التحكم في الأتمتة",
+  "addAutomation": "إضافة أتمتة",
+  "manageAutomations": "إدارة الأتمتة",
+  "addAutomationControlHelp": "جدولة الراتب أو الدخل الدوري والموافقة عليه قبل تغيير الأرصدة.",
+  "incomeAddAutomationEmpty": "أضف أتمتة لجدولة الدخل الدوري. لن يتغير رصيدك حتى توافق عليه.",
+  "incomeTypeLockedOnEdit": "لا يمكن تغيير نوع الأتمتة أثناء التعديل. أنشئ أتمتة جديدة لاستخدام نوع آخر.",
+  "incomeSalaryAlreadyExists": "توجد أتمتة راتب بالفعل. عدّلها أو استأنفها بدلاً من ذلك.",
+  "homePartialDataError": "تعذر تحميل بعض أقسام لوحة التحكم. ستظل البيانات الأخرى المتاحة ظاهرة.",
+  "onboardingSubmitFailed": "تعذر إكمال الإعداد. راجع البيانات وحاول مرة أخرى."
 }

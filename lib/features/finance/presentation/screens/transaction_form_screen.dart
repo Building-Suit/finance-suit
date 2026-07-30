@@ -8,6 +8,7 @@ import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
+import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
@@ -260,7 +261,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                 onTap: _pickDate,
               ),
               const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
+              AppSelectionField<String>(
                 // Recreate the field when the async preselection lands so the
                 // initial value is actually shown.
                 key: ValueKey('account-$_accountId'),

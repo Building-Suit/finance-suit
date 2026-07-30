@@ -5,6 +5,7 @@ import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/configuration/env.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/core/validation/validators.dart';
+import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:work_tracker/features/settings/data/settings_repository.dart';
@@ -112,45 +113,53 @@ class SettingsScreen extends ConsumerWidget {
           ListTile(
             leading: const FinanceSuitIcon(FinanceSuitIcons.brightness),
             title: Text(l10n.setTheme),
-            trailing: DropdownButton<ThemeMode>(
-              value: themeMode,
-              underline: const SizedBox.shrink(),
-              onChanged: (mode) {
-                if (mode != null) {
-                  ref.read(themeModeProvider.notifier).setMode(mode);
-                }
-              },
-              items: [
-                DropdownMenuItem(
-                  value: ThemeMode.system,
-                  child: Text(l10n.setThemeSystem),
-                ),
-                DropdownMenuItem(
-                  value: ThemeMode.light,
-                  child: Text(l10n.setThemeLight),
-                ),
-                DropdownMenuItem(
-                  value: ThemeMode.dark,
-                  child: Text(l10n.setThemeDark),
-                ),
-              ],
+            trailing: SizedBox(
+              width: 160,
+              child: AppSelectionField<ThemeMode>(
+                initialValue: themeMode,
+                decoration: const InputDecoration(isDense: true),
+                onChanged: (mode) {
+                  if (mode != null) {
+                    ref.read(themeModeProvider.notifier).setMode(mode);
+                  }
+                },
+                items: [
+                  DropdownMenuItem(
+                    value: ThemeMode.system,
+                    child: Text(l10n.setThemeSystem),
+                  ),
+                  DropdownMenuItem(
+                    value: ThemeMode.light,
+                    child: Text(l10n.setThemeLight),
+                  ),
+                  DropdownMenuItem(
+                    value: ThemeMode.dark,
+                    child: Text(l10n.setThemeDark),
+                  ),
+                ],
+              ),
             ),
           ),
           ListTile(
             leading: const FinanceSuitIcon(FinanceSuitIcons.language),
             title: Text(l10n.onbLanguage),
-            trailing: DropdownButton<String>(
-              value: locale?.languageCode ?? 'en',
-              underline: const SizedBox.shrink(),
-              onChanged: (code) {
-                if (code != null) {
-                  ref.read(appLocaleProvider.notifier).setLocale(Locale(code));
-                }
-              },
-              items: const [
-                DropdownMenuItem(value: 'en', child: Text('English')),
-                DropdownMenuItem(value: 'ar', child: Text('العربية')),
-              ],
+            trailing: SizedBox(
+              width: 140,
+              child: AppSelectionField<String>(
+                initialValue: locale?.languageCode ?? 'en',
+                decoration: const InputDecoration(isDense: true),
+                onChanged: (code) {
+                  if (code != null) {
+                    ref
+                        .read(appLocaleProvider.notifier)
+                        .setLocale(Locale(code));
+                  }
+                },
+                items: const [
+                  DropdownMenuItem(value: 'en', child: Text('English')),
+                  DropdownMenuItem(value: 'ar', child: Text('العربية')),
+                ],
+              ),
             ),
           ),
           const Divider(),

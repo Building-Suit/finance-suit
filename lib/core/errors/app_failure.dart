@@ -138,22 +138,31 @@ AppFailure mapSupabaseError(Object error) {
   }
   if (error is PostgrestException) {
     final code = error.code ?? '';
+    final details = [
+      'code=$code',
+      'message=${error.message}',
+      if (error.details != null) 'details=${error.details}',
+      if (error.hint != null) 'hint=${error.hint}',
+    ].join('; ');
     // 23xxx: integrity constraint violations.
     if (code.startsWith('23')) {
-      return ConstraintFailure(code, debugDetails: error.message);
+      return ConstraintFailure(code, debugDetails: details);
     }
     // RLS denial surfaces as 42501 (insufficient privilege) or empty result.
     if (code == '42501' || code == 'PGRST301') {
-      return AuthorizationFailure(debugDetails: error.message);
+      return AuthorizationFailure(debugDetails: details);
     }
     if (code == 'PGRST116') {
-      return NotFoundFailure(debugDetails: error.message);
+      return NotFoundFailure(debugDetails: details);
+    }
+    if (code == 'PGRST106' || code == 'PGRST202' || code == 'PGRST205') {
+      return ConfigurationFailure(debugDetails: details);
     }
     // P0001: raised exceptions from our own database functions.
     if (code == 'P0001') {
-      return ValidationFailure(error.message, debugDetails: error.message);
+      return ValidationFailure(error.message, debugDetails: details);
     }
-    return UnknownFailure(debugDetails: '${error.code}: ${error.message}');
+    return UnknownFailure(debugDetails: details);
   }
   if (error is FunctionException) {
     if (error.status == 401 || error.status == 403) {

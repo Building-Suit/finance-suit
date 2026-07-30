@@ -27,8 +27,10 @@ class AsyncView<T> extends StatelessWidget {
       data: data,
       loading: () =>
           loading ?? const Center(child: CircularProgressIndicator()),
-      error: (error, _) => ErrorRetryView(
-        failure: error is AppFailure ? error : UnknownFailure(),
+      error: (error, stackTrace) => ErrorRetryView(
+        failure: error is AppFailure
+            ? error
+            : UnknownFailure(debugDetails: '$error\n$stackTrace'),
         onRetry: onRetry,
       ),
     );

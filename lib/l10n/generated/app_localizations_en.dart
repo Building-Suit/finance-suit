@@ -1427,4 +1427,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get incomeNoPending => 'No income is waiting for approval.';
+
+  @override
+  String get addSectionAutomationControl => 'Automation Control';
+
+  @override
+  String get addAutomation => 'Add automation';
+
+  @override
+  String get manageAutomations => 'Manage automations';
+
+  @override
+  String get addAutomationControlHelp =>
+      'Schedule salary or recurring income and approve it before balances change.';
+
+  @override
+  String get incomeAddAutomationEmpty =>
+      'Add an automation to schedule recurring income. Nothing changes your balance until you approve it.';
+
+  @override
+  String get incomeTypeLockedOnEdit =>
+      'Automation type cannot be changed while editing. Create a new automation to use another type.';
+
+  @override
+  String get incomeSalaryAlreadyExists =>
+      'A salary automation already exists. Edit or resume it instead.';
+
+  @override
+  String get homePartialDataError =>
+      'Some dashboard sections could not be loaded. Other available data is still shown.';
+
+  @override
+  String get onboardingSubmitFailed =>
+      'Setup could not be completed. Check your entries and try again.';
 }

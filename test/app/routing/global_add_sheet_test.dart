@@ -14,11 +14,13 @@ Future<void> pumpSheet(
   ValueChanged<Object?>? onSelected,
   VoidCallback? onRetryMacros,
   AsyncValue<List<TransactionMacro>>? macrosState,
+  Locale locale = const Locale('en'),
 }) async {
   await tester.pumpWidget(
     MaterialApp(
       key: UniqueKey(),
-      theme: AppTheme.light(),
+      locale: locale,
+      theme: AppTheme.light(locale: locale),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Builder(
@@ -54,15 +56,15 @@ Future<void> pumpSheet(
 }
 
 Future<void> scrollSheetTo(WidgetTester tester, Finder target) async {
-  for (var attempt = 0; attempt < 40; attempt++) {
-    if (target.hitTestable().evaluate().isNotEmpty) return;
-    await tester.drag(
-      find.byKey(const Key('global-add-list')),
-      const Offset(0, -80),
-    );
-    await tester.pumpAndSettle();
-  }
-  expect(target.hitTestable(), findsWidgets);
+  if (target.hitTestable().evaluate().isNotEmpty) return;
+  await tester.dragUntilVisible(
+    target,
+    find.byKey(const Key('global-add-list')),
+    const Offset(0, -120),
+    maxIteration: 40,
+  );
+  await tester.pumpAndSettle();
+  expect(target.hitTestable(), findsAtLeastNWidgets(1));
 }
 
 Future<void> expandSection(WidgetTester tester, String label) async {
@@ -91,6 +93,7 @@ void main() {
       expect(find.text('New held amount'), findsOneWidget);
       expect(find.text('New category'), findsOneWidget);
       expect(find.text('Add work entry'), findsNothing);
+      expect(find.text('Add automation'), findsNothing);
       expect(find.text('New macro'), findsNothing);
 
       await expandSection(tester, 'Work Control');
@@ -98,6 +101,11 @@ void main() {
       expect(find.text('Add work entry'), findsOneWidget);
       expect(find.text('New holiday'), findsOneWidget);
       expect(find.text('New adjustment'), findsOneWidget);
+
+      await expandSection(tester, 'Automation Control');
+      expect(find.text('Add work entry'), findsNothing);
+      expect(find.text('Add automation'), findsOneWidget);
+      expect(find.text('Manage automations'), findsOneWidget);
 
       await expandSection(tester, 'Macros');
       expect(find.text('Add work entry'), findsNothing);
@@ -136,6 +144,12 @@ void main() {
     );
     expect(workTile.childrenPadding, expectedPadding);
 
+    await expandSection(tester, 'Automation Control');
+    final automationTile = tester.widget<ExpansionTile>(
+      find.byKey(const Key('global-add-automation-control')),
+    );
+    expect(automationTile.childrenPadding, expectedPadding);
+
     await expandSection(tester, 'Macros');
     final macrosTile = tester.widget<ExpansionTile>(
       find.byKey(const Key('global-add-macros')),
@@ -171,6 +185,16 @@ void main() {
         section: 'Work Control',
         label: 'Add work entry',
         route: '/work/entry/new',
+      ),
+      (
+        section: 'Automation Control',
+        label: 'Add automation',
+        route: '/settings/income-sources/new',
+      ),
+      (
+        section: 'Automation Control',
+        label: 'Manage automations',
+        route: '/settings/income-sources',
       ),
       (
         section: 'Work Control',
@@ -235,10 +259,29 @@ void main() {
     await scrollSheetTo(tester, find.text('New adjustment'));
     expect(find.text('New adjustment'), findsOneWidget);
 
+    await expandSection(tester, 'Automation Control');
+    await scrollSheetTo(tester, find.text('Manage automations'));
+    expect(find.text('Manage automations'), findsOneWidget);
+
     await expandSection(tester, 'Macros');
     await scrollSheetTo(tester, find.text('Manage macros'));
     expect(find.text('Manage macros'), findsOneWidget);
   });
+
+  testWidgets(
+    'automation accordion is reachable in Arabic RTL without overflow',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(320, 480));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await pumpSheet(tester, locale: const Locale('ar'));
+
+      await expandSection(tester, 'التحكم في الأتمتة');
+      await scrollSheetTo(tester, find.text('إدارة الأتمتة'));
+      expect(find.text('إضافة أتمتة'), findsOneWidget);
+      expect(find.text('إدارة الأتمتة'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('macro loading and retry states stay visible', (tester) async {
     var retried = false;

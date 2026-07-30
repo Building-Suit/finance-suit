@@ -140,7 +140,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ..invalidate(allAccountBalancesProvider)
       ..invalidate(currentEstimateProvider)
       ..invalidate(historyPageProvider)
-      ..invalidate(cashFlowSummaryProvider);
+      ..invalidate(cashFlowSummaryProvider)
+      ..invalidate(salarySettingsProvider);
     ref.invalidate(pendingIncomeProvider);
   }
 
@@ -366,9 +367,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final accountsAsync = ref.watch(accountBalancesProvider);
     final allAccountsAsync = ref.watch(allAccountBalancesProvider);
     final summaryAsync = ref.watch(cashFlowSummaryProvider(_range.range));
-    final estimateAsync = ref.watch(currentEstimateProvider);
-    final salaryEnabled =
-        ref.watch(salarySettingsProvider).value?.salaryEnabled ?? true;
+    final salarySettingsAsync = ref.watch(salarySettingsProvider);
+    final salaryEnabled = salarySettingsAsync.value?.salaryEnabled == true;
+    final estimateAsync = salaryEnabled
+        ? ref.watch(currentEstimateProvider)
+        : null;
     final pendingIncomeAsync = ref.watch(pendingIncomeProvider);
     final recentAsync = ref.watch(
       historyPageProvider(
@@ -382,6 +385,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       for (final account in allAccountsAsync.value ?? <AccountBalance>[])
         account.accountId: account.name,
     };
+    final hasDashboardFailure = [
+      pendingIncomeAsync,
+      accountsAsync,
+      allAccountsAsync,
+      summaryAsync,
+      salarySettingsAsync,
+      ?estimateAsync,
+      recentAsync,
+    ].any((value) => value.hasError);
+
+    Widget compactSection<T>(
+      AsyncValue<T> value, {
+      required Widget loading,
+      required Widget Function(T data) data,
+    }) => value.when(
+      data: data,
+      loading: () => loading,
+      error: (_, _) => const SizedBox.shrink(),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -405,9 +427,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
           children: [
-            AsyncView(
-              value: pendingIncomeAsync,
-              onRetry: () => ref.invalidate(pendingIncomeProvider),
+            if (hasDashboardFailure) _HomeDataStatusCard(onRetry: _refresh),
+            compactSection(
+              pendingIncomeAsync,
               loading: const SizedBox.shrink(),
               data: (items) => items.isEmpty
                   ? const SizedBox.shrink()
@@ -419,9 +441,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
             ),
             _SectionHeader(title: l10n.homeBalance),
-            AsyncView(
-              value: accountsAsync,
-              onRetry: () => ref.invalidate(accountBalancesProvider),
+            compactSection(
+              accountsAsync,
               loading: const _SectionLoader(),
               data: (accounts) => _BalanceSection(accounts: accounts),
             ),
@@ -432,9 +453,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               labelFor: (preset) => _rangeLabel(l10n, preset),
               onSelected: _selectPreset,
             ),
-            AsyncView(
-              value: summaryAsync,
-              onRetry: () => ref.invalidate(cashFlowSummaryProvider),
+            compactSection(
+              summaryAsync,
               loading: const _SectionLoader(),
               data: (summary) => _CashFlowSection(
                 summary: summary,
@@ -448,9 +468,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 actionLabel: l10n.commonSeeAll,
                 onAction: () => context.push('${AppRoutes.work}/periods'),
               ),
-              AsyncView(
-                value: estimateAsync,
-                onRetry: () => ref.invalidate(currentEstimateProvider),
+              compactSection(
+                estimateAsync!,
                 loading: const _SectionLoader(),
                 data: (estimate) => EstimateBreakdownCard(estimate: estimate),
               ),
@@ -460,9 +479,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               actionLabel: l10n.commonSeeAll,
               onAction: () => context.push(AppRoutes.history),
             ),
-            AsyncView(
-              value: recentAsync,
-              onRetry: () => ref.invalidate(historyPageProvider),
+            compactSection(
+              recentAsync,
               loading: const _SectionLoader(),
               data: (page) {
                 if (page.items.isEmpty) {
@@ -478,6 +496,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ],
                 );
               },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeDataStatusCard extends StatelessWidget {
+  const _HomeDataStatusCard({required this.onRetry});
+
+  final Future<void> Function() onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final error = context.suitColors.error;
+    return Card(
+      color: error.background,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FinanceSuitIcon(FinanceSuitIcons.error, color: error.icon),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                l10n.homePartialDataError,
+                style: TextStyle(color: error.text),
+              ),
+            ),
+            TextButton.icon(
+              onPressed: onRetry,
+              icon: const FinanceSuitIcon(FinanceSuitIcons.refresh),
+              label: Text(l10n.commonRetry),
             ),
           ],
         ),
@@ -737,6 +791,7 @@ class _CashFlowSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final colors = context.suitColors;
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 520;
@@ -751,6 +806,7 @@ class _CashFlowSection extends StatelessWidget {
             _MetricCard(
               icon: FinanceSuitIcons.trendingUp,
               label: l10n.reportIncome,
+              tone: colors.success,
               value: Money(
                 minor: summary.incomeMinor,
                 currencyCode: currencyCode,
@@ -759,6 +815,7 @@ class _CashFlowSection extends StatelessWidget {
             _MetricCard(
               icon: FinanceSuitIcons.shoppingCart,
               label: l10n.reportExpenses,
+              tone: colors.error,
               value: Money(
                 minor: summary.expensesMinor,
                 currencyCode: currencyCode,
@@ -767,6 +824,7 @@ class _CashFlowSection extends StatelessWidget {
             _MetricCard(
               icon: FinanceSuitIcons.volunteerActivism,
               label: l10n.reportAllowances,
+              tone: colors.warning,
               value: Money(
                 minor: summary.allowancesMinor,
                 currencyCode: currencyCode,
@@ -775,6 +833,11 @@ class _CashFlowSection extends StatelessWidget {
             _MetricCard(
               icon: FinanceSuitIcons.accountBalance,
               label: l10n.reportNet,
+              tone: summary.netMinor > 0
+                  ? colors.success
+                  : summary.netMinor < 0
+                  ? colors.error
+                  : null,
               value: Money(
                 minor: summary.netMinor,
                 currencyCode: currencyCode,
@@ -793,25 +856,29 @@ class _MetricCard extends StatelessWidget {
     required this.label,
     required this.value,
     this.brand = false,
+    this.tone,
   });
 
   final FinanceSuitGlyph icon;
   final String label;
   final String value;
   final bool brand;
+  final FinanceSuitStatusColors? tone;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.suitColors;
-    final foreground = brand ? colors.onBrandSurface : colors.textPrimary;
+    final foreground = brand
+        ? colors.onBrandSurface
+        : tone?.text ?? colors.textPrimary;
     return Card(
-      color: brand ? colors.brandSurface : null,
+      color: brand ? colors.brandSurface : tone?.background,
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FinanceSuitIcon(icon, color: foreground),
+            FinanceSuitIcon(icon, color: tone?.icon ?? foreground),
             const Spacer(),
             Text(
               label,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
+import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/category_selector.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
@@ -54,7 +55,7 @@ void main() {
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Subcategory (optional)'), findsOneWidget);
 
-    await tester.tap(find.byType(DropdownButtonFormField<String?>).last);
+    await tester.tap(find.byType(AppSelectionField<String?>).last);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Repairs').last);
     await tester.pumpAndSettle();
@@ -70,7 +71,7 @@ void main() {
       onChanged: (value) => changed = value,
     );
 
-    await tester.tap(find.byType(DropdownButtonFormField<String?>).last);
+    await tester.tap(find.byType(AppSelectionField<String?>).last);
     await tester.pumpAndSettle();
     await tester.tap(
       find.text('No subcategory — use the parent category').last,

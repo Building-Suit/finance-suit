@@ -5,6 +5,7 @@ import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
+import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
@@ -162,7 +163,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    DropdownButtonFormField<AccountType>(
+                    AppSelectionField<AccountType>(
                       initialValue: _accountType,
                       decoration: InputDecoration(labelText: l10n.accType),
                       items: [
