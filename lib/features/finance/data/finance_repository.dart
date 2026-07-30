@@ -253,10 +253,11 @@ class FinanceRepository {
     String? categoryId,
     String? notes,
     String? sourceId,
+    bool isActive = true,
   }) {
     return guard(() async {
       return _db.rpc<String>(
-        'save_income_source',
+        'save_income_source_v2',
         params: {
           'p_name': name,
           'p_source_kind': kind.dbValue,
@@ -272,6 +273,7 @@ class FinanceRepository {
           ],
           'p_notes': notes,
           'p_source_id': sourceId,
+          'p_is_active': isActive,
         },
       );
     });

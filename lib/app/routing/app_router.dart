@@ -270,7 +270,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     routes: [
                       GoRoute(
                         path: 'new',
-                        builder: (context, state) => const CategoryFormScreen(),
+                        builder: (context, state) => CategoryFormScreen(
+                          initialKind: state.uri.queryParameters['kind'] == null
+                              ? null
+                              : CategoryKind.fromDb(
+                                  state.uri.queryParameters['kind']!,
+                                ),
+                          initialParentCategoryId:
+                              state.uri.queryParameters['parent'],
+                        ),
                       ),
                     ],
                   ),

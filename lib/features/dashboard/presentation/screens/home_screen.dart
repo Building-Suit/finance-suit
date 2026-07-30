@@ -387,6 +387,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         title: Text(l10n.tabHome),
         actions: [
           IconButton(
+            onPressed: () =>
+                context.push('${AppRoutes.settings}/income-sources'),
+            tooltip: l10n.incomeAutomationCenter,
+            icon: const FinanceSuitIcon(FinanceSuitIcons.tune),
+          ),
+          IconButton(
             onPressed: () => context.push(AppRoutes.history),
             tooltip: l10n.historyTitle,
             icon: const FinanceSuitIcon(FinanceSuitIcons.history),

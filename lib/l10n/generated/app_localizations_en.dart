@@ -1224,6 +1224,31 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get catSubcategoryOptional => 'Subcategory (optional)';
+
+  @override
+  String get catUseParentCategory => 'No subcategory — use the parent category';
+
+  @override
+  String get catAddSubcategory => 'Add subcategory';
+
+  @override
+  String catSubcategoryCount(int count) {
+    return '$count subcategories';
+  }
+
+  @override
+  String get catMissingParent => 'Missing parent category';
+
+  @override
+  String get catArchiveChildrenFirst =>
+      'Archive this category\'s active subcategories first.';
+
+  @override
+  String get catRestoreParentFirst =>
+      'Restore the parent category before restoring this subcategory.';
+
+  @override
   String get incomeHasSalary => 'I receive a salary';
 
   @override
@@ -1343,4 +1368,63 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get incomeRemindLater =>
       'It will remain here until you accept or skip it.';
+
+  @override
+  String get incomeAutomationCenter => 'Automation center';
+
+  @override
+  String get incomeAutomationOverview =>
+      'Control recurring income, approvals, and account splits';
+
+  @override
+  String get incomeAutomationEnabled => 'Automation enabled';
+
+  @override
+  String get incomeAutomationEnabledHelp =>
+      'Pause this source without deleting its schedule or split rules.';
+
+  @override
+  String incomeActiveCount(int count) {
+    return '$count active';
+  }
+
+  @override
+  String incomePausedCount(int count) {
+    return '$count paused';
+  }
+
+  @override
+  String incomePendingCount(int count) {
+    return '$count waiting';
+  }
+
+  @override
+  String get incomeActive => 'Active';
+
+  @override
+  String get incomePaused => 'Paused';
+
+  @override
+  String get incomePause => 'Pause';
+
+  @override
+  String get incomeResume => 'Resume';
+
+  @override
+  String incomeDepositAccount(String account) {
+    return 'Deposit account: $account';
+  }
+
+  @override
+  String incomeSplitAccount(String percentage, String account) {
+    return '$percentage% to $account';
+  }
+
+  @override
+  String incomeRemainderSplit(String percentage, String account) {
+    return '$percentage% remains in $account';
+  }
+
+  @override
+  String get incomeNoPending => 'No income is waiting for approval.';
 }
