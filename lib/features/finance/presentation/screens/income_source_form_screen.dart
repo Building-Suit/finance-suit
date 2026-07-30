@@ -14,6 +14,7 @@ import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
+import 'package:work_tracker/features/finance/presentation/widgets/category_selector.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 class IncomeSourceFormScreen extends ConsumerStatefulWidget {
@@ -48,6 +49,7 @@ class _IncomeSourceFormScreenState
   late int _paymentDay = widget.existing?.paymentDay ?? 1;
   late int _promptDays = widget.existing?.promptDaysBefore ?? 7;
   late PlainDate _startDate = widget.existing?.startDate ?? PlainDate.today();
+  late bool _isActive = widget.existing?.isActive ?? true;
   String? _primaryAccountId;
   String? _categoryId;
   AppFailure? _failure;
@@ -158,6 +160,7 @@ class _IncomeSourceFormScreenState
           allocations: allocations,
           notes: notes.isEmpty ? null : notes,
           sourceId: widget.existing?.id,
+          isActive: _isActive,
         );
     if (!mounted) return;
     setState(() => _busy = false);
@@ -220,6 +223,16 @@ class _IncomeSourceFormScreenState
                   if (_kind == IncomeSourceKind.salary) _categoryId = null;
                 }),
               ),
+              const SizedBox(height: 8),
+              SwitchListTile.adaptive(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.incomeAutomationEnabled),
+                subtitle: Text(l10n.incomeAutomationEnabledHelp),
+                value: _isActive,
+                onChanged: _busy
+                    ? null
+                    : (value) => setState(() => _isActive = value),
+              ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
@@ -273,20 +286,9 @@ class _IncomeSourceFormScreenState
               ),
               if (_kind != IncomeSourceKind.salary) ...[
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String?>(
-                  initialValue: _categoryId,
-                  decoration: InputDecoration(labelText: l10n.txCategory),
-                  items: [
-                    DropdownMenuItem<String?>(
-                      value: null,
-                      child: Text(l10n.txNoCategory),
-                    ),
-                    for (final category in categories)
-                      DropdownMenuItem<String?>(
-                        value: category.id,
-                        child: Text(category.displayName(categories)),
-                      ),
-                  ],
+                CategorySelector(
+                  categories: categories,
+                  selectedCategoryId: _categoryId,
                   onChanged: (value) => setState(() => _categoryId = value),
                 ),
               ],

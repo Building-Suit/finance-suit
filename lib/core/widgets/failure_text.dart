@@ -46,6 +46,8 @@ String _dbValidationMessage(AppLocalizations l10n, String raw) {
     'macro_empty' => l10n.errMacroEmpty,
     'not_found' => l10n.errNotFound,
     'account_deletion_failed' => l10n.deleteAccountFailure,
+    'active_subcategories_exist' => l10n.catArchiveChildrenFirst,
+    'parent_category_archived' => l10n.catRestoreParentFirst,
     _ => l10n.commonError,
   };
 }

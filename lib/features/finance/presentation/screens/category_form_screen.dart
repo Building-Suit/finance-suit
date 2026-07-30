@@ -15,7 +15,14 @@ import 'package:work_tracker/l10n/generated/app_localizations.dart';
 /// Creates a category from the global Add flow, including the category kind
 /// that was previously implied by the selected tab on the management page.
 class CategoryFormScreen extends ConsumerStatefulWidget {
-  const CategoryFormScreen({super.key});
+  const CategoryFormScreen({
+    super.key,
+    this.initialKind,
+    this.initialParentCategoryId,
+  });
+
+  final CategoryKind? initialKind;
+  final String? initialParentCategoryId;
 
   @override
   ConsumerState<CategoryFormScreen> createState() => _CategoryFormScreenState();
@@ -25,8 +32,8 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
 
-  CategoryKind _kind = CategoryKind.expense;
-  String? _parentCategoryId;
+  late CategoryKind _kind = widget.initialKind ?? CategoryKind.expense;
+  late String? _parentCategoryId = widget.initialParentCategoryId;
   AppFailure? _failure;
   bool _busy = false;
 

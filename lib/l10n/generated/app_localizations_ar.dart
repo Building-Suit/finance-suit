@@ -1221,6 +1221,30 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get catSubcategoryOptional => 'الفئة الفرعية (اختياري)';
+
+  @override
+  String get catUseParentCategory => 'بدون فئة فرعية — استخدم الفئة الرئيسية';
+
+  @override
+  String get catAddSubcategory => 'إضافة فئة فرعية';
+
+  @override
+  String catSubcategoryCount(int count) {
+    return '$count فئات فرعية';
+  }
+
+  @override
+  String get catMissingParent => 'الفئة الرئيسية مفقودة';
+
+  @override
+  String get catArchiveChildrenFirst => 'أرشف الفئات الفرعية المفعلة أولًا.';
+
+  @override
+  String get catRestoreParentFirst =>
+      'استعد الفئة الرئيسية قبل استعادة هذه الفئة الفرعية.';
+
+  @override
   String get incomeHasSalary => 'أتقاضى راتبًا';
 
   @override
@@ -1339,4 +1363,63 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get incomeRemindLater => 'سيظل هنا حتى تقبله أو تتخطاه.';
+
+  @override
+  String get incomeAutomationCenter => 'مركز الأتمتة';
+
+  @override
+  String get incomeAutomationOverview =>
+      'تحكم في الدخل الدوري والموافقات وتقسيم الحسابات';
+
+  @override
+  String get incomeAutomationEnabled => 'الأتمتة مفعلة';
+
+  @override
+  String get incomeAutomationEnabledHelp =>
+      'أوقف هذا المصدر مؤقتًا دون حذف الجدول أو قواعد التقسيم.';
+
+  @override
+  String incomeActiveCount(int count) {
+    return '$count مفعّل';
+  }
+
+  @override
+  String incomePausedCount(int count) {
+    return '$count متوقف';
+  }
+
+  @override
+  String incomePendingCount(int count) {
+    return '$count بانتظارك';
+  }
+
+  @override
+  String get incomeActive => 'مفعّل';
+
+  @override
+  String get incomePaused => 'متوقف';
+
+  @override
+  String get incomePause => 'إيقاف مؤقت';
+
+  @override
+  String get incomeResume => 'استئناف';
+
+  @override
+  String incomeDepositAccount(String account) {
+    return 'حساب الإيداع: $account';
+  }
+
+  @override
+  String incomeSplitAccount(String percentage, String account) {
+    return '$percentage% إلى $account';
+  }
+
+  @override
+  String incomeRemainderSplit(String percentage, String account) {
+    return 'يبقى $percentage% في $account';
+  }
+
+  @override
+  String get incomeNoPending => 'لا يوجد دخل ينتظر موافقتك.';
 }

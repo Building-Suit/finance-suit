@@ -200,7 +200,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           ListTile(
             leading: const FinanceSuitIcon(FinanceSuitIcons.trendingUp),
-            title: Text(l10n.incomeSourcesTitle),
+            title: Text(l10n.incomeAutomationCenter),
             subtitle: Text(l10n.incomeSourcesSubtitle),
             trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
             onTap: () => context.go('${AppRoutes.settings}/income-sources'),

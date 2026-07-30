@@ -14,6 +14,7 @@ import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 import 'package:work_tracker/features/finance/domain/transaction_macro.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
+import 'package:work_tracker/features/finance/presentation/widgets/category_selector.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/finance_widgets.dart';
 import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
@@ -459,27 +460,11 @@ class _MacroItemFormScreenState extends ConsumerState<_MacroItemFormScreen> {
                 ),
               ] else ...[
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String?>(
+                CategorySelector(
                   key: ValueKey('macro-category-$_categoryKind'),
-                  initialValue: _categoryId,
-                  decoration: InputDecoration(labelText: l10n.txCategory),
-                  items: [
-                    DropdownMenuItem<String?>(
-                      value: null,
-                      child: Text(l10n.txNoCategory),
-                    ),
-                    for (final category
-                        in categories.value ?? <TransactionCategory>[])
-                      DropdownMenuItem<String?>(
-                        value: category.id,
-                        child: Text(
-                          category.displayName(
-                            categories.value ?? <TransactionCategory>[],
-                          ),
-                        ),
-                      ),
-                  ],
-                  onChanged: (v) => setState(() => _categoryId = v),
+                  categories: categories.value ?? const <TransactionCategory>[],
+                  selectedCategoryId: _categoryId,
+                  onChanged: (value) => setState(() => _categoryId = value),
                 ),
               ],
               if (_kind == TransactionKind.allowanceGiven) ...[

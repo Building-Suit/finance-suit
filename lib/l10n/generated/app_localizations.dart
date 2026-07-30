@@ -2408,6 +2408,48 @@ abstract class AppLocalizations {
   /// **'Subcategory of {parent}'**
   String catSubcategoryOf(String parent);
 
+  /// No description provided for @catSubcategoryOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Subcategory (optional)'**
+  String get catSubcategoryOptional;
+
+  /// No description provided for @catUseParentCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'No subcategory — use the parent category'**
+  String get catUseParentCategory;
+
+  /// No description provided for @catAddSubcategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Add subcategory'**
+  String get catAddSubcategory;
+
+  /// No description provided for @catSubcategoryCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} subcategories'**
+  String catSubcategoryCount(int count);
+
+  /// No description provided for @catMissingParent.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing parent category'**
+  String get catMissingParent;
+
+  /// No description provided for @catArchiveChildrenFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive this category\'s active subcategories first.'**
+  String get catArchiveChildrenFirst;
+
+  /// No description provided for @catRestoreParentFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore the parent category before restoring this subcategory.'**
+  String get catRestoreParentFirst;
+
   /// No description provided for @incomeHasSalary.
   ///
   /// In en, this message translates to:
@@ -2617,6 +2659,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'It will remain here until you accept or skip it.'**
   String get incomeRemindLater;
+
+  /// No description provided for @incomeAutomationCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Automation center'**
+  String get incomeAutomationCenter;
+
+  /// No description provided for @incomeAutomationOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Control recurring income, approvals, and account splits'**
+  String get incomeAutomationOverview;
+
+  /// No description provided for @incomeAutomationEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Automation enabled'**
+  String get incomeAutomationEnabled;
+
+  /// No description provided for @incomeAutomationEnabledHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause this source without deleting its schedule or split rules.'**
+  String get incomeAutomationEnabledHelp;
+
+  /// No description provided for @incomeActiveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} active'**
+  String incomeActiveCount(int count);
+
+  /// No description provided for @incomePausedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} paused'**
+  String incomePausedCount(int count);
+
+  /// No description provided for @incomePendingCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} waiting'**
+  String incomePendingCount(int count);
+
+  /// No description provided for @incomeActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get incomeActive;
+
+  /// No description provided for @incomePaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get incomePaused;
+
+  /// No description provided for @incomePause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get incomePause;
+
+  /// No description provided for @incomeResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get incomeResume;
+
+  /// No description provided for @incomeDepositAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit account: {account}'**
+  String incomeDepositAccount(String account);
+
+  /// No description provided for @incomeSplitAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'{percentage}% to {account}'**
+  String incomeSplitAccount(String percentage, String account);
+
+  /// No description provided for @incomeRemainderSplit.
+  ///
+  /// In en, this message translates to:
+  /// **'{percentage}% remains in {account}'**
+  String incomeRemainderSplit(String percentage, String account);
+
+  /// No description provided for @incomeNoPending.
+  ///
+  /// In en, this message translates to:
+  /// **'No income is waiting for approval.'**
+  String get incomeNoPending;
 }
 
 class _AppLocalizationsDelegate

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
+import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/validation/validators.dart';
@@ -104,6 +106,43 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
     result.when(ok: (_) => _invalidate(), err: _showFailure);
   }
 
+  void _addCategory(CategoryKind kind, {String? parentId}) {
+    final query = <String, String>{'kind': kind.dbValue};
+    if (parentId case final id?) query['parent'] = id;
+    context.push(
+      Uri(
+        path: '${AppRoutes.money}/categories/new',
+        queryParameters: query,
+      ).toString(),
+    );
+  }
+
+  Widget _actions(TransactionCategory category) {
+    final l10n = AppLocalizations.of(context);
+    return PopupMenuButton<String>(
+      onSelected: (action) {
+        if (action == 'add') {
+          _addCategory(category.kind, parentId: category.id);
+        } else if (action == 'rename') {
+          _renameCategory(category);
+        } else if (action == 'archive') {
+          _toggleArchived(category);
+        }
+      },
+      itemBuilder: (context) => [
+        if (!category.isSubcategory && !category.isArchived)
+          PopupMenuItem(value: 'add', child: Text(l10n.catAddSubcategory)),
+        PopupMenuItem(value: 'rename', child: Text(l10n.commonEdit)),
+        PopupMenuItem(
+          value: 'archive',
+          child: Text(
+            category.isArchived ? l10n.moneyUnarchive : l10n.moneyArchive,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _kindTab(CategoryKind kind, List<TransactionCategory> all) {
     final l10n = AppLocalizations.of(context);
     final categories = all.where((c) => c.kind == kind).toList();
@@ -113,68 +152,80 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
         message: l10n.catNoneYet,
       );
     }
-    final topLevel = categories.where((category) => !category.isSubcategory);
-    final ordered = <TransactionCategory>[
-      for (final parent in topLevel) ...[
-        parent,
-        ...categories.where(
-          (category) => category.parentCategoryId == parent.id,
-        ),
-      ],
-      ...categories.where(
-        (category) =>
-            category.isSubcategory &&
-            !categories.any((parent) => parent.id == category.parentCategoryId),
-      ),
-    ];
+    final topLevel = categories
+        .where((category) => !category.isSubcategory)
+        .toList();
+    final orphans = categories
+        .where(
+          (category) =>
+              category.isSubcategory &&
+              !categories.any(
+                (parent) => parent.id == category.parentCategoryId,
+              ),
+        )
+        .toList();
     return ListView(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 96),
       children: [
-        for (final category in ordered)
-          ListTile(
-            contentPadding: EdgeInsetsDirectional.only(
-              start: category.isSubcategory ? 40 : 16,
-              end: 8,
-            ),
-            leading: const FinanceSuitIcon(FinanceSuitIcons.label),
-            title: Text(category.name),
-            subtitle: category.isSubcategory || category.isArchived
-                ? Text(
-                    [
-                      if (category.isSubcategory)
-                        l10n.catSubcategoryOf(
-                          all
-                                  .where(
-                                    (parent) =>
-                                        parent.id == category.parentCategoryId,
-                                  )
-                                  .firstOrNull
-                                  ?.name ??
-                              l10n.catTopLevel,
+        for (final parent in topLevel)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Card(
+              clipBehavior: Clip.antiAlias,
+              child: ExpansionTile(
+                initiallyExpanded: true,
+                leading: const FinanceSuitIcon(FinanceSuitIcons.label),
+                title: Text(parent.name),
+                subtitle: parent.isArchived
+                    ? Text(l10n.moneyArchivedLabel)
+                    : Text(
+                        l10n.catSubcategoryCount(
+                          categories
+                              .where(
+                                (child) => child.parentCategoryId == parent.id,
+                              )
+                              .length,
                         ),
-                      if (category.isArchived) l10n.moneyArchivedLabel,
-                    ].join(' · '),
-                  )
-                : null,
-            onTap: () => _renameCategory(category),
-            trailing: PopupMenuButton<String>(
-              onSelected: (action) {
-                if (action == 'rename') _renameCategory(category);
-                if (action == 'archive') _toggleArchived(category);
-              },
-              itemBuilder: (context) => [
-                PopupMenuItem(value: 'rename', child: Text(l10n.commonEdit)),
-                PopupMenuItem(
-                  value: 'archive',
-                  child: Text(
-                    category.isArchived
-                        ? l10n.moneyUnarchive
-                        : l10n.moneyArchive,
-                  ),
-                ),
-              ],
+                      ),
+                trailing: _actions(parent),
+                children: [
+                  for (final child in categories.where(
+                    (category) => category.parentCategoryId == parent.id,
+                  ))
+                    ListTile(
+                      contentPadding: const EdgeInsetsDirectional.only(
+                        start: 52,
+                        end: 8,
+                      ),
+                      leading: const FinanceSuitIcon(FinanceSuitIcons.label),
+                      title: Text(child.name),
+                      subtitle: child.isArchived
+                          ? Text(l10n.moneyArchivedLabel)
+                          : null,
+                      onTap: () => _renameCategory(child),
+                      trailing: _actions(child),
+                    ),
+                  if (!parent.isArchived)
+                    ListTile(
+                      contentPadding: const EdgeInsetsDirectional.only(
+                        start: 52,
+                        end: 16,
+                      ),
+                      leading: const FinanceSuitIcon(FinanceSuitIcons.add),
+                      title: Text(l10n.catAddSubcategory),
+                      onTap: () => _addCategory(kind, parentId: parent.id),
+                    ),
+                ],
+              ),
             ),
           ),
-        const SizedBox(height: 88),
+        for (final orphan in orphans)
+          ListTile(
+            leading: const FinanceSuitIcon(FinanceSuitIcons.label),
+            title: Text(orphan.name),
+            subtitle: Text(l10n.catMissingParent),
+            trailing: _actions(orphan),
+          ),
       ],
     );
   }
@@ -202,6 +253,11 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
           controller: _tabController,
           children: [for (final kind in _kinds) _kindTab(kind, all)],
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _addCategory(_kinds[_tabController.index]),
+        icon: const FinanceSuitIcon(FinanceSuitIcons.add),
+        label: Text(l10n.catNew),
       ),
     );
   }

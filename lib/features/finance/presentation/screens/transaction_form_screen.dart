@@ -17,6 +17,7 @@ import 'package:work_tracker/features/finance/domain/financial_transaction.dart'
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
+import 'package:work_tracker/features/finance/presentation/widgets/category_selector.dart';
 import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
@@ -280,26 +281,10 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                     : null,
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<String?>(
-                initialValue: _categoryId,
-                decoration: InputDecoration(labelText: l10n.txCategory),
-                items: [
-                  DropdownMenuItem<String?>(
-                    value: null,
-                    child: Text(l10n.txNoCategory),
-                  ),
-                  for (final category
-                      in categories.value ?? <TransactionCategory>[])
-                    DropdownMenuItem<String?>(
-                      value: category.id,
-                      child: Text(
-                        category.displayName(
-                          categories.value ?? <TransactionCategory>[],
-                        ),
-                      ),
-                    ),
-                ],
-                onChanged: (v) => setState(() => _categoryId = v),
+              CategorySelector(
+                categories: categories.value ?? const <TransactionCategory>[],
+                selectedCategoryId: _categoryId,
+                onChanged: (value) => setState(() => _categoryId = value),
               ),
               if (_kind == TransactionKind.allowanceGiven) ...[
                 const SizedBox(height: 16),
