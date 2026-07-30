@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
-import 'package:work_tracker/app/theme/app_theme.dart';
+import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
@@ -185,12 +185,12 @@ class _CalendarGrid extends StatelessWidget {
   final void Function(PlainDate day) onDayTap;
 
   Color _markerColor(BuildContext context, WorkEntryType type) {
-    final scheme = Theme.of(context).colorScheme;
+    final series = context.suitColors.chartSeries;
     return switch (type) {
-      WorkEntryType.regular => scheme.outline,
-      WorkEntryType.overtime => AppTheme.infoColor(context),
-      WorkEntryType.extraDay => scheme.tertiary,
-      WorkEntryType.holidayWorked => scheme.error,
+      WorkEntryType.regular => series[0],
+      WorkEntryType.overtime => series[2],
+      WorkEntryType.extraDay => series[3],
+      WorkEntryType.holidayWorked => series[4],
     };
   }
 
@@ -273,15 +273,15 @@ class _DayCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final colors = context.suitColors;
     return InkWell(
       onTap: () => onTap(date),
       borderRadius: BorderRadius.circular(8),
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: isSelected ? scheme.primaryContainer : null,
-          border: isToday ? Border.all(color: scheme.primary) : null,
+          color: isSelected ? colors.selectedOverlay : null,
+          border: isToday ? Border.all(color: colors.focusRing) : null,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -289,7 +289,7 @@ class _DayCell extends StatelessWidget {
             Text(
               '${date.day}',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: isSelected ? scheme.onPrimaryContainer : null,
+                color: isSelected ? colors.textPrimary : null,
               ),
             ),
             const SizedBox(height: 2),

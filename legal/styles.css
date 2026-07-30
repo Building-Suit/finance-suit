@@ -1,13 +1,21 @@
 :root {
   color-scheme: light dark;
+  /* Canonical Building Suit semantic roles from upstream 51f6513e366b284af2770d25e090ea2928412edb. */
+  --finance-background: #f7f8fa;
+  --finance-surface: #ffffff;
+  --finance-text: #232b33;
+  --finance-text-muted: #5a6573;
+  --finance-link: #36506e;
+  --finance-border-strong: #5a6573;
+  --finance-focus-ring: #a86c1c;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   line-height: 1.65;
 }
 
 body {
   margin: 0;
-  background: #f6f8fb;
-  color: #172033;
+  background: var(--finance-background);
+  color: var(--finance-text);
 }
 
 main {
@@ -23,20 +31,29 @@ nav {
   margin-bottom: 32px;
 }
 
-a { color: #2457d6; }
+a { color: var(--finance-link); }
+a:focus-visible {
+  outline: 2px solid var(--finance-focus-ring);
+  outline-offset: 2px;
+}
 h1, h2 { line-height: 1.25; }
 h2 { margin-top: 32px; }
-.meta { color: #566176; }
+.meta { color: var(--finance-text-muted); }
 .notice {
   padding: 16px;
-  border: 1px solid #bdc8dc;
+  border: 1px solid var(--finance-border-strong);
   border-radius: 12px;
-  background: #ffffff;
+  background: var(--finance-surface);
 }
 
 @media (prefers-color-scheme: dark) {
-  body { background: #101522; color: #edf1fa; }
-  a { color: #9cb8ff; }
-  .meta { color: #b4bdd0; }
-  .notice { background: #192133; border-color: #34415b; }
+  :root {
+    --finance-background: #0e1114;
+    --finance-surface: #151a1f;
+    --finance-text: #f5f6f7;
+    --finance-text-muted: #b1b8c0;
+    --finance-link: #b1b8c0;
+    --finance-border-strong: #66717d;
+    --finance-focus-ring: #ebb45a;
+  }
 }

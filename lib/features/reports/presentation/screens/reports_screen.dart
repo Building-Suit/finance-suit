@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
+import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/date_time/date_range.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/money/money.dart';
@@ -327,10 +328,7 @@ class _AsyncReportCard<T> extends StatelessWidget {
       title: title,
       child: AsyncView(
         value: value,
-        loading: const SizedBox(
-          height: 180,
-          child: Center(child: CircularProgressIndicator()),
-        ),
+        loading: const LoadingSkeleton(height: 180),
         data: data,
       ),
     );
@@ -423,32 +421,96 @@ class _BarAmountChart extends StatelessWidget {
     final minValue = values
         .map((v) => v.valueMinor / Money.minorUnitsPerMajor)
         .fold<double>(0, math.min);
+    final colors = context.suitColors;
     return Semantics(
       label: label,
       child: SizedBox(
         height: 220,
-        child: BarChart(
-          BarChartData(
-            minY: minValue < 0 ? -maxY : 0,
-            maxY: maxY,
-            titlesData: const FlTitlesData(show: false),
-            borderData: FlBorderData(show: false),
-            gridData: const FlGridData(show: true),
-            barGroups: [
-              for (var i = 0; i < values.length; i++)
-                BarChartGroupData(
-                  x: i,
-                  barRods: [
-                    BarChartRodData(
-                      toY: values[i].valueMinor / Money.minorUnitsPerMajor,
-                      color: barColors[i % barColors.length],
-                      width: 26,
-                      borderRadius: BorderRadius.circular(4),
+        child: Column(
+          children: [
+            Expanded(
+              child: BarChart(
+                BarChartData(
+                  minY: minValue < 0 ? -maxY : 0,
+                  maxY: maxY,
+                  titlesData: const FlTitlesData(show: false),
+                  borderData: FlBorderData(
+                    show: true,
+                    border: Border(
+                      left: BorderSide(color: colors.chartAxis),
+                      bottom: BorderSide(color: colors.chartAxis),
                     ),
+                  ),
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    getDrawingHorizontalLine: (_) =>
+                        FlLine(color: colors.chartGrid, strokeWidth: 1),
+                  ),
+                  barTouchData: BarTouchData(
+                    touchTooltipData: BarTouchTooltipData(
+                      getTooltipColor: (_) => colors.chartTooltipBackground,
+                      tooltipBorder: BorderSide(color: colors.chartSelection),
+                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        final value = values[groupIndex];
+                        return BarTooltipItem(
+                          '${value.label}\n'
+                          '${value.valueMinor / Money.minorUnitsPerMajor} '
+                          '$currencyCode',
+                          Theme.of(context).textTheme.labelMedium!.copyWith(
+                            color: colors.chartTooltipText,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  barGroups: [
+                    for (var i = 0; i < values.length; i++)
+                      BarChartGroupData(
+                        x: i,
+                        barRods: [
+                          BarChartRodData(
+                            toY:
+                                values[i].valueMinor / Money.minorUnitsPerMajor,
+                            color: barColors[i % barColors.length],
+                            width: 26,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
-            ],
-          ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 12,
+              runSpacing: 4,
+              alignment: WrapAlignment.center,
+              children: [
+                for (var index = 0; index < values.length; index++)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: barColors[index % barColors.length],
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        values[index].label,
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -501,6 +563,7 @@ class _LineNumberChart extends StatelessWidget {
     ];
     final maxY = spots.map((s) => s.y).fold<double>(0, math.max);
     final minY = spots.map((s) => s.y).fold<double>(0, math.min);
+    final colors = context.suitColors;
     return Semantics(
       label: label,
       child: Column(
@@ -513,13 +576,41 @@ class _LineNumberChart extends StatelessWidget {
                 minY: minY < 0 ? minY : 0,
                 maxY: maxY == 0 ? 1 : maxY,
                 titlesData: const FlTitlesData(show: false),
-                borderData: FlBorderData(show: false),
-                gridData: const FlGridData(show: true),
+                borderData: FlBorderData(
+                  show: true,
+                  border: Border(
+                    left: BorderSide(color: colors.chartAxis),
+                    bottom: BorderSide(color: colors.chartAxis),
+                  ),
+                ),
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  getDrawingHorizontalLine: (_) =>
+                      FlLine(color: colors.chartGrid, strokeWidth: 1),
+                ),
+                lineTouchData: LineTouchData(
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipColor: (_) => colors.chartTooltipBackground,
+                    tooltipBorder: BorderSide(color: colors.chartSelection),
+                    getTooltipItems: (spots) => [
+                      for (final spot in spots)
+                        LineTooltipItem(
+                          '${values[spot.x.toInt()].label}\n'
+                          '${spot.y} $valueSuffix',
+                          Theme.of(context).textTheme.labelMedium!.copyWith(
+                            color: colors.chartTooltipText,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
                 lineBarsData: [
                   LineChartBarData(
                     spots: spots,
                     isCurved: false,
-                    color: AppTheme.transferColor(context),
+                    color: colors.chartSeries[2],
                     barWidth: 3,
                     dotData: FlDotData(show: spots.length <= 1),
                   ),
@@ -552,9 +643,10 @@ class _CategoryTotalsList extends StatelessWidget {
         .map((row) => row.totalMinor)
         .fold<int>(1, math.max)
         .toDouble();
+    final colors = context.suitColors;
     return Column(
       children: [
-        for (final row in rows.take(8))
+        for (final (index, row) in rows.take(8).indexed)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 6),
             child: Column(
@@ -572,7 +664,11 @@ class _CategoryTotalsList extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 4),
-                LinearProgressIndicator(value: row.totalMinor / max),
+                LinearProgressIndicator(
+                  value: row.totalMinor / max,
+                  color: colors.chartSeries[index % colors.chartSeries.length],
+                  backgroundColor: colors.chartGrid,
+                ),
               ],
             ),
           ),
@@ -603,7 +699,7 @@ class _SalaryComparisonChart extends StatelessWidget {
               ),
           ],
           currencyCode: currency,
-          barColors: [AppTheme.infoColor(context)],
+          barColors: [context.suitColors.chartSeries.first],
         ),
         const SizedBox(height: 8),
         for (final row in rows.take(6))

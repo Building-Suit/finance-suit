@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:work_tracker/app/branding/finance_suit_brand.dart';
+import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 
 /// Finance Suit's Material 3 implementation of the shared Suit design system.
 class AppTheme {
@@ -13,153 +14,107 @@ class AppTheme {
   static ThemeData _build(Brightness brightness, {Locale? locale}) {
     final isDark = brightness == Brightness.dark;
     final isArabic = locale?.languageCode == 'ar';
-    final background = isDark
-        ? FinanceSuitBrand.midnightBackground
-        : FinanceSuitBrand.pearlWhite;
-    final surface = isDark ? FinanceSuitBrand.navySurface : Colors.white;
-    final surfaceMuted = isDark
-        ? FinanceSuitBrand.deepStructureNavy
-        : FinanceSuitBrand.softSilver;
-    final surfaceRaised = isDark
-        ? FinanceSuitBrand.navySurfaceRaised
-        : Colors.white;
-    final text = isDark
-        ? FinanceSuitBrand.pearlWhite
-        : FinanceSuitBrand.graphiteText;
-    final textMuted = isDark
-        ? FinanceSuitBrand.skySteel
-        : FinanceSuitBrand.slateGray;
-    final border = isDark
-        ? FinanceSuitBrand.steelBorder
-        : FinanceSuitBrand.cloudGray;
-    final primary = isDark
-        ? FinanceSuitBrand.premiumGold
-        : FinanceSuitBrand.buildingNavy;
-    final onPrimary = isDark
-        ? FinanceSuitBrand.deepStructureNavy
-        : FinanceSuitBrand.pearlWhite;
-    final accent = isDark
-        ? FinanceSuitBrand.highlightGold
-        : FinanceSuitBrand.premiumGold;
-    final interactionAccent = isDark
-        ? FinanceSuitBrand.highlightGold
-        : FinanceSuitBrand.gold700;
-    final error = isDark
-        ? FinanceSuitBrand.errorDark
-        : FinanceSuitBrand.errorForeground;
-    final errorContainer = isDark
-        ? FinanceSuitBrand.errorBackgroundDark
-        : FinanceSuitBrand.errorBackground;
+    final colors = isDark
+        ? FinanceSuitSemanticColors.dark()
+        : FinanceSuitSemanticColors.light();
 
     final scheme =
         ColorScheme.fromSeed(
-          seedColor: primary,
+          seedColor: colors.primary,
           brightness: brightness,
         ).copyWith(
-          primary: primary,
-          onPrimary: onPrimary,
-          primaryContainer: isDark
-              ? FinanceSuitBrand.premiumGold
-              : FinanceSuitBrand.paleSky,
-          onPrimaryContainer: FinanceSuitBrand.deepStructureNavy,
-          secondary: accent,
-          onSecondary: FinanceSuitBrand.deepStructureNavy,
-          secondaryContainer: isDark
-              ? FinanceSuitBrand.navySurfaceRaised
-              : FinanceSuitBrand.paleSky,
-          onSecondaryContainer: isDark
-              ? FinanceSuitBrand.pearlWhite
-              : FinanceSuitBrand.deepStructureNavy,
-          tertiary: isDark
-              ? FinanceSuitBrand.skySteel
-              : FinanceSuitBrand.slateBlue,
-          onTertiary: isDark
-              ? FinanceSuitBrand.deepStructureNavy
-              : FinanceSuitBrand.pearlWhite,
-          tertiaryContainer: isDark
-              ? FinanceSuitBrand.infoBackgroundDark
-              : FinanceSuitBrand.infoBackground,
-          onTertiaryContainer: text,
-          error: error,
-          onError: isDark ? FinanceSuitBrand.deepStructureNavy : Colors.white,
-          errorContainer: errorContainer,
-          onErrorContainer: isDark
-              ? FinanceSuitBrand.pearlWhite
-              : FinanceSuitBrand.graphiteText,
-          surface: surface,
-          onSurface: text,
-          surfaceDim: isDark
-              ? FinanceSuitBrand.midnightBackground
-              : FinanceSuitBrand.softSilver,
-          surfaceBright: surfaceRaised,
-          surfaceContainerLowest: isDark
-              ? FinanceSuitBrand.midnightBackground
-              : Colors.white,
-          surfaceContainerLow: isDark
-              ? FinanceSuitBrand.deepStructureNavy
-              : FinanceSuitBrand.pearlWhite,
-          surfaceContainer: surface,
-          surfaceContainerHigh: surfaceRaised,
-          surfaceContainerHighest: isDark
-              ? FinanceSuitBrand.steelBorder
-              : FinanceSuitBrand.softSilver,
-          onSurfaceVariant: textMuted,
-          outline: border,
-          outlineVariant: isDark
-              ? FinanceSuitBrand.steelBorder
-              : FinanceSuitBrand.softSilver,
-          shadow: FinanceSuitBrand.deepStructureNavy,
-          scrim: isDark ? Colors.black : FinanceSuitBrand.deepStructureNavy,
-          inverseSurface: isDark
-              ? FinanceSuitBrand.pearlWhite
-              : FinanceSuitBrand.deepStructureNavy,
-          onInverseSurface: isDark
-              ? FinanceSuitBrand.graphiteText
-              : FinanceSuitBrand.pearlWhite,
-          inversePrimary: accent,
+          primary: colors.primary,
+          onPrimary: colors.onPrimary,
+          primaryContainer: colors.surfaceContainer,
+          onPrimaryContainer: colors.textPrimary,
+          secondary: colors.accent,
+          onSecondary: colors.onAccent,
+          secondaryContainer: colors.selectedOverlay,
+          onSecondaryContainer: colors.textPrimary,
+          tertiary: colors.link,
+          onTertiary: colors.onPrimary,
+          tertiaryContainer: colors.info.background,
+          onTertiaryContainer: colors.info.text,
+          error: colors.error.foreground,
+          onError: colors.error.textOnSolid,
+          errorContainer: colors.error.background,
+          onErrorContainer: colors.error.text,
+          surface: colors.surface,
+          onSurface: colors.textPrimary,
+          surfaceDim: colors.background,
+          surfaceBright: colors.surfaceRaised,
+          surfaceContainerLowest: colors.background,
+          surfaceContainerLow: colors.surface,
+          surfaceContainer: colors.surfaceContainer,
+          surfaceContainerHigh: colors.surfaceRaised,
+          surfaceContainerHighest: colors.surfaceMuted,
+          onSurfaceVariant: colors.textMuted,
+          outline: colors.borderStrong,
+          outlineVariant: colors.borderSubtle,
+          shadow: colors.background,
+          scrim: isDark ? colors.background : colors.inverseSurface,
+          inverseSurface: colors.inverseSurface,
+          onInverseSurface: isDark ? colors.background : colors.onBrandSurface,
+          inversePrimary: colors.accent,
           surfaceTint: Colors.transparent,
         );
 
     final textTheme = _textTheme(
-      text: text,
-      textMuted: textMuted,
+      text: colors.textPrimary,
+      textMuted: colors.textMuted,
       isArabic: isArabic,
     );
     final base = ThemeData(
       useMaterial3: true,
       brightness: brightness,
       colorScheme: scheme,
-      scaffoldBackgroundColor: background,
-      canvasColor: background,
+      scaffoldBackgroundColor: colors.background,
+      canvasColor: colors.background,
       fontFamily: isArabic
           ? FinanceSuitBrand.arabicFontFamily
           : FinanceSuitBrand.latinFontFamily,
       textTheme: textTheme,
+      extensions: [colors],
+      focusColor: colors.focusGlow,
+      hoverColor: colors.hoverOverlay,
+      splashColor: colors.pressedOverlay,
+      highlightColor: colors.pressedOverlay,
+      disabledColor: colors.textDisabled,
     );
     final radius12 = BorderRadius.circular(12);
     final radius16 = BorderRadius.circular(16);
     final radius24 = BorderRadius.circular(24);
     final defaultBorder = OutlineInputBorder(
       borderRadius: radius12,
-      borderSide: BorderSide(color: border),
+      borderSide: BorderSide(color: colors.borderStrong),
     );
     final focusedBorder = OutlineInputBorder(
       borderRadius: radius12,
-      borderSide: BorderSide(color: interactionAccent, width: 2),
+      borderSide: BorderSide(color: colors.focusRing, width: 2),
     );
     final errorBorder = OutlineInputBorder(
       borderRadius: radius12,
-      borderSide: BorderSide(color: error),
+      borderSide: BorderSide(color: colors.error.border),
     );
-    final cardShadow = FinanceSuitBrand.deepStructureNavy.withValues(
-      alpha: isDark ? 0.32 : 0.08,
-    );
+    final cardShadow = (isDark ? colors.background : colors.inverseSurface)
+        .withValues(alpha: isDark ? 0.32 : 0.08);
+    Color? interactionOverlay(Set<WidgetState> states) {
+      if (states.contains(WidgetState.pressed)) return colors.pressedOverlay;
+      if (states.contains(WidgetState.hovered)) return colors.hoverOverlay;
+      if (states.contains(WidgetState.focused)) return colors.focusGlow;
+      return null;
+    }
+
+    BorderSide focusSide(Set<WidgetState> states, {Color? restingColor}) =>
+        states.contains(WidgetState.focused)
+        ? BorderSide(color: colors.focusRing, width: 2)
+        : BorderSide(color: restingColor ?? Colors.transparent);
 
     return base.copyWith(
       appBarTheme: AppBarTheme(
         centerTitle: false,
-        backgroundColor: surface,
-        foregroundColor: text,
+        backgroundColor: colors.surface,
+        foregroundColor: colors.textPrimary,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 1,
@@ -167,83 +122,95 @@ class AppTheme {
         titleTextStyle: textTheme.titleLarge,
       ),
       cardTheme: CardThemeData(
-        color: surface,
+        color: colors.surface,
         surfaceTintColor: Colors.transparent,
         shadowColor: cardShadow,
         elevation: isDark ? 0 : 1,
         shape: RoundedRectangleBorder(
           borderRadius: radius16,
-          side: BorderSide(color: border),
+          side: BorderSide(color: colors.borderSubtle),
         ),
         margin: EdgeInsets.zero,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: surface,
+        fillColor: colors.surface,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,
         ),
-        labelStyle: textTheme.bodyMedium?.copyWith(color: textMuted),
-        helperStyle: textTheme.bodySmall?.copyWith(color: textMuted),
-        errorStyle: textTheme.bodySmall?.copyWith(color: error),
+        labelStyle: textTheme.bodyMedium?.copyWith(color: colors.textMuted),
+        helperStyle: textTheme.bodySmall?.copyWith(color: colors.textMuted),
+        errorStyle: textTheme.bodySmall?.copyWith(color: colors.error.text),
         border: defaultBorder,
         enabledBorder: defaultBorder,
         focusedBorder: focusedBorder,
         errorBorder: errorBorder,
         focusedErrorBorder: errorBorder.copyWith(
-          borderSide: BorderSide(color: error, width: 2),
+          borderSide: BorderSide(color: colors.error.border, width: 2),
         ),
         disabledBorder: defaultBorder.copyWith(
-          borderSide: BorderSide(color: border.withValues(alpha: 0.6)),
+          borderSide: BorderSide(color: colors.borderSubtle),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          backgroundColor: primary,
-          foregroundColor: onPrimary,
-          disabledBackgroundColor: surfaceMuted,
-          disabledForegroundColor: isDark
-              ? const Color(0xFF4A5A6E)
-              : FinanceSuitBrand.steelGray,
-          minimumSize: const Size(64, 48),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: radius12),
-          textStyle: textTheme.labelLarge,
-        ),
+        style:
+            FilledButton.styleFrom(
+              backgroundColor: colors.primary,
+              foregroundColor: colors.onPrimary,
+              disabledBackgroundColor: colors.surfaceMuted,
+              disabledForegroundColor: colors.textDisabled,
+              minimumSize: const Size(64, 48),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: radius12),
+              textStyle: textTheme.labelLarge,
+            ).copyWith(
+              overlayColor: WidgetStateProperty.resolveWith(interactionOverlay),
+              side: WidgetStateProperty.resolveWith(focusSide),
+            ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: isDark
-              ? FinanceSuitBrand.pearlWhite
-              : FinanceSuitBrand.buildingNavy,
-          minimumSize: const Size(64, 48),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          side: BorderSide(color: border),
-          shape: RoundedRectangleBorder(borderRadius: radius12),
-          textStyle: textTheme.labelLarge,
-        ),
+        style:
+            OutlinedButton.styleFrom(
+              foregroundColor: colors.textPrimary,
+              minimumSize: const Size(64, 48),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: radius12),
+              textStyle: textTheme.labelLarge,
+            ).copyWith(
+              overlayColor: WidgetStateProperty.resolveWith(interactionOverlay),
+              side: WidgetStateProperty.resolveWith(
+                (states) =>
+                    focusSide(states, restingColor: colors.borderStrong),
+              ),
+            ),
       ),
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: isDark
-              ? FinanceSuitBrand.skySteel
-              : FinanceSuitBrand.slateBlue,
-          minimumSize: const Size(44, 44),
-          shape: RoundedRectangleBorder(borderRadius: radius12),
-          textStyle: textTheme.labelLarge,
-        ),
+        style:
+            TextButton.styleFrom(
+              foregroundColor: colors.link,
+              minimumSize: const Size(44, 44),
+              shape: RoundedRectangleBorder(borderRadius: radius12),
+              textStyle: textTheme.labelLarge,
+            ).copyWith(
+              overlayColor: WidgetStateProperty.resolveWith(interactionOverlay),
+              side: WidgetStateProperty.resolveWith(focusSide),
+            ),
       ),
       iconButtonTheme: IconButtonThemeData(
-        style: IconButton.styleFrom(
-          foregroundColor: text,
-          minimumSize: const Size(44, 44),
-          shape: RoundedRectangleBorder(borderRadius: radius12),
-        ),
+        style:
+            IconButton.styleFrom(
+              foregroundColor: colors.textPrimary,
+              minimumSize: const Size(44, 44),
+              shape: RoundedRectangleBorder(borderRadius: radius12),
+            ).copyWith(
+              overlayColor: WidgetStateProperty.resolveWith(interactionOverlay),
+              side: WidgetStateProperty.resolveWith(focusSide),
+            ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: primary,
-        foregroundColor: onPrimary,
+        backgroundColor: colors.primary,
+        foregroundColor: colors.onPrimary,
         elevation: 2,
         focusElevation: 2,
         hoverElevation: 3,
@@ -252,46 +219,66 @@ class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         height: 72,
         elevation: 0,
-        backgroundColor: surface,
-        indicatorColor: accent.withValues(alpha: isDark ? 0.18 : 0.12),
+        backgroundColor: colors.surface,
+        indicatorColor: colors.selectedOverlay,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return IconThemeData(
-            color: selected ? interactionAccent : textMuted,
+            color: selected ? colors.focusRing : colors.textMuted,
             size: 24,
           );
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return textTheme.labelSmall!.copyWith(
-            color: selected
-                ? (isDark ? interactionAccent : FinanceSuitBrand.buildingNavy)
-                : textMuted,
+            color: selected ? colors.textPrimary : colors.textMuted,
             fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
           );
         }),
       ),
       tabBarTheme: TabBarThemeData(
-        indicatorColor: interactionAccent,
-        labelColor: isDark ? interactionAccent : FinanceSuitBrand.buildingNavy,
-        unselectedLabelColor: textMuted,
+        indicatorColor: colors.focusRing,
+        labelColor: colors.textPrimary,
+        unselectedLabelColor: colors.textMuted,
         labelStyle: textTheme.labelLarge,
         unselectedLabelStyle: textTheme.labelLarge,
-        dividerColor: border,
+        dividerColor: colors.divider,
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: surfaceMuted,
-        selectedColor: accent.withValues(alpha: isDark ? 0.18 : 0.12),
-        disabledColor: surfaceMuted.withValues(alpha: 0.6),
-        side: BorderSide(color: border),
+        backgroundColor: colors.surfaceContainer,
+        selectedColor: colors.selectedOverlay,
+        disabledColor: colors.surfaceMuted,
+        side: BorderSide(color: colors.borderStrong),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        labelStyle: textTheme.bodySmall!.copyWith(color: text),
-        secondaryLabelStyle: textTheme.bodySmall!.copyWith(color: text),
+        labelStyle: textTheme.bodySmall!.copyWith(color: colors.textPrimary),
+        secondaryLabelStyle: textTheme.bodySmall!.copyWith(
+          color: colors.textPrimary,
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.disabled)
+                ? colors.textDisabled
+                : colors.textPrimary,
+          ),
+          backgroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.selected)
+                ? colors.selectedOverlay
+                : colors.surface,
+          ),
+          overlayColor: WidgetStateProperty.resolveWith(interactionOverlay),
+          side: WidgetStateProperty.resolveWith(
+            (states) => focusSide(states, restingColor: colors.borderStrong),
+          ),
+          minimumSize: const WidgetStatePropertyAll(Size(48, 48)),
+          textStyle: WidgetStatePropertyAll(textTheme.labelLarge),
+        ),
+      ),
       dialogTheme: DialogThemeData(
-        backgroundColor: surfaceRaised,
+        backgroundColor: colors.overlay,
         surfaceTintColor: Colors.transparent,
         elevation: 3,
         shadowColor: cardShadow,
@@ -300,12 +287,11 @@ class AppTheme {
         contentTextStyle: textTheme.bodyMedium,
       ),
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: surfaceRaised,
-        modalBackgroundColor: surfaceRaised,
+        backgroundColor: colors.overlay,
+        modalBackgroundColor: colors.overlay,
         surfaceTintColor: Colors.transparent,
-        modalBarrierColor:
-            (isDark ? Colors.black : FinanceSuitBrand.deepStructureNavy)
-                .withValues(alpha: isDark ? 0.64 : 0.48),
+        modalBarrierColor: (isDark ? colors.background : colors.inverseSurface)
+            .withValues(alpha: isDark ? 0.72 : 0.48),
         showDragHandle: true,
         shape: RoundedRectangleBorder(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -313,33 +299,89 @@ class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: isDark
-            ? FinanceSuitBrand.navySurfaceRaised
-            : FinanceSuitBrand.deepStructureNavy,
+        backgroundColor: isDark ? colors.overlay : colors.inverseSurface,
         contentTextStyle: textTheme.bodyMedium?.copyWith(
-          color: FinanceSuitBrand.pearlWhite,
+          color: isDark ? colors.textPrimary : colors.onBrandSurface,
         ),
         shape: RoundedRectangleBorder(borderRadius: radius12),
       ),
-      dividerTheme: DividerThemeData(color: border, thickness: 1, space: 1),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: colors.chartTooltipBackground,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        textStyle: textTheme.bodySmall?.copyWith(
+          color: colors.chartTooltipText,
+        ),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: colors.overlay,
+        surfaceTintColor: Colors.transparent,
+        textStyle: textTheme.bodyMedium,
+        shape: RoundedRectangleBorder(
+          borderRadius: radius12,
+          side: BorderSide(color: colors.borderSubtle),
+        ),
+      ),
+      dividerTheme: DividerThemeData(
+        color: colors.divider,
+        thickness: 1,
+        space: 1,
+      ),
       progressIndicatorTheme: ProgressIndicatorThemeData(
-        color: primary,
-        linearTrackColor: surfaceMuted,
-        circularTrackColor: surfaceMuted,
+        color: colors.primary,
+        linearTrackColor: colors.skeletonBase,
+        circularTrackColor: colors.skeletonBase,
       ),
       textSelectionTheme: TextSelectionThemeData(
-        cursorColor: interactionAccent,
-        selectionColor: accent.withValues(alpha: 0.24),
-        selectionHandleColor: interactionAccent,
+        cursorColor: colors.focusRing,
+        selectionColor: colors.selectedOverlay,
+        selectionHandleColor: colors.focusRing,
+      ),
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? colors.primary
+              : colors.surface,
+        ),
+        checkColor: WidgetStatePropertyAll(colors.onPrimary),
+        side: BorderSide(color: colors.borderStrong),
+        overlayColor: WidgetStateProperty.resolveWith(interactionOverlay),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? colors.primary
+              : colors.borderStrong,
+        ),
+        overlayColor: WidgetStateProperty.resolveWith(interactionOverlay),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? colors.onPrimary
+              : colors.textMuted,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? colors.primary
+              : colors.surfaceMuted,
+        ),
+        trackOutlineColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.focused)
+              ? colors.focusRing
+              : colors.borderStrong,
+        ),
+        overlayColor: WidgetStateProperty.resolveWith(interactionOverlay),
       ),
       listTileTheme: ListTileThemeData(
-        iconColor: textMuted,
-        textColor: text,
+        iconColor: colors.textMuted,
+        textColor: colors.textPrimary,
         shape: RoundedRectangleBorder(borderRadius: radius12),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       ),
-      dividerColor: border,
-      iconTheme: IconThemeData(color: text),
+      dividerColor: colors.divider,
+      iconTheme: IconThemeData(color: colors.textPrimary),
     );
   }
 
@@ -414,25 +456,16 @@ class AppTheme {
 
   /// Semantic money/status colors are intentionally separate from brand gold.
   static Color incomeColor(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark
-      ? FinanceSuitBrand.successDark
-      : FinanceSuitBrand.successForeground;
+      context.suitColors.success.text;
 
   static Color expenseColor(BuildContext context) =>
-      Theme.of(context).colorScheme.error;
+      context.suitColors.error.text;
 
   static Color allowanceColor(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark
-      ? FinanceSuitBrand.warningDark
-      : FinanceSuitBrand.warningForeground;
+      context.suitColors.warning.text;
 
   static Color transferColor(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark
-      ? FinanceSuitBrand.skySteel
-      : FinanceSuitBrand.slateBlue;
+      context.suitColors.info.text;
 
-  static Color infoColor(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark
-      ? FinanceSuitBrand.infoDark
-      : FinanceSuitBrand.infoForeground;
+  static Color infoColor(BuildContext context) => context.suitColors.info.text;
 }

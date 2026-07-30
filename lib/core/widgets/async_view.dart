@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
+import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
@@ -29,6 +30,55 @@ class AsyncView<T> extends StatelessWidget {
       error: (error, _) => ErrorRetryView(
         failure: error is AppFailure ? error : UnknownFailure(),
         onRetry: onRetry,
+      ),
+    );
+  }
+}
+
+/// Static, reduced-motion-safe loading placeholder using canonical roles.
+class LoadingSkeleton extends StatelessWidget {
+  const LoadingSkeleton({super.key, this.height = 96});
+
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.suitColors;
+    return ExcludeSemantics(
+      child: Container(
+        height: height,
+        decoration: BoxDecoration(
+          color: colors.skeletonBase,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            FractionallySizedBox(
+              widthFactor: 0.42,
+              child: Container(
+                height: 12,
+                decoration: BoxDecoration(
+                  color: colors.skeletonHighlight,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            FractionallySizedBox(
+              widthFactor: 0.72,
+              child: Container(
+                height: 18,
+                decoration: BoxDecoration(
+                  color: colors.skeletonHighlight,
+                  borderRadius: BorderRadius.circular(9),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
