@@ -28,6 +28,8 @@ final realtimeInvalidationProvider = Provider<void>((ref) {
         ..invalidate(recentTransactionsProvider)
         ..invalidate(macrosProvider)
         ..invalidate(heldAmountsProvider)
+        ..invalidate(incomeSourcesProvider)
+        ..invalidate(pendingIncomeProvider)
         ..invalidate(historyPageProvider)
         ..invalidate(cashFlowSummaryProvider)
         ..invalidate(financeSeriesProvider)
@@ -58,6 +60,9 @@ final realtimeInvalidationProvider = Provider<void>((ref) {
     (schema: AppSchemas.finance, table: 'transaction_macros'),
     (schema: AppSchemas.finance, table: 'transaction_macro_items'),
     (schema: AppSchemas.finance, table: 'held_amounts'),
+    (schema: AppSchemas.finance, table: 'income_sources'),
+    (schema: AppSchemas.finance, table: 'income_source_allocations'),
+    (schema: AppSchemas.finance, table: 'income_occurrences'),
     (schema: AppSchemas.work, table: 'work_entries'),
     (schema: AppSchemas.work, table: 'official_holidays'),
     (schema: AppSchemas.salary, table: 'salary_periods'),

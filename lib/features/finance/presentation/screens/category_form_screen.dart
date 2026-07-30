@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/validation/validators.dart';
+import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
@@ -86,7 +87,7 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DropdownButtonFormField<CategoryKind>(
+              AppSelectionField<CategoryKind>(
                 initialValue: _kind,
                 decoration: InputDecoration(labelText: l10n.catKind),
                 items: [
@@ -108,7 +109,7 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
                       },
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<String?>(
+              AppSelectionField<String?>(
                 key: ValueKey(_kind),
                 initialValue: _parentCategoryId,
                 decoration: InputDecoration(labelText: l10n.catParent),

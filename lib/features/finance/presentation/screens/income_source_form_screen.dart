@@ -7,6 +7,7 @@ import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
+import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
@@ -181,6 +182,13 @@ class _IncomeSourceFormScreenState
     final categories =
         ref.watch(categoriesProvider(CategoryKind.income)).value ??
         <TransactionCategory>[];
+    final existingSalary = ref
+        .watch(incomeSourcesProvider)
+        .value
+        ?.where((source) => source.kind == IncomeSourceKind.salary)
+        .firstOrNull;
+    final salaryConflict =
+        !_isEdit && _kind == IncomeSourceKind.salary && existingSalary != null;
     if (_primaryAccountId == null && accounts.isNotEmpty) {
       _primaryAccountId =
           (accounts.where((account) => account.isDefault).firstOrNull ??
@@ -208,9 +216,13 @@ class _IncomeSourceFormScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DropdownButtonFormField<IncomeSourceKind>(
+              AppSelectionField<IncomeSourceKind>(
                 initialValue: _kind,
-                decoration: InputDecoration(labelText: l10n.incomeSourceType),
+                enabled: !_isEdit,
+                decoration: InputDecoration(
+                  labelText: l10n.incomeSourceType,
+                  helperText: _isEdit ? l10n.incomeTypeLockedOnEdit : null,
+                ),
                 items: [
                   for (final kind in IncomeSourceKind.values)
                     DropdownMenuItem(
@@ -218,11 +230,31 @@ class _IncomeSourceFormScreenState
                       child: Text(_kindLabel(l10n, kind)),
                     ),
                 ],
-                onChanged: (kind) => setState(() {
-                  _kind = kind ?? IncomeSourceKind.other;
-                  if (_kind == IncomeSourceKind.salary) _categoryId = null;
-                }),
+                onChanged: _isEdit
+                    ? null
+                    : (kind) => setState(() {
+                        _kind = kind ?? IncomeSourceKind.other;
+                        if (_kind == IncomeSourceKind.salary) {
+                          _categoryId = null;
+                        }
+                      }),
               ),
+              if (salaryConflict) ...[
+                const SizedBox(height: 12),
+                Card(
+                  child: ListTile(
+                    leading: const FinanceSuitIcon(FinanceSuitIcons.info),
+                    title: Text(l10n.incomeSalaryAlreadyExists),
+                    trailing: TextButton(
+                      onPressed: () => context.pushReplacement(
+                        '/settings/income-sources/edit',
+                        extra: existingSalary,
+                      ),
+                      child: Text(l10n.commonEdit),
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 8),
               SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
@@ -266,7 +298,7 @@ class _IncomeSourceFormScreenState
                 },
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
+              AppSelectionField<String>(
                 key: ValueKey(_primaryAccountId),
                 initialValue: _primaryAccountId,
                 decoration: InputDecoration(
@@ -296,7 +328,7 @@ class _IncomeSourceFormScreenState
               Row(
                 children: [
                   Expanded(
-                    child: DropdownButtonFormField<int>(
+                    child: AppSelectionField<int>(
                       initialValue: _paymentDay,
                       decoration: InputDecoration(
                         labelText: l10n.salPaymentDay,
@@ -311,7 +343,7 @@ class _IncomeSourceFormScreenState
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: DropdownButtonFormField<int>(
+                    child: AppSelectionField<int>(
                       initialValue: _promptDays,
                       decoration: InputDecoration(
                         labelText: l10n.incomePromptBefore,
@@ -378,7 +410,9 @@ class _IncomeSourceFormScreenState
               AuthSubmitButton(
                 label: l10n.commonSave,
                 busy: _busy,
-                onPressed: accounts.isEmpty ? null : () => _save(accounts),
+                onPressed: accounts.isEmpty || salaryConflict
+                    ? null
+                    : () => _save(accounts),
               ),
               const SizedBox(height: 24),
             ],

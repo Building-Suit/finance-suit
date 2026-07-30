@@ -1422,4 +1422,37 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get incomeNoPending => 'لا يوجد دخل ينتظر موافقتك.';
+
+  @override
+  String get addSectionAutomationControl => 'التحكم في الأتمتة';
+
+  @override
+  String get addAutomation => 'إضافة أتمتة';
+
+  @override
+  String get manageAutomations => 'إدارة الأتمتة';
+
+  @override
+  String get addAutomationControlHelp =>
+      'جدولة الراتب أو الدخل الدوري والموافقة عليه قبل تغيير الأرصدة.';
+
+  @override
+  String get incomeAddAutomationEmpty =>
+      'أضف أتمتة لجدولة الدخل الدوري. لن يتغير رصيدك حتى توافق عليه.';
+
+  @override
+  String get incomeTypeLockedOnEdit =>
+      'لا يمكن تغيير نوع الأتمتة أثناء التعديل. أنشئ أتمتة جديدة لاستخدام نوع آخر.';
+
+  @override
+  String get incomeSalaryAlreadyExists =>
+      'توجد أتمتة راتب بالفعل. عدّلها أو استأنفها بدلاً من ذلك.';
+
+  @override
+  String get homePartialDataError =>
+      'تعذر تحميل بعض أقسام لوحة التحكم. ستظل البيانات الأخرى المتاحة ظاهرة.';
+
+  @override
+  String get onboardingSubmitFailed =>
+      'تعذر إكمال الإعداد. راجع البيانات وحاول مرة أخرى.';
 }

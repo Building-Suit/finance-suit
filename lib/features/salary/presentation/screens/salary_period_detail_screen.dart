@@ -6,6 +6,7 @@ import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
+import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
@@ -151,7 +152,7 @@ class SalaryPeriodDetailScreen extends ConsumerWidget {
                     },
                   ),
                   const SizedBox(height: 8),
-                  DropdownButtonFormField<String>(
+                  AppSelectionField<String>(
                     initialValue: accountId,
                     decoration: InputDecoration(
                       labelText: l10n.salDestinationAccount,

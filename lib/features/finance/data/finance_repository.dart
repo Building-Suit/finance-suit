@@ -199,7 +199,17 @@ class FinanceRepository {
           .eq('user_id', _userId);
       if (!includeInactive) query = query.eq('is_active', true);
       final rows = await query.order('name', ascending: true);
-      return rows.map(IncomeSource.fromJson).toList();
+      final sources = rows.map(IncomeSource.fromJson).toList();
+      sources.sort((left, right) {
+        final active = (right.isActive ? 1 : 0) - (left.isActive ? 1 : 0);
+        if (active != 0) return active;
+        final salary =
+            (left.kind == IncomeSourceKind.salary ? 0 : 1) -
+            (right.kind == IncomeSourceKind.salary ? 0 : 1);
+        if (salary != 0) return salary;
+        return left.name.toLowerCase().compareTo(right.name.toLowerCase());
+      });
+      return sources;
     });
   }
 

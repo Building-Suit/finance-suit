@@ -7,6 +7,7 @@ import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
+import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
@@ -210,8 +211,9 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
                 const SizedBox(height: 8),
               ],
               if (needsAccount) ...[
-                DropdownButtonFormField<String>(
-                  initialValue: accountList.any((a) => a.accountId == _accountId)
+                AppSelectionField<String>(
+                  initialValue:
+                      accountList.any((a) => a.accountId == _accountId)
                       ? _accountId
                       : null,
                   decoration: InputDecoration(labelText: l10n.txAccount),
