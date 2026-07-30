@@ -16,8 +16,8 @@ As of 2026-07-10:
 
 - Flutter 3.41.6 / Dart 3.11.4
 - Material 3
-- Shared Suit visual language: navy/gold role tokens, Manrope, IBM Plex Sans
-  Arabic, and free Hugeicons Stroke Rounded glyphs
+- Canonical Building Suit semantic color system with neutral-charcoal dark
+  mode, Manrope, IBM Plex Sans Arabic, and free Hugeicons Stroke Rounded glyphs
 - Riverpod
 - go_router
 - Supabase Auth, PostgreSQL, RLS, Realtime
@@ -29,6 +29,9 @@ Finance Suit is a standalone product with its own finance-ledger `F` mark. It
 uses the shared Suit visual system as the finance portal in the Building Suit
 product family. Its permanent Android application ID is
 `com.buildingsuit.finance`.
+
+The vendored color-token source and synchronization rules are documented in
+[docs/COLOR_SYSTEM.md](docs/COLOR_SYSTEM.md).
 
 ## Google Play delivery
 

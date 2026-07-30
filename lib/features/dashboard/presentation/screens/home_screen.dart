@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
+import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/date_time/date_range.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
@@ -501,8 +502,9 @@ class _PendingIncomeSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final warning = context.suitColors.warning;
     return Card(
-      color: Theme.of(context).colorScheme.secondaryContainer,
+      color: warning.background,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -510,12 +512,14 @@ class _PendingIncomeSection extends StatelessWidget {
           children: [
             Row(
               children: [
-                const FinanceSuitIcon(FinanceSuitIcons.pending),
+                FinanceSuitIcon(FinanceSuitIcons.pending, color: warning.icon),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     l10n.incomePendingTitle,
-                    style: Theme.of(context).textTheme.titleMedium,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(color: warning.text),
                   ),
                 ),
               ],
@@ -607,8 +611,8 @@ class _SectionLoader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Padding(
-      padding: EdgeInsets.all(24),
-      child: Center(child: CircularProgressIndicator()),
+      padding: EdgeInsets.symmetric(vertical: 8),
+      child: LoadingSkeleton(),
     );
   }
 }
@@ -675,6 +679,7 @@ class _BalanceSection extends StatelessWidget {
           child: _MetricCard(
             icon: FinanceSuitIcons.accountBalanceWallet,
             label: l10n.moneyTotalBalance,
+            brand: true,
             value: totals.entries
                 .map((e) => Money(minor: e.value, currencyCode: e.key).format())
                 .join(' / '),
@@ -787,27 +792,34 @@ class _MetricCard extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
+    this.brand = false,
   });
 
   final FinanceSuitGlyph icon;
   final String label;
   final String value;
+  final bool brand;
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.suitColors;
+    final foreground = brand ? colors.onBrandSurface : colors.textPrimary;
     return Card(
+      color: brand ? colors.brandSurface : null,
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FinanceSuitIcon(icon),
+            FinanceSuitIcon(icon, color: foreground),
             const Spacer(),
             Text(
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelMedium,
+              style: Theme.of(
+                context,
+              ).textTheme.labelMedium?.copyWith(color: foreground),
             ),
             const SizedBox(height: 4),
             Text(
@@ -815,6 +827,7 @@ class _MetricCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: foreground,
                 fontWeight: FontWeight.w700,
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
