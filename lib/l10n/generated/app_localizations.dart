@@ -2657,8 +2657,62 @@ abstract class AppLocalizations {
   /// No description provided for @incomeRemindLater.
   ///
   /// In en, this message translates to:
-  /// **'It will remain here until you accept or skip it.'**
+  /// **'Snoozed for 24 hours.'**
   String get incomeRemindLater;
+
+  /// No description provided for @incomeSnoozeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not snooze this income. Try again.'**
+  String get incomeSnoozeFailed;
+
+  /// No description provided for @incomeAcceptedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Income accepted.'**
+  String get incomeAcceptedMessage;
+
+  /// No description provided for @incomeSkippedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Income skipped.'**
+  String get incomeSkippedMessage;
+
+  /// No description provided for @salaryBaseAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Base amount'**
+  String get salaryBaseAmount;
+
+  /// No description provided for @salaryExtraDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra days'**
+  String get salaryExtraDays;
+
+  /// No description provided for @salaryOvertimeDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Overtime'**
+  String get salaryOvertimeDuration;
+
+  /// No description provided for @salaryHolidayWorked.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday worked'**
+  String get salaryHolidayWorked;
+
+  /// No description provided for @salaryEstimatedTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated total'**
+  String get salaryEstimatedTotal;
+
+  /// No description provided for @durationHoursMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m'**
+  String durationHoursMinutes(int hours, int minutes);
 
   /// No description provided for @incomeAutomationCenter.
   ///
@@ -2797,6 +2851,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Some dashboard sections could not be loaded. Other available data is still shown.'**
   String get homePartialDataError;
+
+  /// No description provided for @reportStartingBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting balance'**
+  String get reportStartingBalance;
+
+  /// No description provided for @reportEndingBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Ending balance'**
+  String get reportEndingBalance;
+
+  /// No description provided for @selectionSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search options'**
+  String get selectionSearchHint;
+
+  /// No description provided for @heldLinkedTransactionReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Original transaction linked for reference'**
+  String get heldLinkedTransactionReference;
+
+  /// No description provided for @heldSettlementTransactionHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement creates a separate transaction for the selected account.'**
+  String get heldSettlementTransactionHelp;
 
   /// No description provided for @onboardingSubmitFailed.
   ///

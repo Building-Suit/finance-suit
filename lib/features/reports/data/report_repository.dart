@@ -13,13 +13,15 @@ class ReportRepository {
 
   SupabaseQuerySchema get _db => _client.schema(AppSchemas.reports);
 
-  Future<Result<CashFlowSummary>> fetchCashFlowSummary(DateRange range) {
+  Future<Result<List<CashFlowSummary>>> fetchCashFlowSummary(DateRange range) {
     return guard(() async {
       final rows = await _db.rpc<List<dynamic>>(
-        'cash_flow_summary',
+        'cash_flow_summary_v2',
         params: {'p_start': range.start.toIso(), 'p_end': range.end.toIso()},
       );
-      return CashFlowSummary.fromJson(rows.first as Map<String, dynamic>);
+      return rows
+          .map((row) => CashFlowSummary.fromJson(row as Map<String, dynamic>))
+          .toList();
     });
   }
 

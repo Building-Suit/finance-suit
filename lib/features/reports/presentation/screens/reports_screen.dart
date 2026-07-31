@@ -149,11 +149,18 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               },
             ),
             const SizedBox(height: 16),
-            _AsyncReportCard<CashFlowSummary>(
+            _AsyncReportCard<List<CashFlowSummary>>(
               title: l10n.reportsCashFlow,
               value: ref.watch(cashFlowSummaryProvider(range)),
-              data: (summary) =>
-                  _CashFlowChart(summary: summary, currencyCode: currencyCode),
+              data: (summaries) {
+                final summary =
+                    summaries
+                        .where((row) => row.currencyCode == currencyCode)
+                        .firstOrNull ??
+                    summaries.firstOrNull;
+                if (summary == null) return _NoData();
+                return _CashFlowChart(summary: summary);
+              },
             ),
             _AsyncReportCard<List<FinanceSeriesPoint>>(
               title: l10n.reportsNetOverTime,
@@ -367,10 +374,9 @@ class _ReportCard extends StatelessWidget {
 }
 
 class _CashFlowChart extends StatelessWidget {
-  const _CashFlowChart({required this.summary, required this.currencyCode});
+  const _CashFlowChart({required this.summary});
 
   final CashFlowSummary summary;
-  final String currencyCode;
 
   @override
   Widget build(BuildContext context) {
@@ -387,7 +393,7 @@ class _CashFlowChart extends StatelessWidget {
     return _BarAmountChart(
       label: l10n.reportsCashFlow,
       values: values,
-      currencyCode: currencyCode,
+      currencyCode: summary.currencyCode,
       barColors: [
         AppTheme.incomeColor(context),
         AppTheme.expenseColor(context),

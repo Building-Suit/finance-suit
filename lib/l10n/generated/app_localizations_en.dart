@@ -1366,8 +1366,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get incomeLater => 'Later';
 
   @override
-  String get incomeRemindLater =>
-      'It will remain here until you accept or skip it.';
+  String get incomeRemindLater => 'Snoozed for 24 hours.';
+
+  @override
+  String get incomeSnoozeFailed => 'Could not snooze this income. Try again.';
+
+  @override
+  String get incomeAcceptedMessage => 'Income accepted.';
+
+  @override
+  String get incomeSkippedMessage => 'Income skipped.';
+
+  @override
+  String get salaryBaseAmount => 'Base amount';
+
+  @override
+  String get salaryExtraDays => 'Extra days';
+
+  @override
+  String get salaryOvertimeDuration => 'Overtime';
+
+  @override
+  String get salaryHolidayWorked => 'Holiday worked';
+
+  @override
+  String get salaryEstimatedTotal => 'Estimated total';
+
+  @override
+  String durationHoursMinutes(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
 
   @override
   String get incomeAutomationCenter => 'Automation center';
@@ -1456,6 +1484,23 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get homePartialDataError =>
       'Some dashboard sections could not be loaded. Other available data is still shown.';
+
+  @override
+  String get reportStartingBalance => 'Starting balance';
+
+  @override
+  String get reportEndingBalance => 'Ending balance';
+
+  @override
+  String get selectionSearchHint => 'Search options';
+
+  @override
+  String get heldLinkedTransactionReference =>
+      'Original transaction linked for reference';
+
+  @override
+  String get heldSettlementTransactionHelp =>
+      'Settlement creates a separate transaction for the selected account.';
 
   @override
   String get onboardingSubmitFailed =>

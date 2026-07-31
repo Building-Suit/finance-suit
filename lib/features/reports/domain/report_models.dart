@@ -15,30 +15,42 @@ enum ReportBucket {
 @immutable
 class CashFlowSummary {
   const CashFlowSummary({
+    required this.currencyCode,
+    required this.startingBalanceMinor,
     required this.incomeMinor,
     required this.expensesMinor,
     required this.allowancesMinor,
     required this.netMinor,
+    required this.endingBalanceMinor,
   });
 
   factory CashFlowSummary.fromJson(Map<String, dynamic> json) =>
       CashFlowSummary(
+        currencyCode: json['currency_code'] as String? ?? 'EGP',
+        startingBalanceMinor: (json['starting_balance_minor'] as num? ?? 0)
+            .toInt(),
         incomeMinor: (json['income_minor'] as num).toInt(),
         expensesMinor: (json['expenses_minor'] as num).toInt(),
         allowancesMinor: (json['allowances_minor'] as num).toInt(),
         netMinor: (json['net_minor'] as num).toInt(),
+        endingBalanceMinor: (json['ending_balance_minor'] as num? ?? 0).toInt(),
       );
 
+  final String currencyCode;
+  final int startingBalanceMinor;
   final int incomeMinor;
   final int expensesMinor;
   final int allowancesMinor;
   final int netMinor;
+  final int endingBalanceMinor;
 
   bool get isZero =>
       incomeMinor == 0 &&
       expensesMinor == 0 &&
       allowancesMinor == 0 &&
-      netMinor == 0;
+      netMinor == 0 &&
+      startingBalanceMinor == 0 &&
+      endingBalanceMinor == 0;
 }
 
 @immutable

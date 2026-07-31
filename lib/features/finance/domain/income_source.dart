@@ -113,6 +113,7 @@ class IncomeOccurrence {
     this.receivedOn,
     this.primaryTransactionId,
     this.salaryPeriodId,
+    this.snoozedUntil,
     this.notes,
   });
 
@@ -129,6 +130,12 @@ class IncomeOccurrence {
             : PlainDate.parse(json['received_on'] as String),
         primaryTransactionId: json['primary_transaction_id'] as String?,
         salaryPeriodId: json['salary_period_id'] as String?,
+        snoozedUntil: switch (json['snoozed_until']) {
+          final String value => DateTime.parse(value).toUtc(),
+          null => null,
+          final DateTime value => value.toUtc(),
+          _ => null,
+        },
         notes: json['notes'] as String?,
       );
 
@@ -141,6 +148,7 @@ class IncomeOccurrence {
   final PlainDate? receivedOn;
   final String? primaryTransactionId;
   final String? salaryPeriodId;
+  final DateTime? snoozedUntil;
   final String? notes;
 }
 

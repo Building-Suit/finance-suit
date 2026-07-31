@@ -7,6 +7,7 @@ import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
+import 'package:work_tracker/core/widgets/app_money_text.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
@@ -442,14 +443,6 @@ class _HeldTile extends StatelessWidget {
     final title = held.title?.isNotEmpty == true
         ? held.title!
         : held.counterparty;
-    final subtitleParts = [
-      directionLabel,
-      held.heldOn.toIso(),
-      if (held.title?.isNotEmpty == true) held.counterparty,
-      if (held.isLinked) l10n.heldLinkedTransaction,
-      if (held.isSettled)
-        '${l10n.heldSettledLabel} · ${held.settledOn!.toIso()}',
-    ];
     return ListTile(
       leading: FinanceSuitIcon(
         held.isSettled
@@ -457,21 +450,25 @@ class _HeldTile extends StatelessWidget {
             : FinanceSuitIcons.pauseCircle,
       ),
       title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text(
-        subtitleParts.join(' · '),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('$directionLabel · ${held.heldOn.toIso()}'),
+          if (held.title?.isNotEmpty == true) Text(held.counterparty),
+          if (held.isLinked) Text(l10n.heldLinkedTransactionReference),
+          if (held.isSettled)
+            Text('${l10n.heldSettledLabel} · ${held.settledOn!.toIso()}'),
+        ],
       ),
       onTap: () => onAction('edit'),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            '$amountPrefix${held.amount.format()}',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: amountColor,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
+          AppMoneyText(
+            money: amountPrefix == '+' ? held.amount : -held.amount,
+            sign: AppMoneySign.explicit,
+            color: amountColor,
+            style: Theme.of(context).textTheme.titleSmall,
           ),
           PopupMenuButton<String>(
             onSelected: onAction,
@@ -519,12 +516,10 @@ class _HeldTotalsSection extends StatelessWidget {
           )
         else
           for (final entry in totals.entries)
-            Text(
-              Money(minor: entry.value, currencyCode: entry.key).format(),
-              style: textTheme.headlineSmall?.copyWith(
-                color: color,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
+            AppMoneyText(
+              money: Money(minor: entry.value, currencyCode: entry.key),
+              color: color,
+              style: textTheme.headlineSmall,
             ),
       ],
     );

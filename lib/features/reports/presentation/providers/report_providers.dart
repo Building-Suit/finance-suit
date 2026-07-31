@@ -10,7 +10,7 @@ typedef AccountBalanceHistoryKey = ({String accountId, DateRange range});
 typedef CategoryTotalsKey = ({DateRange range, String transactionKind});
 
 final cashFlowSummaryProvider =
-    FutureProvider.family<CashFlowSummary, DateRange>((ref, range) async {
+    FutureProvider.family<List<CashFlowSummary>, DateRange>((ref, range) async {
       ref.watch(currentUserIdProvider);
       final result = await ref
           .watch(reportRepositoryProvider)

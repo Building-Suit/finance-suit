@@ -7,6 +7,7 @@ import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
+import 'package:work_tracker/core/widgets/top_message.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
@@ -20,13 +21,11 @@ import 'package:work_tracker/features/settings/presentation/providers/settings_d
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 void _showFailure(BuildContext context, AppFailure failure) {
-  ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(SnackBar(content: Text(failureMessage(context, failure))));
+  TopMessage.error(context, failureMessage(context, failure));
 }
 
 /// Confirms a scheduled income, then creates its real transaction and splits.
-Future<void> acceptPendingIncome(
+Future<bool> acceptPendingIncome(
   BuildContext context,
   WidgetRef ref,
   PendingIncome pending,
@@ -53,7 +52,7 @@ Future<void> acceptPendingIncome(
         return null;
       },
     );
-    if (salaryPeriod == null || !context.mounted) return;
+    if (salaryPeriod == null || !context.mounted) return false;
     if (salaryPeriod.isPaid) {
       _showFailure(
         context,
@@ -62,7 +61,7 @@ Future<void> acceptPendingIncome(
           debugDetails: 'automated salary period is already paid',
         ),
       );
-      return;
+      return false;
     }
     if (salaryPeriod.isFinalized) {
       salaryEstimate = SalaryEstimate.fromSnapshot(salaryPeriod.snapshot!);
@@ -157,7 +156,7 @@ Future<void> acceptPendingIncome(
       ),
     ),
   );
-  if (accepted != true || !context.mounted) return;
+  if (accepted != true || !context.mounted) return false;
 
   if (salaryPeriod?.isOpen == true) {
     final finalizeResult = await ref
@@ -170,7 +169,7 @@ Future<void> acceptPendingIncome(
         return true;
       },
     );
-    if (failed || !context.mounted) return;
+    if (failed || !context.mounted) return false;
   }
 
   final amount = Money.tryParse(
@@ -187,8 +186,8 @@ Future<void> acceptPendingIncome(
         notes: notes.isEmpty ? null : notes,
         salaryPeriodId: salaryPeriod?.id,
       );
-  if (!context.mounted) return;
-  result.when(
+  if (!context.mounted) return false;
+  return result.when(
     ok: (_) {
       invalidateIncomeAutomation(ref);
       invalidateFinanceData(ref);
@@ -196,12 +195,16 @@ Future<void> acceptPendingIncome(
       ref
         ..invalidate(historyPageProvider)
         ..invalidate(cashFlowSummaryProvider);
+      return true;
     },
-    err: (failure) => _showFailure(context, failure),
+    err: (failure) {
+      _showFailure(context, failure);
+      return false;
+    },
   );
 }
 
-Future<void> skipPendingIncome(
+Future<bool> skipPendingIncome(
   BuildContext context,
   WidgetRef ref,
   PendingIncome pending,
@@ -224,13 +227,19 @@ Future<void> skipPendingIncome(
       ],
     ),
   );
-  if (confirmed != true || !context.mounted) return;
+  if (confirmed != true || !context.mounted) return false;
   final result = await ref
       .read(financeRepositoryProvider)
       .skipIncomeOccurrence(pending.occurrence.id);
-  if (!context.mounted) return;
-  result.when(
-    ok: (_) => invalidateIncomeAutomation(ref),
-    err: (failure) => _showFailure(context, failure),
+  if (!context.mounted) return false;
+  return result.when(
+    ok: (_) {
+      invalidateIncomeAutomation(ref);
+      return true;
+    },
+    err: (failure) {
+      _showFailure(context, failure);
+      return false;
+    },
   );
 }

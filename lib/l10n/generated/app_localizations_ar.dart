@@ -1362,7 +1362,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get incomeLater => 'لاحقًا';
 
   @override
-  String get incomeRemindLater => 'سيظل هنا حتى تقبله أو تتخطاه.';
+  String get incomeRemindLater => 'تم التأجيل لمدة 24 ساعة.';
+
+  @override
+  String get incomeSnoozeFailed => 'تعذر تأجيل هذا الدخل. حاول مرة أخرى.';
+
+  @override
+  String get incomeAcceptedMessage => 'تم قبول الدخل.';
+
+  @override
+  String get incomeSkippedMessage => 'تم تخطي الدخل.';
+
+  @override
+  String get salaryBaseAmount => 'المبلغ الأساسي';
+
+  @override
+  String get salaryExtraDays => 'الأيام الإضافية';
+
+  @override
+  String get salaryOvertimeDuration => 'الوقت الإضافي';
+
+  @override
+  String get salaryHolidayWorked => 'عمل يوم عطلة';
+
+  @override
+  String get salaryEstimatedTotal => 'الإجمالي المتوقع';
+
+  @override
+  String durationHoursMinutes(int hours, int minutes) {
+    return '$hoursس $minutesد';
+  }
 
   @override
   String get incomeAutomationCenter => 'مركز الأتمتة';
@@ -1451,6 +1480,22 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get homePartialDataError =>
       'تعذر تحميل بعض أقسام لوحة التحكم. ستظل البيانات الأخرى المتاحة ظاهرة.';
+
+  @override
+  String get reportStartingBalance => 'رصيد البداية';
+
+  @override
+  String get reportEndingBalance => 'رصيد النهاية';
+
+  @override
+  String get selectionSearchHint => 'ابحث في الخيارات';
+
+  @override
+  String get heldLinkedTransactionReference => 'المعاملة الأصلية مرتبطة كمرجع';
+
+  @override
+  String get heldSettlementTransactionHelp =>
+      'ينشئ التحصيل أو السداد معاملة منفصلة للحساب المحدد.';
 
   @override
   String get onboardingSubmitFailed =>
