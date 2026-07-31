@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
+import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 /// A form-compatible mobile selection field backed by a modal bottom sheet.
 ///
@@ -36,6 +37,7 @@ class AppSelectionField<T> extends FormField<T> {
                isScrollControlled: true,
                showDragHandle: true,
                useSafeArea: true,
+               useRootNavigator: true,
                builder: (context) => _SelectionSheet<T>(
                  items: items,
                  selectedValue: state.value,
@@ -115,8 +117,9 @@ class _SelectionSheetState<T> extends State<_SelectionSheet<T>> {
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
-    final maxHeight = math.min(media.size.height * .8, 640.0);
+    final maxHeight = math.min(media.size.height * .75, 640.0);
     final query = _query.trim().toLowerCase();
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     final visible = query.isEmpty
         ? widget.items
         : widget.items
@@ -127,7 +130,7 @@ class _SelectionSheetState<T> extends State<_SelectionSheet<T>> {
       child: ConstrainedBox(
         constraints: BoxConstraints(maxHeight: maxHeight),
         child: Padding(
-          padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + media.viewInsets.bottom),
+          padding: EdgeInsets.fromLTRB(16, 0, 16, 8 + media.viewInsets.bottom),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -135,15 +138,18 @@ class _SelectionSheetState<T> extends State<_SelectionSheet<T>> {
               if (widget.title != null) ...[
                 Text(
                   widget.title!,
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
               ],
               if (widget.items.length > 8) ...[
                 TextField(
                   autofocus: false,
                   decoration: InputDecoration(
-                    hintText: widget.searchHint ?? 'Search',
+                    hintText:
+                        widget.searchHint ??
+                        l10n?.selectionSearchHint ??
+                        'Search options',
                     prefixIcon: const FinanceSuitIcon(FinanceSuitIcons.search),
                   ),
                   onChanged: (value) => setState(() => _query = value),
@@ -162,8 +168,10 @@ class _SelectionSheetState<T> extends State<_SelectionSheet<T>> {
                     return Semantics(
                       selected: selected,
                       child: ListTile(
+                        dense: true,
+                        visualDensity: VisualDensity.compact,
                         enabled: item.enabled,
-                        minVerticalPadding: 12,
+                        minVerticalPadding: 8,
                         leading: selected
                             ? const FinanceSuitIcon(FinanceSuitIcons.check)
                             : const SizedBox(width: 24),

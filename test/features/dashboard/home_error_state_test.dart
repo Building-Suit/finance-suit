@@ -37,12 +37,17 @@ void main() {
               (ref) async => const <PendingIncome>[],
             ),
             cashFlowSummaryProvider.overrideWith(
-              (ref, range) async => const CashFlowSummary(
-                incomeMinor: 10000,
-                expensesMinor: 2500,
-                allowancesMinor: 500,
-                netMinor: 7000,
-              ),
+              (ref, range) async => const [
+                CashFlowSummary(
+                  currencyCode: 'EGP',
+                  startingBalanceMinor: 0,
+                  incomeMinor: 10000,
+                  expensesMinor: 2500,
+                  allowancesMinor: 500,
+                  netMinor: 7000,
+                  endingBalanceMinor: 7000,
+                ),
+              ],
             ),
             salarySettingsProvider.overrideWith(
               (ref) async =>

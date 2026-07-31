@@ -231,8 +231,11 @@ class FinanceRepository {
           .select()
           .eq('user_id', _userId)
           .eq('status', IncomeOccurrenceStatus.pending.dbValue)
+          .or(
+            'snoozed_until.is.null,snoozed_until.lte.${DateTime.now().toUtc().toIso8601String()}',
+          )
           .order('scheduled_on', ascending: true);
-      return occurrenceRows
+      final actionable = occurrenceRows
           .map(IncomeOccurrence.fromJson)
           .where((occurrence) {
             final source = byId[occurrence.incomeSourceId];
@@ -247,6 +250,26 @@ class FinanceRepository {
             ),
           )
           .toList();
+      final earliestBySource = <String, PendingIncome>{};
+      for (final item in actionable) {
+        earliestBySource.putIfAbsent(item.source.id, () => item);
+      }
+      final grouped = earliestBySource.values.toList();
+      grouped.sort((left, right) {
+        final leftDue = left.occurrence.scheduledOn <= today;
+        final rightDue = right.occurrence.scheduledOn <= today;
+        if (leftDue != rightDue) return leftDue ? -1 : 1;
+        final date = left.occurrence.scheduledOn.compareTo(
+          right.occurrence.scheduledOn,
+        );
+        if (date != 0) return date;
+        final name = left.source.name.toLowerCase().compareTo(
+          right.source.name.toLowerCase(),
+        );
+        if (name != 0) return name;
+        return left.occurrence.id.compareTo(right.occurrence.id);
+      });
+      return grouped;
     });
   }
 
@@ -328,6 +351,21 @@ class FinanceRepository {
       await _db.rpc<void>(
         'skip_income_occurrence',
         params: {'p_occurrence_id': occurrenceId},
+      );
+    });
+  }
+
+  Future<Result<void>> snoozeIncomeOccurrence({
+    required String occurrenceId,
+    required DateTime snoozedUntil,
+  }) {
+    return guard(() async {
+      await _db.rpc<void>(
+        'snooze_income_occurrence',
+        params: {
+          'p_occurrence_id': occurrenceId,
+          'p_snoozed_until': snoozedUntil.toUtc().toIso8601String(),
+        },
       );
     });
   }

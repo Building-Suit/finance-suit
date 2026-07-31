@@ -3,6 +3,7 @@ import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
+import 'package:work_tracker/core/widgets/app_money_text.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
@@ -68,16 +69,16 @@ class TransactionTile extends StatelessWidget {
     final tx = transaction;
 
     final Color amountColor;
-    final String amountText;
+    final AppMoneySign amountSign;
     if (tx.isTransfer) {
       amountColor = scheme.onSurfaceVariant;
-      amountText = tx.amount.format();
+      amountSign = AppMoneySign.never;
     } else if (tx.isIncome) {
       amountColor = AppTheme.incomeColor(context);
-      amountText = '+${tx.amount.format()}';
+      amountSign = AppMoneySign.explicit;
     } else {
       amountColor = scheme.error;
-      amountText = '-${tx.amount.format()}';
+      amountSign = AppMoneySign.explicit;
     }
 
     final title = tx.title?.isNotEmpty == true
@@ -108,12 +109,11 @@ class TransactionTile extends StatelessWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            amountText,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: amountColor,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
+          AppMoneyText(
+            money: tx.isIncome || tx.isTransfer ? tx.amount : -tx.amount,
+            sign: amountSign,
+            color: amountColor,
+            style: Theme.of(context).textTheme.titleSmall,
           ),
           ?trailingMenu,
         ],
@@ -133,12 +133,10 @@ class BalanceText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Text(
-      money.format(),
-      style: (style ?? Theme.of(context).textTheme.titleMedium)?.copyWith(
-        color: money.isNegative ? scheme.error : null,
-        fontFeatures: const [FontFeature.tabularFigures()],
-      ),
+    return AppMoneyText(
+      money: money,
+      color: money.isNegative ? scheme.error : null,
+      style: style ?? Theme.of(context).textTheme.titleMedium,
     );
   }
 }

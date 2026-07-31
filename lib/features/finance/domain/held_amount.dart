@@ -17,6 +17,8 @@ class HeldAmount {
     required this.heldOn,
     this.settledOn,
     this.transactionId,
+    this.linkedTransactionId,
+    this.settlementTransactionId,
     this.accountId,
     this.managesTransaction = false,
     this.title,
@@ -35,6 +37,8 @@ class HeldAmount {
       null => null,
     },
     transactionId: json['transaction_id'] as String?,
+    linkedTransactionId: json['linked_transaction_id'] as String?,
+    settlementTransactionId: json['settlement_transaction_id'] as String?,
     accountId: json['account_id'] as String?,
     managesTransaction: json['manages_transaction'] as bool? ?? false,
     title: json['title'] as String?,
@@ -49,6 +53,8 @@ class HeldAmount {
   final PlainDate heldOn;
   final PlainDate? settledOn;
   final String? transactionId;
+  final String? linkedTransactionId;
+  final String? settlementTransactionId;
   final String? accountId;
   final bool managesTransaction;
   final String? title;
@@ -56,7 +62,7 @@ class HeldAmount {
 
   Money get amount => Money(minor: amountMinor, currencyCode: currencyCode);
   bool get isSettled => settledOn != null;
-  bool get isLinked => transactionId != null;
+  bool get isLinked => (linkedTransactionId ?? transactionId) != null;
 }
 
 /// Payload for inserting or updating a held amount. Also used as the
@@ -92,6 +98,7 @@ class HeldAmountDraft {
     'counterparty': counterparty,
     'held_on': heldOn.toIso(),
     'transaction_id': transactionId,
+    'linked_transaction_id': transactionId,
     'account_id': accountId,
     'title': title,
     'notes': notes,

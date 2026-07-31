@@ -7,14 +7,20 @@ void main() {
   group('CashFlowSummary', () {
     test('parses integer minor-unit totals', () {
       final summary = CashFlowSummary.fromJson({
+        'currency_code': 'EGP',
+        'starting_balance_minor': 113000,
         'income_minor': 500000,
         'expenses_minor': 125000,
         'allowances_minor': 25000,
         'net_minor': 350000,
+        'ending_balance_minor': 463000,
       });
 
+      expect(summary.currencyCode, 'EGP');
+      expect(summary.startingBalanceMinor, 113000);
       expect(summary.incomeMinor, 500000);
       expect(summary.netMinor, 350000);
+      expect(summary.endingBalanceMinor, 463000);
       expect(summary.isZero, isFalse);
     });
   });

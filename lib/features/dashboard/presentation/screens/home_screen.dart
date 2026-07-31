@@ -8,25 +8,23 @@ import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/date_time/date_range.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
-import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
-import 'package:work_tracker/core/validation/validators.dart';
+import 'package:work_tracker/core/widgets/app_money_text.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
-import 'package:work_tracker/core/widgets/failure_text.dart';
+import 'package:work_tracker/core/widgets/top_message.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/finance_widgets.dart';
+import 'package:work_tracker/features/finance/presentation/widgets/income_automation_actions.dart';
 import 'package:work_tracker/features/history/domain/history_models.dart';
 import 'package:work_tracker/features/history/presentation/providers/history_providers.dart';
 import 'package:work_tracker/features/history/presentation/widgets/history_item_tile.dart';
 import 'package:work_tracker/features/reports/domain/report_models.dart';
 import 'package:work_tracker/features/reports/presentation/providers/report_providers.dart';
-import 'package:work_tracker/features/salary/data/salary_repository.dart';
 import 'package:work_tracker/features/salary/domain/salary_estimate.dart';
-import 'package:work_tracker/features/salary/domain/salary_period.dart';
 import 'package:work_tracker/features/salary/presentation/providers/salary_providers.dart';
 import 'package:work_tracker/features/salary/presentation/widgets/estimate_breakdown.dart';
 import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
@@ -145,207 +143,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ref.invalidate(pendingIncomeProvider);
   }
 
-  void _showFailure(AppFailure failure) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(failureMessage(context, failure))));
-  }
-
   Future<void> _acceptIncome(PendingIncome pending) async {
     final l10n = AppLocalizations.of(context);
-    SalaryEstimate? salaryEstimate;
-    SalaryPeriod? salaryPeriod;
-    if (pending.source.kind == IncomeSourceKind.salary) {
-      final settings = await ref.read(salarySettingsProvider.future);
-      final bounds = SalaryPeriods.boundsForExpectedPayment(
-        settings,
-        pending.occurrence.scheduledOn,
-      );
-      salaryEstimate = await ref.read(
-        estimateForRangeProvider((start: bounds.start, end: bounds.end)).future,
-      );
-      final periodResult = await ref
-          .read(salaryRepositoryProvider)
-          .ensurePeriod(bounds);
-      salaryPeriod = periodResult.when(
-        ok: (period) => period,
-        err: (failure) {
-          _showFailure(failure);
-          return null;
-        },
-      );
-      if (salaryPeriod == null || !mounted) return;
-      if (salaryPeriod.isPaid) {
-        _showFailure(
-          const ConstraintFailure(
-            'salary_period_already_paid',
-            debugDetails: 'automated salary period is already paid',
-          ),
-        );
-        return;
-      }
-      if (salaryPeriod.isFinalized) {
-        salaryEstimate = SalaryEstimate.fromSnapshot(salaryPeriod.snapshot!);
-      }
+    final accepted = await acceptPendingIncome(context, ref, pending);
+    if (mounted && accepted) {
+      TopMessage.success(context, l10n.incomeAcceptedMessage);
     }
+  }
 
-    final defaultMinor =
-        salaryEstimate?.totalMinor ?? pending.occurrence.expectedAmountMinor;
-    final amountController = TextEditingController(
-      text: (defaultMinor / Money.minorUnitsPerMajor).toStringAsFixed(2),
-    );
-    final notesController = TextEditingController();
-    var receivedOn = PlainDate.today();
-    final formKey = GlobalKey<FormState>();
-    final accepted = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setDialogState) => AlertDialog(
-          title: Text(l10n.incomeAcceptTitle(pending.source.name)),
-          content: Form(
-            key: formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(l10n.incomeAcceptHelp),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: amountController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: InputDecoration(
-                      labelText: l10n.salActualAmount,
-                      suffixText: pending.source.currencyCode,
-                    ),
-                    validator: (value) {
-                      final error = Validators.positiveAmount(
-                        value,
-                        currencyCode: pending.source.currencyCode,
-                      );
-                      return error == null
-                          ? null
-                          : validationMessage(dialogContext, error);
-                    },
-                  ),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const FinanceSuitIcon(
-                      FinanceSuitIcons.calendarToday,
-                    ),
-                    title: Text(l10n.salReceivedDate),
-                    subtitle: Text(receivedOn.toIso()),
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: dialogContext,
-                        initialDate: receivedOn.toDateTime(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (picked != null) {
-                        setDialogState(
-                          () => receivedOn = PlainDate.fromDateTime(picked),
-                        );
-                      }
-                    },
-                  ),
-                  TextFormField(
-                    controller: notesController,
-                    decoration: InputDecoration(
-                      labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(l10n.commonCancel),
-            ),
-            FilledButton(
-              onPressed: () {
-                if (formKey.currentState!.validate()) {
-                  Navigator.of(dialogContext).pop(true);
-                }
-              },
-              child: Text(l10n.incomeAccept),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (accepted != true || !mounted) return;
-
-    if (salaryPeriod?.isOpen == true) {
-      final finalizeResult = await ref
-          .read(salaryRepositoryProvider)
-          .finalizePeriod(salaryPeriod!.id, salaryEstimate!.toSnapshotJson());
-      final failed = finalizeResult.when(
-        ok: (_) => false,
-        err: (failure) {
-          _showFailure(failure);
-          return true;
-        },
-      );
-      if (failed || !mounted) return;
+  Future<void> _skipIncome(PendingIncome pending) async {
+    final l10n = AppLocalizations.of(context);
+    final skipped = await skipPendingIncome(context, ref, pending);
+    if (mounted && skipped) {
+      TopMessage.success(context, l10n.incomeSkippedMessage);
     }
+  }
 
-    final amount = Money.tryParse(
-      amountController.text,
-      currencyCode: pending.source.currencyCode,
-    )!;
-    final notes = notesController.text.trim();
+  Future<void> _snoozeIncome(PendingIncome pending) async {
+    final l10n = AppLocalizations.of(context);
     final result = await ref
         .read(financeRepositoryProvider)
-        .acceptIncomeOccurrence(
+        .snoozeIncomeOccurrence(
           occurrenceId: pending.occurrence.id,
-          actualAmountMinor: amount.minor,
-          receivedOn: receivedOn,
-          notes: notes.isEmpty ? null : notes,
-          salaryPeriodId: salaryPeriod?.id,
+          snoozedUntil: DateTime.now().toUtc().add(const Duration(hours: 24)),
         );
     if (!mounted) return;
     result.when(
       ok: (_) {
         invalidateIncomeAutomation(ref);
-        invalidateFinanceData(ref);
-        invalidateSalaryData(ref);
-        ref
-          ..invalidate(historyPageProvider)
-          ..invalidate(cashFlowSummaryProvider);
+        TopMessage.success(context, l10n.incomeRemindLater);
       },
-      err: _showFailure,
+      err: (_) => TopMessage.error(context, l10n.incomeSnoozeFailed),
     );
-  }
-
-  Future<void> _skipIncome(PendingIncome pending) async {
-    final l10n = AppLocalizations.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.incomeSkipTitle),
-        content: Text(l10n.incomeSkipHelp(pending.source.name)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(l10n.incomeSkip),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
-    final result = await ref
-        .read(financeRepositoryProvider)
-        .skipIncomeOccurrence(pending.occurrence.id);
-    if (!mounted) return;
-    result.when(ok: (_) => invalidateIncomeAutomation(ref), err: _showFailure);
   }
 
   String _rangeLabel(AppLocalizations l10n, DateRangePreset preset) {
@@ -438,6 +267,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       today: PlainDate.today(),
                       onAccept: _acceptIncome,
                       onSkip: _skipIncome,
+                      onLater: _snoozeIncome,
                     ),
             ),
             _SectionHeader(title: l10n.homeBalance),
@@ -456,11 +286,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             compactSection(
               summaryAsync,
               loading: const _SectionLoader(),
-              data: (summary) => _CashFlowSection(
-                summary: summary,
-                currencyCode:
-                    accountsAsync.value?.firstOrNull?.currencyCode ?? 'EGP',
-              ),
+              data: (summaries) => _CashFlowSection(summaries: summaries),
             ),
             if (salaryEnabled) ...[
               _SectionHeader(
@@ -540,21 +366,23 @@ class _HomeDataStatusCard extends StatelessWidget {
   }
 }
 
-class _PendingIncomeSection extends StatelessWidget {
+class _PendingIncomeSection extends ConsumerWidget {
   const _PendingIncomeSection({
     required this.items,
     required this.today,
     required this.onAccept,
     required this.onSkip,
+    required this.onLater,
   });
 
   final List<PendingIncome> items;
   final PlainDate today;
   final ValueChanged<PendingIncome> onAccept;
   final ValueChanged<PendingIncome> onSkip;
+  final ValueChanged<PendingIncome> onLater;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final warning = context.suitColors.warning;
     return Card(
@@ -580,52 +408,185 @@ class _PendingIncomeSection extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             for (final item in items) ...[
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(item.source.name),
-                subtitle: Text(
-                  item.isDueOn(today)
-                      ? l10n.incomeDue(item.occurrence.scheduledOn.toIso())
-                      : l10n.incomeUpcoming(
-                          item.occurrence.scheduledOn.toIso(),
-                        ),
-                ),
-                trailing: Text(
-                  Money(
-                    minor: item.occurrence.expectedAmountMinor,
-                    currencyCode: item.source.currencyCode,
-                  ).format(),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontFeatures: [FontFeature.tabularFigures()],
-                  ),
-                ),
-              ),
-              Wrap(
-                alignment: WrapAlignment.end,
-                spacing: 8,
-                children: [
-                  TextButton(
-                    onPressed: () => onSkip(item),
-                    child: Text(l10n.incomeSkip),
-                  ),
-                  TextButton(
-                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(l10n.incomeRemindLater)),
-                    ),
-                    child: Text(l10n.incomeLater),
-                  ),
-                  FilledButton(
-                    onPressed: () => onAccept(item),
-                    child: Text(l10n.incomeAccept),
-                  ),
-                ],
+              _PendingIncomeItem(
+                item: item,
+                today: today,
+                estimate: item.source.kind == IncomeSourceKind.salary
+                    ? ref.watch(
+                        pendingSalaryEstimateProvider((
+                          occurrenceId: item.occurrence.id,
+                          scheduledOn: item.occurrence.scheduledOn,
+                        )),
+                      )
+                    : null,
+                onAccept: () => onAccept(item),
+                onSkip: () => onSkip(item),
+                onLater: () => onLater(item),
               ),
               if (item != items.last) const Divider(),
             ],
           ],
         ),
       ),
+    );
+  }
+}
+
+class _PendingIncomeItem extends StatelessWidget {
+  const _PendingIncomeItem({
+    required this.item,
+    required this.today,
+    required this.onAccept,
+    required this.onSkip,
+    required this.onLater,
+    this.estimate,
+  });
+
+  final PendingIncome item;
+  final PlainDate today;
+  final AsyncValue<SalaryEstimate>? estimate;
+  final VoidCallback onAccept;
+  final VoidCallback onSkip;
+  final VoidCallback onLater;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    final salaryEstimate = estimate?.value;
+    final amountMinor =
+        salaryEstimate?.totalMinor ?? item.occurrence.expectedAmountMinor;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              Text(
+                item.source.name,
+                style: textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              AppMoneyText(
+                money: Money(
+                  minor: amountMinor,
+                  currencyCode: item.source.currencyCode,
+                ),
+                style: textTheme.titleSmall,
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            item.isDueOn(today)
+                ? l10n.incomeDue(item.occurrence.scheduledOn.toIso())
+                : l10n.incomeUpcoming(item.occurrence.scheduledOn.toIso()),
+            style: textTheme.bodySmall,
+          ),
+          if (salaryEstimate != null) ...[
+            const SizedBox(height: 8),
+            _SalaryPendingSummary(estimate: salaryEstimate),
+          ],
+          if (estimate?.hasError == true) ...[
+            const SizedBox(height: 8),
+            Text(l10n.homePartialDataError, style: textTheme.bodySmall),
+          ],
+          const SizedBox(height: 8),
+          Wrap(
+            alignment: WrapAlignment.end,
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              TextButton(onPressed: onSkip, child: Text(l10n.incomeSkip)),
+              TextButton(onPressed: onLater, child: Text(l10n.incomeLater)),
+              FilledButton(onPressed: onAccept, child: Text(l10n.incomeAccept)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SalaryPendingSummary extends StatelessWidget {
+  const _SalaryPendingSummary({required this.estimate});
+
+  final SalaryEstimate estimate;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final rows = <({String label, String value, int money})>[
+      (
+        label: l10n.salaryBaseAmount,
+        value: '',
+        money: estimate.baseSalaryMinor,
+      ),
+      (
+        label: l10n.salaryExtraDays,
+        value: (estimate.extraDayUnitsHundredths / 100).toStringAsFixed(2),
+        money: estimate.extraDayAmountMinor,
+      ),
+      (
+        label: l10n.salaryOvertimeDuration,
+        value: l10n.durationHoursMinutes(
+          estimate.overtimeMinutes ~/ 60,
+          estimate.overtimeMinutes % 60,
+        ),
+        money: estimate.overtimeAmountMinor,
+      ),
+      if (estimate.holidayCount != 0)
+        (
+          label: l10n.salaryHolidayWorked,
+          value: estimate.holidayCount.toString(),
+          money: estimate.holidayAmountMinor,
+        ),
+      if (estimate.bonusesMinor != 0)
+        (label: l10n.salAdjBonus, value: '', money: estimate.bonusesMinor),
+      if (estimate.deductionsMinor != 0)
+        (
+          label: l10n.salAdjDeduction,
+          value: '',
+          money: -estimate.deductionsMinor,
+        ),
+      (label: l10n.salaryEstimatedTotal, value: '', money: estimate.totalMinor),
+    ];
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final row in rows)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              children: [
+                Text(
+                  row.value.isEmpty ? row.label : '${row.label}: ${row.value}',
+                  style: textTheme.bodySmall,
+                ),
+                AppMoneyText(
+                  money: Money(
+                    minor: row.money,
+                    currencyCode: estimate.currencyCode,
+                  ),
+                  sign: row.money < 0
+                      ? AppMoneySign.automatic
+                      : AppMoneySign.never,
+                  style: textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }
@@ -728,36 +689,82 @@ class _BalanceSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SizedBox(
-          width: double.infinity,
-          child: _MetricCard(
-            icon: FinanceSuitIcons.accountBalanceWallet,
-            label: l10n.moneyTotalBalance,
-            brand: true,
-            value: totals.entries
-                .map((e) => Money(minor: e.value, currencyCode: e.key).format())
-                .join(' / '),
-          ),
+        _TotalBalanceCard(
+          totals: [
+            for (final entry in totals.entries)
+              Money(minor: entry.value, currencyCode: entry.key),
+          ],
         ),
         const SizedBox(height: 8),
         for (var index = 0; index < visibleAccounts.length; index += 2) ...[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: _HomeAccountCard(account: visibleAccounts[index]),
-              ),
-              if (index + 1 < visibleAccounts.length) ...[
-                const SizedBox(width: 8),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Expanded(
-                  child: _HomeAccountCard(account: visibleAccounts[index + 1]),
+                  child: _HomeAccountCard(account: visibleAccounts[index]),
                 ),
+                if (index + 1 < visibleAccounts.length) ...[
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _HomeAccountCard(
+                      account: visibleAccounts[index + 1],
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
           if (index + 2 < visibleAccounts.length) const SizedBox(height: 8),
         ],
       ],
+    );
+  }
+}
+
+class _TotalBalanceCard extends StatelessWidget {
+  const _TotalBalanceCard({required this.totals});
+
+  final List<Money> totals;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.suitColors;
+    final l10n = AppLocalizations.of(context);
+    return Card(
+      color: colors.brandSurface,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                FinanceSuitIcon(
+                  FinanceSuitIcons.accountBalanceWallet,
+                  color: colors.onBrandSurface,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.moneyTotalBalance,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: colors.onBrandSurface,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            for (final total in totals)
+              AppMoneyText(
+                money: total,
+                color: colors.onBrandSurface,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -771,81 +778,179 @@ class _HomeAccountCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.zero,
-      child: ListTile(
-        leading: FinanceSuitIcon(accountTypeIcon(account.accountType)),
-        title: Text(account.name),
-        subtitle: BalanceText(money: account.balance),
+      child: InkWell(
         onTap: () =>
             context.push('${AppRoutes.money}/accounts/${account.accountId}'),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  FinanceSuitIcon(accountTypeIcon(account.accountType)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      account.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              const SizedBox(height: 8),
+              BalanceText(money: account.balance),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
 class _CashFlowSection extends StatelessWidget {
-  const _CashFlowSection({required this.summary, required this.currencyCode});
+  const _CashFlowSection({required this.summaries});
 
-  final CashFlowSummary summary;
-  final String currencyCode;
+  final List<CashFlowSummary> summaries;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final colors = context.suitColors;
+    if (summaries.isEmpty) {
+      return EmptyStateView(
+        icon: FinanceSuitIcons.barChart,
+        message: l10n.homeNoRecentActivity,
+      );
+    }
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 520;
-        return GridView.count(
-          crossAxisCount: compact ? 2 : 4,
-          mainAxisSpacing: 8,
-          crossAxisSpacing: 8,
-          childAspectRatio: compact ? 1.45 : 1.5,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
+        return Column(
           children: [
-            _MetricCard(
-              icon: FinanceSuitIcons.trendingUp,
-              label: l10n.reportIncome,
-              tone: colors.success,
-              value: Money(
-                minor: summary.incomeMinor,
-                currencyCode: currencyCode,
-              ).format(),
-            ),
-            _MetricCard(
-              icon: FinanceSuitIcons.shoppingCart,
-              label: l10n.reportExpenses,
-              tone: colors.error,
-              value: Money(
-                minor: summary.expensesMinor,
-                currencyCode: currencyCode,
-              ).format(),
-            ),
-            _MetricCard(
-              icon: FinanceSuitIcons.volunteerActivism,
-              label: l10n.reportAllowances,
-              tone: colors.warning,
-              value: Money(
-                minor: summary.allowancesMinor,
-                currencyCode: currencyCode,
-              ).format(),
-            ),
-            _MetricCard(
-              icon: FinanceSuitIcons.accountBalance,
-              label: l10n.reportNet,
-              tone: summary.netMinor > 0
-                  ? colors.success
-                  : summary.netMinor < 0
-                  ? colors.error
-                  : null,
-              value: Money(
-                minor: summary.netMinor,
-                currencyCode: currencyCode,
-              ).formatSigned(),
-            ),
+            for (final summary in summaries) ...[
+              GridView.count(
+                crossAxisCount: compact ? 2 : 4,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+                childAspectRatio: compact ? 1.45 : 1.5,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  _MetricCard(
+                    icon: FinanceSuitIcons.trendingUp,
+                    label: l10n.reportIncome,
+                    tone: colors.success,
+                    money: Money(
+                      minor: summary.incomeMinor,
+                      currencyCode: summary.currencyCode,
+                    ),
+                  ),
+                  _MetricCard(
+                    icon: FinanceSuitIcons.shoppingCart,
+                    label: l10n.reportExpenses,
+                    tone: colors.error,
+                    money: Money(
+                      minor: summary.expensesMinor,
+                      currencyCode: summary.currencyCode,
+                    ),
+                  ),
+                  _MetricCard(
+                    icon: FinanceSuitIcons.volunteerActivism,
+                    label: l10n.reportAllowances,
+                    tone: colors.warning,
+                    money: Money(
+                      minor: summary.allowancesMinor,
+                      currencyCode: summary.currencyCode,
+                    ),
+                  ),
+                  _MetricCard(
+                    icon: FinanceSuitIcons.accountBalance,
+                    label: l10n.reportNet,
+                    tone: summary.netMinor > 0
+                        ? colors.success
+                        : summary.netMinor < 0
+                        ? colors.error
+                        : null,
+                    money: Money(
+                      minor: summary.netMinor,
+                      currencyCode: summary.currencyCode,
+                    ),
+                    sign: AppMoneySign.explicit,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _BalanceStrip(summary: summary),
+              if (summary != summaries.last) const SizedBox(height: 12),
+            ],
           ],
         );
       },
+    );
+  }
+}
+
+class _BalanceStrip extends StatelessWidget {
+  const _BalanceStrip({required this.summary});
+
+  final CashFlowSummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Row(
+      children: [
+        Expanded(
+          child: _StripAmount(
+            label: l10n.reportStartingBalance,
+            money: Money(
+              minor: summary.startingBalanceMinor,
+              currencyCode: summary.currencyCode,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _StripAmount(
+            label: l10n.reportEndingBalance,
+            money: Money(
+              minor: summary.endingBalanceMinor,
+              currencyCode: summary.currencyCode,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StripAmount extends StatelessWidget {
+  const _StripAmount({required this.label, required this.money});
+
+  final String label;
+  final Money money;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: Theme.of(context).textTheme.labelMedium),
+            const SizedBox(height: 4),
+            AppMoneyText(
+              money: money,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -854,31 +959,30 @@ class _MetricCard extends StatelessWidget {
   const _MetricCard({
     required this.icon,
     required this.label,
-    required this.value,
-    this.brand = false,
+    required this.money,
     this.tone,
+    this.sign = AppMoneySign.never,
   });
 
   final FinanceSuitGlyph icon;
   final String label;
-  final String value;
-  final bool brand;
+  final Money money;
   final FinanceSuitStatusColors? tone;
+  final AppMoneySign sign;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.suitColors;
-    final foreground = brand
-        ? colors.onBrandSurface
-        : tone?.text ?? colors.textPrimary;
+    final labelColor = colors.textPrimary;
+    final amountColor = tone?.text;
+    final iconColor = tone?.icon;
     return Card(
-      color: brand ? colors.brandSurface : tone?.background,
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FinanceSuitIcon(icon, color: tone?.icon ?? foreground),
+            FinanceSuitIcon(icon, color: iconColor),
             const Spacer(),
             Text(
               label,
@@ -886,18 +990,16 @@ class _MetricCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: Theme.of(
                 context,
-              ).textTheme.labelMedium?.copyWith(color: foreground),
+              ).textTheme.labelMedium?.copyWith(color: labelColor),
             ),
             const SizedBox(height: 4),
-            Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: foreground,
-                fontWeight: FontWeight.w700,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
+            AppMoneyText(
+              money: money,
+              sign: sign,
+              color: amountColor,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
           ],
         ),

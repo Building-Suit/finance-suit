@@ -9,6 +9,14 @@ import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 import 'package:work_tracker/features/finance/domain/transaction_macro.dart';
+import 'package:work_tracker/features/salary/domain/salary_estimate.dart';
+import 'package:work_tracker/features/salary/presentation/providers/salary_providers.dart';
+import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
+
+typedef PendingIncomeEstimateKey = ({
+  String occurrenceId,
+  PlainDate scheduledOn,
+});
 
 /// Active (non-archived) accounts with derived balances.
 final accountBalancesProvider = FutureProvider<List<AccountBalance>>((
@@ -93,6 +101,21 @@ final pendingIncomeProvider = FutureProvider<List<PendingIncome>>((ref) async {
       .fetchPendingIncome(PlainDate.today());
   return result.when(ok: (items) => items, err: (failure) => throw failure);
 });
+
+final pendingSalaryEstimateProvider =
+    FutureProvider.family<SalaryEstimate, PendingIncomeEstimateKey>((
+      ref,
+      key,
+    ) async {
+      final settings = await ref.watch(salarySettingsProvider.future);
+      final bounds = SalaryPeriods.boundsForExpectedPayment(
+        settings,
+        key.scheduledOn,
+      );
+      return ref.watch(
+        estimateForRangeProvider((start: bounds.start, end: bounds.end)).future,
+      );
+    });
 
 /// Invalidate everything that depends on transaction or account rows.
 void invalidateFinanceData(WidgetRef ref) {

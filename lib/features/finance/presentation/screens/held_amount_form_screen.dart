@@ -9,6 +9,7 @@ import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
+import 'package:work_tracker/core/widgets/top_message.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
@@ -66,7 +67,7 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
         existing?.counterparty ?? prefill?.counterparty ?? '';
     _titleController.text = existing?.title ?? prefill?.title ?? '';
     _notesController.text = existing?.notes ?? prefill?.notes ?? '';
-    _accountId = existing?.accountId;
+    _accountId = existing?.accountId ?? prefill?.accountId;
   }
 
   @override
@@ -126,9 +127,7 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
     result.when(
       ok: (_) {
         invalidateFinanceData(ref);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).setSaved)),
-        );
+        TopMessage.success(context, AppLocalizations.of(context).setSaved);
         context.pop();
       },
       err: (failure) => setState(() => _failure = failure),
@@ -175,9 +174,8 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
     final l10n = AppLocalizations.of(context);
     final accounts = ref.watch(accountBalancesProvider);
     final accountList = accounts.value ?? <AccountBalance>[];
-    final needsAccount =
-        _transactionId == null || widget.existing?.managesTransaction == true;
-    if (needsAccount && _accountId == null && accountList.isNotEmpty) {
+    const needsAccount = true;
+    if (_accountId == null && accountList.isNotEmpty) {
       _accountId =
           (accountList.where((a) => a.isDefault).firstOrNull ??
                   accountList.first)
@@ -206,7 +204,8 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const FinanceSuitIcon(FinanceSuitIcons.link),
-                  title: Text(l10n.heldLinkedTransaction),
+                  title: Text(l10n.heldLinkedTransactionReference),
+                  subtitle: Text(l10n.heldSettlementTransactionHelp),
                 ),
                 const SizedBox(height: 8),
               ],
