@@ -35,10 +35,15 @@ select app_core.complete_onboarding(
 
 insert into app_finance.accounts (
   user_id, name, account_type, currency_code, opening_balance_minor
-) values (
-  '00000000-0000-0000-0000-000000000021',
-  'USD Wallet', 'wallet', 'USD', -5000
-);
+) values
+  (
+    '00000000-0000-0000-0000-000000000021',
+    'USD Wallet', 'wallet', 'USD', -5000
+  ),
+  (
+    '00000000-0000-0000-0000-000000000021',
+    'EGP Parking', 'wallet', 'EGP', 0
+  );
 
 insert into app_finance.financial_transactions (
   user_id, transaction_kind, occurred_on, amount_minor, currency_code,
@@ -74,7 +79,7 @@ insert into app_finance.financial_transactions (
   '00000000-0000-0000-0000-000000000021', 'transfer', '2026-07-15',
   1000, 'EGP',
   (select id from app_finance.accounts where name = 'Current Balance'),
-  (select id from app_finance.accounts where name = 'Current Balance'),
+  (select id from app_finance.accounts where name = 'EGP Parking'),
   'Ignored transfer'
 );
 

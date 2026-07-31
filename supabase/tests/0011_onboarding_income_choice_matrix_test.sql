@@ -138,11 +138,17 @@ select is_empty(
 );
 
 set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000031","role":"authenticated"}';
-select throws_ok(
-  $$update app_finance.income_sources set source_kind = 'other'
-    where source_kind = 'salary'$$,
-  'P0001', null,
-  'an existing automation semantic type is immutable'
+select lives_ok(
+  $$select app_finance.save_income_source_v3(
+    'My salary', 'other', 1200000, 'EGP', 25::smallint, current_date,
+    7::smallint,
+    (select primary_account_id from app_finance.income_sources
+      where source_kind = 'salary'),
+    null, '[]'::jsonb, null,
+    (select id from app_finance.income_sources where source_kind = 'salary'),
+    true
+  )$$,
+  'an existing automation semantic type can be edited through the save RPC'
 );
 
 select ok(

@@ -139,6 +139,28 @@ enum IncomeSourceKind {
       values.firstWhere((e) => e.dbValue == value);
 }
 
+enum IncomeAllocationMethod {
+  percentage('percentage'),
+  fixed('fixed');
+
+  const IncomeAllocationMethod(this.dbValue);
+  final String dbValue;
+
+  static IncomeAllocationMethod fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+enum IncomeAllocationCalculationBasis {
+  original('original'),
+  remaining('remaining');
+
+  const IncomeAllocationCalculationBasis(this.dbValue);
+  final String dbValue;
+
+  static IncomeAllocationCalculationBasis fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
 enum IncomeOccurrenceStatus {
   pending('pending'),
   accepted('accepted'),

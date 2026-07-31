@@ -7,8 +7,11 @@ import 'package:work_tracker/core/money/money.dart';
 class IncomeAllocation {
   const IncomeAllocation({
     required this.destinationAccountId,
-    required this.percentageBasisPoints,
+    required this.method,
     this.id,
+    this.calculationBasis = IncomeAllocationCalculationBasis.original,
+    this.percentageBasisPoints,
+    this.fixedAmountMinor,
     this.sortOrder = 0,
   });
 
@@ -16,20 +19,34 @@ class IncomeAllocation {
       IncomeAllocation(
         id: json['id'] as String?,
         destinationAccountId: json['destination_account_id'] as String,
-        percentageBasisPoints: (json['percentage_basis_points'] as num).toInt(),
+        method: IncomeAllocationMethod.fromDb(
+          json['allocation_method'] as String? ?? 'percentage',
+        ),
+        calculationBasis: IncomeAllocationCalculationBasis.fromDb(
+          json['calculation_basis'] as String? ?? 'original',
+        ),
+        percentageBasisPoints: (json['percentage_basis_points'] as num?)
+            ?.toInt(),
+        fixedAmountMinor: (json['fixed_amount_minor'] as num?)?.toInt(),
         sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
       );
 
   final String? id;
   final String destinationAccountId;
-  final int percentageBasisPoints;
+  final IncomeAllocationMethod method;
+  final IncomeAllocationCalculationBasis calculationBasis;
+  final int? percentageBasisPoints;
+  final int? fixedAmountMinor;
   final int sortOrder;
 
-  double get percentage => percentageBasisPoints / 100;
+  double get percentage => (percentageBasisPoints ?? 0) / 100;
 
   Map<String, dynamic> toPayload() => {
     'destination_account_id': destinationAccountId,
+    'allocation_method': method.dbValue,
+    'calculation_basis': calculationBasis.dbValue,
     'percentage_basis_points': percentageBasisPoints,
+    'fixed_amount_minor': fixedAmountMinor,
   };
 }
 
@@ -47,6 +64,8 @@ class IncomeSource {
     required this.primaryAccountId,
     required this.isActive,
     required this.allocations,
+    this.includeExtraWorkInPercentage = true,
+    this.extraWorkDestinationAccountId,
     this.categoryId,
     this.notes,
   });
@@ -72,6 +91,10 @@ class IncomeSource {
       categoryId: json['category_id'] as String?,
       isActive: json['is_active'] as bool,
       allocations: allocations,
+      includeExtraWorkInPercentage:
+          json['include_extra_work_in_percentage'] as bool? ?? true,
+      extraWorkDestinationAccountId:
+          json['extra_work_destination_account_id'] as String?,
       notes: json['notes'] as String?,
     );
   }
@@ -88,6 +111,8 @@ class IncomeSource {
   final String? categoryId;
   final bool isActive;
   final List<IncomeAllocation> allocations;
+  final bool includeExtraWorkInPercentage;
+  final String? extraWorkDestinationAccountId;
   final String? notes;
 
   Money get expectedAmount =>
@@ -95,7 +120,11 @@ class IncomeSource {
 
   int get allocatedBasisPoints => allocations.fold(
     0,
-    (total, allocation) => total + allocation.percentageBasisPoints,
+    (total, allocation) =>
+        total +
+        (allocation.method == IncomeAllocationMethod.percentage
+            ? allocation.percentageBasisPoints ?? 0
+            : 0),
   );
 
   int get remainderBasisPoints => 10000 - allocatedBasisPoints;
