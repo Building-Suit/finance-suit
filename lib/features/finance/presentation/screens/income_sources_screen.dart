@@ -7,6 +7,7 @@ import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
+import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
@@ -52,6 +53,14 @@ class IncomeSourcesScreen extends ConsumerWidget {
 
   String _percentage(int basisPoints) =>
       (basisPoints / 100).toStringAsFixed(basisPoints % 100 == 0 ? 0 : 2);
+
+  bool _hasOnlyOriginalPercentages(IncomeSource source) =>
+      source.allocations.every(
+        (allocation) =>
+            allocation.method == IncomeAllocationMethod.percentage &&
+            allocation.calculationBasis ==
+                IncomeAllocationCalculationBasis.original,
+      );
 
   Widget _sourceCard(
     BuildContext context,
@@ -114,12 +123,25 @@ class IncomeSourcesScreen extends ConsumerWidget {
             Text(l10n.incomeDepositAccount(primaryName)),
             for (final allocation in source.allocations)
               Text(
-                l10n.incomeSplitAccount(
-                  _percentage(allocation.percentageBasisPoints),
-                  accountNames[allocation.destinationAccountId] ?? '—',
-                ),
+                allocation.method == IncomeAllocationMethod.percentage
+                    ? l10n.incomeSplitAccount(
+                        _percentage(allocation.percentageBasisPoints ?? 0),
+                        accountNames[allocation.destinationAccountId] ?? '-',
+                      )
+                    : l10n.incomeSplitFixedAccount(
+                        Money(
+                          minor: allocation.fixedAmountMinor ?? 0,
+                          currencyCode: source.currencyCode,
+                        ).format(
+                          locale: Localizations.localeOf(
+                            context,
+                          ).toLanguageTag(),
+                        ),
+                        accountNames[allocation.destinationAccountId] ?? '-',
+                      ),
               ),
-            if (source.allocations.isNotEmpty)
+            if (source.allocations.isNotEmpty &&
+                _hasOnlyOriginalPercentages(source))
               Text(
                 l10n.incomeRemainderSplit(
                   _percentage(source.remainderBasisPoints),

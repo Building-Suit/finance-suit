@@ -2543,7 +2543,7 @@ abstract class AppLocalizations {
   /// No description provided for @incomeSplitHelp.
   ///
   /// In en, this message translates to:
-  /// **'Enter the percentage sent to each account. Anything left stays in the deposit account.'**
+  /// **'Add ordered rules for transfers from the deposit account. Anything left stays in the deposit account.'**
   String get incomeSplitHelp;
 
   /// No description provided for @incomeInvalidPercentage.
@@ -2551,6 +2551,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a percentage from 0 to 100.'**
   String get incomeInvalidPercentage;
+
+  /// No description provided for @incomeSplitAddRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Add split rule'**
+  String get incomeSplitAddRule;
+
+  /// No description provided for @incomeSplitNoRules.
+  ///
+  /// In en, this message translates to:
+  /// **'No split rules. The full amount stays in the deposit account.'**
+  String get incomeSplitNoRules;
+
+  /// No description provided for @incomeSplitRuleNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Rule {number}'**
+  String incomeSplitRuleNumber(int number);
+
+  /// No description provided for @incomeSplitDestinationAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination account'**
+  String get incomeSplitDestinationAccount;
+
+  /// No description provided for @incomeSplitMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Split method'**
+  String get incomeSplitMethod;
+
+  /// No description provided for @incomeSplitMethodPercentage.
+  ///
+  /// In en, this message translates to:
+  /// **'Percentage'**
+  String get incomeSplitMethodPercentage;
+
+  /// No description provided for @incomeSplitMethodFixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed amount'**
+  String get incomeSplitMethodFixed;
+
+  /// No description provided for @incomeSplitCalculationBasis.
+  ///
+  /// In en, this message translates to:
+  /// **'Percentage basis'**
+  String get incomeSplitCalculationBasis;
+
+  /// No description provided for @incomeSplitBasisOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Original amount'**
+  String get incomeSplitBasisOriginal;
+
+  /// No description provided for @incomeSplitBasisRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining amount'**
+  String get incomeSplitBasisRemaining;
+
+  /// No description provided for @incomeSplitMoveUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Move rule up'**
+  String get incomeSplitMoveUp;
+
+  /// No description provided for @incomeSplitMoveDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Move rule down'**
+  String get incomeSplitMoveDown;
+
+  /// No description provided for @incomeSplitInvalidAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an active account in the same currency.'**
+  String get incomeSplitInvalidAccount;
+
+  /// No description provided for @incomeSplitIncludeExtraWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Include extra hours and days in percentage calculations'**
+  String get incomeSplitIncludeExtraWork;
+
+  /// No description provided for @incomeSplitIncludeExtraWorkHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonuses and deductions are still treated as ordinary salary.'**
+  String get incomeSplitIncludeExtraWorkHelp;
+
+  /// No description provided for @incomeSplitRouteExtraWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Route all protected extra-work earnings to another account'**
+  String get incomeSplitRouteExtraWork;
+
+  /// No description provided for @incomeSplitExtraWorkAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra-work destination account'**
+  String get incomeSplitExtraWorkAccount;
+
+  /// No description provided for @incomeSplitPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get incomeSplitPreviewTitle;
+
+  /// No description provided for @incomeSplitPreviewLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} to {account}'**
+  String incomeSplitPreviewLine(String amount, String account);
+
+  /// No description provided for @incomeSplitPreviewRemainder.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} remains in {account}'**
+  String incomeSplitPreviewRemainder(String amount, String account);
+
+  /// No description provided for @incomeSplitPreviewError.
+  ///
+  /// In en, this message translates to:
+  /// **'These rules exceed the available income.'**
+  String get incomeSplitPreviewError;
 
   /// No description provided for @incomeKindSalary.
   ///
@@ -2791,6 +2917,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{percentage}% to {account}'**
   String incomeSplitAccount(String percentage, String account);
+
+  /// No description provided for @incomeSplitFixedAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} to {account}'**
+  String incomeSplitFixedAccount(String amount, String account);
 
   /// No description provided for @incomeRemainderSplit.
   ///

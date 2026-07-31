@@ -283,6 +283,8 @@ class FinanceRepository {
     required int promptDaysBefore,
     required String primaryAccountId,
     required List<IncomeAllocation> allocations,
+    bool includeExtraWorkInPercentage = true,
+    String? extraWorkDestinationAccountId,
     String? categoryId,
     String? notes,
     String? sourceId,
@@ -290,7 +292,7 @@ class FinanceRepository {
   }) {
     return guard(() async {
       return _db.rpc<String>(
-        'save_income_source_v2',
+        'save_income_source_v3',
         params: {
           'p_name': name,
           'p_source_kind': kind.dbValue,
@@ -307,6 +309,8 @@ class FinanceRepository {
           'p_notes': notes,
           'p_source_id': sourceId,
           'p_is_active': isActive,
+          'p_include_extra_work_in_percentage': includeExtraWorkInPercentage,
+          'p_extra_work_destination_account_id': extraWorkDestinationAccountId,
         },
       );
     });

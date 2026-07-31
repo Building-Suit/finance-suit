@@ -1295,10 +1295,83 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get incomeSplitHelp =>
-      'أدخل النسبة المحولة إلى كل حساب. يبقى المتبقي في حساب الإيداع.';
+      'أضف قواعد مرتبة للتحويل من حساب الإيداع. يبقى أي مبلغ متبقٍ في حساب الإيداع.';
 
   @override
   String get incomeInvalidPercentage => 'أدخل نسبة من 0 إلى 100.';
+
+  @override
+  String get incomeSplitAddRule => 'إضافة قاعدة تقسيم';
+
+  @override
+  String get incomeSplitNoRules =>
+      'لا توجد قواعد تقسيم. يبقى كامل المبلغ في حساب الإيداع.';
+
+  @override
+  String incomeSplitRuleNumber(int number) {
+    return 'قاعدة $number';
+  }
+
+  @override
+  String get incomeSplitDestinationAccount => 'حساب الوجهة';
+
+  @override
+  String get incomeSplitMethod => 'طريقة التقسيم';
+
+  @override
+  String get incomeSplitMethodPercentage => 'نسبة مئوية';
+
+  @override
+  String get incomeSplitMethodFixed => 'مبلغ ثابت';
+
+  @override
+  String get incomeSplitCalculationBasis => 'أساس النسبة';
+
+  @override
+  String get incomeSplitBasisOriginal => 'المبلغ الأصلي';
+
+  @override
+  String get incomeSplitBasisRemaining => 'المبلغ المتبقي';
+
+  @override
+  String get incomeSplitMoveUp => 'تحريك القاعدة لأعلى';
+
+  @override
+  String get incomeSplitMoveDown => 'تحريك القاعدة لأسفل';
+
+  @override
+  String get incomeSplitInvalidAccount => 'اختر حسابًا مفعّلًا بنفس العملة.';
+
+  @override
+  String get incomeSplitIncludeExtraWork =>
+      'احتساب الساعات والأيام الإضافية ضمن النسب';
+
+  @override
+  String get incomeSplitIncludeExtraWorkHelp =>
+      'تظل المكافآت والخصومات جزءًا عاديًا من الراتب.';
+
+  @override
+  String get incomeSplitRouteExtraWork =>
+      'حوّل كل دخل العمل الإضافي المحمي إلى حساب آخر';
+
+  @override
+  String get incomeSplitExtraWorkAccount => 'حساب وجهة العمل الإضافي';
+
+  @override
+  String get incomeSplitPreviewTitle => 'معاينة';
+
+  @override
+  String incomeSplitPreviewLine(String amount, String account) {
+    return '$amount إلى $account';
+  }
+
+  @override
+  String incomeSplitPreviewRemainder(String amount, String account) {
+    return 'يبقى $amount في $account';
+  }
+
+  @override
+  String get incomeSplitPreviewError => 'هذه القواعد تتجاوز الدخل المتاح.';
 
   @override
   String get incomeKindSalary => 'راتب';
@@ -1442,6 +1515,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String incomeSplitAccount(String percentage, String account) {
     return '$percentage% إلى $account';
+  }
+
+  @override
+  String incomeSplitFixedAccount(String amount, String account) {
+    return '$amount إلى $account';
   }
 
   @override

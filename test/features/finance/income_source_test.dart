@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
+import 'package:work_tracker/features/finance/domain/income_split_preview.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 
 void main() {
@@ -60,7 +61,10 @@ void main() {
         {
           'id': 'allocation-1',
           'destination_account_id': 'savings',
+          'allocation_method': 'percentage',
+          'calculation_basis': 'original',
           'percentage_basis_points': 3000,
+          'fixed_amount_minor': null,
           'sort_order': 0,
         },
       ],
@@ -70,5 +74,72 @@ void main() {
     expect(source.allocatedBasisPoints, 3000);
     expect(source.remainderBasisPoints, 7000);
     expect(source.expectedAmountMinor, 100000);
+  });
+
+  test('ordered percentage rules can use original and remaining basis', () {
+    final preview = IncomeSplitCalculator.preview(
+      actualAmountMinor: 10000,
+      kind: IncomeSourceKind.other,
+      allocations: const [
+        IncomeAllocation(
+          destinationAccountId: 'savings',
+          method: IncomeAllocationMethod.percentage,
+          percentageBasisPoints: 5000,
+        ),
+        IncomeAllocation(
+          destinationAccountId: 'bills',
+          method: IncomeAllocationMethod.percentage,
+          calculationBasis: IncomeAllocationCalculationBasis.remaining,
+          percentageBasisPoints: 5000,
+        ),
+      ],
+      includeExtraWorkInPercentage: true,
+      extraWorkDestinationAccountId: null,
+    );
+
+    expect(preview.hasError, isFalse);
+    expect(preview.rows.map((row) => row.amountMinor), [5000, 2500]);
+    expect(preview.primaryAmountMinor, 2500);
+  });
+
+  test('salary extra work can be protected from split percentages', () {
+    final preview = IncomeSplitCalculator.preview(
+      actualAmountMinor: 12000,
+      kind: IncomeSourceKind.salary,
+      allocations: const [
+        IncomeAllocation(
+          destinationAccountId: 'savings',
+          method: IncomeAllocationMethod.percentage,
+          percentageBasisPoints: 5000,
+        ),
+      ],
+      includeExtraWorkInPercentage: false,
+      extraWorkDestinationAccountId: 'extra',
+      extraWorkMinor: 2000,
+    );
+
+    expect(preview.hasError, isFalse);
+    expect(preview.rows.single.amountMinor, 5000);
+    expect(preview.extraWorkRoutedMinor, 2000);
+    expect(preview.primaryAmountMinor, 5000);
+  });
+
+  test('fixed rules fail the preview when they exceed available income', () {
+    final preview = IncomeSplitCalculator.preview(
+      actualAmountMinor: 10000,
+      kind: IncomeSourceKind.other,
+      allocations: const [
+        IncomeAllocation(
+          destinationAccountId: 'savings',
+          method: IncomeAllocationMethod.fixed,
+          fixedAmountMinor: 11000,
+        ),
+      ],
+      includeExtraWorkInPercentage: true,
+      extraWorkDestinationAccountId: null,
+    );
+
+    expect(preview.hasError, isTrue);
+    expect(preview.rows, isEmpty);
   });
 }

@@ -1299,10 +1299,85 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get incomeSplitHelp =>
-      'Enter the percentage sent to each account. Anything left stays in the deposit account.';
+      'Add ordered rules for transfers from the deposit account. Anything left stays in the deposit account.';
 
   @override
   String get incomeInvalidPercentage => 'Enter a percentage from 0 to 100.';
+
+  @override
+  String get incomeSplitAddRule => 'Add split rule';
+
+  @override
+  String get incomeSplitNoRules =>
+      'No split rules. The full amount stays in the deposit account.';
+
+  @override
+  String incomeSplitRuleNumber(int number) {
+    return 'Rule $number';
+  }
+
+  @override
+  String get incomeSplitDestinationAccount => 'Destination account';
+
+  @override
+  String get incomeSplitMethod => 'Split method';
+
+  @override
+  String get incomeSplitMethodPercentage => 'Percentage';
+
+  @override
+  String get incomeSplitMethodFixed => 'Fixed amount';
+
+  @override
+  String get incomeSplitCalculationBasis => 'Percentage basis';
+
+  @override
+  String get incomeSplitBasisOriginal => 'Original amount';
+
+  @override
+  String get incomeSplitBasisRemaining => 'Remaining amount';
+
+  @override
+  String get incomeSplitMoveUp => 'Move rule up';
+
+  @override
+  String get incomeSplitMoveDown => 'Move rule down';
+
+  @override
+  String get incomeSplitInvalidAccount =>
+      'Choose an active account in the same currency.';
+
+  @override
+  String get incomeSplitIncludeExtraWork =>
+      'Include extra hours and days in percentage calculations';
+
+  @override
+  String get incomeSplitIncludeExtraWorkHelp =>
+      'Bonuses and deductions are still treated as ordinary salary.';
+
+  @override
+  String get incomeSplitRouteExtraWork =>
+      'Route all protected extra-work earnings to another account';
+
+  @override
+  String get incomeSplitExtraWorkAccount => 'Extra-work destination account';
+
+  @override
+  String get incomeSplitPreviewTitle => 'Preview';
+
+  @override
+  String incomeSplitPreviewLine(String amount, String account) {
+    return '$amount to $account';
+  }
+
+  @override
+  String incomeSplitPreviewRemainder(String amount, String account) {
+    return '$amount remains in $account';
+  }
+
+  @override
+  String get incomeSplitPreviewError =>
+      'These rules exceed the available income.';
 
   @override
   String get incomeKindSalary => 'Salary';
@@ -1446,6 +1521,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String incomeSplitAccount(String percentage, String account) {
     return '$percentage% to $account';
+  }
+
+  @override
+  String incomeSplitFixedAccount(String amount, String account) {
+    return '$amount to $account';
   }
 
   @override
