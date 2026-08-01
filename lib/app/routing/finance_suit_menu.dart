@@ -38,6 +38,7 @@ abstract final class FinanceSuitMenu {
   static const double entryOffset = 16;
 
   static _FinanceSuitMenuRoute? _activeRoute;
+  static final ValueNotifier<double> shellProgress = ValueNotifier<double>(0);
 
   /// Whether a menu overlay is currently open (or animating).
   ///
@@ -100,11 +101,28 @@ class _FinanceSuitMenuRoute extends PopupRoute<String> {
   final String menuLabel;
   final String dismissLabel;
   final VoidCallback onDisposed;
+  AnimationController? _controller;
 
   @override
   void dispose() {
+    _controller?.removeListener(_syncShellProgress);
+    FinanceSuitMenu.shellProgress.value = 0;
     onDisposed();
     super.dispose();
+  }
+
+  @override
+  AnimationController createAnimationController() {
+    final controller = super.createAnimationController();
+    _controller = controller;
+    controller.addListener(_syncShellProgress);
+    return controller;
+  }
+
+  void _syncShellProgress() {
+    FinanceSuitMenu.shellProgress.value = reduceMotion
+        ? 0
+        : (_controller?.value ?? 0).clamp(0.0, 1.0);
   }
 
   @override
