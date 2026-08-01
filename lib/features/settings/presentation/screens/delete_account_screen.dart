@@ -73,87 +73,93 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
 
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.deleteAccountTitle),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Card(
-                color: Theme.of(context).colorScheme.errorContainer,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.deleteAccountWarning,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onErrorContainer,
-                            ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        l10n.deleteAccountDataList,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onErrorContainer,
+      body: FinanceSuitFocusedBody(
+        title: l10n.deleteAccountTitle,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Card(
+                  color: Theme.of(context).colorScheme.errorContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.deleteAccountWarning,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onErrorContainer,
+                              ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Text(
+                          l10n.deleteAccountDataList,
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onErrorContainer,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              TextButton(
-                onPressed: () => context.push(AppRoutes.accountDeletionPolicy),
-                child: Text(l10n.deleteAccountPolicy),
-              ),
-              const SizedBox(height: 12),
-              PasswordField(
-                controller: _passwordController,
-                label: l10n.deleteAccountPasswordPrompt,
-                autofillHints: const [AutofillHints.password],
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) => _submit(),
-                validator: (value) {
-                  final error = Validators.password(value);
-                  return error == null
+                TextButton(
+                  onPressed: () =>
+                      context.push(AppRoutes.accountDeletionPolicy),
+                  child: Text(l10n.deleteAccountPolicy),
+                ),
+                const SizedBox(height: 12),
+                PasswordField(
+                  controller: _passwordController,
+                  label: l10n.deleteAccountPasswordPrompt,
+                  autofillHints: const [AutofillHints.password],
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _submit(),
+                  validator: (value) {
+                    final error = Validators.password(value);
+                    return error == null
+                        ? null
+                        : validationMessage(context, error);
+                  },
+                ),
+                const SizedBox(height: 8),
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: _understood,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  title: Text(l10n.deleteAccountAcknowledge),
+                  onChanged: busy
                       ? null
-                      : validationMessage(context, error);
-                },
-              ),
-              const SizedBox(height: 8),
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                value: _understood,
-                controlAffinity: ListTileControlAffinity.leading,
-                title: Text(l10n.deleteAccountAcknowledge),
-                onChanged: busy
-                    ? null
-                    : (value) => setState(() => _understood = value ?? false),
-              ),
-              const SizedBox(height: 8),
-              AuthErrorBanner(failure: _failure),
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: errorColor,
-                  foregroundColor: Theme.of(context).colorScheme.onError,
+                      : (value) => setState(() => _understood = value ?? false),
                 ),
-                onPressed: busy || !_understood ? null : _submit,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: busy
-                      ? const SizedBox.square(
-                          dimension: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(l10n.deleteAccountConfirmButton),
+                const SizedBox(height: 8),
+                AuthErrorBanner(failure: _failure),
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: errorColor,
+                    foregroundColor: Theme.of(context).colorScheme.onError,
+                  ),
+                  onPressed: busy || !_understood ? null : _submit,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: busy
+                        ? const SizedBox.square(
+                            dimension: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(l10n.deleteAccountConfirmButton),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

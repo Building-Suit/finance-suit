@@ -81,76 +81,79 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
         .toList();
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.catNew),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              AppSelectionField<CategoryKind>(
-                initialValue: _kind,
-                decoration: InputDecoration(labelText: l10n.catKind),
-                items: [
-                  for (final kind in CategoryKind.values)
-                    DropdownMenuItem(
-                      value: kind,
-                      child: Text(categoryKindLabel(l10n, kind)),
-                    ),
-                ],
-                onChanged: _busy
-                    ? null
-                    : (kind) {
-                        if (kind != null) {
-                          setState(() {
-                            _kind = kind;
-                            _parentCategoryId = null;
-                          });
-                        }
-                      },
-              ),
-              const SizedBox(height: 16),
-              AppSelectionField<String?>(
-                key: ValueKey(_kind),
-                initialValue: _parentCategoryId,
-                decoration: InputDecoration(labelText: l10n.catParent),
-                items: [
-                  DropdownMenuItem<String?>(
-                    value: null,
-                    child: Text(l10n.catTopLevel),
-                  ),
-                  for (final category in parents)
-                    DropdownMenuItem<String?>(
-                      value: category.id,
-                      child: Text(category.name),
-                    ),
-                ],
-                onChanged: _busy
-                    ? null
-                    : (value) => setState(() => _parentCategoryId = value),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _nameController,
-                autofocus: true,
-                enabled: !_busy,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(labelText: l10n.catName),
-                validator: (value) {
-                  final error = Validators.requiredText(value, maxLength: 80);
-                  return error == null
+      body: FinanceSuitFocusedBody(
+        title: l10n.catNew,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AppSelectionField<CategoryKind>(
+                  initialValue: _kind,
+                  decoration: InputDecoration(labelText: l10n.catKind),
+                  items: [
+                    for (final kind in CategoryKind.values)
+                      DropdownMenuItem(
+                        value: kind,
+                        child: Text(categoryKindLabel(l10n, kind)),
+                      ),
+                  ],
+                  onChanged: _busy
                       ? null
-                      : validationMessage(context, error);
-                },
-              ),
-              const SizedBox(height: 16),
-              AuthErrorBanner(failure: _failure),
-              AuthSubmitButton(
-                label: l10n.commonSave,
-                busy: _busy,
-                onPressed: _save,
-              ),
-            ],
+                      : (kind) {
+                          if (kind != null) {
+                            setState(() {
+                              _kind = kind;
+                              _parentCategoryId = null;
+                            });
+                          }
+                        },
+                ),
+                const SizedBox(height: 16),
+                AppSelectionField<String?>(
+                  key: ValueKey(_kind),
+                  initialValue: _parentCategoryId,
+                  decoration: InputDecoration(labelText: l10n.catParent),
+                  items: [
+                    DropdownMenuItem<String?>(
+                      value: null,
+                      child: Text(l10n.catTopLevel),
+                    ),
+                    for (final category in parents)
+                      DropdownMenuItem<String?>(
+                        value: category.id,
+                        child: Text(category.name),
+                      ),
+                  ],
+                  onChanged: _busy
+                      ? null
+                      : (value) => setState(() => _parentCategoryId = value),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _nameController,
+                  autofocus: true,
+                  enabled: !_busy,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: InputDecoration(labelText: l10n.catName),
+                  validator: (value) {
+                    final error = Validators.requiredText(value, maxLength: 80);
+                    return error == null
+                        ? null
+                        : validationMessage(context, error);
+                  },
+                ),
+                const SizedBox(height: 16),
+                AuthErrorBanner(failure: _failure),
+                AuthSubmitButton(
+                  label: l10n.commonSave,
+                  busy: _busy,
+                  onPressed: _save,
+                ),
+              ],
+            ),
           ),
         ),
       ),

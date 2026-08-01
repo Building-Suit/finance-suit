@@ -436,18 +436,21 @@ class SalaryPeriodDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.salPeriodsTitle),
-      body: AsyncView(
-        value: periodAsync,
-        onRetry: () => ref.invalidate(salaryPeriodProvider(periodId)),
-        data: (period) => _PeriodBody(
-          period: period,
-          onFinalize: (estimate) => _finalize(context, ref, estimate),
-          onReopen: () => _reopen(context, ref),
-          onMarkPaid: (estimate) => _markPaid(context, ref, period, estimate),
-          onEditAdjustment: (currency, adjustment) =>
-              _editAdjustment(context, ref, period, currency, adjustment),
-          onDeleteAdjustment: (adjustment) =>
-              _deleteAdjustment(context, ref, adjustment),
+      body: FinanceSuitFocusedBody(
+        title: l10n.salPeriodsTitle,
+        child: AsyncView(
+          value: periodAsync,
+          onRetry: () => ref.invalidate(salaryPeriodProvider(periodId)),
+          data: (period) => _PeriodBody(
+            period: period,
+            onFinalize: (estimate) => _finalize(context, ref, estimate),
+            onReopen: () => _reopen(context, ref),
+            onMarkPaid: (estimate) => _markPaid(context, ref, period, estimate),
+            onEditAdjustment: (currency, adjustment) =>
+                _editAdjustment(context, ref, period, currency, adjustment),
+            onDeleteAdjustment: (adjustment) =>
+                _deleteAdjustment(context, ref, adjustment),
+          ),
         ),
       ),
     );

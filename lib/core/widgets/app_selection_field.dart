@@ -68,7 +68,9 @@ class AppSelectionField<T> extends FormField<T> {
                borderRadius: BorderRadius.circular(4),
                child: InputDecorator(
                  isEmpty: selected == null,
-                 isFocused: false,
+                 // Keyboard traversal and post-selection focus advancement
+                 // must be visible on a select input too.
+                 isFocused: fieldState.focusNode.hasFocus,
                  decoration: effectiveDecoration,
                  child: ConstrainedBox(
                    constraints: const BoxConstraints(minHeight: 24),
@@ -103,8 +105,21 @@ class _AppSelectionFieldState<T> extends FormFieldState<T> {
   final focusNode = FocusNode(debugLabel: 'AppSelectionField');
 
   @override
+  void initState() {
+    super.initState();
+    // Repaint the decorator's focus border when focus arrives or leaves.
+    focusNode.addListener(_onFocusChanged);
+  }
+
+  void _onFocusChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
   void dispose() {
-    focusNode.dispose();
+    focusNode
+      ..removeListener(_onFocusChanged)
+      ..dispose();
     super.dispose();
   }
 }

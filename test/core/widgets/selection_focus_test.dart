@@ -76,6 +76,15 @@ void main() {
       ),
     );
     expect(secondNode.hasFocus, isTrue);
+
+    // The advanced-to select shows its focus visibly through the decorator.
+    final decorator = tester.widget<InputDecorator>(
+      find.descendant(
+        of: fieldInkWell(const Key('second')),
+        matching: find.byType(InputDecorator),
+      ),
+    );
+    expect(decorator.isFocused, isTrue);
   });
 
   testWidgets('select commits then focuses the next text input', (

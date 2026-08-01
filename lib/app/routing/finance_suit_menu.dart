@@ -278,7 +278,10 @@ class _FinanceSuitMenuPanel extends StatelessWidget {
           child: SafeArea(
             child: ListView(
               key: const Key('finance-suit-menu-list'),
-              padding: const EdgeInsets.only(bottom: 8),
+              // Keep the last destinations reachable above an open keyboard.
+              padding: EdgeInsets.only(
+                bottom: 8 + MediaQuery.viewInsetsOf(context).bottom,
+              ),
               children: [
                 Padding(
                   padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 4),

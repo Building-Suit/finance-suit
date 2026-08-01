@@ -317,223 +317,233 @@ class _WorkEntryFormScreenState extends ConsumerState<WorkEntryFormScreen> {
             ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              AppSelectionField<WorkEntryType>(
-                initialValue: _type,
-                decoration: InputDecoration(labelText: l10n.workEntryType),
-                items: [
-                  for (final type in WorkEntryType.values)
-                    DropdownMenuItem(
-                      value: type,
-                      child: Text(workEntryTypeLabel(l10n, type)),
-                    ),
-                ],
-                onChanged: _isEdit
-                    ? null // changing type on edit invites constraint clashes
-                    : (v) => setState(() => _type = v!),
-              ),
-              const SizedBox(height: 8),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const FinanceSuitIcon(FinanceSuitIcons.calendarToday),
-                title: Text(l10n.commonDate),
-                subtitle: Text(_date.toIso()),
-                trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
-                onTap: _pickDate,
-              ),
-              if (_type == WorkEntryType.holidayWorked) ...[
-                AppSelectionField<String?>(
-                  initialValue: _holidayId,
-                  decoration: InputDecoration(
-                    labelText: l10n.workLinkedHoliday,
-                  ),
+      body: FinanceSuitFocusedBody(
+        title: _isEdit ? l10n.workEditEntry : l10n.workAddEntry,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AppSelectionField<WorkEntryType>(
+                  initialValue: _type,
+                  decoration: InputDecoration(labelText: l10n.workEntryType),
                   items: [
-                    DropdownMenuItem<String?>(
-                      value: null,
-                      child: Text(l10n.commonNone),
+                    for (final type in WorkEntryType.values)
+                      DropdownMenuItem(
+                        value: type,
+                        child: Text(workEntryTypeLabel(l10n, type)),
+                      ),
+                  ],
+                  onChanged: _isEdit
+                      ? null // changing type on edit invites constraint clashes
+                      : (v) => setState(() => _type = v!),
+                ),
+                const SizedBox(height: 8),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const FinanceSuitIcon(
+                    FinanceSuitIcons.calendarToday,
+                  ),
+                  title: Text(l10n.commonDate),
+                  subtitle: Text(_date.toIso()),
+                  trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
+                  onTap: _pickDate,
+                ),
+                if (_type == WorkEntryType.holidayWorked) ...[
+                  AppSelectionField<String?>(
+                    initialValue: _holidayId,
+                    decoration: InputDecoration(
+                      labelText: l10n.workLinkedHoliday,
                     ),
-                    for (final holiday in holidays)
+                    items: [
                       DropdownMenuItem<String?>(
-                        value: holiday.id,
-                        child: Text(
-                          '${holiday.date.toIso()} · ${holiday.name}',
-                        ),
+                        value: null,
+                        child: Text(l10n.commonNone),
                       ),
-                  ],
-                  onChanged: (v) => setState(() => _holidayId = v),
-                ),
-                const SizedBox(height: 16),
-                SegmentedButton<bool>(
-                  segments: [
-                    ButtonSegment(value: true, label: Text(l10n.workDayUnits)),
-                    ButtonSegment(
-                      value: false,
-                      label: Text(l10n.workDurationMinutes),
-                    ),
-                  ],
-                  selected: {_useDayUnits},
-                  onSelectionChanged: (selection) =>
-                      setState(() => _useDayUnits = selection.first),
-                ),
-                const SizedBox(height: 16),
-              ],
-              if (_needsUnits)
-                TextFormField(
-                  controller: _unitsController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
+                      for (final holiday in holidays)
+                        DropdownMenuItem<String?>(
+                          value: holiday.id,
+                          child: Text(
+                            '${holiday.date.toIso()} · ${holiday.name}',
+                          ),
+                        ),
+                    ],
+                    onChanged: (v) => setState(() => _holidayId = v),
                   ),
-                  decoration: InputDecoration(labelText: l10n.workDayUnits),
-                  onChanged: (_) => setState(() {}),
-                  validator: (_) {
-                    final e = Validators.dayUnitsHundredths(
-                      _dayUnitsHundredths,
-                    );
-                    return e == null ? null : validationMessage(context, e);
-                  },
-                ),
-              if (_needsDuration) ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(l10n.workStartTime),
-                        subtitle: Text(_formatTimeOfDay(_startTime)),
-                        onTap: () => _pickTime(start: true),
+                  const SizedBox(height: 16),
+                  SegmentedButton<bool>(
+                    segments: [
+                      ButtonSegment(
+                        value: true,
+                        label: Text(l10n.workDayUnits),
                       ),
-                    ),
-                    Expanded(
-                      child: ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(l10n.workEndTime),
-                        subtitle: Text(_formatTimeOfDay(_endTime)),
-                        onTap: () => _pickTime(start: false),
+                      ButtonSegment(
+                        value: false,
+                        label: Text(l10n.workDurationMinutes),
                       ),
+                    ],
+                    selected: {_useDayUnits},
+                    onSelectionChanged: (selection) =>
+                        setState(() => _useDayUnits = selection.first),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                if (_needsUnits)
+                  TextFormField(
+                    controller: _unitsController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
                     ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _durationController,
-                        enabled: _startTime == null || _endTime == null,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: l10n.workDurationMinutes,
-                          helperText: _startTime != null && _endTime != null
-                              ? '${_durationMinutes ?? 0}'
-                              : null,
+                    decoration: InputDecoration(labelText: l10n.workDayUnits),
+                    onChanged: (_) => setState(() {}),
+                    validator: (_) {
+                      final e = Validators.dayUnitsHundredths(
+                        _dayUnitsHundredths,
+                      );
+                      return e == null ? null : validationMessage(context, e);
+                    },
+                  ),
+                if (_needsDuration) ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(l10n.workStartTime),
+                          subtitle: Text(_formatTimeOfDay(_startTime)),
+                          onTap: () => _pickTime(start: true),
                         ),
-                        onChanged: (_) => setState(() {}),
-                        validator: (_) {
-                          final duration = _durationMinutes;
-                          final e =
-                              Validators.durationMinutes(duration) ??
-                              (_startMinute != null && _endMinute != null
-                                  ? Validators.breakWithinDuration(
-                                      _breakMinutes,
-                                      duration! + _breakMinutes,
-                                    )
-                                  : null);
-                          return e == null
-                              ? null
-                              : validationMessage(context, e);
-                        },
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _breakController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: l10n.workBreakMinutes,
+                      Expanded(
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(l10n.workEndTime),
+                          subtitle: Text(_formatTimeOfDay(_endTime)),
+                          onTap: () => _pickTime(start: false),
                         ),
-                        onChanged: (_) => setState(() {}),
                       ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _durationController,
+                          enabled: _startTime == null || _endTime == null,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: l10n.workDurationMinutes,
+                            helperText: _startTime != null && _endTime != null
+                                ? '${_durationMinutes ?? 0}'
+                                : null,
+                          ),
+                          onChanged: (_) => setState(() {}),
+                          validator: (_) {
+                            final duration = _durationMinutes;
+                            final e =
+                                Validators.durationMinutes(duration) ??
+                                (_startMinute != null && _endMinute != null
+                                    ? Validators.breakWithinDuration(
+                                        _breakMinutes,
+                                        duration! + _breakMinutes,
+                                      )
+                                    : null);
+                            return e == null
+                                ? null
+                                : validationMessage(context, e);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _breakController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: l10n.workBreakMinutes,
+                          ),
+                          onChanged: (_) => setState(() {}),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                if (_type != WorkEntryType.regular) ...[
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _multiplierController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: l10n.workMultiplier,
+                      hintText: '${_defaultMultiplier(settings)}',
                     ),
-                  ],
-                ),
-              ],
-              if (_type != WorkEntryType.regular) ...[
+                    onChanged: (_) => setState(() => _multiplierTouched = true),
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return null;
+                      final e = Validators.multiplierPct(
+                        int.tryParse(v.trim()),
+                      );
+                      return e == null ? null : validationMessage(context, e);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _customRateController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: InputDecoration(
+                      labelText:
+                          '${l10n.workCustomRate} (${l10n.commonOptional})',
+                      suffixText: settings.currencyCode,
+                    ),
+                    onChanged: (_) => setState(() {}),
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return null;
+                      final e = Validators.positiveAmount(
+                        v,
+                        currencyCode: settings.currencyCode,
+                      );
+                      return e == null ? null : validationMessage(context, e);
+                    },
+                  ),
+                ],
                 const SizedBox(height: 16),
                 TextFormField(
-                  controller: _multiplierController,
-                  keyboardType: TextInputType.number,
+                  controller: _notesController,
+                  maxLines: 3,
                   decoration: InputDecoration(
-                    labelText: l10n.workMultiplier,
-                    hintText: '${_defaultMultiplier(settings)}',
+                    labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
                   ),
-                  onChanged: (_) => setState(() => _multiplierTouched = true),
                   validator: (v) {
-                    if (v == null || v.trim().isEmpty) return null;
-                    final e = Validators.multiplierPct(int.tryParse(v.trim()));
+                    final e = Validators.optionalText(v);
                     return e == null ? null : validationMessage(context, e);
                   },
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _customRateController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: InputDecoration(
-                    labelText:
-                        '${l10n.workCustomRate} (${l10n.commonOptional})',
-                    suffixText: settings.currencyCode,
-                  ),
-                  onChanged: (_) => setState(() {}),
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) return null;
-                    final e = Validators.positiveAmount(
-                      v,
-                      currencyCode: settings.currencyCode,
-                    );
-                    return e == null ? null : validationMessage(context, e);
-                  },
-                ),
-              ],
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _notesController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
-                ),
-                validator: (v) {
-                  final e = Validators.optionalText(v);
-                  return e == null ? null : validationMessage(context, e);
-                },
-              ),
-              const SizedBox(height: 16),
-              Card(
-                child: ListTile(
-                  leading: const FinanceSuitIcon(FinanceSuitIcons.calculate),
-                  title: Text(l10n.workEstimatedPay),
-                  trailing: Text(
-                    estimate?.amount.format() ?? '—',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+                Card(
+                  child: ListTile(
+                    leading: const FinanceSuitIcon(FinanceSuitIcons.calculate),
+                    title: Text(l10n.workEstimatedPay),
+                    trailing: Text(
+                      estimate?.amount.format() ?? '—',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              AuthErrorBanner(failure: _failure),
-              AuthSubmitButton(
-                label: l10n.commonSave,
-                busy: _busy,
-                onPressed: () => _save(settings),
-              ),
-            ],
+                const SizedBox(height: 16),
+                AuthErrorBanner(failure: _failure),
+                AuthSubmitButton(
+                  label: l10n.commonSave,
+                  busy: _busy,
+                  onPressed: () => _save(settings),
+                ),
+              ],
+            ),
           ),
         ),
       ),
