@@ -85,3 +85,32 @@ class FinanceSuitAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 }
+
+/// Canonical body wrapper for focused destinations.
+///
+/// The focused header shows only Back and the brand mark, so the screen's
+/// contextual title lives inside the page content, above the original body.
+class FinanceSuitFocusedBody extends StatelessWidget {
+  const FinanceSuitFocusedBody({
+    super.key,
+    required this.title,
+    required this.child,
+  });
+
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
+          child: Text(title, style: Theme.of(context).textTheme.titleLarge),
+        ),
+        Expanded(child: child),
+      ],
+    );
+  }
+}

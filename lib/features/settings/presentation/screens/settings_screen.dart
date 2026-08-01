@@ -108,160 +108,163 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.tabSettings),
-      body: ListView(
-        children: [
-          _SectionHeader(title: l10n.setAppearance),
-          ListTile(
-            leading: const FinanceSuitIcon(FinanceSuitIcons.brightness),
-            title: Text(l10n.setTheme),
-            trailing: SizedBox(
-              width: 160,
-              child: AppSelectionField<ThemeMode>(
-                initialValue: themeMode,
-                decoration: const InputDecoration(isDense: true),
-                onChanged: (mode) {
-                  if (mode != null) {
-                    ref.read(themeModeProvider.notifier).setMode(mode);
-                  }
-                },
-                items: [
-                  DropdownMenuItem(
-                    value: ThemeMode.system,
-                    child: Text(l10n.setThemeSystem),
-                  ),
-                  DropdownMenuItem(
-                    value: ThemeMode.light,
-                    child: Text(l10n.setThemeLight),
-                  ),
-                  DropdownMenuItem(
-                    value: ThemeMode.dark,
-                    child: Text(l10n.setThemeDark),
-                  ),
-                ],
+      body: FinanceSuitFocusedBody(
+        title: l10n.tabSettings,
+        child: ListView(
+          children: [
+            _SectionHeader(title: l10n.setAppearance),
+            ListTile(
+              leading: const FinanceSuitIcon(FinanceSuitIcons.brightness),
+              title: Text(l10n.setTheme),
+              trailing: SizedBox(
+                width: 160,
+                child: AppSelectionField<ThemeMode>(
+                  initialValue: themeMode,
+                  decoration: const InputDecoration(isDense: true),
+                  onChanged: (mode) {
+                    if (mode != null) {
+                      ref.read(themeModeProvider.notifier).setMode(mode);
+                    }
+                  },
+                  items: [
+                    DropdownMenuItem(
+                      value: ThemeMode.system,
+                      child: Text(l10n.setThemeSystem),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeMode.light,
+                      child: Text(l10n.setThemeLight),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeMode.dark,
+                      child: Text(l10n.setThemeDark),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          ListTile(
-            leading: const FinanceSuitIcon(FinanceSuitIcons.language),
-            title: Text(l10n.onbLanguage),
-            trailing: SizedBox(
-              width: 140,
-              child: AppSelectionField<String>(
-                initialValue: locale?.languageCode ?? 'en',
-                decoration: const InputDecoration(isDense: true),
-                onChanged: (code) {
-                  if (code != null) {
-                    ref
-                        .read(appLocaleProvider.notifier)
-                        .setLocale(Locale(code));
-                  }
-                },
-                items: const [
-                  DropdownMenuItem(value: 'en', child: Text('English')),
-                  DropdownMenuItem(value: 'ar', child: Text('العربية')),
-                ],
+            ListTile(
+              leading: const FinanceSuitIcon(FinanceSuitIcons.language),
+              title: Text(l10n.onbLanguage),
+              trailing: SizedBox(
+                width: 140,
+                child: AppSelectionField<String>(
+                  initialValue: locale?.languageCode ?? 'en',
+                  decoration: const InputDecoration(isDense: true),
+                  onChanged: (code) {
+                    if (code != null) {
+                      ref
+                          .read(appLocaleProvider.notifier)
+                          .setLocale(Locale(code));
+                    }
+                  },
+                  items: const [
+                    DropdownMenuItem(value: 'en', child: Text('English')),
+                    DropdownMenuItem(value: 'ar', child: Text('العربية')),
+                  ],
+                ),
               ),
             ),
-          ),
-          const Divider(),
-          _SectionHeader(title: l10n.setProfileSection),
-          profile.when(
-            data: (p) => ListTile(
-              leading: const FinanceSuitIcon(FinanceSuitIcons.person),
-              title: Text(l10n.setDisplayName),
-              subtitle: Text(p.displayName),
-              trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
-              onTap: () => _editDisplayName(context, ref, p.displayName),
-            ),
-            loading: () => ListTile(
-              leading: const FinanceSuitIcon(FinanceSuitIcons.person),
-              title: Text(l10n.setDisplayName),
-              subtitle: Text(l10n.commonLoading),
-            ),
-            error: (e, _) => ListTile(
-              leading: const FinanceSuitIcon(FinanceSuitIcons.person),
-              title: Text(l10n.setDisplayName),
-              subtitle: Text(l10n.commonError),
-              trailing: IconButton(
-                icon: const FinanceSuitIcon(FinanceSuitIcons.refresh),
-                onPressed: () => ref.invalidate(profileProvider),
+            const Divider(),
+            _SectionHeader(title: l10n.setProfileSection),
+            profile.when(
+              data: (p) => ListTile(
+                leading: const FinanceSuitIcon(FinanceSuitIcons.person),
+                title: Text(l10n.setDisplayName),
+                subtitle: Text(p.displayName),
+                trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
+                onTap: () => _editDisplayName(context, ref, p.displayName),
+              ),
+              loading: () => ListTile(
+                leading: const FinanceSuitIcon(FinanceSuitIcons.person),
+                title: Text(l10n.setDisplayName),
+                subtitle: Text(l10n.commonLoading),
+              ),
+              error: (e, _) => ListTile(
+                leading: const FinanceSuitIcon(FinanceSuitIcons.person),
+                title: Text(l10n.setDisplayName),
+                subtitle: Text(l10n.commonError),
+                trailing: IconButton(
+                  icon: const FinanceSuitIcon(FinanceSuitIcons.refresh),
+                  onPressed: () => ref.invalidate(profileProvider),
+                ),
               ),
             ),
-          ),
-          ListTile(
-            leading: const FinanceSuitIcon(FinanceSuitIcons.email),
-            title: Text(l10n.setChangeEmail),
-            trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
-            onTap: () => context.go('${AppRoutes.settings}/email'),
-          ),
-          ListTile(
-            leading: const FinanceSuitIcon(FinanceSuitIcons.password),
-            title: Text(l10n.setChangePassword),
-            trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
-            onTap: () => context.go('${AppRoutes.settings}/password'),
-          ),
-          const Divider(),
-          _SectionHeader(title: l10n.setSalarySection),
-          ListTile(
-            leading: const FinanceSuitIcon(FinanceSuitIcons.payments),
-            title: Text(l10n.setSalarySection),
-            trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
-            onTap: () => context.go('${AppRoutes.settings}/salary'),
-          ),
-          ListTile(
-            leading: const FinanceSuitIcon(FinanceSuitIcons.trendingUp),
-            title: Text(l10n.incomeAutomationCenter),
-            subtitle: Text(l10n.incomeSourcesSubtitle),
-            trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
-            onTap: () => context.go('${AppRoutes.settings}/income-sources'),
-          ),
-          const Divider(),
-          _SectionHeader(title: l10n.setAccountSection),
-          ListTile(
-            leading: FinanceSuitIcon(
-              FinanceSuitIcons.delete,
-              color: Theme.of(context).colorScheme.error,
+            ListTile(
+              leading: const FinanceSuitIcon(FinanceSuitIcons.email),
+              title: Text(l10n.setChangeEmail),
+              trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+              onTap: () => context.go('${AppRoutes.settings}/email'),
             ),
-            title: Text(
-              l10n.setDeleteAccount,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ListTile(
+              leading: const FinanceSuitIcon(FinanceSuitIcons.password),
+              title: Text(l10n.setChangePassword),
+              trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+              onTap: () => context.go('${AppRoutes.settings}/password'),
             ),
-            subtitle: Text(l10n.setDeleteAccountSubtitle),
-            trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
-            onTap: () => context.go('${AppRoutes.settings}/delete-account'),
-          ),
-          ListTile(
-            leading: FinanceSuitIcon(
-              FinanceSuitIcons.logout,
-              color: Theme.of(context).colorScheme.error,
+            const Divider(),
+            _SectionHeader(title: l10n.setSalarySection),
+            ListTile(
+              leading: const FinanceSuitIcon(FinanceSuitIcons.payments),
+              title: Text(l10n.setSalarySection),
+              trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+              onTap: () => context.go('${AppRoutes.settings}/salary'),
             ),
-            title: Text(
-              l10n.authLogout,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ListTile(
+              leading: const FinanceSuitIcon(FinanceSuitIcons.trendingUp),
+              title: Text(l10n.incomeAutomationCenter),
+              subtitle: Text(l10n.incomeSourcesSubtitle),
+              trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+              onTap: () => context.go('${AppRoutes.settings}/income-sources'),
             ),
-            onTap: () => _confirmSignOut(context, ref),
-          ),
-          const Divider(),
-          _SectionHeader(title: l10n.setAboutSection),
-          ListTile(
-            leading: const FinanceSuitIcon(FinanceSuitIcons.lock),
-            title: Text(l10n.setPrivacyPolicy),
-            trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
-            onTap: () => context.push(AppRoutes.privacyPolicy),
-          ),
-          ListTile(
-            leading: const FinanceSuitIcon(FinanceSuitIcons.receiptLong),
-            title: Text(l10n.setTerms),
-            trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
-            onTap: () => context.push(AppRoutes.terms),
-          ),
-          ListTile(
-            leading: const FinanceSuitIcon(FinanceSuitIcons.info),
-            title: Text(l10n.setAppVersion),
-            subtitle: Text(Env.appVersion),
-          ),
-          const SizedBox(height: 24),
-        ],
+            const Divider(),
+            _SectionHeader(title: l10n.setAccountSection),
+            ListTile(
+              leading: FinanceSuitIcon(
+                FinanceSuitIcons.delete,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              title: Text(
+                l10n.setDeleteAccount,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+              subtitle: Text(l10n.setDeleteAccountSubtitle),
+              trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+              onTap: () => context.go('${AppRoutes.settings}/delete-account'),
+            ),
+            ListTile(
+              leading: FinanceSuitIcon(
+                FinanceSuitIcons.logout,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              title: Text(
+                l10n.authLogout,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+              onTap: () => _confirmSignOut(context, ref),
+            ),
+            const Divider(),
+            _SectionHeader(title: l10n.setAboutSection),
+            ListTile(
+              leading: const FinanceSuitIcon(FinanceSuitIcons.lock),
+              title: Text(l10n.setPrivacyPolicy),
+              trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+              onTap: () => context.push(AppRoutes.privacyPolicy),
+            ),
+            ListTile(
+              leading: const FinanceSuitIcon(FinanceSuitIcons.receiptLong),
+              title: Text(l10n.setTerms),
+              trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+              onTap: () => context.push(AppRoutes.terms),
+            ),
+            ListTile(
+              leading: const FinanceSuitIcon(FinanceSuitIcons.info),
+              title: Text(l10n.setAppVersion),
+              subtitle: Text(Env.appVersion),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }

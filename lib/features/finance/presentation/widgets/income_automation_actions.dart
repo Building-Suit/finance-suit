@@ -34,14 +34,28 @@ Future<bool> acceptPendingIncome(
   SalaryEstimate? salaryEstimate;
   SalaryPeriod? salaryPeriod;
   if (pending.source.kind == IncomeSourceKind.salary) {
-    final settings = await ref.read(salarySettingsProvider.future);
-    final bounds = SalaryPeriods.boundsForExpectedPayment(
-      settings,
-      pending.occurrence.scheduledOn,
-    );
-    salaryEstimate = await ref.read(
-      estimateForRangeProvider((start: bounds.start, end: bounds.end)).future,
-    );
+    // A failing salary provider must surface as a message, not an
+    // unhandled exception that leaves the pending card unresponsive.
+    final PeriodBounds bounds;
+    try {
+      final settings = await ref.read(salarySettingsProvider.future);
+      bounds = SalaryPeriods.boundsForExpectedPayment(
+        settings,
+        pending.occurrence.scheduledOn,
+      );
+      salaryEstimate = await ref.read(
+        estimateForRangeProvider((start: bounds.start, end: bounds.end)).future,
+      );
+    } on Object catch (error) {
+      if (context.mounted) {
+        _showFailure(
+          context,
+          error is AppFailure ? error : const UnknownFailure(),
+        );
+      }
+      return false;
+    }
+    if (!context.mounted) return false;
     final periodResult = await ref
         .read(salaryRepositoryProvider)
         .ensurePeriod(bounds);

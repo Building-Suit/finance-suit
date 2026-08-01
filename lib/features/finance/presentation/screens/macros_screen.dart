@@ -95,31 +95,34 @@ class _MacrosScreenState extends ConsumerState<MacrosScreen> {
     final macros = ref.watch(macrosProvider);
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.macrosTitle),
-      body: AsyncView<List<TransactionMacro>>(
-        value: macros,
-        onRetry: () => ref.invalidate(macrosProvider),
-        data: (list) {
-          if (list.isEmpty) {
-            return EmptyStateView(
-              icon: FinanceSuitIcons.bolt,
-              message: l10n.macroEmpty,
+      body: FinanceSuitFocusedBody(
+        title: l10n.macrosTitle,
+        child: AsyncView<List<TransactionMacro>>(
+          value: macros,
+          onRetry: () => ref.invalidate(macrosProvider),
+          data: (list) {
+            if (list.isEmpty) {
+              return EmptyStateView(
+                icon: FinanceSuitIcons.bolt,
+                message: l10n.macroEmpty,
+              );
+            }
+            return RefreshIndicator(
+              onRefresh: () async => ref.invalidate(macrosProvider),
+              child: ListView(
+                children: [
+                  for (final macro in list)
+                    _MacroTile(
+                      macro: macro,
+                      l10n: l10n,
+                      onAction: (action) => _onAction(macro, action),
+                    ),
+                  const SizedBox(height: 88),
+                ],
+              ),
             );
-          }
-          return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(macrosProvider),
-            child: ListView(
-              children: [
-                for (final macro in list)
-                  _MacroTile(
-                    macro: macro,
-                    l10n: l10n,
-                    onAction: (action) => _onAction(macro, action),
-                  ),
-                const SizedBox(height: 88),
-              ],
-            ),
-          );
-        },
+          },
+        ),
       ),
     );
   }

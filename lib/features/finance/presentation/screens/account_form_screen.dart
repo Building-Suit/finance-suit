@@ -140,93 +140,102 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
       appBar: FinanceSuitAppBar.focused(
         semanticTitle: _isEdit ? l10n.moneyEditAccount : l10n.moneyNewAccount,
       ),
-      body: !_loaded
-          ? const Center(child: CircularProgressIndicator())
-          : _existing == null && _isEdit
-          ? ErrorRetryView(
-              failure: _failure ?? const NotFoundFailure(),
-              onRetry: _loadExisting,
-            )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    TextFormField(
-                      controller: _nameController,
-                      textCapitalization: TextCapitalization.words,
-                      decoration: InputDecoration(labelText: l10n.accName),
-                      validator: (v) {
-                        final e = Validators.requiredText(v, maxLength: 80);
-                        return e == null ? null : validationMessage(context, e);
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    AppSelectionField<AccountType>(
-                      initialValue: _accountType,
-                      decoration: InputDecoration(labelText: l10n.accType),
-                      items: [
-                        for (final type in AccountType.values)
-                          DropdownMenuItem(
-                            value: type,
-                            child: Text(accountTypeLabel(l10n, type)),
-                          ),
-                      ],
-                      onChanged: (v) {
-                        if (v != null) setState(() => _accountType = v);
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _balanceController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
+      body: FinanceSuitFocusedBody(
+        title: _isEdit ? l10n.moneyEditAccount : l10n.moneyNewAccount,
+        child: !_loaded
+            ? const Center(child: CircularProgressIndicator())
+            : _existing == null && _isEdit
+            ? ErrorRetryView(
+                failure: _failure ?? const NotFoundFailure(),
+                onRetry: _loadExisting,
+              )
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      TextFormField(
+                        controller: _nameController,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: InputDecoration(labelText: l10n.accName),
+                        validator: (v) {
+                          final e = Validators.requiredText(v, maxLength: 80);
+                          return e == null
+                              ? null
+                              : validationMessage(context, e);
+                        },
                       ),
-                      decoration: InputDecoration(
-                        labelText: l10n.accOpeningBalance,
-                        suffixText: _currencyCode,
+                      const SizedBox(height: 16),
+                      AppSelectionField<AccountType>(
+                        initialValue: _accountType,
+                        decoration: InputDecoration(labelText: l10n.accType),
+                        items: [
+                          for (final type in AccountType.values)
+                            DropdownMenuItem(
+                              value: type,
+                              child: Text(accountTypeLabel(l10n, type)),
+                            ),
+                        ],
+                        onChanged: (v) {
+                          if (v != null) setState(() => _accountType = v);
+                        },
                       ),
-                      validator: (v) {
-                        final e = Validators.nonNegativeAmount(
-                          v,
-                          currencyCode: _currencyCode,
-                        );
-                        return e == null ? null : validationMessage(context, e);
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(l10n.accAllowNegative),
-                      value: _allowNegative,
-                      onChanged: (v) => setState(() => _allowNegative = v),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _notesController,
-                      maxLines: 3,
-                      decoration: InputDecoration(
-                        labelText:
-                            '${l10n.commonNotes} (${l10n.commonOptional})',
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _balanceController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: l10n.accOpeningBalance,
+                          suffixText: _currencyCode,
+                        ),
+                        validator: (v) {
+                          final e = Validators.nonNegativeAmount(
+                            v,
+                            currencyCode: _currencyCode,
+                          );
+                          return e == null
+                              ? null
+                              : validationMessage(context, e);
+                        },
                       ),
-                      validator: (v) {
-                        final e = Validators.optionalText(v);
-                        return e == null ? null : validationMessage(context, e);
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    AuthErrorBanner(failure: _failure),
-                    AuthSubmitButton(
-                      label: l10n.commonSave,
-                      busy: _busy,
-                      onPressed: _save,
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(l10n.accAllowNegative),
+                        value: _allowNegative,
+                        onChanged: (v) => setState(() => _allowNegative = v),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _notesController,
+                        maxLines: 3,
+                        decoration: InputDecoration(
+                          labelText:
+                              '${l10n.commonNotes} (${l10n.commonOptional})',
+                        ),
+                        validator: (v) {
+                          final e = Validators.optionalText(v);
+                          return e == null
+                              ? null
+                              : validationMessage(context, e);
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      AuthErrorBanner(failure: _failure),
+                      AuthSubmitButton(
+                        label: l10n.commonSave,
+                        busy: _busy,
+                        onPressed: _save,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
+      ),
     );
   }
 }

@@ -210,152 +210,157 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
             ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (_isIncome) ...[
-                SegmentedButton<TransactionKind>(
-                  segments: [
-                    ButtonSegment(
-                      value: TransactionKind.customIncome,
-                      label: Text(l10n.txCustomIncome),
-                    ),
-                    ButtonSegment(
-                      value: TransactionKind.freelanceIncome,
-                      label: Text(l10n.txFreelanceIncome),
-                    ),
-                  ],
-                  selected: {_kind},
-                  onSelectionChanged: (selection) =>
-                      setState(() => _kind = selection.first),
-                ),
-                const SizedBox(height: 16),
-              ],
-              TextFormField(
-                controller: _amountController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: InputDecoration(
-                  labelText: l10n.commonAmount,
-                  suffixText: _currencyCode,
-                ),
-                validator: (v) {
-                  final e = Validators.positiveAmount(
-                    v,
-                    currencyCode: _currencyCode,
-                  );
-                  return e == null ? null : validationMessage(context, e);
-                },
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const FinanceSuitIcon(FinanceSuitIcons.calendarToday),
-                title: Text(l10n.commonDate),
-                subtitle: Text(_date.toIso()),
-                trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
-                onTap: _pickDate,
-              ),
-              const SizedBox(height: 8),
-              AppSelectionField<String>(
-                // Recreate the field when the async preselection lands so the
-                // initial value is actually shown.
-                key: ValueKey('account-$_accountId'),
-                initialValue: _accountId,
-                decoration: InputDecoration(
-                  labelText: _isIncome ? l10n.txToAccount : l10n.txAccount,
-                ),
-                items: [
-                  for (final account in accountList)
-                    DropdownMenuItem(
-                      value: account.accountId,
-                      child: Text(account.name),
-                    ),
+      body: FinanceSuitFocusedBody(
+        title: _isEdit ? l10n.txEditTitle : transactionKindLabel(l10n, _kind),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (_isIncome) ...[
+                  SegmentedButton<TransactionKind>(
+                    segments: [
+                      ButtonSegment(
+                        value: TransactionKind.customIncome,
+                        label: Text(l10n.txCustomIncome),
+                      ),
+                      ButtonSegment(
+                        value: TransactionKind.freelanceIncome,
+                        label: Text(l10n.txFreelanceIncome),
+                      ),
+                    ],
+                    selected: {_kind},
+                    onSelectionChanged: (selection) =>
+                        setState(() => _kind = selection.first),
+                  ),
+                  const SizedBox(height: 16),
                 ],
-                onChanged: (v) => setState(() => _accountId = v),
-                validator: (v) => v == null
-                    ? validationMessage(context, ValidationError.required)
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              CategorySelector(
-                categories: categories.value ?? const <TransactionCategory>[],
-                selectedCategoryId: _categoryId,
-                onChanged: (value) => setState(() => _categoryId = value),
-              ),
-              if (_kind == TransactionKind.allowanceGiven) ...[
-                const SizedBox(height: 16),
                 TextFormField(
-                  controller: _counterpartyController,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: InputDecoration(labelText: l10n.txCounterparty),
+                  controller: _amountController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: l10n.commonAmount,
+                    suffixText: _currencyCode,
+                  ),
                   validator: (v) {
-                    final e = Validators.requiredText(v, maxLength: 120);
+                    final e = Validators.positiveAmount(
+                      v,
+                      currencyCode: _currencyCode,
+                    );
                     return e == null ? null : validationMessage(context, e);
                   },
                 ),
-              ],
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _titleController,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(
-                  labelText: '${l10n.txTitleField} (${l10n.commonOptional})',
-                ),
-                validator: (v) {
-                  final e = Validators.optionalText(v, maxLength: 120);
-                  return e == null ? null : validationMessage(context, e);
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _notesController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
-                ),
-                validator: (v) {
-                  final e = Validators.optionalText(v);
-                  return e == null ? null : validationMessage(context, e);
-                },
-              ),
-              if (_isEdit) ...[
                 const SizedBox(height: 16),
-                // Preserve the original I-owe behavior for linked prefills;
-                // the held-amount form lets the user change the direction.
-                OutlinedButton.icon(
-                  onPressed: () {
-                    final existing = widget.existing!;
-                    context.push(
-                      '${AppRoutes.money}/held/new',
-                      extra: HeldAmountDraft(
-                        direction: HeldAmountDirection.iOwe,
-                        amountMinor: existing.amountMinor,
-                        currencyCode: existing.currencyCode,
-                        counterparty: '',
-                        heldOn: existing.occurredOn,
-                        transactionId: existing.id,
-                        title: existing.title,
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const FinanceSuitIcon(
+                    FinanceSuitIcons.calendarToday,
+                  ),
+                  title: Text(l10n.commonDate),
+                  subtitle: Text(_date.toIso()),
+                  trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
+                  onTap: _pickDate,
+                ),
+                const SizedBox(height: 8),
+                AppSelectionField<String>(
+                  // Recreate the field when the async preselection lands so the
+                  // initial value is actually shown.
+                  key: ValueKey('account-$_accountId'),
+                  initialValue: _accountId,
+                  decoration: InputDecoration(
+                    labelText: _isIncome ? l10n.txToAccount : l10n.txAccount,
+                  ),
+                  items: [
+                    for (final account in accountList)
+                      DropdownMenuItem(
+                        value: account.accountId,
+                        child: Text(account.name),
                       ),
-                    );
+                  ],
+                  onChanged: (v) => setState(() => _accountId = v),
+                  validator: (v) => v == null
+                      ? validationMessage(context, ValidationError.required)
+                      : null,
+                ),
+                const SizedBox(height: 16),
+                CategorySelector(
+                  categories: categories.value ?? const <TransactionCategory>[],
+                  selectedCategoryId: _categoryId,
+                  onChanged: (value) => setState(() => _categoryId = value),
+                ),
+                if (_kind == TransactionKind.allowanceGiven) ...[
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _counterpartyController,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: InputDecoration(labelText: l10n.txCounterparty),
+                    validator: (v) {
+                      final e = Validators.requiredText(v, maxLength: 120);
+                      return e == null ? null : validationMessage(context, e);
+                    },
+                  ),
+                ],
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _titleController,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: InputDecoration(
+                    labelText: '${l10n.txTitleField} (${l10n.commonOptional})',
+                  ),
+                  validator: (v) {
+                    final e = Validators.optionalText(v, maxLength: 120);
+                    return e == null ? null : validationMessage(context, e);
                   },
-                  icon: const FinanceSuitIcon(FinanceSuitIcons.pauseCircle),
-                  label: Text(l10n.heldHoldForTransaction),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _notesController,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
+                  ),
+                  validator: (v) {
+                    final e = Validators.optionalText(v);
+                    return e == null ? null : validationMessage(context, e);
+                  },
+                ),
+                if (_isEdit) ...[
+                  const SizedBox(height: 16),
+                  // Preserve the original I-owe behavior for linked prefills;
+                  // the held-amount form lets the user change the direction.
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      final existing = widget.existing!;
+                      context.push(
+                        '${AppRoutes.money}/held/new',
+                        extra: HeldAmountDraft(
+                          direction: HeldAmountDirection.iOwe,
+                          amountMinor: existing.amountMinor,
+                          currencyCode: existing.currencyCode,
+                          counterparty: '',
+                          heldOn: existing.occurredOn,
+                          transactionId: existing.id,
+                          title: existing.title,
+                        ),
+                      );
+                    },
+                    icon: const FinanceSuitIcon(FinanceSuitIcons.pauseCircle),
+                    label: Text(l10n.heldHoldForTransaction),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                AuthErrorBanner(failure: _failure),
+                AuthSubmitButton(
+                  label: l10n.commonSave,
+                  busy: _busy,
+                  onPressed: _save,
                 ),
               ],
-              const SizedBox(height: 16),
-              AuthErrorBanner(failure: _failure),
-              AuthSubmitButton(
-                label: l10n.commonSave,
-                busy: _busy,
-                onPressed: _save,
-              ),
-            ],
+            ),
           ),
         ),
       ),

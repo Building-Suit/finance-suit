@@ -79,58 +79,66 @@ class _HolidayFormScreenState extends ConsumerState<HolidayFormScreen> {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.workNewHoliday),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _nameController,
-                autofocus: true,
-                enabled: !_busy,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(labelText: l10n.workHolidayName),
-                validator: (value) {
-                  final error = Validators.requiredText(value, maxLength: 120);
-                  return error == null
-                      ? null
-                      : validationMessage(context, error);
-                },
-              ),
-              const SizedBox(height: 8),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                enabled: !_busy,
-                leading: const FinanceSuitIcon(FinanceSuitIcons.calendarToday),
-                title: Text(l10n.commonDate),
-                subtitle: Text(_date.toIso()),
-                onTap: _pickDate,
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _notesController,
-                enabled: !_busy,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
+      body: FinanceSuitFocusedBody(
+        title: l10n.workNewHoliday,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  autofocus: true,
+                  enabled: !_busy,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: InputDecoration(labelText: l10n.workHolidayName),
+                  validator: (value) {
+                    final error = Validators.requiredText(
+                      value,
+                      maxLength: 120,
+                    );
+                    return error == null
+                        ? null
+                        : validationMessage(context, error);
+                  },
                 ),
-                validator: (value) {
-                  final error = Validators.optionalText(value);
-                  return error == null
-                      ? null
-                      : validationMessage(context, error);
-                },
-              ),
-              const SizedBox(height: 16),
-              AuthErrorBanner(failure: _failure),
-              AuthSubmitButton(
-                label: l10n.commonSave,
-                busy: _busy,
-                onPressed: _save,
-              ),
-            ],
+                const SizedBox(height: 8),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  enabled: !_busy,
+                  leading: const FinanceSuitIcon(
+                    FinanceSuitIcons.calendarToday,
+                  ),
+                  title: Text(l10n.commonDate),
+                  subtitle: Text(_date.toIso()),
+                  onTap: _pickDate,
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _notesController,
+                  enabled: !_busy,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
+                  ),
+                  validator: (value) {
+                    final error = Validators.optionalText(value);
+                    return error == null
+                        ? null
+                        : validationMessage(context, error);
+                  },
+                ),
+                const SizedBox(height: 16),
+                AuthErrorBanner(failure: _failure),
+                AuthSubmitButton(
+                  label: l10n.commonSave,
+                  busy: _busy,
+                  onPressed: _save,
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -89,6 +89,27 @@ void main() {
     expect(find.text('Details'), findsNothing);
   });
 
+  testWidgets('focused body renders the visible contextual title', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const Scaffold(
+          appBar: FinanceSuitAppBar.focused(semanticTitle: 'Details'),
+          body: FinanceSuitFocusedBody(title: 'Details', child: SizedBox()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    // The title lives in the page content, not in the AppBar.
+    final title = tester.getCenter(find.text('Details'));
+    final appBarBottom = tester.getRect(find.byType(AppBar)).bottom;
+    expect(title.dy, greaterThan(appBarBottom));
+  });
+
   testWidgets('announces the screen name as a semantic header', (tester) async {
     final semantics = tester.ensureSemantics();
     await pumpBar(
