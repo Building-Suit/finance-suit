@@ -175,53 +175,58 @@ class HolidaysScreen extends ConsumerWidget {
     final holidaysAsync = ref.watch(holidaysProvider);
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.workHolidays),
-      body: AsyncView(
-        value: holidaysAsync,
-        onRetry: () => ref.invalidate(holidaysProvider),
-        data: (holidays) {
-          if (holidays.isEmpty) {
-            return EmptyStateView(
-              icon: FinanceSuitIcons.event,
-              message: l10n.workNoHolidays,
+      body: FinanceSuitFocusedBody(
+        title: l10n.workHolidays,
+        child: AsyncView(
+          value: holidaysAsync,
+          onRetry: () => ref.invalidate(holidaysProvider),
+          data: (holidays) {
+            if (holidays.isEmpty) {
+              return EmptyStateView(
+                icon: FinanceSuitIcons.event,
+                message: l10n.workNoHolidays,
+              );
+            }
+            return RefreshIndicator(
+              onRefresh: () async => ref.invalidate(holidaysProvider),
+              child: ListView.builder(
+                padding: const EdgeInsets.only(bottom: 88),
+                itemCount: holidays.length,
+                itemBuilder: (context, index) {
+                  final holiday = holidays[index];
+                  return ListTile(
+                    leading: const FinanceSuitIcon(
+                      FinanceSuitIcons.celebration,
+                    ),
+                    title: Text(holiday.name),
+                    subtitle: Text(
+                      [
+                        holiday.date.toIso(),
+                        if (holiday.notes != null) holiday.notes!,
+                      ].join(' · '),
+                    ),
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (action) => action == 'edit'
+                          ? _edit(context, ref, holiday)
+                          : _delete(context, ref, holiday),
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'edit',
+                          child: Text(l10n.commonEdit),
+                        ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Text(l10n.commonDelete),
+                        ),
+                      ],
+                    ),
+                    onTap: () => _edit(context, ref, holiday),
+                  );
+                },
+              ),
             );
-          }
-          return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(holidaysProvider),
-            child: ListView.builder(
-              padding: const EdgeInsets.only(bottom: 88),
-              itemCount: holidays.length,
-              itemBuilder: (context, index) {
-                final holiday = holidays[index];
-                return ListTile(
-                  leading: const FinanceSuitIcon(FinanceSuitIcons.celebration),
-                  title: Text(holiday.name),
-                  subtitle: Text(
-                    [
-                      holiday.date.toIso(),
-                      if (holiday.notes != null) holiday.notes!,
-                    ].join(' · '),
-                  ),
-                  trailing: PopupMenuButton<String>(
-                    onSelected: (action) => action == 'edit'
-                        ? _edit(context, ref, holiday)
-                        : _delete(context, ref, holiday),
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: 'edit',
-                        child: Text(l10n.commonEdit),
-                      ),
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Text(l10n.commonDelete),
-                      ),
-                    ],
-                  ),
-                  onTap: () => _edit(context, ref, holiday),
-                );
-              },
-            ),
-          );
-        },
+          },
+        ),
       ),
     );
   }

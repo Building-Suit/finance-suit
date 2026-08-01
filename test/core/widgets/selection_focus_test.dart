@@ -76,6 +76,15 @@ void main() {
       ),
     );
     expect(secondNode.hasFocus, isTrue);
+
+    // The advanced-to select shows its focus visibly through the decorator.
+    final decorator = tester.widget<InputDecorator>(
+      find.descendant(
+        of: fieldInkWell(const Key('second')),
+        matching: find.byType(InputDecorator),
+      ),
+    );
+    expect(decorator.isFocused, isTrue);
   });
 
   testWidgets('select commits then focuses the next text input', (
@@ -98,6 +107,37 @@ void main() {
 
     final editable = tester.widget<EditableText>(find.byType(EditableText));
     expect(editable.focusNode.hasFocus, isTrue);
+  });
+
+  testWidgets('select commits then focuses the next numeric input', (
+    tester,
+  ) async {
+    final controller = TextEditingController();
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      host(
+        Column(
+          children: [
+            selection(key: const Key('first'), onChanged: (_) {}),
+            TextFormField(
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await selectOption(tester, const Key('first'), 'One');
+
+    final editable = tester.widget<EditableText>(find.byType(EditableText));
+    expect(editable.focusNode.hasFocus, isTrue);
+    expect(
+      editable.keyboardType,
+      const TextInputType.numberWithOptions(decimal: true),
+    );
   });
 
   testWidgets('skips disabled and hidden controls', (tester) async {

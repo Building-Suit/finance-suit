@@ -331,294 +331,300 @@ class _IncomeSourceFormScreenState
       appBar: FinanceSuitAppBar.focused(
         semanticTitle: _isEdit ? l10n.incomeEditSource : l10n.incomeAddSource,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              AppSelectionField<IncomeSourceKind>(
-                initialValue: _kind,
-                decoration: InputDecoration(labelText: l10n.incomeSourceType),
-                items: [
-                  for (final kind in IncomeSourceKind.values)
-                    DropdownMenuItem(
-                      value: kind,
-                      child: Text(_kindLabel(l10n, kind)),
-                    ),
-                ],
-                onChanged: (kind) => setState(() {
-                  _kind = kind ?? IncomeSourceKind.other;
-                  if (_kind == IncomeSourceKind.salary) {
-                    _categoryId = null;
-                  }
-                }),
-              ),
-              if (salaryConflict) ...[
-                const SizedBox(height: 12),
-                Card(
-                  child: ListTile(
-                    leading: const FinanceSuitIcon(FinanceSuitIcons.info),
-                    title: Text(l10n.incomeSalaryAlreadyExists),
-                    trailing: TextButton(
-                      onPressed: () => context.pushReplacement(
-                        '/settings/income-sources/edit',
-                        extra: existingSalary,
+      body: FinanceSuitFocusedBody(
+        title: _isEdit ? l10n.incomeEditSource : l10n.incomeAddSource,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AppSelectionField<IncomeSourceKind>(
+                  initialValue: _kind,
+                  decoration: InputDecoration(labelText: l10n.incomeSourceType),
+                  items: [
+                    for (final kind in IncomeSourceKind.values)
+                      DropdownMenuItem(
+                        value: kind,
+                        child: Text(_kindLabel(l10n, kind)),
                       ),
-                      child: Text(l10n.commonEdit),
-                    ),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 8),
-              SwitchListTile.adaptive(
-                contentPadding: EdgeInsets.zero,
-                title: Text(l10n.incomeAutomationEnabled),
-                subtitle: Text(l10n.incomeAutomationEnabledHelp),
-                value: _isActive,
-                onChanged: _busy
-                    ? null
-                    : (value) => setState(() => _isActive = value),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _nameController,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(labelText: l10n.incomeSourceName),
-                validator: (value) {
-                  final error = Validators.requiredText(value, maxLength: 80);
-                  return error == null
-                      ? null
-                      : validationMessage(context, error);
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _amountController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: InputDecoration(
-                  labelText: l10n.incomeExpectedAmount,
-                  suffixText: primary?.currencyCode,
-                ),
-                validator: (value) {
-                  final error = Validators.positiveAmount(
-                    value,
-                    currencyCode: primary?.currencyCode ?? 'EGP',
-                  );
-                  return error == null
-                      ? null
-                      : validationMessage(context, error);
-                },
-                onChanged: (_) => setState(() {}),
-              ),
-              const SizedBox(height: 16),
-              AppSelectionField<String>(
-                key: ValueKey(_primaryAccountId),
-                initialValue: _primaryAccountId,
-                decoration: InputDecoration(
-                  labelText: l10n.incomeRemainderAccount,
-                ),
-                items: [
-                  for (final account in accounts.where((a) => !a.isArchived))
-                    DropdownMenuItem(
-                      value: account.accountId,
-                      child: Text(account.name),
-                    ),
-                ],
-                onChanged: (value) => setState(() => _primaryAccountId = value),
-                validator: (value) => value == null
-                    ? validationMessage(context, ValidationError.required)
-                    : null,
-              ),
-              if (_kind != IncomeSourceKind.salary) ...[
-                const SizedBox(height: 16),
-                CategorySelector(
-                  categories: categories,
-                  selectedCategoryId: _categoryId,
-                  onChanged: (value) => setState(() => _categoryId = value),
-                ),
-              ],
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: AppSelectionField<int>(
-                      initialValue: _paymentDay,
-                      decoration: InputDecoration(
-                        labelText: l10n.salPaymentDay,
-                      ),
-                      items: [
-                        for (var day = 1; day <= 28; day++)
-                          DropdownMenuItem(value: day, child: Text('$day')),
-                      ],
-                      onChanged: (day) =>
-                          setState(() => _paymentDay = day ?? 1),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: AppSelectionField<int>(
-                      initialValue: _promptDays,
-                      decoration: InputDecoration(
-                        labelText: l10n.incomePromptBefore,
-                      ),
-                      items: [
-                        for (final days in const [0, 1, 3, 5, 7, 14, 21, 31])
-                          DropdownMenuItem(value: days, child: Text('$days')),
-                      ],
-                      onChanged: (days) =>
-                          setState(() => _promptDays = days ?? 7),
-                    ),
-                  ),
-                ],
-              ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const FinanceSuitIcon(FinanceSuitIcons.calendarToday),
-                title: Text(l10n.incomeStartDate),
-                subtitle: Text(_startDate.toIso()),
-                onTap: _pickStartDate,
-              ),
-              const Divider(height: 32),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      l10n.incomeSplitTitle,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
-                  IconButton.filledTonal(
-                    tooltip: l10n.incomeSplitAddRule,
-                    onPressed: eligibleSplitAccounts.isEmpty
-                        ? null
-                        : () => _addRule(accounts),
-                    icon: const FinanceSuitIcon(FinanceSuitIcons.add),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(l10n.incomeSplitHelp),
-              const SizedBox(height: 12),
-              if (_rules.isEmpty)
-                Text(
-                  l10n.incomeSplitNoRules,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              for (var index = 0; index < _rules.length; index++) ...[
-                _SplitRuleCard(
-                  key: ValueKey(_rules[index].id),
-                  index: index,
-                  rule: _rules[index],
-                  accounts: eligibleSplitAccounts,
-                  currencyCode: primary?.currencyCode ?? 'EGP',
-                  isFirstPercentage:
-                      _rules
-                          .take(index + 1)
-                          .where(
-                            (rule) =>
-                                rule.method ==
-                                IncomeAllocationMethod.percentage,
-                          )
-                          .length ==
-                      1,
-                  methodLabel: (method) => _methodLabel(l10n, method),
-                  basisLabel: (basis) => _basisLabel(l10n, basis),
-                  onChanged: () => setState(() {}),
-                  onMoveUp: index == 0
-                      ? null
-                      : () => setState(() {
-                          final rule = _rules.removeAt(index);
-                          _rules.insert(index - 1, rule);
-                        }),
-                  onMoveDown: index == _rules.length - 1
-                      ? null
-                      : () => setState(() {
-                          final rule = _rules.removeAt(index);
-                          _rules.insert(index + 1, rule);
-                        }),
-                  onRemove: () => setState(() {
-                    _rules.removeAt(index).dispose();
+                  ],
+                  onChanged: (kind) => setState(() {
+                    _kind = kind ?? IncomeSourceKind.other;
+                    if (_kind == IncomeSourceKind.salary) {
+                      _categoryId = null;
+                    }
                   }),
                 ),
-                const SizedBox(height: 12),
-              ],
-              if (_kind == IncomeSourceKind.salary && hasPercentageRules) ...[
+                if (salaryConflict) ...[
+                  const SizedBox(height: 12),
+                  Card(
+                    child: ListTile(
+                      leading: const FinanceSuitIcon(FinanceSuitIcons.info),
+                      title: Text(l10n.incomeSalaryAlreadyExists),
+                      trailing: TextButton(
+                        onPressed: () => context.pushReplacement(
+                          '/settings/income-sources/edit',
+                          extra: existingSalary,
+                        ),
+                        child: Text(l10n.commonEdit),
+                      ),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
-                  title: Text(l10n.incomeSplitIncludeExtraWork),
-                  subtitle: Text(l10n.incomeSplitIncludeExtraWorkHelp),
-                  value: _includeExtraWorkInPercentage,
-                  onChanged: (value) => setState(() {
-                    _includeExtraWorkInPercentage = value;
-                    if (value) _routeExtraWork = false;
-                  }),
+                  title: Text(l10n.incomeAutomationEnabled),
+                  subtitle: Text(l10n.incomeAutomationEnabledHelp),
+                  value: _isActive,
+                  onChanged: _busy
+                      ? null
+                      : (value) => setState(() => _isActive = value),
                 ),
-                if (!_includeExtraWorkInPercentage) ...[
-                  CheckboxListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(l10n.incomeSplitRouteExtraWork),
-                    value: _routeExtraWork,
-                    onChanged: (value) => setState(() {
-                      _routeExtraWork = value ?? false;
-                    }),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _nameController,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: InputDecoration(labelText: l10n.incomeSourceName),
+                  validator: (value) {
+                    final error = Validators.requiredText(value, maxLength: 80);
+                    return error == null
+                        ? null
+                        : validationMessage(context, error);
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _amountController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
                   ),
-                  if (_routeExtraWork)
-                    AppSelectionField<String>(
-                      key: ValueKey(_extraWorkDestinationAccountId),
-                      initialValue: _extraWorkDestinationAccountId,
-                      decoration: InputDecoration(
-                        labelText: l10n.incomeSplitExtraWorkAccount,
+                  decoration: InputDecoration(
+                    labelText: l10n.incomeExpectedAmount,
+                    suffixText: primary?.currencyCode,
+                  ),
+                  validator: (value) {
+                    final error = Validators.positiveAmount(
+                      value,
+                      currencyCode: primary?.currencyCode ?? 'EGP',
+                    );
+                    return error == null
+                        ? null
+                        : validationMessage(context, error);
+                  },
+                  onChanged: (_) => setState(() {}),
+                ),
+                const SizedBox(height: 16),
+                AppSelectionField<String>(
+                  key: ValueKey(_primaryAccountId),
+                  initialValue: _primaryAccountId,
+                  decoration: InputDecoration(
+                    labelText: l10n.incomeRemainderAccount,
+                  ),
+                  items: [
+                    for (final account in accounts.where((a) => !a.isArchived))
+                      DropdownMenuItem(
+                        value: account.accountId,
+                        child: Text(account.name),
                       ),
-                      items: [
-                        for (final account in eligibleSplitAccounts)
-                          DropdownMenuItem(
-                            value: account.accountId,
-                            child: Text(account.name),
-                          ),
-                      ],
-                      onChanged: (value) => setState(
-                        () => _extraWorkDestinationAccountId = value,
-                      ),
-                    ),
-                ],
-              ],
-              if (primary != null) ...[
-                const SizedBox(height: 12),
-                _SplitPreview(
-                  sourceKind: _kind,
-                  amountText: _amountController.text,
-                  primary: primary,
-                  accounts: accounts,
-                  allocations: _draftPreviewAllocations(primary),
-                  includeExtraWorkInPercentage: _includeExtraWorkInPercentage,
-                  extraWorkDestinationAccountId: _routeExtraWork
-                      ? _extraWorkDestinationAccountId
+                  ],
+                  onChanged: (value) =>
+                      setState(() => _primaryAccountId = value),
+                  validator: (value) => value == null
+                      ? validationMessage(context, ValidationError.required)
                       : null,
                 ),
-              ],
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _notesController,
-                decoration: InputDecoration(
-                  labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
+                if (_kind != IncomeSourceKind.salary) ...[
+                  const SizedBox(height: 16),
+                  CategorySelector(
+                    categories: categories,
+                    selectedCategoryId: _categoryId,
+                    onChanged: (value) => setState(() => _categoryId = value),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppSelectionField<int>(
+                        initialValue: _paymentDay,
+                        decoration: InputDecoration(
+                          labelText: l10n.salPaymentDay,
+                        ),
+                        items: [
+                          for (var day = 1; day <= 28; day++)
+                            DropdownMenuItem(value: day, child: Text('$day')),
+                        ],
+                        onChanged: (day) =>
+                            setState(() => _paymentDay = day ?? 1),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: AppSelectionField<int>(
+                        initialValue: _promptDays,
+                        decoration: InputDecoration(
+                          labelText: l10n.incomePromptBefore,
+                        ),
+                        items: [
+                          for (final days in const [0, 1, 3, 5, 7, 14, 21, 31])
+                            DropdownMenuItem(value: days, child: Text('$days')),
+                        ],
+                        onChanged: (days) =>
+                            setState(() => _promptDays = days ?? 7),
+                      ),
+                    ),
+                  ],
                 ),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 16),
-              AuthErrorBanner(failure: _failure),
-              AuthSubmitButton(
-                label: l10n.commonSave,
-                busy: _busy,
-                onPressed: accounts.isEmpty || salaryConflict
-                    ? null
-                    : () => _save(accounts),
-              ),
-              const SizedBox(height: 24),
-            ],
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const FinanceSuitIcon(
+                    FinanceSuitIcons.calendarToday,
+                  ),
+                  title: Text(l10n.incomeStartDate),
+                  subtitle: Text(_startDate.toIso()),
+                  onTap: _pickStartDate,
+                ),
+                const Divider(height: 32),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.incomeSplitTitle,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    IconButton.filledTonal(
+                      tooltip: l10n.incomeSplitAddRule,
+                      onPressed: eligibleSplitAccounts.isEmpty
+                          ? null
+                          : () => _addRule(accounts),
+                      icon: const FinanceSuitIcon(FinanceSuitIcons.add),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(l10n.incomeSplitHelp),
+                const SizedBox(height: 12),
+                if (_rules.isEmpty)
+                  Text(
+                    l10n.incomeSplitNoRules,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                for (var index = 0; index < _rules.length; index++) ...[
+                  _SplitRuleCard(
+                    key: ValueKey(_rules[index].id),
+                    index: index,
+                    rule: _rules[index],
+                    accounts: eligibleSplitAccounts,
+                    currencyCode: primary?.currencyCode ?? 'EGP',
+                    isFirstPercentage:
+                        _rules
+                            .take(index + 1)
+                            .where(
+                              (rule) =>
+                                  rule.method ==
+                                  IncomeAllocationMethod.percentage,
+                            )
+                            .length ==
+                        1,
+                    methodLabel: (method) => _methodLabel(l10n, method),
+                    basisLabel: (basis) => _basisLabel(l10n, basis),
+                    onChanged: () => setState(() {}),
+                    onMoveUp: index == 0
+                        ? null
+                        : () => setState(() {
+                            final rule = _rules.removeAt(index);
+                            _rules.insert(index - 1, rule);
+                          }),
+                    onMoveDown: index == _rules.length - 1
+                        ? null
+                        : () => setState(() {
+                            final rule = _rules.removeAt(index);
+                            _rules.insert(index + 1, rule);
+                          }),
+                    onRemove: () => setState(() {
+                      _rules.removeAt(index).dispose();
+                    }),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                if (_kind == IncomeSourceKind.salary && hasPercentageRules) ...[
+                  SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(l10n.incomeSplitIncludeExtraWork),
+                    subtitle: Text(l10n.incomeSplitIncludeExtraWorkHelp),
+                    value: _includeExtraWorkInPercentage,
+                    onChanged: (value) => setState(() {
+                      _includeExtraWorkInPercentage = value;
+                      if (value) _routeExtraWork = false;
+                    }),
+                  ),
+                  if (!_includeExtraWorkInPercentage) ...[
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(l10n.incomeSplitRouteExtraWork),
+                      value: _routeExtraWork,
+                      onChanged: (value) => setState(() {
+                        _routeExtraWork = value ?? false;
+                      }),
+                    ),
+                    if (_routeExtraWork)
+                      AppSelectionField<String>(
+                        key: ValueKey(_extraWorkDestinationAccountId),
+                        initialValue: _extraWorkDestinationAccountId,
+                        decoration: InputDecoration(
+                          labelText: l10n.incomeSplitExtraWorkAccount,
+                        ),
+                        items: [
+                          for (final account in eligibleSplitAccounts)
+                            DropdownMenuItem(
+                              value: account.accountId,
+                              child: Text(account.name),
+                            ),
+                        ],
+                        onChanged: (value) => setState(
+                          () => _extraWorkDestinationAccountId = value,
+                        ),
+                      ),
+                  ],
+                ],
+                if (primary != null) ...[
+                  const SizedBox(height: 12),
+                  _SplitPreview(
+                    sourceKind: _kind,
+                    amountText: _amountController.text,
+                    primary: primary,
+                    accounts: accounts,
+                    allocations: _draftPreviewAllocations(primary),
+                    includeExtraWorkInPercentage: _includeExtraWorkInPercentage,
+                    extraWorkDestinationAccountId: _routeExtraWork
+                        ? _extraWorkDestinationAccountId
+                        : null,
+                  ),
+                ],
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _notesController,
+                  decoration: InputDecoration(
+                    labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
+                  ),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16),
+                AuthErrorBanner(failure: _failure),
+                AuthSubmitButton(
+                  label: l10n.commonSave,
+                  busy: _busy,
+                  onPressed: accounts.isEmpty || salaryConflict
+                      ? null
+                      : () => _save(accounts),
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
       ),

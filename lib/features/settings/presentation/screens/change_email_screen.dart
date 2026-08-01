@@ -52,37 +52,40 @@ class _ChangeEmailScreenState extends ConsumerState<ChangeEmailScreen> {
 
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.setChangeEmail),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                autocorrect: false,
-                autofillHints: const [AutofillHints.email],
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) => _submit(),
-                decoration: InputDecoration(
-                  labelText: l10n.setNewEmail,
-                  prefixIcon: const FinanceSuitIcon(FinanceSuitIcons.email),
+      body: FinanceSuitFocusedBody(
+        title: l10n.setChangeEmail,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  autocorrect: false,
+                  autofillHints: const [AutofillHints.email],
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _submit(),
+                  decoration: InputDecoration(
+                    labelText: l10n.setNewEmail,
+                    prefixIcon: const FinanceSuitIcon(FinanceSuitIcons.email),
+                  ),
+                  validator: (v) {
+                    final e = Validators.email(v);
+                    return e == null ? null : validationMessage(context, e);
+                  },
                 ),
-                validator: (v) {
-                  final e = Validators.email(v);
-                  return e == null ? null : validationMessage(context, e);
-                },
-              ),
-              const SizedBox(height: 16),
-              AuthErrorBanner(failure: _failure),
-              AuthSubmitButton(
-                label: l10n.commonSave,
-                busy: busy,
-                onPressed: _submit,
-              ),
-            ],
+                const SizedBox(height: 16),
+                AuthErrorBanner(failure: _failure),
+                AuthSubmitButton(
+                  label: l10n.commonSave,
+                  busy: busy,
+                  onPressed: _submit,
+                ),
+              ],
+            ),
           ),
         ),
       ),

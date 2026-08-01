@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:work_tracker/core/errors/app_failure.dart';
 
 /// Lightweight success/failure result for repository and use-case returns.
@@ -39,9 +41,12 @@ class Err<T> extends Result<T> {
 }
 
 /// Runs [body], mapping thrown Supabase errors into an [Err].
-Future<Result<T>> guard<T>(Future<T> Function() body) async {
+Future<Result<T>> guard<T>(
+  Future<T> Function() body, {
+  Duration timeout = const Duration(seconds: 20),
+}) async {
   try {
-    return Ok(await body());
+    return Ok(await body().timeout(timeout));
   } catch (error) {
     return Err(mapSupabaseError(error));
   }

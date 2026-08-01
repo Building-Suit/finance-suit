@@ -22,10 +22,13 @@ class SalarySettingsScreen extends ConsumerWidget {
     final settings = ref.watch(salarySettingsProvider);
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.setSalarySection),
-      body: AsyncView(
-        value: settings,
-        onRetry: () => ref.invalidate(salarySettingsProvider),
-        data: (value) => _SalarySettingsForm(initial: value),
+      body: FinanceSuitFocusedBody(
+        title: l10n.setSalarySection,
+        child: AsyncView(
+          value: settings,
+          onRetry: () => ref.invalidate(salarySettingsProvider),
+          data: (value) => _SalarySettingsForm(initial: value),
+        ),
       ),
     );
   }

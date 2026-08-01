@@ -248,115 +248,122 @@ class IncomeSourcesScreen extends ConsumerWidget {
         icon: const FinanceSuitIcon(FinanceSuitIcons.add),
         label: Text(l10n.incomeAddSource),
       ),
-      body: AsyncView<List<IncomeSource>>(
-        value: sources,
-        onRetry: () => ref.invalidate(incomeSourcesProvider),
-        data: (items) {
-          final pendingItems = pending.value ?? const <PendingIncome>[];
-          final accountNames = {
-            for (final account in accounts.value ?? const <AccountBalance>[])
-              account.accountId: account.name,
-          };
-          final activeCount = items.where((source) => source.isActive).length;
-          return RefreshIndicator(
-            onRefresh: () async {
-              invalidateIncomeAutomation(ref);
-              ref.invalidate(allAccountBalancesProvider);
-              await ref.read(incomeSourcesProvider.future);
-            },
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
-              children: [
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          l10n.incomeAutomationOverview,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            Chip(
-                              label: Text(l10n.incomeActiveCount(activeCount)),
-                            ),
-                            Chip(
-                              label: Text(
-                                l10n.incomePausedCount(
-                                  items.length - activeCount,
+      body: FinanceSuitFocusedBody(
+        title: l10n.incomeAutomationCenter,
+        child: AsyncView<List<IncomeSource>>(
+          value: sources,
+          onRetry: () => ref.invalidate(incomeSourcesProvider),
+          data: (items) {
+            final pendingItems = pending.value ?? const <PendingIncome>[];
+            final accountNames = {
+              for (final account in accounts.value ?? const <AccountBalance>[])
+                account.accountId: account.name,
+            };
+            final activeCount = items.where((source) => source.isActive).length;
+            return RefreshIndicator(
+              onRefresh: () async {
+                invalidateIncomeAutomation(ref);
+                ref.invalidate(allAccountBalancesProvider);
+                await ref.read(incomeSourcesProvider.future);
+              },
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+                children: [
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            l10n.incomeAutomationOverview,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              Chip(
+                                label: Text(
+                                  l10n.incomeActiveCount(activeCount),
                                 ),
                               ),
-                            ),
-                            Chip(
-                              label: Text(
-                                l10n.incomePendingCount(pendingItems.length),
+                              Chip(
+                                label: Text(
+                                  l10n.incomePausedCount(
+                                    items.length - activeCount,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
+                              Chip(
+                                label: Text(
+                                  l10n.incomePendingCount(pendingItems.length),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  l10n.incomePendingTitle,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                if (pending.isLoading)
-                  const Center(child: CircularProgressIndicator())
-                else if (pending.hasError)
+                  const SizedBox(height: 20),
                   Text(
-                    failureMessage(
-                      context,
-                      pending.error is AppFailure
-                          ? pending.error! as AppFailure
-                          : const UnknownFailure(
-                              debugDetails: 'pending income failed',
-                            ),
-                    ),
-                  )
-                else if (pendingItems.isEmpty)
-                  Text(l10n.incomeNoPending)
-                else
-                  for (final item in pendingItems)
-                    _pendingCard(context, ref, item),
-                const SizedBox(height: 20),
-                Text(
-                  l10n.incomeSourcesTitle,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                if (items.isEmpty)
-                  Column(
-                    children: [
-                      EmptyStateView(
-                        icon: FinanceSuitIcons.payments,
-                        message: l10n.incomeAddAutomationEmpty,
+                    l10n.incomePendingTitle,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  if (pending.isLoading)
+                    const Center(child: CircularProgressIndicator())
+                  else if (pending.hasError)
+                    Text(
+                      failureMessage(
+                        context,
+                        pending.error is AppFailure
+                            ? pending.error! as AppFailure
+                            : const UnknownFailure(
+                                debugDetails: 'pending income failed',
+                              ),
                       ),
-                      const SizedBox(height: 12),
-                      FilledButton.icon(
-                        onPressed: () => context.push(
-                          '${AppRoutes.settings}/income-sources/new',
+                    )
+                  else if (pendingItems.isEmpty)
+                    Text(l10n.incomeNoPending)
+                  else
+                    for (final item in pendingItems)
+                      _pendingCard(context, ref, item),
+                  const SizedBox(height: 20),
+                  Text(
+                    l10n.incomeSourcesTitle,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  if (items.isEmpty)
+                    Column(
+                      children: [
+                        EmptyStateView(
+                          icon: FinanceSuitIcons.payments,
+                          message: l10n.incomeAddAutomationEmpty,
                         ),
-                        icon: const FinanceSuitIcon(FinanceSuitIcons.addCircle),
-                        label: Text(l10n.addAutomation),
-                      ),
-                    ],
-                  )
-                else
-                  for (final source in items)
-                    _sourceCard(context, ref, source, accountNames),
-              ],
-            ),
-          );
-        },
+                        const SizedBox(height: 12),
+                        FilledButton.icon(
+                          onPressed: () => context.push(
+                            '${AppRoutes.settings}/income-sources/new',
+                          ),
+                          icon: const FinanceSuitIcon(
+                            FinanceSuitIcons.addCircle,
+                          ),
+                          label: Text(l10n.addAutomation),
+                        ),
+                      ],
+                    )
+                  else
+                    for (final source in items)
+                      _sourceCard(context, ref, source, accountNames),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

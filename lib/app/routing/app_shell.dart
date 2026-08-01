@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
+import 'package:work_tracker/app/routing/finance_suit_menu.dart';
 import 'package:work_tracker/app/routing/finance_suit_navigation_bar.dart';
 import 'package:work_tracker/app/routing/global_add_sheet.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
@@ -90,34 +91,70 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(realtimeInvalidationProvider);
     final l10n = AppLocalizations.of(context);
-    return Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: FinanceSuitNavigationBar(
-        selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: (index) => navigationShell.goBranch(
-          index,
-          initialLocation: index == navigationShell.currentIndex,
+    return ColoredBox(
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: AnimatedBuilder(
+        animation: FinanceSuitMenu.shellProgress,
+        builder: (context, child) {
+          final progress = FinanceSuitMenu.shellProgress.value;
+          final width = MediaQuery.sizeOf(context).width;
+          final direction = Directionality.of(context) == TextDirection.rtl
+              ? -1.0
+              : 1.0;
+          return Transform.translate(
+            offset: Offset(width * 0.60 * progress * direction, 0),
+            child: Transform.scale(
+              scale: 1 - (0.15 * progress),
+              child: DecoratedBox(
+                key: const Key('finance-suit-shell-surface'),
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    if (progress > 0)
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.32 * progress),
+                        blurRadius: 50 * progress,
+                        offset: Offset(-20 * direction * progress, 0),
+                      ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(40 * progress),
+                  child: child,
+                ),
+              ),
+            ),
+          );
+        },
+        child: Scaffold(
+          body: navigationShell,
+          bottomNavigationBar: FinanceSuitNavigationBar(
+            selectedIndex: navigationShell.currentIndex,
+            onDestinationSelected: (index) => navigationShell.goBranch(
+              index,
+              initialLocation: index == navigationShell.currentIndex,
+            ),
+            onAddPressed: () => _openAddSheet(context, ref),
+            addLabel: l10n.globalAddLabel,
+            destinations: [
+              FinanceSuitNavDestination(
+                icon: FinanceSuitIcons.home,
+                label: l10n.tabHome,
+              ),
+              FinanceSuitNavDestination(
+                icon: FinanceSuitIcons.work,
+                label: l10n.tabWork,
+              ),
+              FinanceSuitNavDestination(
+                icon: FinanceSuitIcons.accountBalanceWallet,
+                label: l10n.tabMoney,
+              ),
+              FinanceSuitNavDestination(
+                icon: FinanceSuitIcons.barChart,
+                label: l10n.tabReports,
+              ),
+            ],
+          ),
         ),
-        onAddPressed: () => _openAddSheet(context, ref),
-        addLabel: l10n.globalAddLabel,
-        destinations: [
-          FinanceSuitNavDestination(
-            icon: FinanceSuitIcons.home,
-            label: l10n.tabHome,
-          ),
-          FinanceSuitNavDestination(
-            icon: FinanceSuitIcons.work,
-            label: l10n.tabWork,
-          ),
-          FinanceSuitNavDestination(
-            icon: FinanceSuitIcons.accountBalanceWallet,
-            label: l10n.tabMoney,
-          ),
-          FinanceSuitNavDestination(
-            icon: FinanceSuitIcons.barChart,
-            label: l10n.tabReports,
-          ),
-        ],
       ),
     );
   }

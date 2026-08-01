@@ -283,146 +283,149 @@ class _SalaryAdjustmentFormScreenState
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.salNewAdjustment),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _failure != null && _periods.isEmpty
-          ? ErrorRetryView(failure: _failure!, onRetry: _retryLoadPeriods)
-          : _periods.isEmpty
-          ? EmptyStateView(
-              icon: FinanceSuitIcons.eventBusy,
-              message: l10n.salNoOpenPeriods,
-            )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    AppSelectionField<String>(
-                      initialValue: _periodKey,
-                      decoration: InputDecoration(
-                        labelText: l10n.salPeriodsTitle,
-                      ),
-                      items: [
-                        for (final period in _periods)
-                          DropdownMenuItem(
-                            value: period.id,
-                            child: Text(
-                              period.isCurrent
-                                  ? l10n.salCurrentPeriod
-                                  : '${period.start.toIso()} → ${period.end.toIso()}',
+      body: FinanceSuitFocusedBody(
+        title: l10n.salNewAdjustment,
+        child: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : _failure != null && _periods.isEmpty
+            ? ErrorRetryView(failure: _failure!, onRetry: _retryLoadPeriods)
+            : _periods.isEmpty
+            ? EmptyStateView(
+                icon: FinanceSuitIcons.eventBusy,
+                message: l10n.salNoOpenPeriods,
+              )
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      AppSelectionField<String>(
+                        initialValue: _periodKey,
+                        decoration: InputDecoration(
+                          labelText: l10n.salPeriodsTitle,
+                        ),
+                        items: [
+                          for (final period in _periods)
+                            DropdownMenuItem(
+                              value: period.id,
+                              child: Text(
+                                period.isCurrent
+                                    ? l10n.salCurrentPeriod
+                                    : '${period.start.toIso()} → ${period.end.toIso()}',
+                              ),
                             ),
+                        ],
+                        onChanged: _busy
+                            ? null
+                            : (key) {
+                                if (key == null) return;
+                                final period = _periods.firstWhere(
+                                  (candidate) => candidate.id == key,
+                                );
+                                setState(() {
+                                  _periodKey = key;
+                                  _date = _clampToday(period.start, period.end);
+                                });
+                              },
+                      ),
+                      const SizedBox(height: 16),
+                      SegmentedButton<AdjustmentType>(
+                        segments: [
+                          ButtonSegment(
+                            value: AdjustmentType.bonus,
+                            label: Text(l10n.salAdjBonus),
                           ),
-                      ],
-                      onChanged: _busy
-                          ? null
-                          : (key) {
-                              if (key == null) return;
-                              final period = _periods.firstWhere(
-                                (candidate) => candidate.id == key,
-                              );
-                              setState(() {
-                                _periodKey = key;
-                                _date = _clampToday(period.start, period.end);
-                              });
-                            },
-                    ),
-                    const SizedBox(height: 16),
-                    SegmentedButton<AdjustmentType>(
-                      segments: [
-                        ButtonSegment(
-                          value: AdjustmentType.bonus,
-                          label: Text(l10n.salAdjBonus),
+                          ButtonSegment(
+                            value: AdjustmentType.deduction,
+                            label: Text(l10n.salAdjDeduction),
+                          ),
+                        ],
+                        selected: {_type},
+                        onSelectionChanged: _busy
+                            ? null
+                            : (selection) =>
+                                  setState(() => _type = selection.first),
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _amountController,
+                        enabled: !_busy,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
                         ),
-                        ButtonSegment(
-                          value: AdjustmentType.deduction,
-                          label: Text(l10n.salAdjDeduction),
+                        decoration: InputDecoration(
+                          labelText: l10n.commonAmount,
+                          suffixText: _currencyCode,
                         ),
-                      ],
-                      selected: {_type},
-                      onSelectionChanged: _busy
-                          ? null
-                          : (selection) =>
-                                setState(() => _type = selection.first),
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _amountController,
-                      enabled: !_busy,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
+                        validator: (value) {
+                          final error = Validators.positiveAmount(
+                            value,
+                            currencyCode: _currencyCode,
+                          );
+                          return error == null
+                              ? null
+                              : validationMessage(context, error);
+                        },
                       ),
-                      decoration: InputDecoration(
-                        labelText: l10n.commonAmount,
-                        suffixText: _currencyCode,
+                      const SizedBox(height: 8),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        enabled: !_busy,
+                        leading: const FinanceSuitIcon(
+                          FinanceSuitIcons.calendarToday,
+                        ),
+                        title: Text(l10n.salEffectiveDate),
+                        subtitle: Text(_date.toIso()),
+                        onTap: _pickDate,
                       ),
-                      validator: (value) {
-                        final error = Validators.positiveAmount(
-                          value,
-                          currencyCode: _currencyCode,
-                        );
-                        return error == null
-                            ? null
-                            : validationMessage(context, error);
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      enabled: !_busy,
-                      leading: const FinanceSuitIcon(
-                        FinanceSuitIcons.calendarToday,
+                      TextFormField(
+                        controller: _titleController,
+                        enabled: !_busy,
+                        textCapitalization: TextCapitalization.sentences,
+                        decoration: InputDecoration(
+                          labelText:
+                              '${l10n.txTitleField} (${l10n.commonOptional})',
+                        ),
+                        validator: (value) {
+                          final error = Validators.optionalText(
+                            value,
+                            maxLength: 120,
+                          );
+                          return error == null
+                              ? null
+                              : validationMessage(context, error);
+                        },
                       ),
-                      title: Text(l10n.salEffectiveDate),
-                      subtitle: Text(_date.toIso()),
-                      onTap: _pickDate,
-                    ),
-                    TextFormField(
-                      controller: _titleController,
-                      enabled: !_busy,
-                      textCapitalization: TextCapitalization.sentences,
-                      decoration: InputDecoration(
-                        labelText:
-                            '${l10n.txTitleField} (${l10n.commonOptional})',
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _notesController,
+                        enabled: !_busy,
+                        maxLines: 3,
+                        decoration: InputDecoration(
+                          labelText:
+                              '${l10n.commonNotes} (${l10n.commonOptional})',
+                        ),
+                        validator: (value) {
+                          final error = Validators.optionalText(value);
+                          return error == null
+                              ? null
+                              : validationMessage(context, error);
+                        },
                       ),
-                      validator: (value) {
-                        final error = Validators.optionalText(
-                          value,
-                          maxLength: 120,
-                        );
-                        return error == null
-                            ? null
-                            : validationMessage(context, error);
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _notesController,
-                      enabled: !_busy,
-                      maxLines: 3,
-                      decoration: InputDecoration(
-                        labelText:
-                            '${l10n.commonNotes} (${l10n.commonOptional})',
+                      const SizedBox(height: 16),
+                      AuthErrorBanner(failure: _failure),
+                      AuthSubmitButton(
+                        label: l10n.commonSave,
+                        busy: _busy,
+                        onPressed: _save,
                       ),
-                      validator: (value) {
-                        final error = Validators.optionalText(value);
-                        return error == null
-                            ? null
-                            : validationMessage(context, error);
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    AuthErrorBanner(failure: _failure),
-                    AuthSubmitButton(
-                      label: l10n.commonSave,
-                      busy: _busy,
-                      onPressed: _save,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
+      ),
     );
   }
 }

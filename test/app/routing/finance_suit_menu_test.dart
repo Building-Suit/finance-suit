@@ -10,6 +10,7 @@ void main() {
   const menuButton = Key('finance-suit-menu-button');
   const panelKey = Key('finance-suit-menu-panel');
   const addButton = Key('global-add-button');
+  const shellSurface = Key('finance-suit-shell-surface');
 
   Future<void> openMenu(WidgetTester tester) async {
     await tester.tap(find.byKey(menuButton).first);
@@ -28,6 +29,13 @@ void main() {
     expect(panel.left, closeTo(0, 1.0));
     expect(panel.top, closeTo(0, 1.0));
     expect(panel.bottom, closeTo(screen.height, 1.0));
+
+    // Compact mode: destination rows keep the accessible 48dp floor
+    // without the default taller tile padding.
+    expect(
+      tester.getSize(find.byKey(const Key('menu-item-/settings'))).height,
+      48,
+    );
   });
 
   testWidgets('opens from the right edge in Arabic RTL', (tester) async {
@@ -111,6 +119,20 @@ void main() {
     expect(find.byKey(const Key('global-add-list')), findsNothing);
   });
 
+  testWidgets('translates and scales the app surface like Building Suit', (
+    tester,
+  ) async {
+    await pumpShellApp(tester, buildShellTestRouter());
+    final screen = tester.getSize(find.byType(MaterialApp));
+
+    await openMenu(tester);
+
+    final surface = tester.getRect(find.byKey(shellSurface));
+    expect(surface.width, closeTo(screen.width * 0.85, 1));
+    expect(surface.height, closeTo(screen.height * 0.85, 1));
+    expect(surface.left, closeTo(screen.width * 0.675, 1));
+  });
+
   testWidgets('system Back closes the menu before leaving the route', (
     tester,
   ) async {
@@ -179,6 +201,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 125));
     expect(find.byKey(panelKey), findsOneWidget);
     // No structural travel under reduced motion.
+    final screen = tester.getSize(find.byType(MaterialApp));
+    final surface = tester.getRect(find.byKey(shellSurface));
+    expect(surface.left, closeTo(0, 1));
+    expect(surface.width, closeTo(screen.width, 1));
     expect(
       find.ancestor(
         of: find.byKey(panelKey),

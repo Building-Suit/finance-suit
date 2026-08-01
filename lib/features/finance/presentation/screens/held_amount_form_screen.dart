@@ -194,141 +194,146 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
             ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (_transactionId != null) ...[
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const FinanceSuitIcon(FinanceSuitIcons.link),
-                  title: Text(l10n.heldLinkedTransactionReference),
-                  subtitle: Text(l10n.heldSettlementTransactionHelp),
+      body: FinanceSuitFocusedBody(
+        title: _isEdit ? l10n.heldEditTitle : l10n.heldNew,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (_transactionId != null) ...[
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const FinanceSuitIcon(FinanceSuitIcons.link),
+                    title: Text(l10n.heldLinkedTransactionReference),
+                    subtitle: Text(l10n.heldSettlementTransactionHelp),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                if (needsAccount) ...[
+                  AppSelectionField<String>(
+                    initialValue:
+                        accountList.any((a) => a.accountId == _accountId)
+                        ? _accountId
+                        : null,
+                    decoration: InputDecoration(labelText: l10n.txAccount),
+                    items: [
+                      for (final account in accountList)
+                        DropdownMenuItem(
+                          value: account.accountId,
+                          child: Text(
+                            '${account.name} (${account.balance.format()})',
+                          ),
+                        ),
+                    ],
+                    onChanged: _busy
+                        ? null
+                        : (value) => setState(() => _accountId = value),
+                    validator: (value) => value == null
+                        ? validationMessage(context, ValidationError.required)
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                Text(
+                  l10n.heldDirection,
+                  style: Theme.of(context).textTheme.labelLarge,
                 ),
                 const SizedBox(height: 8),
-              ],
-              if (needsAccount) ...[
-                AppSelectionField<String>(
-                  initialValue:
-                      accountList.any((a) => a.accountId == _accountId)
-                      ? _accountId
-                      : null,
-                  decoration: InputDecoration(labelText: l10n.txAccount),
-                  items: [
-                    for (final account in accountList)
-                      DropdownMenuItem(
-                        value: account.accountId,
-                        child: Text(
-                          '${account.name} (${account.balance.format()})',
-                        ),
-                      ),
+                SegmentedButton<HeldAmountDirection>(
+                  segments: [
+                    ButtonSegment(
+                      value: HeldAmountDirection.iOwe,
+                      label: Text(l10n.heldDirectionIOwe),
+                    ),
+                    ButtonSegment(
+                      value: HeldAmountDirection.owedToMe,
+                      label: Text(l10n.heldDirectionOwedToMe),
+                    ),
                   ],
-                  onChanged: _busy
-                      ? null
-                      : (value) => setState(() => _accountId = value),
-                  validator: (value) => value == null
-                      ? validationMessage(context, ValidationError.required)
-                      : null,
+                  selected: {_direction},
+                  onSelectionChanged: (selection) {
+                    setState(() => _direction = selection.first);
+                  },
                 ),
                 const SizedBox(height: 16),
+                TextFormField(
+                  controller: _amountController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: l10n.commonAmount,
+                    suffixText: _currencyCode,
+                  ),
+                  validator: (v) {
+                    final e = Validators.positiveAmount(
+                      v,
+                      currencyCode: _currencyCode,
+                    );
+                    return e == null ? null : validationMessage(context, e);
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _counterpartyController,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: InputDecoration(
+                    labelText: _direction == HeldAmountDirection.iOwe
+                        ? l10n.heldOwedTo
+                        : l10n.heldOwedBy,
+                  ),
+                  validator: (v) {
+                    final e = Validators.requiredText(v, maxLength: 120);
+                    return e == null ? null : validationMessage(context, e);
+                  },
+                ),
+                const SizedBox(height: 8),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const FinanceSuitIcon(
+                    FinanceSuitIcons.calendarToday,
+                  ),
+                  title: Text(l10n.commonDate),
+                  subtitle: Text(_date.toIso()),
+                  trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
+                  onTap: _pickDate,
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _titleController,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: InputDecoration(
+                    labelText: '${l10n.txTitleField} (${l10n.commonOptional})',
+                  ),
+                  validator: (v) {
+                    final e = Validators.optionalText(v, maxLength: 120);
+                    return e == null ? null : validationMessage(context, e);
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _notesController,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
+                  ),
+                  validator: (v) {
+                    final e = Validators.optionalText(v);
+                    return e == null ? null : validationMessage(context, e);
+                  },
+                ),
+                const SizedBox(height: 16),
+                AuthErrorBanner(failure: _failure),
+                AuthSubmitButton(
+                  label: l10n.commonSave,
+                  busy: _busy,
+                  onPressed: _save,
+                ),
               ],
-              Text(
-                l10n.heldDirection,
-                style: Theme.of(context).textTheme.labelLarge,
-              ),
-              const SizedBox(height: 8),
-              SegmentedButton<HeldAmountDirection>(
-                segments: [
-                  ButtonSegment(
-                    value: HeldAmountDirection.iOwe,
-                    label: Text(l10n.heldDirectionIOwe),
-                  ),
-                  ButtonSegment(
-                    value: HeldAmountDirection.owedToMe,
-                    label: Text(l10n.heldDirectionOwedToMe),
-                  ),
-                ],
-                selected: {_direction},
-                onSelectionChanged: (selection) {
-                  setState(() => _direction = selection.first);
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _amountController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: InputDecoration(
-                  labelText: l10n.commonAmount,
-                  suffixText: _currencyCode,
-                ),
-                validator: (v) {
-                  final e = Validators.positiveAmount(
-                    v,
-                    currencyCode: _currencyCode,
-                  );
-                  return e == null ? null : validationMessage(context, e);
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _counterpartyController,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  labelText: _direction == HeldAmountDirection.iOwe
-                      ? l10n.heldOwedTo
-                      : l10n.heldOwedBy,
-                ),
-                validator: (v) {
-                  final e = Validators.requiredText(v, maxLength: 120);
-                  return e == null ? null : validationMessage(context, e);
-                },
-              ),
-              const SizedBox(height: 8),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const FinanceSuitIcon(FinanceSuitIcons.calendarToday),
-                title: Text(l10n.commonDate),
-                subtitle: Text(_date.toIso()),
-                trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
-                onTap: _pickDate,
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _titleController,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(
-                  labelText: '${l10n.txTitleField} (${l10n.commonOptional})',
-                ),
-                validator: (v) {
-                  final e = Validators.optionalText(v, maxLength: 120);
-                  return e == null ? null : validationMessage(context, e);
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _notesController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
-                ),
-                validator: (v) {
-                  final e = Validators.optionalText(v);
-                  return e == null ? null : validationMessage(context, e);
-                },
-              ),
-              const SizedBox(height: 16),
-              AuthErrorBanner(failure: _failure),
-              AuthSubmitButton(
-                label: l10n.commonSave,
-                busy: _busy,
-                onPressed: _save,
-              ),
-            ],
+            ),
           ),
         ),
       ),

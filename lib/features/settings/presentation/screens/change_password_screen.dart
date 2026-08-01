@@ -55,48 +55,51 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
 
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.setChangePassword),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              PasswordField(
-                controller: _passwordController,
-                label: l10n.authNewPassword,
-                autofillHints: const [AutofillHints.newPassword],
-                textInputAction: TextInputAction.next,
-                onChanged: (v) => setState(() => _password = v),
-                validator: (v) {
-                  final e = Validators.password(v);
-                  return e == null ? null : validationMessage(context, e);
-                },
-              ),
-              PasswordStrengthIndicator(password: _password),
-              const SizedBox(height: 16),
-              PasswordField(
-                controller: _confirmController,
-                label: l10n.authConfirmPassword,
-                autofillHints: const [AutofillHints.newPassword],
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) => _submit(),
-                validator: (v) {
-                  final e = Validators.confirmPassword(
-                    v,
-                    _passwordController.text,
-                  );
-                  return e == null ? null : validationMessage(context, e);
-                },
-              ),
-              const SizedBox(height: 16),
-              AuthErrorBanner(failure: _failure),
-              AuthSubmitButton(
-                label: l10n.authUpdatePassword,
-                busy: busy,
-                onPressed: _submit,
-              ),
-            ],
+      body: FinanceSuitFocusedBody(
+        title: l10n.setChangePassword,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                PasswordField(
+                  controller: _passwordController,
+                  label: l10n.authNewPassword,
+                  autofillHints: const [AutofillHints.newPassword],
+                  textInputAction: TextInputAction.next,
+                  onChanged: (v) => setState(() => _password = v),
+                  validator: (v) {
+                    final e = Validators.password(v);
+                    return e == null ? null : validationMessage(context, e);
+                  },
+                ),
+                PasswordStrengthIndicator(password: _password),
+                const SizedBox(height: 16),
+                PasswordField(
+                  controller: _confirmController,
+                  label: l10n.authConfirmPassword,
+                  autofillHints: const [AutofillHints.newPassword],
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _submit(),
+                  validator: (v) {
+                    final e = Validators.confirmPassword(
+                      v,
+                      _passwordController.text,
+                    );
+                    return e == null ? null : validationMessage(context, e);
+                  },
+                ),
+                const SizedBox(height: 16),
+                AuthErrorBanner(failure: _failure),
+                AuthSubmitButton(
+                  label: l10n.authUpdatePassword,
+                  busy: busy,
+                  onPressed: _submit,
+                ),
+              ],
+            ),
           ),
         ),
       ),

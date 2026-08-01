@@ -38,6 +38,7 @@ abstract final class FinanceSuitMenu {
   static const double entryOffset = 16;
 
   static _FinanceSuitMenuRoute? _activeRoute;
+  static final ValueNotifier<double> shellProgress = ValueNotifier<double>(0);
 
   /// Whether a menu overlay is currently open (or animating).
   ///
@@ -100,11 +101,28 @@ class _FinanceSuitMenuRoute extends PopupRoute<String> {
   final String menuLabel;
   final String dismissLabel;
   final VoidCallback onDisposed;
+  AnimationController? _controller;
 
   @override
   void dispose() {
+    _controller?.removeListener(_syncShellProgress);
+    FinanceSuitMenu.shellProgress.value = 0;
     onDisposed();
     super.dispose();
+  }
+
+  @override
+  AnimationController createAnimationController() {
+    final controller = super.createAnimationController();
+    _controller = controller;
+    controller.addListener(_syncShellProgress);
+    return controller;
+  }
+
+  void _syncShellProgress() {
+    FinanceSuitMenu.shellProgress.value = reduceMotion
+        ? 0
+        : (_controller?.value ?? 0).clamp(0.0, 1.0);
   }
 
   @override
@@ -276,48 +294,63 @@ class _FinanceSuitMenuPanel extends StatelessWidget {
           key: const Key('finance-suit-menu-panel'),
           color: Theme.of(context).colorScheme.surface,
           child: SafeArea(
-            child: ListView(
-              key: const Key('finance-suit-menu-list'),
-              padding: const EdgeInsets.only(bottom: 8),
-              children: [
-                Padding(
-                  padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 4),
-                  child: Row(
-                    children: [
-                      const FinanceSuitMark(size: 28, semanticLabel: null),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          FinanceSuitBrand.name,
-                          style: textTheme.titleMedium,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
+            // Compact mode: destination rows sit on the accessible 48dp
+            // floor instead of inheriting the theme's taller tile padding.
+            child: ListTileTheme.merge(
+              visualDensity: VisualDensity.compact,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              child: ListView(
+                key: const Key('finance-suit-menu-list'),
+                // Keep the last destinations reachable above an open
+                // keyboard.
+                padding: EdgeInsets.only(
+                  bottom: 8 + MediaQuery.viewInsetsOf(context).bottom,
                 ),
-                for (final group in groups) ...[
+                children: [
                   Padding(
                     padding: const EdgeInsetsDirectional.fromSTEB(
                       16,
                       12,
                       16,
-                      0,
+                      4,
                     ),
-                    child: Text(group.heading, style: textTheme.labelLarge),
+                    child: Row(
+                      children: [
+                        const FinanceSuitMark(size: 28, semanticLabel: null),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            FinanceSuitBrand.name,
+                            style: textTheme.titleMedium,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  for (final item in group.items)
-                    ListTile(
-                      key: Key('menu-item-${item.route}'),
-                      autofocus: item.route == firstRoute,
-                      visualDensity: VisualDensity.compact,
-                      leading: FinanceSuitIcon(item.icon),
-                      title: Text(item.label),
-                      onTap: () => Navigator.of(context).pop(item.route),
+                  for (final group in groups) ...[
+                    Padding(
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                        16,
+                        12,
+                        16,
+                        0,
+                      ),
+                      child: Text(group.heading, style: textTheme.labelLarge),
                     ),
+                    for (final item in group.items)
+                      ListTile(
+                        key: Key('menu-item-${item.route}'),
+                        autofocus: item.route == firstRoute,
+                        visualDensity: VisualDensity.compact,
+                        leading: FinanceSuitIcon(item.icon),
+                        title: Text(item.label),
+                        onTap: () => Navigator.of(context).pop(item.route),
+                      ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),

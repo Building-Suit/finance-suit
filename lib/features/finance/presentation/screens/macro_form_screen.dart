@@ -116,60 +116,63 @@ class _MacroFormScreenState extends ConsumerState<MacroFormScreen> {
       appBar: FinanceSuitAppBar.focused(
         semanticTitle: _isEdit ? l10n.macroEditTitle : l10n.macroNew,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _nameController,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(labelText: l10n.macroName),
-                validator: (v) {
-                  final e = Validators.requiredText(v, maxLength: 80);
-                  return e == null ? null : validationMessage(context, e);
-                },
-              ),
-              const SizedBox(height: 16),
-              Text(
-                l10n.macroActions,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 4),
-              if (_items.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
-                    l10n.macroNoActions,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+      body: FinanceSuitFocusedBody(
+        title: _isEdit ? l10n.macroEditTitle : l10n.macroNew,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: InputDecoration(labelText: l10n.macroName),
+                  validator: (v) {
+                    final e = Validators.requiredText(v, maxLength: 80);
+                    return e == null ? null : validationMessage(context, e);
+                  },
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  l10n.macroActions,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 4),
+                if (_items.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      l10n.macroNoActions,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
+                for (final (index, item) in _items.indexed)
+                  _MacroItemTile(
+                    item: item,
+                    l10n: l10n,
+                    accountNames: accountNames,
+                    accountCurrencies: accountCurrencies,
+                    onTap: () => _editItem(index),
+                    onRemove: () => setState(() => _items.removeAt(index)),
+                  ),
+                OutlinedButton.icon(
+                  onPressed: _addItem,
+                  icon: const FinanceSuitIcon(FinanceSuitIcons.add),
+                  label: Text(l10n.macroAddAction),
                 ),
-              for (final (index, item) in _items.indexed)
-                _MacroItemTile(
-                  item: item,
-                  l10n: l10n,
-                  accountNames: accountNames,
-                  accountCurrencies: accountCurrencies,
-                  onTap: () => _editItem(index),
-                  onRemove: () => setState(() => _items.removeAt(index)),
+                const SizedBox(height: 16),
+                AuthErrorBanner(failure: _failure),
+                AuthSubmitButton(
+                  label: l10n.commonSave,
+                  busy: _busy,
+                  onPressed: _save,
                 ),
-              OutlinedButton.icon(
-                onPressed: _addItem,
-                icon: const FinanceSuitIcon(FinanceSuitIcons.add),
-                label: Text(l10n.macroAddAction),
-              ),
-              const SizedBox(height: 16),
-              AuthErrorBanner(failure: _failure),
-              AuthSubmitButton(
-                label: l10n.commonSave,
-                busy: _busy,
-                onPressed: _save,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -379,147 +382,151 @@ class _MacroItemFormScreenState extends ConsumerState<_MacroItemFormScreen> {
 
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.macroAddAction),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              AppSelectionField<TransactionKind>(
-                initialValue: _kind,
-                decoration: InputDecoration(labelText: l10n.workEntryType),
-                items: [
-                  for (final kind in const [
-                    TransactionKind.expense,
-                    TransactionKind.allowanceGiven,
-                    TransactionKind.customIncome,
-                    TransactionKind.freelanceIncome,
-                    TransactionKind.transfer,
-                  ])
-                    DropdownMenuItem(
-                      value: kind,
-                      child: Text(transactionKindLabel(l10n, kind)),
-                    ),
-                ],
-                onChanged: (v) => setState(() {
-                  if (v == null || v == _kind) return;
-                  _kind = v;
-                  // Category kinds differ per transaction kind.
-                  _categoryId = null;
-                }),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _amountController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
+      body: FinanceSuitFocusedBody(
+        title: l10n.macroAddAction,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AppSelectionField<TransactionKind>(
+                  initialValue: _kind,
+                  decoration: InputDecoration(labelText: l10n.workEntryType),
+                  items: [
+                    for (final kind in const [
+                      TransactionKind.expense,
+                      TransactionKind.allowanceGiven,
+                      TransactionKind.customIncome,
+                      TransactionKind.freelanceIncome,
+                      TransactionKind.transfer,
+                    ])
+                      DropdownMenuItem(
+                        value: kind,
+                        child: Text(transactionKindLabel(l10n, kind)),
+                      ),
+                  ],
+                  onChanged: (v) => setState(() {
+                    if (v == null || v == _kind) return;
+                    _kind = v;
+                    // Category kinds differ per transaction kind.
+                    _categoryId = null;
+                  }),
                 ),
-                decoration: InputDecoration(
-                  labelText: l10n.commonAmount,
-                  suffixText: _currencyCode,
-                ),
-                validator: (v) {
-                  final e = Validators.positiveAmount(
-                    v,
-                    currencyCode: _currencyCode,
-                  );
-                  return e == null ? null : validationMessage(context, e);
-                },
-              ),
-              const SizedBox(height: 16),
-              AppSelectionField<String>(
-                key: ValueKey('macro-account-$_accountId'),
-                initialValue: _accountId,
-                decoration: InputDecoration(
-                  labelText: _isTransfer
-                      ? l10n.txFromAccount
-                      : (_isIncome ? l10n.txToAccount : l10n.txAccount),
-                ),
-                items: accountItems,
-                onChanged: (v) => setState(() => _accountId = v),
-                validator: (v) {
-                  if (_isTransfer) {
-                    final e = Validators.differentAccounts(v, _destinationId);
-                    return e == null ? null : validationMessage(context, e);
-                  }
-                  return v == null
-                      ? validationMessage(context, ValidationError.required)
-                      : null;
-                },
-              ),
-              if (_isTransfer) ...[
-                const SizedBox(height: 16),
-                AppSelectionField<String>(
-                  initialValue: _destinationId,
-                  decoration: InputDecoration(labelText: l10n.txToAccount),
-                  items: accountItems,
-                  onChanged: (v) => setState(() => _destinationId = v),
-                  validator: (v) {
-                    final e = Validators.differentAccounts(_accountId, v);
-                    return e == null ? null : validationMessage(context, e);
-                  },
-                ),
-              ] else ...[
-                const SizedBox(height: 16),
-                CategorySelector(
-                  key: ValueKey('macro-category-$_categoryKind'),
-                  categories: categories.value ?? const <TransactionCategory>[],
-                  selectedCategoryId: _categoryId,
-                  onChanged: (value) => setState(() => _categoryId = value),
-                ),
-              ],
-              if (_kind == TransactionKind.allowanceGiven) ...[
                 const SizedBox(height: 16),
                 TextFormField(
-                  controller: _counterpartyController,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: InputDecoration(labelText: l10n.txCounterparty),
+                  controller: _amountController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: l10n.commonAmount,
+                    suffixText: _currencyCode,
+                  ),
                   validator: (v) {
-                    final e = Validators.requiredText(v, maxLength: 120);
+                    final e = Validators.positiveAmount(
+                      v,
+                      currencyCode: _currencyCode,
+                    );
                     return e == null ? null : validationMessage(context, e);
                   },
                 ),
+                const SizedBox(height: 16),
+                AppSelectionField<String>(
+                  key: ValueKey('macro-account-$_accountId'),
+                  initialValue: _accountId,
+                  decoration: InputDecoration(
+                    labelText: _isTransfer
+                        ? l10n.txFromAccount
+                        : (_isIncome ? l10n.txToAccount : l10n.txAccount),
+                  ),
+                  items: accountItems,
+                  onChanged: (v) => setState(() => _accountId = v),
+                  validator: (v) {
+                    if (_isTransfer) {
+                      final e = Validators.differentAccounts(v, _destinationId);
+                      return e == null ? null : validationMessage(context, e);
+                    }
+                    return v == null
+                        ? validationMessage(context, ValidationError.required)
+                        : null;
+                  },
+                ),
+                if (_isTransfer) ...[
+                  const SizedBox(height: 16),
+                  AppSelectionField<String>(
+                    initialValue: _destinationId,
+                    decoration: InputDecoration(labelText: l10n.txToAccount),
+                    items: accountItems,
+                    onChanged: (v) => setState(() => _destinationId = v),
+                    validator: (v) {
+                      final e = Validators.differentAccounts(_accountId, v);
+                      return e == null ? null : validationMessage(context, e);
+                    },
+                  ),
+                ] else ...[
+                  const SizedBox(height: 16),
+                  CategorySelector(
+                    key: ValueKey('macro-category-$_categoryKind'),
+                    categories:
+                        categories.value ?? const <TransactionCategory>[],
+                    selectedCategoryId: _categoryId,
+                    onChanged: (value) => setState(() => _categoryId = value),
+                  ),
+                ],
+                if (_kind == TransactionKind.allowanceGiven) ...[
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _counterpartyController,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: InputDecoration(labelText: l10n.txCounterparty),
+                    validator: (v) {
+                      final e = Validators.requiredText(v, maxLength: 120);
+                      return e == null ? null : validationMessage(context, e);
+                    },
+                  ),
+                ],
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _titleController,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: InputDecoration(
+                    labelText: '${l10n.txTitleField} (${l10n.commonOptional})',
+                  ),
+                  validator: (v) {
+                    final e = Validators.optionalText(v, maxLength: 120);
+                    return e == null ? null : validationMessage(context, e);
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _notesController,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
+                  ),
+                  validator: (v) {
+                    final e = Validators.optionalText(v);
+                    return e == null ? null : validationMessage(context, e);
+                  },
+                ),
+                const SizedBox(height: 8),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(l10n.macroReversible),
+                  subtitle: Text(l10n.macroReversibleHint),
+                  value: _isReversible,
+                  onChanged: (v) => setState(() => _isReversible = v),
+                ),
+                const SizedBox(height: 16),
+                AuthSubmitButton(
+                  label: l10n.commonDone,
+                  busy: false,
+                  onPressed: _submit,
+                ),
               ],
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _titleController,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(
-                  labelText: '${l10n.txTitleField} (${l10n.commonOptional})',
-                ),
-                validator: (v) {
-                  final e = Validators.optionalText(v, maxLength: 120);
-                  return e == null ? null : validationMessage(context, e);
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _notesController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
-                ),
-                validator: (v) {
-                  final e = Validators.optionalText(v);
-                  return e == null ? null : validationMessage(context, e);
-                },
-              ),
-              const SizedBox(height: 8),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(l10n.macroReversible),
-                subtitle: Text(l10n.macroReversibleHint),
-                value: _isReversible,
-                onChanged: (v) => setState(() => _isReversible = v),
-              ),
-              const SizedBox(height: 16),
-              AuthSubmitButton(
-                label: l10n.commonDone,
-                busy: false,
-                onPressed: _submit,
-              ),
-            ],
+            ),
           ),
         ),
       ),

@@ -104,81 +104,86 @@ class _TransferFormScreenState extends ConsumerState<TransferFormScreen> {
 
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.txTransfer),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              AppSelectionField<String>(
-                initialValue: _sourceId,
-                decoration: InputDecoration(labelText: l10n.txFromAccount),
-                items: items,
-                onChanged: (v) => setState(() => _sourceId = v),
-                validator: (v) {
-                  final e = Validators.differentAccounts(v, _destinationId);
-                  return e == null ? null : validationMessage(context, e);
-                },
-              ),
-              const SizedBox(height: 16),
-              AppSelectionField<String>(
-                initialValue: _destinationId,
-                decoration: InputDecoration(labelText: l10n.txToAccount),
-                items: items,
-                onChanged: (v) => setState(() => _destinationId = v),
-                validator: (v) {
-                  final e = Validators.differentAccounts(_sourceId, v);
-                  return e == null ? null : validationMessage(context, e);
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _amountController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
+      body: FinanceSuitFocusedBody(
+        title: l10n.txTransfer,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AppSelectionField<String>(
+                  initialValue: _sourceId,
+                  decoration: InputDecoration(labelText: l10n.txFromAccount),
+                  items: items,
+                  onChanged: (v) => setState(() => _sourceId = v),
+                  validator: (v) {
+                    final e = Validators.differentAccounts(v, _destinationId);
+                    return e == null ? null : validationMessage(context, e);
+                  },
                 ),
-                decoration: InputDecoration(
-                  labelText: l10n.commonAmount,
-                  suffixText: _currencyCode,
+                const SizedBox(height: 16),
+                AppSelectionField<String>(
+                  initialValue: _destinationId,
+                  decoration: InputDecoration(labelText: l10n.txToAccount),
+                  items: items,
+                  onChanged: (v) => setState(() => _destinationId = v),
+                  validator: (v) {
+                    final e = Validators.differentAccounts(_sourceId, v);
+                    return e == null ? null : validationMessage(context, e);
+                  },
                 ),
-                validator: (v) {
-                  final e = Validators.positiveAmount(
-                    v,
-                    currencyCode: _currencyCode,
-                  );
-                  return e == null ? null : validationMessage(context, e);
-                },
-              ),
-              const SizedBox(height: 8),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const FinanceSuitIcon(FinanceSuitIcons.calendarToday),
-                title: Text(l10n.commonDate),
-                subtitle: Text(_date.toIso()),
-                trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
-                onTap: _pickDate,
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _notesController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _amountController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: l10n.commonAmount,
+                    suffixText: _currencyCode,
+                  ),
+                  validator: (v) {
+                    final e = Validators.positiveAmount(
+                      v,
+                      currencyCode: _currencyCode,
+                    );
+                    return e == null ? null : validationMessage(context, e);
+                  },
                 ),
-                validator: (v) {
-                  final e = Validators.optionalText(v);
-                  return e == null ? null : validationMessage(context, e);
-                },
-              ),
-              const SizedBox(height: 16),
-              AuthErrorBanner(failure: _failure),
-              AuthSubmitButton(
-                label: l10n.commonSave,
-                busy: _busy,
-                onPressed: _save,
-              ),
-            ],
+                const SizedBox(height: 8),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const FinanceSuitIcon(
+                    FinanceSuitIcons.calendarToday,
+                  ),
+                  title: Text(l10n.commonDate),
+                  subtitle: Text(_date.toIso()),
+                  trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
+                  onTap: _pickDate,
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _notesController,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
+                  ),
+                  validator: (v) {
+                    final e = Validators.optionalText(v);
+                    return e == null ? null : validationMessage(context, e);
+                  },
+                ),
+                const SizedBox(height: 16),
+                AuthErrorBanner(failure: _failure),
+                AuthSubmitButton(
+                  label: l10n.commonSave,
+                  busy: _busy,
+                  onPressed: _save,
+                ),
+              ],
+            ),
           ),
         ),
       ),

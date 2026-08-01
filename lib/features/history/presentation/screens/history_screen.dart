@@ -239,90 +239,97 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () => _load(reset: true),
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-          children: [
-            _RangeFilter(
-              selected: _preset,
-              labelFor: (preset) => _rangeLabel(l10n, preset),
-              onSelected: _selectPreset,
-            ),
-            const SizedBox(height: 8),
-            _TypeFilter(
-              selected: _type,
-              labelFor: (type) => _typeLabel(l10n, type),
-              onSelected: (type) {
-                setState(() => _type = type);
-                _load(reset: true);
-              },
-            ),
-            const SizedBox(height: 8),
-            _AdvancedFilters(
-              accounts: accountsAsync.value ?? const <AccountBalance>[],
-              categories: categories,
-              accountId: _accountId,
-              categoryId: _categoryId,
-              keywordController: _keywordController,
-              minController: _minController,
-              maxController: _maxController,
-              onAccountChanged: (value) => setState(() => _accountId = value),
-              onCategoryChanged: (value) => setState(() => _categoryId = value),
-              onApply: () => _load(reset: true),
-            ),
-            const SizedBox(height: 8),
-            _ActiveFilters(
-              chips: [
-                _rangeLabel(l10n, _preset),
-                _typeLabel(l10n, _type),
-                _sortLabel(l10n, _sort),
-                if (_accountId != null) accountNames[_accountId] ?? _accountId!,
-                if (_categoryId != null)
-                  categories
-                          .where((c) => c.id == _categoryId)
-                          .map((c) => c.name)
-                          .firstOrNull ??
-                      _categoryId!,
-                if (_keywordController.text.trim().isNotEmpty)
-                  _keywordController.text.trim(),
-              ],
-            ),
-            const Divider(height: 24),
-            if (_loading)
-              const Padding(
-                padding: EdgeInsets.all(24),
-                child: Center(child: CircularProgressIndicator()),
-              )
-            else if (_failure != null)
-              ErrorRetryView(
-                failure: _failure!,
-                onRetry: () => _load(reset: true),
-              )
-            else if (_items.isEmpty)
-              EmptyStateView(
-                icon: FinanceSuitIcons.manageSearch,
-                message: l10n.historyNoItems,
-              )
-            else ...[
-              for (final item in _items)
-                HistoryItemTile(item: item, accountNames: accountNames),
-              if (_hasMore)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: OutlinedButton.icon(
-                    onPressed: _loadingMore ? null : () => _load(reset: false),
-                    icon: _loadingMore
-                        ? const SizedBox.square(
-                            dimension: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const FinanceSuitIcon(FinanceSuitIcons.expandMore),
-                    label: Text(l10n.historyLoadMore),
+      body: FinanceSuitFocusedBody(
+        title: l10n.historyTitle,
+        child: RefreshIndicator(
+          onRefresh: () => _load(reset: true),
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+            children: [
+              _RangeFilter(
+                selected: _preset,
+                labelFor: (preset) => _rangeLabel(l10n, preset),
+                onSelected: _selectPreset,
+              ),
+              const SizedBox(height: 8),
+              _TypeFilter(
+                selected: _type,
+                labelFor: (type) => _typeLabel(l10n, type),
+                onSelected: (type) {
+                  setState(() => _type = type);
+                  _load(reset: true);
+                },
+              ),
+              const SizedBox(height: 8),
+              _AdvancedFilters(
+                accounts: accountsAsync.value ?? const <AccountBalance>[],
+                categories: categories,
+                accountId: _accountId,
+                categoryId: _categoryId,
+                keywordController: _keywordController,
+                minController: _minController,
+                maxController: _maxController,
+                onAccountChanged: (value) => setState(() => _accountId = value),
+                onCategoryChanged: (value) =>
+                    setState(() => _categoryId = value),
+                onApply: () => _load(reset: true),
+              ),
+              const SizedBox(height: 8),
+              _ActiveFilters(
+                chips: [
+                  _rangeLabel(l10n, _preset),
+                  _typeLabel(l10n, _type),
+                  _sortLabel(l10n, _sort),
+                  if (_accountId != null)
+                    accountNames[_accountId] ?? _accountId!,
+                  if (_categoryId != null)
+                    categories
+                            .where((c) => c.id == _categoryId)
+                            .map((c) => c.name)
+                            .firstOrNull ??
+                        _categoryId!,
+                  if (_keywordController.text.trim().isNotEmpty)
+                    _keywordController.text.trim(),
+                ],
+              ),
+              const Divider(height: 24),
+              if (_loading)
+                const Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (_failure != null)
+                ErrorRetryView(
+                  failure: _failure!,
+                  onRetry: () => _load(reset: true),
+                )
+              else if (_items.isEmpty)
+                EmptyStateView(
+                  icon: FinanceSuitIcons.manageSearch,
+                  message: l10n.historyNoItems,
+                )
+              else ...[
+                for (final item in _items)
+                  HistoryItemTile(item: item, accountNames: accountNames),
+                if (_hasMore)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: OutlinedButton.icon(
+                      onPressed: _loadingMore
+                          ? null
+                          : () => _load(reset: false),
+                      icon: _loadingMore
+                          ? const SizedBox.square(
+                              dimension: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const FinanceSuitIcon(FinanceSuitIcons.expandMore),
+                      label: Text(l10n.historyLoadMore),
+                    ),
                   ),
-                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
