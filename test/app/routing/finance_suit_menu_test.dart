@@ -28,6 +28,13 @@ void main() {
     expect(panel.left, closeTo(0, 1.0));
     expect(panel.top, closeTo(0, 1.0));
     expect(panel.bottom, closeTo(screen.height, 1.0));
+
+    // Compact mode: destination rows keep the accessible 48dp floor
+    // without the default taller tile padding.
+    expect(
+      tester.getSize(find.byKey(const Key('menu-item-/settings'))).height,
+      48,
+    );
   });
 
   testWidgets('opens from the right edge in Arabic RTL', (tester) async {
