@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
+import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
@@ -281,7 +282,7 @@ class _SalaryAdjustmentFormScreenState
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.salNewAdjustment)),
+      appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.salNewAdjustment),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _failure != null && _periods.isEmpty

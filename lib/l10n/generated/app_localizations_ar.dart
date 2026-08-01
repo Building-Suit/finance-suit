@@ -27,6 +27,27 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tabSettings => 'الإعدادات';
 
   @override
+  String get menuOpenTooltip => 'فتح القائمة';
+
+  @override
+  String get menuCloseTooltip => 'إغلاق القائمة';
+
+  @override
+  String get menuNavigationLabel => 'قائمة التنقل';
+
+  @override
+  String get menuGroupGeneral => 'عام';
+
+  @override
+  String get menuGroupAutomation => 'الأتمتة';
+
+  @override
+  String get menuCategories => 'الفئات';
+
+  @override
+  String get globalAddLabel => 'إضافة عنصر جديد';
+
+  @override
   String get commonSave => 'حفظ';
 
   @override

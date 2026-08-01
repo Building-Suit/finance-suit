@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
+import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
@@ -43,7 +44,7 @@ class SalaryPeriodsScreen extends ConsumerWidget {
     final periodsAsync = ref.watch(salaryPeriodsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.salPeriodsTitle)),
+      appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.salPeriodsTitle),
       body: RefreshIndicator(
         onRefresh: () async {
           ref

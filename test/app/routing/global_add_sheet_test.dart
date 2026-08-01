@@ -309,32 +309,17 @@ void main() {
     expect(retried, isTrue);
   });
 
-  test('global Add is hidden on forms and preserves salary context', () {
-    expect(
-      AppShell.shouldShowGlobalAdd(branchIndex: 2, location: '/money'),
-      isTrue,
-    );
-    expect(
-      AppShell.shouldShowGlobalAdd(
-        branchIndex: 2,
-        location: '/money/categories/new',
-      ),
-      isFalse,
-    );
-    expect(
-      AppShell.shouldShowGlobalAdd(
-        branchIndex: 2,
-        location: '/money/accounts/account-1',
-      ),
-      isFalse,
-    );
-    expect(
-      AppShell.shouldShowGlobalAdd(branchIndex: 4, location: '/settings'),
-      isFalse,
-    );
+  test('global Add preserves salary-period context', () {
+    // Visibility is now a structural routing policy (only the four primary
+    // roots live inside the shell), covered by app_shell_navigation_test.
     expect(
       AppShell.salaryAdjustmentRoute('/work/periods/period-1'),
       '/work/adjustments/new?periodId=period-1',
+    );
+    expect(AppShell.salaryAdjustmentRoute('/work'), '/work/adjustments/new');
+    expect(
+      AppShell.salaryAdjustmentRoute('/work/periods/'),
+      '/work/adjustments/new',
     );
   });
 }

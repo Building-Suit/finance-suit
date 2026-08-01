@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/routing/app_shell.dart';
@@ -76,8 +77,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   ref.listen(onboardingStatusProvider, (_, next) => refreshNotifier.refresh());
   ref.onDispose(refreshNotifier.dispose);
 
+  // Central shell-chrome policy: only the four primary roots (/home, /work,
+  // /money, /reports) render inside the bottom-navigation shell. Every other
+  // authenticated route is bound to the root navigator, so pushed, focused,
+  // form, detail, and utility destinations always cover the shell and its
+  // bottom navigation entirely. Settings is a pushed utility destination,
+  // not a fifth tab; its URLs are unchanged.
+  final rootNavigatorKey = GlobalKey<NavigatorState>();
+
   final router = GoRouter(
     initialLocation: AppRoutes.splash,
+    navigatorKey: rootNavigatorKey,
     debugLogDiagnostics: kDebugMode,
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
@@ -180,6 +190,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'entry/new',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => WorkEntryFormScreen(
                       initialDate: switch (state.uri.queryParameters['date']) {
                         final String iso => PlainDate.parse(iso),
@@ -193,26 +204,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   ),
                   GoRoute(
                     path: 'entry/edit',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => WorkEntryFormScreen(
                       existing: state.extra! as WorkEntry,
                     ),
                   ),
                   GoRoute(
                     path: 'holidays',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const HolidaysScreen(),
                     routes: [
                       GoRoute(
                         path: 'new',
+                        parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => const HolidayFormScreen(),
                       ),
                     ],
                   ),
                   GoRoute(
                     path: 'periods',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const SalaryPeriodsScreen(),
                     routes: [
                       GoRoute(
                         path: ':id',
+                        parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => SalaryPeriodDetailScreen(
                           periodId: state.pathParameters['id']!,
                         ),
@@ -221,6 +237,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   ),
                   GoRoute(
                     path: 'adjustments/new',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => SalaryAdjustmentFormScreen(
                       preferredPeriodId: state.uri.queryParameters['periodId'],
                     ),
@@ -237,16 +254,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'accounts/new',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const AccountFormScreen(),
                   ),
                   GoRoute(
                     path: 'accounts/:id',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => AccountFormScreen(
                       accountId: state.pathParameters['id'],
                     ),
                   ),
                   GoRoute(
                     path: 'tx/new',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => TransactionFormScreen(
                       kind: TransactionKind.fromDb(
                         state.uri.queryParameters['kind'] ?? 'expense',
@@ -255,6 +275,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   ),
                   GoRoute(
                     path: 'tx/edit',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => TransactionFormScreen(
                       kind: (state.extra! as FinancialTransaction).kind,
                       existing: state.extra! as FinancialTransaction,
@@ -262,14 +283,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   ),
                   GoRoute(
                     path: 'transfer',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const TransferFormScreen(),
                   ),
                   GoRoute(
                     path: 'categories',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const CategoriesScreen(),
                     routes: [
                       GoRoute(
                         path: 'new',
+                        parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => CategoryFormScreen(
                           initialKind: state.uri.queryParameters['kind'] == null
                               ? null
@@ -284,14 +308,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   ),
                   GoRoute(
                     path: 'macros',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const MacrosScreen(),
                     routes: [
                       GoRoute(
                         path: 'new',
+                        parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => const MacroFormScreen(),
                       ),
                       GoRoute(
                         path: 'edit',
+                        parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => MacroFormScreen(
                           existing: state.extra! as TransactionMacro,
                         ),
@@ -300,12 +327,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   ),
                   GoRoute(
                     path: 'held/new',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => HeldAmountFormScreen(
                       prefill: state.extra as HeldAmountDraft?,
                     ),
                   ),
                   GoRoute(
                     path: 'held/edit',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => HeldAmountFormScreen(
                       existing: state.extra! as HeldAmount,
                     ),
@@ -320,54 +349,51 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: AppRoutes.reports,
                 builder: (context, state) => const ReportsScreen(),
               ),
+            ],
+          ),
+        ],
+      ),
+      // Pushed utility destinations: reachable from the side menu, rendered
+      // over the shell on the root navigator, with their URLs unchanged.
+      GoRoute(
+        path: AppRoutes.history,
+        builder: (context, state) => const HistoryScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.settings,
+        builder: (context, state) => const SettingsScreen(),
+        routes: [
+          GoRoute(
+            path: 'salary',
+            builder: (context, state) => const SalarySettingsScreen(),
+          ),
+          GoRoute(
+            path: 'income-sources',
+            builder: (context, state) => const IncomeSourcesScreen(),
+            routes: [
               GoRoute(
-                path: AppRoutes.history,
-                builder: (context, state) => const HistoryScreen(),
+                path: 'new',
+                builder: (context, state) => const IncomeSourceFormScreen(),
+              ),
+              GoRoute(
+                path: 'edit',
+                builder: (context, state) => IncomeSourceFormScreen(
+                  existing: state.extra! as IncomeSource,
+                ),
               ),
             ],
           ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.settings,
-                builder: (context, state) => const SettingsScreen(),
-                routes: [
-                  GoRoute(
-                    path: 'salary',
-                    builder: (context, state) => const SalarySettingsScreen(),
-                  ),
-                  GoRoute(
-                    path: 'income-sources',
-                    builder: (context, state) => const IncomeSourcesScreen(),
-                    routes: [
-                      GoRoute(
-                        path: 'new',
-                        builder: (context, state) =>
-                            const IncomeSourceFormScreen(),
-                      ),
-                      GoRoute(
-                        path: 'edit',
-                        builder: (context, state) => IncomeSourceFormScreen(
-                          existing: state.extra! as IncomeSource,
-                        ),
-                      ),
-                    ],
-                  ),
-                  GoRoute(
-                    path: 'password',
-                    builder: (context, state) => const ChangePasswordScreen(),
-                  ),
-                  GoRoute(
-                    path: 'email',
-                    builder: (context, state) => const ChangeEmailScreen(),
-                  ),
-                  GoRoute(
-                    path: 'delete-account',
-                    builder: (context, state) => const DeleteAccountScreen(),
-                  ),
-                ],
-              ),
-            ],
+          GoRoute(
+            path: 'password',
+            builder: (context, state) => const ChangePasswordScreen(),
+          ),
+          GoRoute(
+            path: 'email',
+            builder: (context, state) => const ChangeEmailScreen(),
+          ),
+          GoRoute(
+            path: 'delete-account',
+            builder: (context, state) => const DeleteAccountScreen(),
           ),
         ],
       ),

@@ -134,6 +134,48 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get tabSettings;
 
+  /// No description provided for @menuOpenTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Open menu'**
+  String get menuOpenTooltip;
+
+  /// No description provided for @menuCloseTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Close menu'**
+  String get menuCloseTooltip;
+
+  /// No description provided for @menuNavigationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation menu'**
+  String get menuNavigationLabel;
+
+  /// No description provided for @menuGroupGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get menuGroupGeneral;
+
+  /// No description provided for @menuGroupAutomation.
+  ///
+  /// In en, this message translates to:
+  /// **'Automation'**
+  String get menuGroupAutomation;
+
+  /// No description provided for @menuCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get menuCategories;
+
+  /// No description provided for @globalAddLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Add new item'**
+  String get globalAddLabel;
+
   /// No description provided for @commonSave.
   ///
   /// In en, this message translates to:

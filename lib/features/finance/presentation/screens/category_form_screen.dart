@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/validation/validators.dart';
@@ -79,7 +80,7 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
         .where((category) => !category.isSubcategory)
         .toList();
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.catNew)),
+      appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.catNew),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(

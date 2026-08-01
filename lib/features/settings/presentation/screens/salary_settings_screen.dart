@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
@@ -20,7 +21,7 @@ class SalarySettingsScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final settings = ref.watch(salarySettingsProvider);
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.setSalarySection)),
+      appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.setSalarySection),
       body: AsyncView(
         value: settings,
         onRetry: () => ref.invalidate(salarySettingsProvider),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
+import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
@@ -93,7 +94,7 @@ class _MacrosScreenState extends ConsumerState<MacrosScreen> {
     final l10n = AppLocalizations.of(context);
     final macros = ref.watch(macrosProvider);
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.macrosTitle)),
+      appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.macrosTitle),
       body: AsyncView<List<TransactionMacro>>(
         value: macros,
         onRetry: () => ref.invalidate(macrosProvider),

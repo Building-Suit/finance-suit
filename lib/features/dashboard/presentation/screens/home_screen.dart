@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
+import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/date_time/date_range.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
@@ -235,22 +236,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.tabHome),
-        actions: [
-          IconButton(
-            onPressed: () =>
-                context.push('${AppRoutes.settings}/income-sources'),
-            tooltip: l10n.incomeAutomationCenter,
-            icon: const FinanceSuitIcon(FinanceSuitIcons.tune),
-          ),
-          IconButton(
-            onPressed: () => context.push(AppRoutes.history),
-            tooltip: l10n.historyTitle,
-            icon: const FinanceSuitIcon(FinanceSuitIcons.history),
-          ),
-        ],
-      ),
+      appBar: FinanceSuitAppBar.topLevel(semanticTitle: l10n.tabHome),
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: ListView(
@@ -836,7 +822,9 @@ class _CashFlowSection extends StatelessWidget {
                 crossAxisCount: compact ? 2 : 4,
                 mainAxisSpacing: 8,
                 crossAxisSpacing: 8,
-                childAspectRatio: compact ? 1.45 : 1.5,
+                // 1.45 clipped the metric text by a few pixels on 320px-wide
+                // phones; compact cells need the extra height.
+                childAspectRatio: compact ? 1.3 : 1.5,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
