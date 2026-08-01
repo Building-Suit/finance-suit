@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
+import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
@@ -51,21 +52,7 @@ class _WorkScreenState extends ConsumerState<WorkScreen> {
         ref.watch(salarySettingsProvider).value?.currencyCode ?? 'EGP';
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.tabWork),
-        actions: [
-          IconButton(
-            icon: const FinanceSuitIcon(FinanceSuitIcons.requestQuote),
-            tooltip: l10n.salPeriodsTitle,
-            onPressed: () => context.push('${AppRoutes.work}/periods'),
-          ),
-          IconButton(
-            icon: const FinanceSuitIcon(FinanceSuitIcons.event),
-            tooltip: l10n.workHolidays,
-            onPressed: () => context.push('${AppRoutes.work}/holidays'),
-          ),
-        ],
-      ),
+      appBar: FinanceSuitAppBar.topLevel(semanticTitle: l10n.tabWork),
       body: AsyncView(
         value: entriesAsync,
         onRetry: () => ref.invalidate(workEntriesForMonthProvider(_month)),

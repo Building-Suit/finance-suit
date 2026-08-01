@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/configuration/env.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
+import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
@@ -106,7 +107,7 @@ class SettingsScreen extends ConsumerWidget {
     final profile = ref.watch(profileProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.tabSettings)),
+      appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.tabSettings),
       body: ListView(
         children: [
           _SectionHeader(title: l10n.setAppearance),

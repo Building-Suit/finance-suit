@@ -136,6 +136,7 @@ abstract final class FinanceSuitIcons {
   static const medicalServices = FinanceSuitGlyph(
     HugeIconsStrokeRounded.medicalFile,
   );
+  static const menu = FinanceSuitGlyph(HugeIconsStrokeRounded.menu01);
   static const money = FinanceSuitGlyph(HugeIconsStrokeRounded.cash01);
   static const moreTime = FinanceSuitGlyph(HugeIconsStrokeRounded.clockPlus);
   static const password = FinanceSuitGlyph(

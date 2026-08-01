@@ -3,9 +3,8 @@ import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
-import 'package:work_tracker/app/routing/app_router.dart';
+import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/date_time/date_range.dart';
@@ -111,16 +110,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     final currencyCode = selectedAccount?.currencyCode ?? 'EGP';
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.tabReports),
-        actions: [
-          IconButton(
-            onPressed: () => context.push(AppRoutes.history),
-            tooltip: l10n.historyTitle,
-            icon: const FinanceSuitIcon(FinanceSuitIcons.history),
-          ),
-        ],
-      ),
+      appBar: FinanceSuitAppBar.topLevel(semanticTitle: l10n.tabReports),
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: ListView(

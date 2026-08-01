@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
+import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
@@ -71,7 +72,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
     final errorColor = Theme.of(context).colorScheme.error;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.deleteAccountTitle)),
+      appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.deleteAccountTitle),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(

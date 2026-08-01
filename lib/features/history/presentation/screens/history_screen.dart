@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
+import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/date_time/date_range.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
@@ -220,8 +221,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final categories = categoriesAsync.value ?? <TransactionCategory>[];
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.historyTitle),
+      appBar: FinanceSuitAppBar.focused(
+        semanticTitle: l10n.historyTitle,
         actions: [
           PopupMenuButton<HistorySort>(
             tooltip: _sortLabel(l10n, _sort),

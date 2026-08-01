@@ -27,6 +27,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabSettings => 'Settings';
 
   @override
+  String get menuOpenTooltip => 'Open menu';
+
+  @override
+  String get menuCloseTooltip => 'Close menu';
+
+  @override
+  String get menuNavigationLabel => 'Navigation menu';
+
+  @override
+  String get menuGroupGeneral => 'General';
+
+  @override
+  String get menuGroupAutomation => 'Automation';
+
+  @override
+  String get menuCategories => 'Categories';
+
+  @override
+  String get globalAddLabel => 'Add new item';
+
+  @override
   String get commonSave => 'Save';
 
   @override

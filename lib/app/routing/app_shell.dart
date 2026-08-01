@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
+import 'package:work_tracker/app/routing/finance_suit_navigation_bar.dart';
 import 'package:work_tracker/app/routing/global_add_sheet.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/supabase/realtime_invalidation.dart';
@@ -10,7 +11,14 @@ import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
-/// Bottom-navigation shell hosting the five main tabs.
+/// Bottom-navigation shell hosting the four primary destinations plus the
+/// centered global Add action: Home | Work | + | Money | Reports.
+///
+/// Shell-chrome visibility is a structural routing policy, not a location
+/// check: only the four primary branch roots live inside this shell, while
+/// every other authenticated route is declared on the root navigator in
+/// `app_router.dart` and therefore covers the shell entirely. No route can
+/// show the bottom navigation unless it is one of the four primary roots.
 class AppShell extends ConsumerWidget {
   const AppShell({
     super.key,
@@ -20,31 +28,6 @@ class AppShell extends ConsumerWidget {
 
   final StatefulNavigationShell navigationShell;
   final String currentLocation;
-
-  static const _settingsBranchIndex = 4;
-  static const _formLocations = {
-    '/work/entry/new',
-    '/work/entry/edit',
-    '/work/holidays/new',
-    '/work/adjustments/new',
-    '/money/tx/new',
-    '/money/tx/edit',
-    '/money/transfer',
-    '/money/categories/new',
-    '/money/macros/new',
-    '/money/macros/edit',
-    '/money/held/new',
-    '/money/held/edit',
-  };
-
-  static bool shouldShowGlobalAdd({
-    required int branchIndex,
-    required String location,
-  }) {
-    if (branchIndex == _settingsBranchIndex) return false;
-    if (location.startsWith('/money/accounts/')) return false;
-    return !_formLocations.contains(location);
-  }
 
   static String salaryAdjustmentRoute(String location) {
     const periodPrefix = '/work/periods/';
@@ -109,50 +92,30 @@ class AppShell extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       body: navigationShell,
-      floatingActionButton:
-          shouldShowGlobalAdd(
-            branchIndex: navigationShell.currentIndex,
-            location: currentLocation,
-          )
-          ? FloatingActionButton(
-              onPressed: () => _openAddSheet(context, ref),
-              tooltip: l10n.commonAdd,
-              child: const FinanceSuitIcon(FinanceSuitIcons.add),
-            )
-          : null,
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: FinanceSuitNavigationBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: (index) => navigationShell.goBranch(
           index,
           initialLocation: index == navigationShell.currentIndex,
         ),
+        onAddPressed: () => _openAddSheet(context, ref),
+        addLabel: l10n.globalAddLabel,
         destinations: [
-          NavigationDestination(
-            icon: const FinanceSuitIcon(FinanceSuitIcons.home),
-            selectedIcon: const FinanceSuitIcon(FinanceSuitIcons.home),
+          FinanceSuitNavDestination(
+            icon: FinanceSuitIcons.home,
             label: l10n.tabHome,
           ),
-          NavigationDestination(
-            icon: const FinanceSuitIcon(FinanceSuitIcons.work),
-            selectedIcon: const FinanceSuitIcon(FinanceSuitIcons.work),
+          FinanceSuitNavDestination(
+            icon: FinanceSuitIcons.work,
             label: l10n.tabWork,
           ),
-          NavigationDestination(
-            icon: const FinanceSuitIcon(FinanceSuitIcons.accountBalanceWallet),
-            selectedIcon: const FinanceSuitIcon(
-              FinanceSuitIcons.accountBalanceWallet,
-            ),
+          FinanceSuitNavDestination(
+            icon: FinanceSuitIcons.accountBalanceWallet,
             label: l10n.tabMoney,
           ),
-          NavigationDestination(
-            icon: const FinanceSuitIcon(FinanceSuitIcons.barChart),
-            selectedIcon: const FinanceSuitIcon(FinanceSuitIcons.barChart),
+          FinanceSuitNavDestination(
+            icon: FinanceSuitIcons.barChart,
             label: l10n.tabReports,
-          ),
-          NavigationDestination(
-            icon: const FinanceSuitIcon(FinanceSuitIcons.settings),
-            selectedIcon: const FinanceSuitIcon(FinanceSuitIcons.settings),
-            label: l10n.tabSettings,
           ),
         ],
       ),

@@ -2,12 +2,17 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
+import 'package:work_tracker/core/widgets/selection_focus.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 /// A form-compatible mobile selection field backed by a modal bottom sheet.
 ///
 /// [DropdownMenuItem] is intentionally accepted as lightweight option data so
 /// existing forms can migrate without duplicating their translated labels.
+///
+/// After a selection is committed (never on cancel/dismiss), focus advances
+/// automatically to the next eligible form control in traversal order via
+/// [advanceFocusAfterSelection].
 class AppSelectionField<T> extends FormField<T> {
   AppSelectionField({
     super.key,
@@ -23,6 +28,7 @@ class AppSelectionField<T> extends FormField<T> {
     String? searchHint,
   }) : super(
          builder: (state) {
+           final fieldState = state as _AppSelectionFieldState<T>;
            final selected = items
                .where((item) => item.value == state.value)
                .firstOrNull;
@@ -48,6 +54,7 @@ class AppSelectionField<T> extends FormField<T> {
              if (result == null) return;
              state.didChange(result.value);
              onChanged(result.value);
+             advanceFocusAfterSelection(fieldState.focusNode);
            }
 
            return Semantics(
@@ -56,6 +63,7 @@ class AppSelectionField<T> extends FormField<T> {
              label: decoration.labelText,
              value: _optionText(selected),
              child: InkWell(
+               focusNode: fieldState.focusNode,
                onTap: enabled && onChanged != null ? openSheet : null,
                borderRadius: BorderRadius.circular(4),
                child: InputDecorator(
@@ -86,6 +94,19 @@ class AppSelectionField<T> extends FormField<T> {
            );
          },
        );
+
+  @override
+  FormFieldState<T> createState() => _AppSelectionFieldState<T>();
+}
+
+class _AppSelectionFieldState<T> extends FormFieldState<T> {
+  final focusNode = FocusNode(debugLabel: 'AppSelectionField');
+
+  @override
+  void dispose() {
+    focusNode.dispose();
+    super.dispose();
+  }
 }
 
 class _SelectionResult<T> {

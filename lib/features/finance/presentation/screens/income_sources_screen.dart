@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
+import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
@@ -238,7 +239,9 @@ class IncomeSourcesScreen extends ConsumerWidget {
     final pending = ref.watch(pendingIncomeProvider);
     final accounts = ref.watch(allAccountBalancesProvider);
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.incomeAutomationCenter)),
+      appBar: FinanceSuitAppBar.focused(
+        semanticTitle: l10n.incomeAutomationCenter,
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () =>
             context.push('${AppRoutes.settings}/income-sources/new'),

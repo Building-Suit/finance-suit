@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
+import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
@@ -182,8 +183,8 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
               .accountId;
     }
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEdit ? l10n.heldEditTitle : l10n.heldNew),
+      appBar: FinanceSuitAppBar.focused(
+        semanticTitle: _isEdit ? l10n.heldEditTitle : l10n.heldNew,
         actions: [
           if (_isEdit)
             IconButton(

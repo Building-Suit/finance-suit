@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
+import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/validation/validators.dart';
@@ -235,8 +236,8 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
     final l10n = AppLocalizations.of(context);
     final categories = ref.watch(allCategoriesProvider);
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.catManage),
+      appBar: FinanceSuitAppBar.focused(
+        semanticTitle: l10n.catManage,
         bottom: TabBar(
           controller: _tabController,
           tabs: [
