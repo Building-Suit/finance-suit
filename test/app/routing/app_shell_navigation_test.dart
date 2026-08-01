@@ -9,7 +9,6 @@ import 'shell_test_harness.dart';
 void main() {
   const addButton = Key('global-add-button');
   const addSheetList = Key('global-add-list');
-  const navSurface = Key('finance-suit-floating-nav-surface');
 
   Finder navBar() => find.byType(FinanceSuitNavigationBar);
 
@@ -35,25 +34,6 @@ void main() {
     );
     // The old floating action button is gone.
     expect(find.byType(FloatingActionButton), findsNothing);
-  });
-
-  testWidgets('uses a floating bottom bar with an oversized center add', (
-    tester,
-  ) async {
-    await pumpShellApp(tester, buildShellTestRouter());
-
-    final screen = tester.getSize(find.byType(MaterialApp));
-    final bar = tester.getRect(find.byKey(navSurface));
-    final add = tester.getRect(find.byKey(addButton));
-
-    expect(bar.left, closeTo(12, 1));
-    expect(bar.right, closeTo(screen.width - 12, 1));
-    expect(bar.bottom, closeTo(screen.height - 10, 1));
-    expect(bar.height, closeTo(70, 1));
-
-    expect(add.width, closeTo(58, 1));
-    expect(add.height, closeTo(58, 1));
-    expect(add.center.dy, lessThan(bar.center.dy));
   });
 
   testWidgets('centers the add action between Work and Money in LTR', (

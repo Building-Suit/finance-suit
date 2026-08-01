@@ -39,12 +39,6 @@ class FinanceSuitNavigationBar extends StatelessWidget {
   // Material 3 navigation-indicator pill dimensions.
   static const double _indicatorWidth = 64;
   static const double _indicatorHeight = 32;
-  static const double _barHeight = 70;
-  static const double _barRadius = 28;
-  static const double _barHorizontalMargin = 12;
-  static const double _barBottomMargin = 10;
-  static const double _addButtonSize = 58;
-  static const double _addIconSize = 30;
 
   @override
   Widget build(BuildContext context) {
@@ -54,58 +48,29 @@ class FinanceSuitNavigationBar extends StatelessWidget {
     // The Add action inherits the roles the global-add FloatingActionButton
     // used before it moved into the bar.
     final fabTheme = theme.floatingActionButtonTheme;
-    return SafeArea(
-      top: false,
-      minimum: const EdgeInsets.fromLTRB(
-        _barHorizontalMargin,
-        0,
-        _barHorizontalMargin,
-        _barBottomMargin,
-      ),
-      child: Material(
-        key: const Key('finance-suit-floating-nav-surface'),
-        color: navTheme.backgroundColor ?? colorScheme.surface,
-        elevation: switch (navTheme.elevation) {
-          final elevation? when elevation > 0 => elevation,
-          _ => 8,
-        },
-        shadowColor: colorScheme.shadow.withValues(alpha: 0.22),
-        borderRadius: BorderRadius.circular(_barRadius),
-        clipBehavior: Clip.none,
+    return Material(
+      color: navTheme.backgroundColor ?? colorScheme.surface,
+      elevation: navTheme.elevation ?? 0,
+      child: SafeArea(
+        top: false,
         child: SizedBox(
-          height: _barHeight,
+          height: navTheme.height ?? 72,
           child: Row(
             children: [
               for (var i = 0; i < 2; i++) _destination(i),
               Expanded(
                 child: Center(
-                  child: Transform.translate(
-                    offset: const Offset(0, -10),
-                    child: SizedBox.square(
-                      dimension: _addButtonSize,
-                      child: IconButton.filled(
-                        key: const Key('global-add-button'),
-                        tooltip: addLabel,
-                        onPressed: onAddPressed,
-                        style: IconButton.styleFrom(
-                          fixedSize: const Size.square(_addButtonSize),
-                          minimumSize: const Size.square(_addButtonSize),
-                          iconSize: _addIconSize,
-                          backgroundColor:
-                              fabTheme.backgroundColor ?? colorScheme.primary,
-                          foregroundColor:
-                              fabTheme.foregroundColor ?? colorScheme.onPrimary,
-                          elevation: fabTheme.elevation ?? 2,
-                          shadowColor: colorScheme.shadow.withValues(
-                            alpha: 0.28,
-                          ),
-                        ),
-                        icon: const FinanceSuitIcon(
-                          FinanceSuitIcons.add,
-                          size: _addIconSize,
-                        ),
-                      ),
+                  child: IconButton.filled(
+                    key: const Key('global-add-button'),
+                    tooltip: addLabel,
+                    onPressed: onAddPressed,
+                    style: IconButton.styleFrom(
+                      backgroundColor:
+                          fabTheme.backgroundColor ?? colorScheme.primary,
+                      foregroundColor:
+                          fabTheme.foregroundColor ?? colorScheme.onPrimary,
                     ),
+                    icon: const FinanceSuitIcon(FinanceSuitIcons.add),
                   ),
                 ),
               ),
