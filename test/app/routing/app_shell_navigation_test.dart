@@ -89,6 +89,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(addSheetList), findsOneWidget);
 
+    // Compact mode: destination rows sit on the accessible 48dp floor.
+    expect(tester.getSize(find.widgetWithText(ListTile, 'Expense')).height, 48);
+
     // Dismissing keeps the selected branch unchanged.
     await tester.tapAt(const Offset(400, 40));
     await tester.pumpAndSettle();
