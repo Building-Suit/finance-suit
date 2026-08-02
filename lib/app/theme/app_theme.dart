@@ -297,14 +297,6 @@ class AppTheme {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
       ),
-      snackBarTheme: SnackBarThemeData(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: isDark ? colors.overlay : colors.inverseSurface,
-        contentTextStyle: textTheme.bodyMedium?.copyWith(
-          color: isDark ? colors.textPrimary : colors.onBrandSurface,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: radius12),
-      ),
       tooltipTheme: TooltipThemeData(
         decoration: BoxDecoration(
           color: colors.chartTooltipBackground,

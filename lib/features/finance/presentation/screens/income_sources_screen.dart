@@ -10,9 +10,9 @@ import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/widgets/app_money_text.dart';
+import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
-import 'package:work_tracker/core/widgets/top_message.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
@@ -26,9 +26,7 @@ class IncomeSourcesScreen extends ConsumerWidget {
   const IncomeSourcesScreen({super.key});
 
   void _showFailure(BuildContext context, AppFailure failure) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(failureMessage(context, failure))));
+    AppToast.error(context, failureMessage(context, failure));
   }
 
   Future<void> _toggle(
@@ -54,7 +52,7 @@ class IncomeSourcesScreen extends ConsumerWidget {
   ) async {
     final accepted = await acceptPendingIncome(context, ref, pending);
     if (context.mounted && accepted) {
-      TopMessage.success(
+      AppToast.success(
         context,
         AppLocalizations.of(context).incomeAcceptedMessage,
       );
@@ -68,7 +66,7 @@ class IncomeSourcesScreen extends ConsumerWidget {
   ) async {
     final skipped = await skipPendingIncome(context, ref, pending);
     if (context.mounted && skipped) {
-      TopMessage.success(
+      AppToast.success(
         context,
         AppLocalizations.of(context).incomeSkippedMessage,
       );
@@ -91,9 +89,9 @@ class IncomeSourcesScreen extends ConsumerWidget {
     result.when(
       ok: (_) {
         invalidateIncomeAutomation(ref);
-        TopMessage.success(context, l10n.incomeRemindLater);
+        AppToast.success(context, l10n.incomeRemindLater);
       },
-      err: (_) => TopMessage.error(context, l10n.incomeSnoozeFailed),
+      err: (_) => AppToast.error(context, l10n.incomeSnoozeFailed),
     );
   }
 

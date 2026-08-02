@@ -6,6 +6,7 @@ import 'package:work_tracker/app/routing/finance_suit_navigation_bar.dart';
 import 'package:work_tracker/app/routing/global_add_sheet.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/supabase/realtime_invalidation.dart';
+import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
@@ -76,13 +77,10 @@ class AppShell extends ConsumerWidget {
     result.when(
       ok: (count) {
         invalidateFinanceData(ref);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.macroApplied(count))));
+        AppToast.success(context, l10n.macroApplied(count));
       },
-      err: (failure) => ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(failureMessage(context, failure)))),
+      err: (failure) =>
+          AppToast.error(context, failureMessage(context, failure)),
     );
   }
 

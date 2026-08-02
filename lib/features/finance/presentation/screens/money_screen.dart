@@ -9,6 +9,7 @@ import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/widgets/app_money_text.dart';
+import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
@@ -34,9 +35,7 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
   Future<void> _onTransactionTap(FinancialTransaction tx) async {
     final l10n = AppLocalizations.of(context);
     if (tx.isSalaryPayment) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.txSalaryLocked)));
+      AppToast.warning(context, l10n.txSalaryLocked);
       return;
     }
     if (tx.isTransfer) {
@@ -72,9 +71,8 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
     if (!mounted) return;
     result.when(
       ok: (_) => invalidateFinanceData(ref),
-      err: (failure) => ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(failureMessage(context, failure)))),
+      err: (failure) =>
+          AppToast.error(context, failureMessage(context, failure)),
     );
   }
 
@@ -90,9 +88,8 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
         if (!mounted) return;
         result.when(
           ok: (_) => invalidateFinanceData(ref),
-          err: (failure) => ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(failureMessage(context, failure))),
-          ),
+          err: (failure) =>
+              AppToast.error(context, failureMessage(context, failure)),
         );
         return;
       case 'archive':
@@ -121,9 +118,8 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
         if (!mounted) return;
         result.when(
           ok: (_) => invalidateFinanceData(ref),
-          err: (failure) => ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(failureMessage(context, failure))),
-          ),
+          err: (failure) =>
+              AppToast.error(context, failureMessage(context, failure)),
         );
         return;
       case 'unarchive':
@@ -134,9 +130,8 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
         if (!mounted) return;
         result.when(
           ok: (_) => invalidateFinanceData(ref),
-          err: (failure) => ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(failureMessage(context, failure))),
-          ),
+          err: (failure) =>
+              AppToast.error(context, failureMessage(context, failure)),
         );
         return;
     }
@@ -270,9 +265,8 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
         if (!mounted) return;
         result.when(
           ok: (_) => invalidateFinanceData(ref),
-          err: (failure) => ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(failureMessage(context, failure))),
-          ),
+          err: (failure) =>
+              AppToast.error(context, failureMessage(context, failure)),
         );
         return;
       case 'delete':
@@ -298,9 +292,8 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
         if (!mounted) return;
         result.when(
           ok: (_) => invalidateFinanceData(ref),
-          err: (failure) => ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(failureMessage(context, failure))),
-          ),
+          err: (failure) =>
+              AppToast.error(context, failureMessage(context, failure)),
         );
         return;
     }

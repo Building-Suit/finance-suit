@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/validation/validators.dart';
+import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
@@ -42,9 +43,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
       setState(() => _failure = failure);
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context).authPasswordUpdated)),
-    );
+    AppToast.success(context, AppLocalizations.of(context).authPasswordUpdated);
     context.pop();
   }
 

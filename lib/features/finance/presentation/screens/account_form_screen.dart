@@ -8,6 +8,7 @@ import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
+import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
@@ -125,9 +126,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
     result.when(
       ok: (_) {
         invalidateFinanceData(ref);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).setSaved)),
-        );
+        AppToast.success(context, AppLocalizations.of(context).setSaved);
         context.pop();
       },
       err: (failure) => setState(() => _failure = failure),

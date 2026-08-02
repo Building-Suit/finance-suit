@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/validation/validators.dart';
+import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
@@ -42,9 +43,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       setState(() => _failure = failure);
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context).authPasswordUpdated)),
-    );
+    AppToast.success(context, AppLocalizations.of(context).authPasswordUpdated);
     // Flips the auth phase to signedIn; the router then leaves this screen.
     ref.read(authStateProvider.notifier).completePasswordRecovery();
   }

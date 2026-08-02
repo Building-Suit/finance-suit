@@ -8,6 +8,7 @@ import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
+import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:work_tracker/features/settings/data/settings_repository.dart';
@@ -66,13 +67,10 @@ class SettingsScreen extends ConsumerWidget {
     result.when(
       ok: (_) {
         ref.invalidate(profileProvider);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.setSaved)));
+        AppToast.success(context, l10n.setSaved);
       },
-      err: (failure) => ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(failureMessage(context, failure)))),
+      err: (failure) =>
+          AppToast.error(context, failureMessage(context, failure)),
     );
   }
 

@@ -7,6 +7,7 @@ import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
+import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/salary/data/salary_repository.dart';
@@ -28,14 +29,11 @@ class SalaryPeriodsScreen extends ConsumerWidget {
       bounds = await ref.read(currentPeriodBoundsProvider.future);
     } on Object catch (error) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              failureMessage(
-                context,
-                error is AppFailure ? error : const UnknownFailure(),
-              ),
-            ),
+        AppToast.error(
+          context,
+          failureMessage(
+            context,
+            error is AppFailure ? error : const UnknownFailure(),
           ),
         );
       }
@@ -51,9 +49,8 @@ class SalaryPeriodsScreen extends ConsumerWidget {
         ref.invalidate(salaryPeriodsProvider);
         context.push('${AppRoutes.work}/periods/${period.id}');
       },
-      err: (failure) => ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(failureMessage(context, failure)))),
+      err: (failure) =>
+          AppToast.error(context, failureMessage(context, failure)),
     );
   }
 

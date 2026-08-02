@@ -10,6 +10,7 @@ import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
+import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
@@ -250,9 +251,7 @@ class _WorkEntryFormScreenState extends ConsumerState<WorkEntryFormScreen> {
     result.when(
       ok: (_) {
         ref.invalidate(workEntriesForMonthProvider);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).setSaved)),
-        );
+        AppToast.success(context, AppLocalizations.of(context).setSaved);
         context.pop();
       },
       err: (failure) => setState(() => _failure = failure),

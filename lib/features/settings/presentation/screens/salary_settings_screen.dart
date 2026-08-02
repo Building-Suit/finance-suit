@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
+import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
@@ -78,9 +79,7 @@ class _SalarySettingsFormState extends ConsumerState<_SalarySettingsForm> {
           ..invalidate(salarySettingsProvider)
           ..invalidate(incomeSourcesProvider)
           ..invalidate(pendingIncomeProvider);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).setSaved)),
-        );
+        AppToast.success(context, AppLocalizations.of(context).setSaved);
         context.pop();
       },
       err: (failure) => setState(() => _failure = failure),
