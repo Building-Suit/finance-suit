@@ -490,6 +490,79 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setAppearance => 'Appearance';
 
   @override
+  String get setSecurity => 'Privacy and security';
+
+  @override
+  String get privacyMoneyTitle => 'Hide money amounts';
+
+  @override
+  String get privacyMoneyHelp =>
+      'Blur balances and amounts. Tap a hidden amount and confirm with fingerprint, face, or your phone screen lock to reveal it.';
+
+  @override
+  String get privacyAppLockTitle => 'Lock Finance Suit with device security';
+
+  @override
+  String get privacyAppLockHelp =>
+      'Require fingerprint, face, PIN, pattern, password, or passcode when opening or returning to the app.';
+
+  @override
+  String get privacyDeviceAuthUnavailableHelp =>
+      'Set up a PIN, password, passcode, pattern, fingerprint, or face unlock on this phone to use these options.';
+
+  @override
+  String get privacyDeviceAuthUnavailable =>
+      'Device security is not available. Set up a phone screen lock first.';
+
+  @override
+  String get privacyDeviceAuthFailed =>
+      'We could not confirm your identity. Try again.';
+
+  @override
+  String get privacyEnableMoneyReason =>
+      'Confirm your identity to protect financial amounts in Finance Suit.';
+
+  @override
+  String get privacyEnableAppLockReason =>
+      'Confirm your identity to enable Finance Suit app lock.';
+
+  @override
+  String get privacyDisableMoneyReason =>
+      'Confirm your identity to stop hiding financial amounts in Finance Suit.';
+
+  @override
+  String get privacyDisableAppLockReason =>
+      'Confirm your identity to disable Finance Suit app lock.';
+
+  @override
+  String get privacyRevealReason =>
+      'Confirm your identity to reveal financial amounts in Finance Suit.';
+
+  @override
+  String get privacyHiddenAmountLabel => 'Hidden financial amount';
+
+  @override
+  String get privacyRevealAmountHint =>
+      'Authenticate with biometrics or the phone screen lock to reveal it';
+
+  @override
+  String get privacyUnlockReason =>
+      'Confirm your identity to unlock Finance Suit.';
+
+  @override
+  String get privacyUnlockTitle => 'Finance Suit is locked';
+
+  @override
+  String get privacyUnlockBody =>
+      'Use fingerprint, face recognition, or your phone PIN, pattern, password, or passcode.';
+
+  @override
+  String get privacyUnlockButton => 'Unlock with device security';
+
+  @override
+  String get privacyUsePassword => 'Use Finance Suit password instead';
+
+  @override
   String get setTheme => 'Theme';
 
   @override

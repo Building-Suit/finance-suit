@@ -12,6 +12,7 @@ import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
+import 'package:work_tracker/core/widgets/protected_money.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/salary/data/salary_repository.dart';
@@ -529,6 +530,7 @@ class _PeriodBody extends ConsumerWidget {
                           minor: period.actualAmountMinor!,
                           currencyCode: currency,
                         ).format(),
+                        protectValue: true,
                       ),
                       _kv(
                         context,
@@ -538,6 +540,7 @@ class _PeriodBody extends ConsumerWidget {
                               period.actualAmountMinor! - estimate.totalMinor,
                           currencyCode: currency,
                         ).formatSigned(),
+                        protectValue: true,
                       ),
                       _kv(
                         context,
@@ -589,7 +592,7 @@ class _PeriodBody extends ConsumerWidget {
                                   : l10n.salAdjDeduction),
                         ),
                         subtitle: Text(adjustment.effectiveDate.toIso()),
-                        trailing: Text(
+                        trailing: ProtectedMoneyText(
                           Money(
                             minor:
                                 adjustment.adjustmentType ==
@@ -639,18 +642,26 @@ class _PeriodBody extends ConsumerWidget {
     );
   }
 
-  Widget _kv(BuildContext context, String label, String value) => Padding(
+  Widget _kv(
+    BuildContext context,
+    String label,
+    String value, {
+    bool protectValue = false,
+  }) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 4),
     child: Row(
       children: [
         Expanded(child: Text(label)),
-        Text(
-          value,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontFeatures: [FontFeature.tabularFigures()],
-          ),
-        ),
+        if (protectValue)
+          ProtectedMoneyText(
+            value,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontFeatures: [FontFeature.tabularFigures()],
+            ),
+          )
+        else
+          Text(value),
       ],
     ),
   );

@@ -13,6 +13,7 @@ import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
+import 'package:work_tracker/core/widgets/protected_money.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
 import 'package:work_tracker/features/salary/domain/salary_calculator.dart';
 import 'package:work_tracker/features/salary/domain/salary_settings.dart';
@@ -527,7 +528,7 @@ class _WorkEntryFormScreenState extends ConsumerState<WorkEntryFormScreen> {
                   child: ListTile(
                     leading: const FinanceSuitIcon(FinanceSuitIcons.calculate),
                     title: Text(l10n.workEstimatedPay),
-                    trailing: Text(
+                    trailing: ProtectedMoneyText(
                       estimate?.amount.format() ?? '—',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,

@@ -13,6 +13,7 @@ import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/core/widgets/app_money_text.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
+import 'package:work_tracker/core/widgets/protected_money.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
@@ -372,15 +373,21 @@ class _PendingIncomeSection extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        items.length == 1
-                            ? '${first.source.name} · $amount'
-                            : '${l10n.incomePendingCount(items.length)} · '
-                                  '${first.source.name}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
+                      if (items.length == 1)
+                        ProtectedMoneyText(
+                          '${first.source.name} · $amount',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        )
+                      else
+                        Text(
+                          '${l10n.incomePendingCount(items.length)} · '
+                          '${first.source.name}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
                       Text(
                         first.isDueOn(today)
                             ? l10n.incomeDue(

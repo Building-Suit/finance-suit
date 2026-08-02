@@ -1016,6 +1016,126 @@ abstract class AppLocalizations {
   /// **'Appearance'**
   String get setAppearance;
 
+  /// No description provided for @setSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy and security'**
+  String get setSecurity;
+
+  /// No description provided for @privacyMoneyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide money amounts'**
+  String get privacyMoneyTitle;
+
+  /// No description provided for @privacyMoneyHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Blur balances and amounts. Tap a hidden amount and confirm with fingerprint, face, or your phone screen lock to reveal it.'**
+  String get privacyMoneyHelp;
+
+  /// No description provided for @privacyAppLockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock Finance Suit with device security'**
+  String get privacyAppLockTitle;
+
+  /// No description provided for @privacyAppLockHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Require fingerprint, face, PIN, pattern, password, or passcode when opening or returning to the app.'**
+  String get privacyAppLockHelp;
+
+  /// No description provided for @privacyDeviceAuthUnavailableHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up a PIN, password, passcode, pattern, fingerprint, or face unlock on this phone to use these options.'**
+  String get privacyDeviceAuthUnavailableHelp;
+
+  /// No description provided for @privacyDeviceAuthUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Device security is not available. Set up a phone screen lock first.'**
+  String get privacyDeviceAuthUnavailable;
+
+  /// No description provided for @privacyDeviceAuthFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not confirm your identity. Try again.'**
+  String get privacyDeviceAuthFailed;
+
+  /// No description provided for @privacyEnableMoneyReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your identity to protect financial amounts in Finance Suit.'**
+  String get privacyEnableMoneyReason;
+
+  /// No description provided for @privacyEnableAppLockReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your identity to enable Finance Suit app lock.'**
+  String get privacyEnableAppLockReason;
+
+  /// No description provided for @privacyDisableMoneyReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your identity to stop hiding financial amounts in Finance Suit.'**
+  String get privacyDisableMoneyReason;
+
+  /// No description provided for @privacyDisableAppLockReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your identity to disable Finance Suit app lock.'**
+  String get privacyDisableAppLockReason;
+
+  /// No description provided for @privacyRevealReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your identity to reveal financial amounts in Finance Suit.'**
+  String get privacyRevealReason;
+
+  /// No description provided for @privacyHiddenAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden financial amount'**
+  String get privacyHiddenAmountLabel;
+
+  /// No description provided for @privacyRevealAmountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Authenticate with biometrics or the phone screen lock to reveal it'**
+  String get privacyRevealAmountHint;
+
+  /// No description provided for @privacyUnlockReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your identity to unlock Finance Suit.'**
+  String get privacyUnlockReason;
+
+  /// No description provided for @privacyUnlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Finance Suit is locked'**
+  String get privacyUnlockTitle;
+
+  /// No description provided for @privacyUnlockBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use fingerprint, face recognition, or your phone PIN, pattern, password, or passcode.'**
+  String get privacyUnlockBody;
+
+  /// No description provided for @privacyUnlockButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock with device security'**
+  String get privacyUnlockButton;
+
+  /// No description provided for @privacyUsePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Finance Suit password instead'**
+  String get privacyUsePassword;
+
   /// No description provided for @setTheme.
   ///
   /// In en, this message translates to:

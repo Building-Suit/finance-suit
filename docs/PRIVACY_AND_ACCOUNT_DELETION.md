@@ -15,15 +15,22 @@ Finance Suit sends the following user data to the hosted Supabase project:
 - `app_finance`: account names/types/currencies/opening balances, categories,
   transactions, counterparties, macros, held amounts, debts, and notes
 
-Theme, locale, and home-report range choices also use on-device
-SharedPreferences. The account-deletion flow clears those values after the
-server confirms deletion.
+Theme, locale, home-report range, protected-amount, and app-lock choices also
+use on-device SharedPreferences. The account-deletion flow clears those values
+after the server confirms deletion.
+
+Optional amount protection and app lock invoke Android or iOS device
+authentication. The OS evaluates the configured fingerprint, face, PIN,
+pattern, password, or passcode and returns only an authentication result. The
+app never receives or persists a biometric template or screen-lock secret.
 
 The current dependency and platform-manifest audit found no advertising,
 analytics, crash-reporting, bank-sync, payment, location, contacts, media,
-camera, microphone, health, or device-id integration. Android requests only
-the Internet permission. Re-audit this file and the Play Data Safety form
-before adding a new SDK or permission.
+camera, microphone, health, or device-id integration. Android requests Internet
+and `USE_BIOMETRIC`; iOS declares the required Face ID purpose string. These
+device-authentication declarations do not grant Finance Suit access to
+biometric templates. Re-audit this file and the Play Data Safety form before
+adding a new SDK or permission.
 
 ## In-app deletion design
 

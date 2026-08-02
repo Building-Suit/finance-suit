@@ -1,6 +1,6 @@
 # Finance Suit Privacy Policy
 
-Effective date: 19 July 2026
+Effective date: 2 August 2026
 
 Finance Suit is provided by Tareq Abdelwhap ("we", "us", or "our"). This policy explains how Finance Suit collects, uses, stores, and deletes information when you use the mobile application.
 
@@ -20,7 +20,9 @@ Supabase and its infrastructure providers process technical information needed t
 
 ## Information stored only on your device
 
-Theme, selected language, and report-filter preferences may be stored locally using the operating system's application storage. They are not used for advertising. Finance Suit clears these local preferences after a successful in-app account deletion. Uninstalling the app also allows the operating system to remove its local storage.
+Theme, selected language, report-filter preferences, and your choices to hide financial amounts or lock the app may be stored locally using the operating system's application storage. They are not used for advertising. Finance Suit clears these local preferences after a successful in-app account deletion. Uninstalling the app also allows the operating system to remove its local storage.
+
+If you enable amount protection or app lock, Finance Suit asks Android or iOS to authenticate you using the device security you configured, such as fingerprint, face recognition, PIN, pattern, password, or passcode. The operating system performs that authentication and returns only a success, cancellation, or failure result to Finance Suit. Finance Suit does not receive, store, or transmit your biometric templates or device-screen-lock secret.
 
 ## How we use information
 
@@ -43,7 +45,7 @@ If we later add another provider, such as a transactional email or crash-reporti
 
 ## Security
 
-Data is transmitted over encrypted HTTPS connections. Product tables use Supabase Row Level Security so authenticated users can access only their own records. Privileged credentials are kept in server-side secrets and are not included in the mobile application. No system can guarantee absolute security, so protect your password and report suspected unauthorized access promptly.
+Data is transmitted over encrypted HTTPS connections. Product tables use Supabase Row Level Security so authenticated users can access only their own records. Optional amount protection and app lock use the operating system's device-authentication service. Privileged credentials are kept in server-side secrets and are not included in the mobile application. No system can guarantee absolute security, so protect your password and report suspected unauthorized access promptly.
 
 ## Retention and deletion
 

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
+import 'package:work_tracker/core/security/device_privacy_controller.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
@@ -34,23 +35,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _submit() async {
     setState(() => _failure = null);
     if (!_formKey.currentState!.validate()) return;
+    final privacyController = ref.read(devicePrivacyProvider.notifier);
     final failure = await ref
         .read(authActionProvider.notifier)
         .signIn(_emailController.text.trim(), _passwordController.text);
-    if (!mounted) return;
-    if (failure != null) {
-      if (failure is AuthFailure &&
-          failure.kind == AuthFailureKind.emailNotConfirmed) {
-        context.go(
-          Uri(
-            path: AppRoutes.confirmEmail,
-            queryParameters: {'email': _emailController.text.trim()},
-          ).toString(),
-        );
-        return;
-      }
-      setState(() => _failure = failure);
+    if (failure == null) {
+      privacyController.markPasswordAuthenticated();
+      return;
     }
+    if (!mounted) return;
+    if (failure is AuthFailure &&
+        failure.kind == AuthFailureKind.emailNotConfirmed) {
+      context.go(
+        Uri(
+          path: AppRoutes.confirmEmail,
+          queryParameters: {'email': _emailController.text.trim()},
+        ).toString(),
+      );
+      return;
+    }
+    setState(() => _failure = failure);
     // On success the auth state change triggers the router redirect.
   }
 

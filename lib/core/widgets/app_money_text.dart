@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:work_tracker/core/money/money.dart';
+import 'package:work_tracker/core/widgets/protected_money.dart';
 
 enum AppMoneySign { automatic, explicit, never }
 
@@ -8,7 +10,7 @@ enum AppMoneySign { automatic, explicit, never }
 ///
 /// Keeps the numeric amount and currency code in an LTR, non-wrapping group so
 /// currency codes such as EGP remain physically to the right in RTL layouts.
-class AppMoneyText extends StatelessWidget {
+class AppMoneyText extends ConsumerWidget {
   const AppMoneyText({
     super.key,
     required this.money,
@@ -31,7 +33,7 @@ class AppMoneyText extends StatelessWidget {
   final TextAlign? textAlign;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final locale = Localizations.maybeLocaleOf(context)?.toLanguageTag();
     final textTheme = Theme.of(context).textTheme;
     final amountStyle = (style ?? textTheme.titleMedium)?.copyWith(
@@ -45,23 +47,25 @@ class AppMoneyText extends StatelessWidget {
     final amount = _amount(locale);
     final label = '$amount ${money.currencyCode}';
 
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: Semantics(
-        label: label,
-        child: ExcludeSemantics(
-          child: Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(text: amount, style: amountStyle),
-                const TextSpan(text: '\u00A0'),
-                TextSpan(text: money.currencyCode, style: codeStyle),
-              ],
+    return ProtectedMoney(
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: Semantics(
+          label: label,
+          child: ExcludeSemantics(
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(text: amount, style: amountStyle),
+                  const TextSpan(text: '\u00A0'),
+                  TextSpan(text: money.currencyCode, style: codeStyle),
+                ],
+              ),
+              maxLines: maxLines,
+              overflow: overflow,
+              softWrap: false,
+              textAlign: textAlign,
             ),
-            maxLines: maxLines,
-            overflow: overflow,
-            softWrap: false,
-            textAlign: textAlign,
           ),
         ),
       ),
