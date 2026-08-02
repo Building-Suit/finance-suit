@@ -6,6 +6,7 @@ import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
+import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/core/widgets/top_message.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
@@ -103,7 +104,7 @@ Future<bool> acceptPendingIncome(
               children: [
                 Text(l10n.incomeAcceptHelp),
                 const SizedBox(height: 12),
-                TextFormField(
+                AppTextFormField(
                   controller: amountController,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -143,7 +144,7 @@ Future<bool> acceptPendingIncome(
                     }
                   },
                 ),
-                TextFormField(
+                AppTextFormField(
                   controller: notesController,
                   decoration: InputDecoration(
                     labelText: '${l10n.commonNotes} (${l10n.commonOptional})',

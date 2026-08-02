@@ -9,6 +9,7 @@ import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
+import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
@@ -349,7 +350,7 @@ class _SalaryAdjustmentFormScreenState
                                   setState(() => _type = selection.first),
                       ),
                       const SizedBox(height: 16),
-                      TextFormField(
+                      AppTextFormField(
                         controller: _amountController,
                         enabled: !_busy,
                         keyboardType: const TextInputType.numberWithOptions(
@@ -380,7 +381,7 @@ class _SalaryAdjustmentFormScreenState
                         subtitle: Text(_date.toIso()),
                         onTap: _pickDate,
                       ),
-                      TextFormField(
+                      AppTextFormField(
                         controller: _titleController,
                         enabled: !_busy,
                         textCapitalization: TextCapitalization.sentences,
@@ -399,7 +400,7 @@ class _SalaryAdjustmentFormScreenState
                         },
                       ),
                       const SizedBox(height: 8),
-                      TextFormField(
+                      AppTextFormField(
                         controller: _notesController,
                         enabled: !_busy,
                         maxLines: 3,

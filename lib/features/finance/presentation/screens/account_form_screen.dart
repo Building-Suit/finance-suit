@@ -7,6 +7,7 @@ import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
+import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
@@ -156,7 +157,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      TextFormField(
+                      AppTextFormField(
                         controller: _nameController,
                         textCapitalization: TextCapitalization.words,
                         decoration: InputDecoration(labelText: l10n.accName),
@@ -183,7 +184,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                         },
                       ),
                       const SizedBox(height: 16),
-                      TextFormField(
+                      AppTextFormField(
                         controller: _balanceController,
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
@@ -210,7 +211,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                         onChanged: (v) => setState(() => _allowNegative = v),
                       ),
                       const SizedBox(height: 8),
-                      TextFormField(
+                      AppTextFormField(
                         controller: _notesController,
                         maxLines: 3,
                         decoration: InputDecoration(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
+import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/features/salary/domain/salary_settings.dart';
 import 'package:work_tracker/features/salary/presentation/models/salary_configuration_draft.dart';
 import 'package:work_tracker/features/salary/presentation/widgets/salary_configuration_fields.dart';
@@ -82,7 +83,7 @@ void main() {
       );
 
       expect(formKey.currentState!.validate(), isFalse);
-      await tester.enterText(find.byType(TextFormField).first, '2200');
+      await tester.enterText(find.byType(AppTextFormField).first, '2200');
       expect(formKey.currentState!.validate(), isTrue);
       expect(tester.takeException(), isNull);
     },

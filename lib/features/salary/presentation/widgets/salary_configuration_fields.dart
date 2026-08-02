@@ -3,6 +3,7 @@ import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
+import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/salary/presentation/models/salary_configuration_draft.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
@@ -32,7 +33,7 @@ class SalaryConfigurationFields extends StatelessWidget {
       key: const Key('salary-configuration-fields'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TextFormField(
+        AppTextFormField(
           controller: draft.baseSalaryController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
@@ -40,7 +41,9 @@ class SalaryConfigurationFields extends StatelessWidget {
             suffixText: currencyCode,
           ),
           onChanged: (_) => onChanged(),
-          onFieldSubmitted: (_) => onFieldSubmitted?.call(),
+          onFieldSubmitted: onFieldSubmitted == null
+              ? null
+              : (_) => onFieldSubmitted!.call(),
           validator: (value) => _amountValidation(context, value),
         ),
         const SizedBox(height: 16),
@@ -229,12 +232,14 @@ class SalaryConfigurationFields extends StatelessWidget {
     required String label,
     required int min,
     required int max,
-  }) => TextFormField(
+  }) => AppTextFormField(
     controller: controller,
     keyboardType: TextInputType.number,
     decoration: InputDecoration(labelText: label),
     onChanged: (_) => onChanged(),
-    onFieldSubmitted: (_) => onFieldSubmitted?.call(),
+    onFieldSubmitted: onFieldSubmitted == null
+        ? null
+        : (_) => onFieldSubmitted!.call(),
     validator: (value) {
       final parsed = int.tryParse(value ?? '');
       if (parsed == null || parsed < min || parsed > max) {
@@ -273,7 +278,7 @@ class SalaryConfigurationFields extends StatelessWidget {
       ),
       if (mode == RateMode.manual) ...[
         const SizedBox(height: 12),
-        TextFormField(
+        AppTextFormField(
           controller: controller,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
@@ -299,7 +304,7 @@ class SalaryConfigurationFields extends StatelessWidget {
     BuildContext context,
     TextEditingController controller,
     String label,
-  ) => TextFormField(
+  ) => AppTextFormField(
     controller: controller,
     keyboardType: TextInputType.number,
     decoration: InputDecoration(labelText: label),

@@ -8,6 +8,7 @@ import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
+import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
@@ -133,7 +134,7 @@ class SalaryPeriodDetailScreen extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextFormField(
+                  AppTextFormField(
                     controller: amountController,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
@@ -194,7 +195,7 @@ class SalaryPeriodDetailScreen extends ConsumerWidget {
                       }
                     },
                   ),
-                  TextFormField(
+                  AppTextFormField(
                     controller: notesController,
                     decoration: InputDecoration(
                       labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
@@ -292,7 +293,7 @@ class SalaryPeriodDetailScreen extends ConsumerWidget {
                         setDialogState(() => type = selection.first),
                   ),
                   const SizedBox(height: 16),
-                  TextFormField(
+                  AppTextFormField(
                     controller: amountController,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
@@ -332,7 +333,7 @@ class SalaryPeriodDetailScreen extends ConsumerWidget {
                       }
                     },
                   ),
-                  TextFormField(
+                  AppTextFormField(
                     controller: titleController,
                     textCapitalization: TextCapitalization.sentences,
                     decoration: InputDecoration(
@@ -349,7 +350,7 @@ class SalaryPeriodDetailScreen extends ConsumerWidget {
                           : validationMessage(dialogContext, error);
                     },
                   ),
-                  TextFormField(
+                  AppTextFormField(
                     controller: notesController,
                     decoration: InputDecoration(
                       labelText: '${l10n.commonNotes} (${l10n.commonOptional})',

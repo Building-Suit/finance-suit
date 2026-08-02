@@ -8,6 +8,7 @@ import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
+import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
@@ -125,7 +126,7 @@ class _MacroFormScreenState extends ConsumerState<MacroFormScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextFormField(
+                AppTextFormField(
                   controller: _nameController,
                   textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(labelText: l10n.macroName),
@@ -415,7 +416,7 @@ class _MacroItemFormScreenState extends ConsumerState<_MacroItemFormScreen> {
                   }),
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                AppTextFormField(
                   controller: _amountController,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -477,7 +478,7 @@ class _MacroItemFormScreenState extends ConsumerState<_MacroItemFormScreen> {
                 ],
                 if (_kind == TransactionKind.allowanceGiven) ...[
                   const SizedBox(height: 16),
-                  TextFormField(
+                  AppTextFormField(
                     controller: _counterpartyController,
                     textCapitalization: TextCapitalization.words,
                     decoration: InputDecoration(labelText: l10n.txCounterparty),
@@ -488,7 +489,7 @@ class _MacroItemFormScreenState extends ConsumerState<_MacroItemFormScreen> {
                   ),
                 ],
                 const SizedBox(height: 16),
-                TextFormField(
+                AppTextFormField(
                   controller: _titleController,
                   textCapitalization: TextCapitalization.sentences,
                   decoration: InputDecoration(
@@ -500,7 +501,7 @@ class _MacroItemFormScreenState extends ConsumerState<_MacroItemFormScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                AppTextFormField(
                   controller: _notesController,
                   maxLines: 3,
                   decoration: InputDecoration(

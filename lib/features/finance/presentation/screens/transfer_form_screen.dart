@@ -8,6 +8,7 @@ import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
+import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
@@ -135,7 +136,7 @@ class _TransferFormScreenState extends ConsumerState<TransferFormScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                AppTextFormField(
                   controller: _amountController,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -164,7 +165,7 @@ class _TransferFormScreenState extends ConsumerState<TransferFormScreen> {
                   onTap: _pickDate,
                 ),
                 const SizedBox(height: 8),
-                TextFormField(
+                AppTextFormField(
                   controller: _notesController,
                   maxLines: 3,
                   decoration: InputDecoration(

@@ -9,6 +9,7 @@ import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
+import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
@@ -384,7 +385,7 @@ class _IncomeSourceFormScreenState
                       : (value) => setState(() => _isActive = value),
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                AppTextFormField(
                   controller: _nameController,
                   textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(labelText: l10n.incomeSourceName),
@@ -396,7 +397,7 @@ class _IncomeSourceFormScreenState
                   },
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                AppTextFormField(
                   controller: _amountController,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -606,7 +607,7 @@ class _IncomeSourceFormScreenState
                   ),
                 ],
                 const SizedBox(height: 16),
-                TextFormField(
+                AppTextFormField(
                   controller: _notesController,
                   decoration: InputDecoration(
                     labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
@@ -793,7 +794,7 @@ class _SplitRuleCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: TextFormField(
+                  child: AppTextFormField(
                     controller: rule.valueController,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,

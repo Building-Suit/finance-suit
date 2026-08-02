@@ -9,6 +9,7 @@ import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
+import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
@@ -391,7 +392,7 @@ class _WorkEntryFormScreenState extends ConsumerState<WorkEntryFormScreen> {
                   const SizedBox(height: 16),
                 ],
                 if (_needsUnits)
-                  TextFormField(
+                  AppTextFormField(
                     controller: _unitsController,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
@@ -429,7 +430,7 @@ class _WorkEntryFormScreenState extends ConsumerState<WorkEntryFormScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: TextFormField(
+                        child: AppTextFormField(
                           controller: _durationController,
                           enabled: _startTime == null || _endTime == null,
                           keyboardType: TextInputType.number,
@@ -458,7 +459,7 @@ class _WorkEntryFormScreenState extends ConsumerState<WorkEntryFormScreen> {
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: TextFormField(
+                        child: AppTextFormField(
                           controller: _breakController,
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
@@ -472,7 +473,7 @@ class _WorkEntryFormScreenState extends ConsumerState<WorkEntryFormScreen> {
                 ],
                 if (_type != WorkEntryType.regular) ...[
                   const SizedBox(height: 16),
-                  TextFormField(
+                  AppTextFormField(
                     controller: _multiplierController,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
@@ -489,7 +490,7 @@ class _WorkEntryFormScreenState extends ConsumerState<WorkEntryFormScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  TextFormField(
+                  AppTextFormField(
                     controller: _customRateController,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
@@ -511,7 +512,7 @@ class _WorkEntryFormScreenState extends ConsumerState<WorkEntryFormScreen> {
                   ),
                 ],
                 const SizedBox(height: 16),
-                TextFormField(
+                AppTextFormField(
                   controller: _notesController,
                   maxLines: 3,
                   decoration: InputDecoration(

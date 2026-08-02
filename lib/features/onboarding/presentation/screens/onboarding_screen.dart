@@ -7,6 +7,7 @@ import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
+import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
@@ -357,7 +358,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextFormField(
+          AppTextFormField(
             onFieldSubmitted: (_) => _submitCurrentStep(),
             controller: _displayNameController,
             textCapitalization: TextCapitalization.words,
@@ -382,7 +383,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             },
           ),
           const SizedBox(height: 16),
-          TextFormField(
+          AppTextFormField(
             onFieldSubmitted: (_) => _submitCurrentStep(),
             controller: _currencyController,
             textCapitalization: TextCapitalization.characters,
@@ -492,7 +493,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             Text(l10n.incomeNoPrimaryHelp),
           if (_primaryIncome == _PrimaryIncomeChoice.allowance ||
               _primaryIncome == _PrimaryIncomeChoice.other) ...[
-            TextFormField(
+            AppTextFormField(
               controller: _incomeNameController,
               textCapitalization: TextCapitalization.words,
               decoration: InputDecoration(labelText: l10n.incomeSourceName),
@@ -502,7 +503,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               },
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            AppTextFormField(
               controller: _incomeAmountController,
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
@@ -569,7 +570,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextFormField(
+          AppTextFormField(
             onFieldSubmitted: (_) => _submitCurrentStep(),
             controller: _accountNameController,
             textCapitalization: TextCapitalization.words,
@@ -594,7 +595,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 setState(() => _accountType = v ?? AccountType.current),
           ),
           const SizedBox(height: 16),
-          TextFormField(
+          AppTextFormField(
             onFieldSubmitted: (_) => _submitCurrentStep(),
             controller: _openingBalanceController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),

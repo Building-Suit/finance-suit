@@ -9,6 +9,7 @@ import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
+import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/core/widgets/top_message.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
@@ -259,7 +260,7 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                AppTextFormField(
                   controller: _amountController,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -277,7 +278,7 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                AppTextFormField(
                   controller: _counterpartyController,
                   textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(
@@ -302,7 +303,7 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
                   onTap: _pickDate,
                 ),
                 const SizedBox(height: 8),
-                TextFormField(
+                AppTextFormField(
                   controller: _titleController,
                   textCapitalization: TextCapitalization.sentences,
                   decoration: InputDecoration(
@@ -314,7 +315,7 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                AppTextFormField(
                   controller: _notesController,
                   maxLines: 3,
                   decoration: InputDecoration(
