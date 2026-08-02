@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
+import 'package:work_tracker/core/widgets/protected_money.dart';
 import 'package:work_tracker/features/salary/domain/salary_estimate.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
@@ -24,7 +25,7 @@ class EstimateBreakdownCard extends StatelessWidget {
       child: Row(
         children: [
           Expanded(child: Text(detail == null ? label : '$label ($detail)')),
-          Text(
+          ProtectedMoneyText(
             value,
             style: const TextStyle(
               fontFeatures: [FontFeature.tabularFigures()],
@@ -84,7 +85,7 @@ class EstimateBreakdownCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
-                  Text(
+                  ProtectedMoneyText(
                     money(estimate.totalMinor),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,

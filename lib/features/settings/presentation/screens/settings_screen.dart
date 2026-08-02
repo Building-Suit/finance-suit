@@ -5,6 +5,8 @@ import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/configuration/env.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
+import 'package:work_tracker/core/security/device_authenticator.dart';
+import 'package:work_tracker/core/security/device_privacy_controller.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
@@ -18,6 +20,58 @@ import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
+
+  void _showDeviceAuthOutcome(BuildContext context, DeviceAuthOutcome outcome) {
+    final l10n = AppLocalizations.of(context);
+    switch (outcome) {
+      case DeviceAuthOutcome.authenticated:
+        AppToast.success(context, l10n.setSaved);
+      case DeviceAuthOutcome.canceled:
+        return;
+      case DeviceAuthOutcome.unavailable:
+        AppToast.warning(context, l10n.privacyDeviceAuthUnavailable);
+      case DeviceAuthOutcome.failed:
+        AppToast.error(context, l10n.privacyDeviceAuthFailed);
+    }
+  }
+
+  Future<void> _setMoneyPrivacy(
+    BuildContext context,
+    WidgetRef ref,
+    bool enabled,
+  ) async {
+    final controller = ref.read(devicePrivacyProvider.notifier);
+    if (!enabled) {
+      final outcome = await controller.disableMoneyPrivacy(
+        reason: AppLocalizations.of(context).privacyDisableMoneyReason,
+      );
+      if (context.mounted) _showDeviceAuthOutcome(context, outcome);
+      return;
+    }
+    final outcome = await controller.enableMoneyPrivacy(
+      reason: AppLocalizations.of(context).privacyEnableMoneyReason,
+    );
+    if (context.mounted) _showDeviceAuthOutcome(context, outcome);
+  }
+
+  Future<void> _setAppLock(
+    BuildContext context,
+    WidgetRef ref,
+    bool enabled,
+  ) async {
+    final controller = ref.read(devicePrivacyProvider.notifier);
+    if (!enabled) {
+      final outcome = await controller.disableAppLock(
+        reason: AppLocalizations.of(context).privacyDisableAppLockReason,
+      );
+      if (context.mounted) _showDeviceAuthOutcome(context, outcome);
+      return;
+    }
+    final outcome = await controller.enableAppLock(
+      reason: AppLocalizations.of(context).privacyEnableAppLockReason,
+    );
+    if (context.mounted) _showDeviceAuthOutcome(context, outcome);
+  }
 
   Future<void> _editDisplayName(
     BuildContext context,
@@ -104,6 +158,8 @@ class SettingsScreen extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(appLocaleProvider);
     final profile = ref.watch(profileProvider);
+    final privacy = ref.watch(devicePrivacyProvider).value;
+    final securityControlsEnabled = privacy != null && !privacy.authenticating;
 
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.tabSettings),
@@ -163,6 +219,26 @@ class SettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+            ),
+            const Divider(),
+            _SectionHeader(title: l10n.setSecurity),
+            SwitchListTile.adaptive(
+              secondary: const FinanceSuitIcon(FinanceSuitIcons.visibilityOff),
+              title: Text(l10n.privacyMoneyTitle),
+              subtitle: Text(l10n.privacyMoneyHelp),
+              value: privacy?.moneyPrivacyEnabled ?? false,
+              onChanged: securityControlsEnabled
+                  ? (value) => _setMoneyPrivacy(context, ref, value)
+                  : null,
+            ),
+            SwitchListTile.adaptive(
+              secondary: const FinanceSuitIcon(FinanceSuitIcons.fingerprint),
+              title: Text(l10n.privacyAppLockTitle),
+              subtitle: Text(l10n.privacyAppLockHelp),
+              value: privacy?.appLockEnabled ?? false,
+              onChanged: securityControlsEnabled
+                  ? (value) => _setAppLock(context, ref, value)
+                  : null,
             ),
             const Divider(),
             _SectionHeader(title: l10n.setProfileSection),

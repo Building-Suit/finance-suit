@@ -10,6 +10,7 @@ import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
+import 'package:work_tracker/core/widgets/protected_money.dart';
 import 'package:work_tracker/features/salary/data/salary_repository.dart';
 import 'package:work_tracker/features/salary/domain/salary_estimate.dart';
 import 'package:work_tracker/features/salary/domain/salary_period.dart';
@@ -90,7 +91,7 @@ class SalaryPeriodsScreen extends ConsumerWidget {
                       '${l10n.salExpectedPayment(value.expectedPaymentDate.toIso())}',
                     ),
                     isThreeLine: true,
-                    trailing: Text(
+                    trailing: ProtectedMoneyText(
                       Money(
                         minor: value.totalMinor,
                         currencyCode: value.currencyCode,
@@ -167,7 +168,7 @@ class _PeriodTile extends ConsumerWidget {
       ),
       trailing: amountMinor == null
           ? null
-          : Text(
+          : ProtectedMoneyText(
               Money(minor: amountMinor, currencyCode: currency).format(),
               style: const TextStyle(
                 fontWeight: FontWeight.w600,

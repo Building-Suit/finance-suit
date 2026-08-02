@@ -5,6 +5,7 @@ import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
+import 'package:work_tracker/core/widgets/protected_money.dart';
 import 'package:work_tracker/features/salary/presentation/models/salary_configuration_draft.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
@@ -290,7 +291,7 @@ class SalaryConfigurationFields extends StatelessWidget {
         ),
       ] else if (preview != null) ...[
         const SizedBox(height: 8),
-        Text(
+        ProtectedMoneyText(
           preview,
           style: Theme.of(
             context,

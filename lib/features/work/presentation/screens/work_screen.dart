@@ -11,6 +11,7 @@ import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
+import 'package:work_tracker/core/widgets/protected_money.dart';
 import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
 import 'package:work_tracker/features/work/domain/work_entry.dart';
 import 'package:work_tracker/features/work/presentation/providers/work_providers.dart';
@@ -88,7 +89,7 @@ class _WorkScreenState extends ConsumerState<WorkScreen> {
                     child: ListTile(
                       leading: const FinanceSuitIcon(FinanceSuitIcons.payments),
                       title: Text(l10n.workMonthTotal),
-                      trailing: Text(
+                      trailing: ProtectedMoneyText(
                         Money(
                           minor: totalMinor,
                           currencyCode: currency,
@@ -332,7 +333,7 @@ class _WorkEntryTile extends ConsumerWidget {
       subtitle: Text(parts.join(' · ')),
       trailing: amount == null || amount.isZero
           ? null
-          : Text(
+          : ProtectedMoneyText(
               amount.format(),
               style: const TextStyle(
                 fontWeight: FontWeight.w600,

@@ -11,6 +11,7 @@ import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
+import 'package:work_tracker/core/widgets/protected_money.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
@@ -98,7 +99,10 @@ class _TransferFormScreenState extends ConsumerState<TransferFormScreen> {
       for (final account in accounts.value ?? <AccountBalance>[])
         DropdownMenuItem(
           value: account.accountId,
-          child: Text('${account.name} (${account.balance.format()})'),
+          child: ProtectedMoney(
+            interactive: false,
+            child: Text('${account.name} (${account.balance.format()})'),
+          ),
         ),
     ];
 

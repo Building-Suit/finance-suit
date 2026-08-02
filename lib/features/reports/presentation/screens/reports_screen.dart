@@ -12,6 +12,7 @@ import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
+import 'package:work_tracker/core/widgets/protected_money.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/reports/domain/report_models.dart';
@@ -419,95 +420,98 @@ class _BarAmountChart extends StatelessWidget {
         .map((v) => v.valueMinor / Money.minorUnitsPerMajor)
         .fold<double>(0, math.min);
     final colors = context.suitColors;
-    return Semantics(
-      label: label,
-      child: SizedBox(
-        height: 220,
-        child: Column(
-          children: [
-            Expanded(
-              child: BarChart(
-                BarChartData(
-                  minY: minValue < 0 ? -maxY : 0,
-                  maxY: maxY,
-                  titlesData: const FlTitlesData(show: false),
-                  borderData: FlBorderData(
-                    show: true,
-                    border: Border(
-                      left: BorderSide(color: colors.chartAxis),
-                      bottom: BorderSide(color: colors.chartAxis),
-                    ),
-                  ),
-                  gridData: FlGridData(
-                    show: true,
-                    drawVerticalLine: false,
-                    getDrawingHorizontalLine: (_) =>
-                        FlLine(color: colors.chartGrid, strokeWidth: 1),
-                  ),
-                  barTouchData: BarTouchData(
-                    touchTooltipData: BarTouchTooltipData(
-                      getTooltipColor: (_) => colors.chartTooltipBackground,
-                      tooltipBorder: BorderSide(color: colors.chartSelection),
-                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                        final value = values[groupIndex];
-                        return BarTooltipItem(
-                          '${value.label}\n'
-                          '${value.valueMinor / Money.minorUnitsPerMajor} '
-                          '$currencyCode',
-                          Theme.of(context).textTheme.labelMedium!.copyWith(
-                            color: colors.chartTooltipText,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  barGroups: [
-                    for (var i = 0; i < values.length; i++)
-                      BarChartGroupData(
-                        x: i,
-                        barRods: [
-                          BarChartRodData(
-                            toY:
-                                values[i].valueMinor / Money.minorUnitsPerMajor,
-                            color: barColors[i % barColors.length],
-                            width: 26,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ],
+    return ProtectedMoney(
+      child: Semantics(
+        label: label,
+        child: SizedBox(
+          height: 220,
+          child: Column(
+            children: [
+              Expanded(
+                child: BarChart(
+                  BarChartData(
+                    minY: minValue < 0 ? -maxY : 0,
+                    maxY: maxY,
+                    titlesData: const FlTitlesData(show: false),
+                    borderData: FlBorderData(
+                      show: true,
+                      border: Border(
+                        left: BorderSide(color: colors.chartAxis),
+                        bottom: BorderSide(color: colors.chartAxis),
                       ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 12,
-              runSpacing: 4,
-              alignment: WrapAlignment.center,
-              children: [
-                for (var index = 0; index < values.length; index++)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: barColors[index % barColors.length],
-                          borderRadius: BorderRadius.circular(2),
+                    ),
+                    gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: false,
+                      getDrawingHorizontalLine: (_) =>
+                          FlLine(color: colors.chartGrid, strokeWidth: 1),
+                    ),
+                    barTouchData: BarTouchData(
+                      touchTooltipData: BarTouchTooltipData(
+                        getTooltipColor: (_) => colors.chartTooltipBackground,
+                        tooltipBorder: BorderSide(color: colors.chartSelection),
+                        getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                          final value = values[groupIndex];
+                          return BarTooltipItem(
+                            '${value.label}\n'
+                            '${value.valueMinor / Money.minorUnitsPerMajor} '
+                            '$currencyCode',
+                            Theme.of(context).textTheme.labelMedium!.copyWith(
+                              color: colors.chartTooltipText,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    barGroups: [
+                      for (var i = 0; i < values.length; i++)
+                        BarChartGroupData(
+                          x: i,
+                          barRods: [
+                            BarChartRodData(
+                              toY:
+                                  values[i].valueMinor /
+                                  Money.minorUnitsPerMajor,
+                              color: barColors[i % barColors.length],
+                              width: 26,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        values[index].label,
-                        style: Theme.of(context).textTheme.labelSmall,
-                      ),
                     ],
                   ),
-              ],
-            ),
-          ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 12,
+                runSpacing: 4,
+                alignment: WrapAlignment.center,
+                children: [
+                  for (var index = 0; index < values.length; index++)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: barColors[index % barColors.length],
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          values[index].label,
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -527,11 +531,13 @@ class _LineAmountChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _LineNumberChart(
-      label: label,
-      values: values,
-      valueSuffix: currencyCode,
-      scale: Money.minorUnitsPerMajor,
+    return ProtectedMoney(
+      child: _LineNumberChart(
+        label: label,
+        values: values,
+        valueSuffix: currencyCode,
+        scale: Money.minorUnitsPerMajor,
+      ),
     );
   }
 }
@@ -652,7 +658,7 @@ class _CategoryTotalsList extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(child: Text(row.categoryName)),
-                    Text(
+                    ProtectedMoneyText(
                       Money(
                         minor: row.totalMinor,
                         currencyCode: currencyCode,
@@ -706,7 +712,7 @@ class _SalaryComparisonChart extends StatelessWidget {
               '${row.periodStart.toIso()} – ${row.periodEnd.toIso()}',
             ),
             subtitle: Text(row.status.dbValue),
-            trailing: Text(
+            trailing: ProtectedMoneyText(
               [
                 '${l10n.reportEstimated}: ${Money(minor: row.estimatedMinor, currencyCode: row.currencyCode).format()}',
                 if (row.actualAmountMinor != null)
@@ -744,7 +750,7 @@ class _SalaryWorkList extends StatelessWidget {
               '${(row.extraDayUnitsHundredths / 100).toStringAsFixed(2)} · '
               '${l10n.reportHolidays}: ${row.holidayCount}',
             ),
-            trailing: Text(
+            trailing: ProtectedMoneyText(
               Money(
                 minor:
                     row.overtimeAmountMinor +

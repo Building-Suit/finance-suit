@@ -107,6 +107,9 @@ abstract final class FinanceSuitIcons {
   );
   static const eventBusy = FinanceSuitGlyph(HugeIconsStrokeRounded.calendarOff);
   static const event = calendarToday;
+  static const fingerprint = FinanceSuitGlyph(
+    HugeIconsStrokeRounded.fingerprintScan,
+  );
   static const expandMore = FinanceSuitGlyph(
     HugeIconsStrokeRounded.arrowDown01,
   );

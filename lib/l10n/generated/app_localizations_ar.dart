@@ -489,6 +489,78 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setAppearance => 'المظهر';
 
   @override
+  String get setSecurity => 'الخصوصية والأمان';
+
+  @override
+  String get privacyMoneyTitle => 'إخفاء المبالغ المالية';
+
+  @override
+  String get privacyMoneyHelp =>
+      'تمويه الأرصدة والمبالغ. اضغط على مبلغ مخفي ثم أكّد هويتك ببصمة الإصبع أو الوجه أو قفل شاشة الهاتف لإظهاره.';
+
+  @override
+  String get privacyAppLockTitle => 'قفل Finance Suit بأمان الجهاز';
+
+  @override
+  String get privacyAppLockHelp =>
+      'اطلب بصمة الإصبع أو الوجه أو رمز PIN أو النمط أو كلمة المرور أو رمز الدخول عند فتح التطبيق أو العودة إليه.';
+
+  @override
+  String get privacyDeviceAuthUnavailableHelp =>
+      'أعِدّ رمز PIN أو كلمة مرور أو رمز دخول أو نمطًا أو بصمة إصبع أو وجهًا على هذا الهاتف لاستخدام هذه الخيارات.';
+
+  @override
+  String get privacyDeviceAuthUnavailable =>
+      'أمان الجهاز غير متاح. أعِدّ قفل شاشة الهاتف أولًا.';
+
+  @override
+  String get privacyDeviceAuthFailed => 'تعذّر تأكيد هويتك. حاول مرة أخرى.';
+
+  @override
+  String get privacyEnableMoneyReason =>
+      'أكّد هويتك لحماية المبالغ المالية في Finance Suit.';
+
+  @override
+  String get privacyEnableAppLockReason =>
+      'أكّد هويتك لتفعيل قفل تطبيق Finance Suit.';
+
+  @override
+  String get privacyDisableMoneyReason =>
+      'أكّد هويتك لإيقاف إخفاء المبالغ المالية في Finance Suit.';
+
+  @override
+  String get privacyDisableAppLockReason =>
+      'أكّد هويتك لتعطيل قفل تطبيق Finance Suit.';
+
+  @override
+  String get privacyRevealReason =>
+      'أكّد هويتك لإظهار المبالغ المالية في Finance Suit.';
+
+  @override
+  String get privacyHiddenAmountLabel => 'مبلغ مالي مخفي';
+
+  @override
+  String get privacyRevealAmountHint =>
+      'استخدم القياسات الحيوية أو قفل شاشة الهاتف لإظهاره';
+
+  @override
+  String get privacyUnlockReason => 'أكّد هويتك لفتح Finance Suit.';
+
+  @override
+  String get privacyUnlockTitle => 'Finance Suit مقفل';
+
+  @override
+  String get privacyUnlockBody =>
+      'استخدم بصمة الإصبع أو التعرّف على الوجه أو رمز PIN أو النمط أو كلمة مرور الهاتف أو رمز الدخول.';
+
+  @override
+  String get privacyUnlockButton => 'فتح بأمان الجهاز';
+
+  @override
+  String get privacyUsePassword =>
+      'استخدام كلمة مرور Finance Suit بدلًا من ذلك';
+
+  @override
   String get setTheme => 'السمة';
 
   @override

@@ -3,6 +3,8 @@
          profile builds inherit it from their own manifests, so its absence
          here only breaks release APKs. -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Device-owner authentication for app lock and protected amounts. -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
     <application
         android:label="Finance Suit"
         android:name="${applicationName}"

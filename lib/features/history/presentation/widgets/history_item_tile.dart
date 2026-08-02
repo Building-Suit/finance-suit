@@ -4,6 +4,7 @@ import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
+import 'package:work_tracker/core/widgets/protected_money.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/finance_widgets.dart';
 import 'package:work_tracker/features/history/domain/history_models.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
@@ -110,7 +111,7 @@ class HistoryItemTile extends StatelessWidget {
       ),
       trailing: amountText == null
           ? null
-          : Text(
+          : ProtectedMoneyText(
               amountText,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 color: amountColor,

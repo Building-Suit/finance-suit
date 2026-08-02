@@ -13,6 +13,7 @@ import 'package:work_tracker/core/widgets/app_money_text.dart';
 import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
+import 'package:work_tracker/core/widgets/protected_money.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
@@ -142,7 +143,7 @@ class IncomeSourcesScreen extends ConsumerWidget {
                         source.name,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
-                      Text(
+                      ProtectedMoneyText(
                         '${_kindLabel(l10n, source.kind)} · '
                         '${source.expectedAmount.format()}',
                       ),
@@ -174,24 +175,25 @@ class IncomeSourcesScreen extends ConsumerWidget {
             Text(l10n.incomeMonthlyOnDay(source.paymentDay)),
             Text(l10n.incomeDepositAccount(primaryName)),
             for (final allocation in source.allocations)
-              Text(
-                allocation.method == IncomeAllocationMethod.percentage
-                    ? l10n.incomeSplitAccount(
-                        _percentage(allocation.percentageBasisPoints ?? 0),
-                        accountNames[allocation.destinationAccountId] ?? '-',
-                      )
-                    : l10n.incomeSplitFixedAccount(
-                        Money(
-                          minor: allocation.fixedAmountMinor ?? 0,
-                          currencyCode: source.currencyCode,
-                        ).format(
-                          locale: Localizations.localeOf(
-                            context,
-                          ).toLanguageTag(),
-                        ),
-                        accountNames[allocation.destinationAccountId] ?? '-',
-                      ),
-              ),
+              if (allocation.method == IncomeAllocationMethod.percentage)
+                Text(
+                  l10n.incomeSplitAccount(
+                    _percentage(allocation.percentageBasisPoints ?? 0),
+                    accountNames[allocation.destinationAccountId] ?? '-',
+                  ),
+                )
+              else
+                ProtectedMoneyText(
+                  l10n.incomeSplitFixedAccount(
+                    Money(
+                      minor: allocation.fixedAmountMinor ?? 0,
+                      currencyCode: source.currencyCode,
+                    ).format(
+                      locale: Localizations.localeOf(context).toLanguageTag(),
+                    ),
+                    accountNames[allocation.destinationAccountId] ?? '-',
+                  ),
+                ),
             if (source.allocations.isNotEmpty &&
                 _hasOnlyOriginalPercentages(source))
               Text(
