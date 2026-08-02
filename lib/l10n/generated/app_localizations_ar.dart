@@ -1273,7 +1273,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'أوقف هذا الخيار إذا كان دخلك مصروفًا دوريًا أو من مصادر أخرى.';
 
   @override
-  String get incomeSourcesTitle => 'أتمتة الدخل';
+  String get incomeSourcesTitle => 'أتمتة مصادر الدخل';
 
   @override
   String get incomeSourcesSubtitle =>
@@ -1417,7 +1417,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'يمكنك إكمال الإعداد بدون راتب وإضافة أي مصدر دخل لاحقًا من الإعدادات.';
 
   @override
-  String get incomePendingTitle => 'دخل ينتظر موافقتك';
+  String get incomePendingTitle => 'دخل بانتظار الموافقة';
 
   @override
   String incomeDue(String date) {
@@ -1488,11 +1488,17 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get incomeAutomationCenter => 'مركز الأتمتة';
+  String get incomeAutomationCenter => 'أتمتة مصادر الدخل';
 
   @override
   String get incomeAutomationOverview =>
-      'تحكم في الدخل الدوري والموافقات وتقسيم الحسابات';
+      'حدد الموعد المتوقع وتقسيم الحسابات. لن يتغير رصيدك حتى توافق على الدفعة.';
+
+  @override
+  String get incomeActiveAutomations => 'الأتمتة المفعّلة';
+
+  @override
+  String get incomePausedAutomations => 'الأتمتة المتوقفة';
 
   @override
   String get incomeAutomationEnabled => 'الأتمتة مفعلة';

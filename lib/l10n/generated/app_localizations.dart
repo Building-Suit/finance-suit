@@ -2507,7 +2507,7 @@ abstract class AppLocalizations {
   /// No description provided for @incomeSourcesTitle.
   ///
   /// In en, this message translates to:
-  /// **'Income automation'**
+  /// **'Income automations'**
   String get incomeSourcesTitle;
 
   /// No description provided for @incomeSourcesSubtitle.
@@ -2765,7 +2765,7 @@ abstract class AppLocalizations {
   /// No description provided for @incomePendingTitle.
   ///
   /// In en, this message translates to:
-  /// **'Income waiting for your approval'**
+  /// **'Income to approve'**
   String get incomePendingTitle;
 
   /// No description provided for @incomeDue.
@@ -2885,14 +2885,26 @@ abstract class AppLocalizations {
   /// No description provided for @incomeAutomationCenter.
   ///
   /// In en, this message translates to:
-  /// **'Automation center'**
+  /// **'Income automations'**
   String get incomeAutomationCenter;
 
   /// No description provided for @incomeAutomationOverview.
   ///
   /// In en, this message translates to:
-  /// **'Control recurring income, approvals, and account splits'**
+  /// **'Set the expected date and account split. Nothing changes your balance until you approve the payment.'**
   String get incomeAutomationOverview;
+
+  /// No description provided for @incomeActiveAutomations.
+  ///
+  /// In en, this message translates to:
+  /// **'Active automations'**
+  String get incomeActiveAutomations;
+
+  /// No description provided for @incomePausedAutomations.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused automations'**
+  String get incomePausedAutomations;
 
   /// No description provided for @incomeAutomationEnabled.
   ///
