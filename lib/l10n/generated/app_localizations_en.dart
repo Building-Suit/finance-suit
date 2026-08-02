@@ -1384,7 +1384,73 @@ class AppLocalizationsEn extends AppLocalizations {
   String get incomeSplitExtraWorkAccount => 'Extra-work destination account';
 
   @override
-  String get incomeSplitPreviewTitle => 'Preview';
+  String get incomeRolloverTitle => 'Move the previous balance to savings';
+
+  @override
+  String get incomeRolloverHelp =>
+      'When this salary is accepted, move any positive balance already in the deposit account to the selected savings account before depositing the salary.';
+
+  @override
+  String get incomeRolloverNoSavings =>
+      'Create an active savings account in the same currency to enable this option.';
+
+  @override
+  String get incomeRolloverAccount => 'Previous-balance destination';
+
+  @override
+  String get incomeSplitPreviewTitle => 'Summary preview';
+
+  @override
+  String incomeSplitPreviewDeposit(String amount, String account) {
+    return '$amount enters $account first.';
+  }
+
+  @override
+  String incomeSplitPreviewPercentageRule(
+    int number,
+    String percentage,
+    String basis,
+    String amount,
+    String account,
+  ) {
+    return 'Rule $number: $percentage% of the $basis = $amount to $account.';
+  }
+
+  @override
+  String incomeSplitPreviewFixedRule(
+    int number,
+    String amount,
+    String account,
+  ) {
+    return 'Rule $number: fixed $amount to $account.';
+  }
+
+  @override
+  String get incomeSplitPreviewExtraIncluded =>
+      'Extra-work earnings are included in percentage calculations.';
+
+  @override
+  String incomeSplitPreviewExtraRouted(String account) {
+    return 'Protected extra-work earnings go to $account.';
+  }
+
+  @override
+  String incomeSplitPreviewExtraKept(String account) {
+    return 'Protected extra-work earnings stay in $account.';
+  }
+
+  @override
+  String incomeRolloverPreviewMoved(
+    String sourceAccount,
+    String destinationAccount,
+  ) {
+    return 'Before this salary is deposited, any positive existing balance in $sourceAccount moves to $destinationAccount.';
+  }
+
+  @override
+  String incomeRolloverPreviewKept(String account) {
+    return 'The existing balance in $account stays where it is.';
+  }
 
   @override
   String incomeSplitPreviewLine(String amount, String account) {

@@ -74,6 +74,8 @@ void main() {
     expect(source.allocatedBasisPoints, 3000);
     expect(source.remainderBasisPoints, 7000);
     expect(source.expectedAmountMinor, 100000);
+    expect(source.rolloverBalanceEnabled, isFalse);
+    expect(source.rolloverDestinationAccountId, isNull);
   });
 
   test('ordered percentage rules can use original and remaining basis', () {
@@ -122,6 +124,53 @@ void main() {
     expect(preview.rows.single.amountMinor, 5000);
     expect(preview.extraWorkRoutedMinor, 2000);
     expect(preview.primaryAmountMinor, 5000);
+  });
+
+  test('fixed salary splits can still route protected extra work', () {
+    final preview = IncomeSplitCalculator.preview(
+      actualAmountMinor: 12000,
+      kind: IncomeSourceKind.salary,
+      allocations: const [
+        IncomeAllocation(
+          destinationAccountId: 'bills',
+          method: IncomeAllocationMethod.fixed,
+          fixedAmountMinor: 5000,
+        ),
+      ],
+      includeExtraWorkInPercentage: false,
+      extraWorkDestinationAccountId: 'extra',
+      extraWorkMinor: 2000,
+    );
+
+    expect(preview.hasError, isFalse);
+    expect(preview.rows.single.amountMinor, 5000);
+    expect(preview.extraWorkRoutedMinor, 2000);
+    expect(preview.primaryAmountMinor, 5000);
+  });
+
+  test('salary rollover settings are restored from persistence', () {
+    final source = IncomeSource.fromJson({
+      'id': 'salary-source',
+      'name': 'Salary',
+      'source_kind': 'salary',
+      'expected_amount_minor': 100000,
+      'currency_code': 'EGP',
+      'payment_day': 25,
+      'start_date': '2026-07-01',
+      'prompt_days_before': 7,
+      'primary_account_id': 'current',
+      'category_id': null,
+      'is_active': true,
+      'include_extra_work_in_percentage': false,
+      'extra_work_destination_account_id': 'extra',
+      'rollover_balance_enabled': true,
+      'rollover_destination_account_id': 'savings',
+      'notes': null,
+      'income_source_allocations': const <Map<String, dynamic>>[],
+    });
+
+    expect(source.rolloverBalanceEnabled, isTrue);
+    expect(source.rolloverDestinationAccountId, 'savings');
   });
 
   test('fixed rules fail the preview when they exceed available income', () {

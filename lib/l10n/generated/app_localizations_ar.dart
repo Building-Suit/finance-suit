@@ -1379,7 +1379,73 @@ class AppLocalizationsAr extends AppLocalizations {
   String get incomeSplitExtraWorkAccount => 'حساب وجهة العمل الإضافي';
 
   @override
-  String get incomeSplitPreviewTitle => 'معاينة';
+  String get incomeRolloverTitle => 'حوّل رصيد الشهر السابق إلى الادخار';
+
+  @override
+  String get incomeRolloverHelp =>
+      'عند قبول هذا الراتب، حوّل أي رصيد موجب موجود في حساب الإيداع إلى حساب الادخار المحدد قبل إيداع الراتب.';
+
+  @override
+  String get incomeRolloverNoSavings =>
+      'أنشئ حساب ادخار مفعّلًا بالعملة نفسها لتفعيل هذا الخيار.';
+
+  @override
+  String get incomeRolloverAccount => 'وجهة رصيد الشهر السابق';
+
+  @override
+  String get incomeSplitPreviewTitle => 'ملخص المعاينة';
+
+  @override
+  String incomeSplitPreviewDeposit(String amount, String account) {
+    return 'يدخل $amount إلى $account أولًا.';
+  }
+
+  @override
+  String incomeSplitPreviewPercentageRule(
+    int number,
+    String percentage,
+    String basis,
+    String amount,
+    String account,
+  ) {
+    return 'القاعدة $number: $percentage% من $basis = $amount إلى $account.';
+  }
+
+  @override
+  String incomeSplitPreviewFixedRule(
+    int number,
+    String amount,
+    String account,
+  ) {
+    return 'القاعدة $number: مبلغ ثابت $amount إلى $account.';
+  }
+
+  @override
+  String get incomeSplitPreviewExtraIncluded =>
+      'تدخل أرباح العمل الإضافي ضمن حساب النسب.';
+
+  @override
+  String incomeSplitPreviewExtraRouted(String account) {
+    return 'تذهب أرباح العمل الإضافي المحمية إلى $account.';
+  }
+
+  @override
+  String incomeSplitPreviewExtraKept(String account) {
+    return 'تبقى أرباح العمل الإضافي المحمية في $account.';
+  }
+
+  @override
+  String incomeRolloverPreviewMoved(
+    String sourceAccount,
+    String destinationAccount,
+  ) {
+    return 'قبل إيداع هذا الراتب، ينتقل أي رصيد موجب موجود في $sourceAccount إلى $destinationAccount.';
+  }
+
+  @override
+  String incomeRolloverPreviewKept(String account) {
+    return 'يبقى الرصيد الموجود في $account كما هو.';
+  }
 
   @override
   String incomeSplitPreviewLine(String amount, String account) {

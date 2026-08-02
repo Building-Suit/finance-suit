@@ -2696,11 +2696,92 @@ abstract class AppLocalizations {
   /// **'Extra-work destination account'**
   String get incomeSplitExtraWorkAccount;
 
+  /// No description provided for @incomeRolloverTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move the previous balance to savings'**
+  String get incomeRolloverTitle;
+
+  /// No description provided for @incomeRolloverHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'When this salary is accepted, move any positive balance already in the deposit account to the selected savings account before depositing the salary.'**
+  String get incomeRolloverHelp;
+
+  /// No description provided for @incomeRolloverNoSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'Create an active savings account in the same currency to enable this option.'**
+  String get incomeRolloverNoSavings;
+
+  /// No description provided for @incomeRolloverAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous-balance destination'**
+  String get incomeRolloverAccount;
+
   /// No description provided for @incomeSplitPreviewTitle.
   ///
   /// In en, this message translates to:
-  /// **'Preview'**
+  /// **'Summary preview'**
   String get incomeSplitPreviewTitle;
+
+  /// No description provided for @incomeSplitPreviewDeposit.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} enters {account} first.'**
+  String incomeSplitPreviewDeposit(String amount, String account);
+
+  /// No description provided for @incomeSplitPreviewPercentageRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Rule {number}: {percentage}% of the {basis} = {amount} to {account}.'**
+  String incomeSplitPreviewPercentageRule(
+    int number,
+    String percentage,
+    String basis,
+    String amount,
+    String account,
+  );
+
+  /// No description provided for @incomeSplitPreviewFixedRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Rule {number}: fixed {amount} to {account}.'**
+  String incomeSplitPreviewFixedRule(int number, String amount, String account);
+
+  /// No description provided for @incomeSplitPreviewExtraIncluded.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra-work earnings are included in percentage calculations.'**
+  String get incomeSplitPreviewExtraIncluded;
+
+  /// No description provided for @incomeSplitPreviewExtraRouted.
+  ///
+  /// In en, this message translates to:
+  /// **'Protected extra-work earnings go to {account}.'**
+  String incomeSplitPreviewExtraRouted(String account);
+
+  /// No description provided for @incomeSplitPreviewExtraKept.
+  ///
+  /// In en, this message translates to:
+  /// **'Protected extra-work earnings stay in {account}.'**
+  String incomeSplitPreviewExtraKept(String account);
+
+  /// No description provided for @incomeRolloverPreviewMoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Before this salary is deposited, any positive existing balance in {sourceAccount} moves to {destinationAccount}.'**
+  String incomeRolloverPreviewMoved(
+    String sourceAccount,
+    String destinationAccount,
+  );
+
+  /// No description provided for @incomeRolloverPreviewKept.
+  ///
+  /// In en, this message translates to:
+  /// **'The existing balance in {account} stays where it is.'**
+  String incomeRolloverPreviewKept(String account);
 
   /// No description provided for @incomeSplitPreviewLine.
   ///

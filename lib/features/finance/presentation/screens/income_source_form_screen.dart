@@ -58,7 +58,10 @@ class _IncomeSourceFormScreenState
   late bool _includeExtraWorkInPercentage =
       widget.existing?.includeExtraWorkInPercentage ?? true;
   bool _routeExtraWork = false;
+  late bool _rolloverBalanceEnabled =
+      widget.existing?.rolloverBalanceEnabled ?? false;
   String? _extraWorkDestinationAccountId;
+  String? _rolloverDestinationAccountId;
   String? _primaryAccountId;
   String? _categoryId;
   AppFailure? _failure;
@@ -74,6 +77,8 @@ class _IncomeSourceFormScreenState
     _extraWorkDestinationAccountId =
         widget.existing?.extraWorkDestinationAccountId;
     _routeExtraWork = _extraWorkDestinationAccountId != null;
+    _rolloverDestinationAccountId =
+        widget.existing?.rolloverDestinationAccountId;
     for (final allocation
         in widget.existing?.allocations ?? const <IncomeAllocation>[]) {
       _rules.add(_SplitRuleDraft.fromAllocation(allocation, _newRuleId()));
@@ -135,6 +140,12 @@ class _IncomeSourceFormScreenState
         )
         .toList();
   }
+
+  List<AccountBalance> _eligibleRolloverAccounts(
+    List<AccountBalance> accounts,
+  ) => _eligibleSplitAccounts(
+    accounts,
+  ).where((account) => account.accountType == AccountType.savings).toList();
 
   void _addRule(List<AccountBalance> accounts) {
     final eligible = _eligibleSplitAccounts(accounts);
@@ -246,6 +257,11 @@ class _IncomeSourceFormScreenState
       accounts,
     );
     if (allocations == null) return;
+    final hasPercentageRules = allocations.any(
+      (allocation) => allocation.method == IncomeAllocationMethod.percentage,
+    );
+    final includeExtraWorkInPercentage =
+        hasPercentageRules && _includeExtraWorkInPercentage;
     final amount = Money.tryParse(
       _amountController.text,
       currencyCode: primary.currencyCode,
@@ -253,9 +269,13 @@ class _IncomeSourceFormScreenState
     final notes = _notesController.text.trim();
     final extraDestination =
         _kind == IncomeSourceKind.salary &&
-            !_includeExtraWorkInPercentage &&
+            !includeExtraWorkInPercentage &&
             _routeExtraWork
         ? _extraWorkDestinationAccountId
+        : null;
+    final rolloverDestination =
+        _kind == IncomeSourceKind.salary && _rolloverBalanceEnabled
+        ? _rolloverDestinationAccountId
         : null;
     setState(() => _busy = true);
     final result = await ref
@@ -271,8 +291,11 @@ class _IncomeSourceFormScreenState
           primaryAccountId: primary.accountId,
           categoryId: _kind == IncomeSourceKind.salary ? null : _categoryId,
           allocations: allocations,
-          includeExtraWorkInPercentage: _includeExtraWorkInPercentage,
+          includeExtraWorkInPercentage: includeExtraWorkInPercentage,
           extraWorkDestinationAccountId: extraDestination,
+          rolloverBalanceEnabled:
+              _kind == IncomeSourceKind.salary && _rolloverBalanceEnabled,
+          rolloverDestinationAccountId: rolloverDestination,
           notes: notes.isEmpty ? null : notes,
           sourceId: widget.existing?.id,
           isActive: _isActive,
@@ -291,8 +314,8 @@ class _IncomeSourceFormScreenState
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final accounts =
-        ref.watch(accountBalancesProvider).value ?? <AccountBalance>[];
+    final accountsAsync = ref.watch(accountBalancesProvider);
+    final accounts = accountsAsync.value ?? <AccountBalance>[];
     final categories =
         ref.watch(categoriesProvider(CategoryKind.income)).value ??
         <TransactionCategory>[];
@@ -318,15 +341,26 @@ class _IncomeSourceFormScreenState
         .where((account) => account.accountId == _primaryAccountId)
         .firstOrNull;
     final eligibleSplitAccounts = _eligibleSplitAccounts(accounts);
-    if (!eligibleSplitAccounts.any(
+    final eligibleRolloverAccounts = _eligibleRolloverAccounts(accounts);
+    if (accountsAsync.hasValue &&
+        !eligibleSplitAccounts.any(
           (account) => account.accountId == _extraWorkDestinationAccountId,
         ) &&
         _extraWorkDestinationAccountId != null) {
       _extraWorkDestinationAccountId = null;
     }
+    if (accountsAsync.hasValue &&
+        !eligibleRolloverAccounts.any(
+          (account) => account.accountId == _rolloverDestinationAccountId,
+        ) &&
+        _rolloverDestinationAccountId != null) {
+      _rolloverDestinationAccountId = null;
+    }
     final hasPercentageRules = _rules.any(
       (rule) => rule.method == IncomeAllocationMethod.percentage,
     );
+    final includeExtraWorkInPercentage =
+        hasPercentageRules && _includeExtraWorkInPercentage;
 
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(
@@ -419,7 +453,7 @@ class _IncomeSourceFormScreenState
                 ),
                 const SizedBox(height: 16),
                 AppSelectionField<String>(
-                  key: ValueKey(_primaryAccountId),
+                  key: ValueKey('primary-$_primaryAccountId'),
                   initialValue: _primaryAccountId,
                   decoration: InputDecoration(
                     labelText: l10n.incomeRemainderAccount,
@@ -552,18 +586,17 @@ class _IncomeSourceFormScreenState
                   ),
                   const SizedBox(height: 12),
                 ],
-                if (_kind == IncomeSourceKind.salary && hasPercentageRules) ...[
-                  SwitchListTile.adaptive(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(l10n.incomeSplitIncludeExtraWork),
-                    subtitle: Text(l10n.incomeSplitIncludeExtraWorkHelp),
-                    value: _includeExtraWorkInPercentage,
-                    onChanged: (value) => setState(() {
-                      _includeExtraWorkInPercentage = value;
-                      if (value) _routeExtraWork = false;
-                    }),
-                  ),
-                  if (!_includeExtraWorkInPercentage) ...[
+                if (_kind == IncomeSourceKind.salary) ...[
+                  if (hasPercentageRules)
+                    SwitchListTile.adaptive(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(l10n.incomeSplitIncludeExtraWork),
+                      subtitle: Text(l10n.incomeSplitIncludeExtraWorkHelp),
+                      value: _includeExtraWorkInPercentage,
+                      onChanged: (value) =>
+                          setState(() => _includeExtraWorkInPercentage = value),
+                    ),
+                  if (!includeExtraWorkInPercentage) ...[
                     CheckboxListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(l10n.incomeSplitRouteExtraWork),
@@ -574,7 +607,9 @@ class _IncomeSourceFormScreenState
                     ),
                     if (_routeExtraWork)
                       AppSelectionField<String>(
-                        key: ValueKey(_extraWorkDestinationAccountId),
+                        key: ValueKey(
+                          'extra-work-$_extraWorkDestinationAccountId',
+                        ),
                         initialValue: _extraWorkDestinationAccountId,
                         decoration: InputDecoration(
                           labelText: l10n.incomeSplitExtraWorkAccount,
@@ -589,8 +624,55 @@ class _IncomeSourceFormScreenState
                         onChanged: (value) => setState(
                           () => _extraWorkDestinationAccountId = value,
                         ),
+                        validator: (value) => value == null
+                            ? validationMessage(
+                                context,
+                                ValidationError.required,
+                              )
+                            : null,
                       ),
                   ],
+                  const Divider(height: 32),
+                  SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(l10n.incomeRolloverTitle),
+                    subtitle: Text(
+                      eligibleRolloverAccounts.isEmpty
+                          ? l10n.incomeRolloverNoSavings
+                          : l10n.incomeRolloverHelp,
+                    ),
+                    value: _rolloverBalanceEnabled,
+                    onChanged: eligibleRolloverAccounts.isEmpty
+                        ? null
+                        : (value) => setState(() {
+                            _rolloverBalanceEnabled = value;
+                            if (value &&
+                                _rolloverDestinationAccountId == null) {
+                              _rolloverDestinationAccountId =
+                                  eligibleRolloverAccounts.first.accountId;
+                            }
+                          }),
+                  ),
+                  if (_rolloverBalanceEnabled)
+                    AppSelectionField<String>(
+                      key: ValueKey('rollover-$_rolloverDestinationAccountId'),
+                      initialValue: _rolloverDestinationAccountId,
+                      decoration: InputDecoration(
+                        labelText: l10n.incomeRolloverAccount,
+                      ),
+                      items: [
+                        for (final account in eligibleRolloverAccounts)
+                          DropdownMenuItem(
+                            value: account.accountId,
+                            child: Text(account.name),
+                          ),
+                      ],
+                      onChanged: (value) =>
+                          setState(() => _rolloverDestinationAccountId = value),
+                      validator: (value) => value == null
+                          ? validationMessage(context, ValidationError.required)
+                          : null,
+                    ),
                 ],
                 if (primary != null) ...[
                   const SizedBox(height: 12),
@@ -600,10 +682,12 @@ class _IncomeSourceFormScreenState
                     primary: primary,
                     accounts: accounts,
                     allocations: _draftPreviewAllocations(primary),
-                    includeExtraWorkInPercentage: _includeExtraWorkInPercentage,
+                    includeExtraWorkInPercentage: includeExtraWorkInPercentage,
                     extraWorkDestinationAccountId: _routeExtraWork
                         ? _extraWorkDestinationAccountId
                         : null,
+                    rolloverBalanceEnabled: _rolloverBalanceEnabled,
+                    rolloverDestinationAccountId: _rolloverDestinationAccountId,
                   ),
                 ],
                 const SizedBox(height: 16),
@@ -851,6 +935,8 @@ class _SplitPreview extends StatelessWidget {
     required this.allocations,
     required this.includeExtraWorkInPercentage,
     required this.extraWorkDestinationAccountId,
+    required this.rolloverBalanceEnabled,
+    required this.rolloverDestinationAccountId,
   });
 
   final IncomeSourceKind sourceKind;
@@ -860,6 +946,8 @@ class _SplitPreview extends StatelessWidget {
   final List<IncomeAllocation> allocations;
   final bool includeExtraWorkInPercentage;
   final String? extraWorkDestinationAccountId;
+  final bool rolloverBalanceEnabled;
+  final String? rolloverDestinationAccountId;
 
   @override
   Widget build(BuildContext context) {
@@ -880,6 +968,20 @@ class _SplitPreview extends StatelessWidget {
     final names = {
       for (final account in accounts) account.accountId: account.name,
     };
+    String formatAmount(int minor) => Money(
+      minor: minor,
+      currencyCode: primary.currencyCode,
+    ).format(locale: locale);
+    String percentageLabel(int basisPoints) {
+      final value = basisPoints / 100;
+      return value == value.roundToDouble()
+          ? value.toStringAsFixed(0)
+          : value.toStringAsFixed(2);
+    }
+
+    final hasPercentageRules = allocations.any(
+      (allocation) => allocation.method == IncomeAllocationMethod.percentage,
+    );
 
     return Card(
       child: Padding(
@@ -892,37 +994,60 @@ class _SplitPreview extends StatelessWidget {
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: 8),
-            for (final row in preview.rows)
-              Text(
-                l10n.incomeSplitPreviewLine(
-                  Money(
-                    minor: row.amountMinor,
-                    currencyCode: primary.currencyCode,
-                  ).format(locale: locale),
-                  names[row.destinationAccountId] ?? row.destinationAccountId,
-                ),
-              ),
-            if (preview.extraWorkRoutedMinor > 0 &&
-                preview.extraWorkDestinationAccountId != null)
-              Text(
-                l10n.incomeSplitPreviewLine(
-                  Money(
-                    minor: preview.extraWorkRoutedMinor,
-                    currencyCode: primary.currencyCode,
-                  ).format(locale: locale),
-                  names[preview.extraWorkDestinationAccountId!] ??
-                      preview.extraWorkDestinationAccountId!,
-                ),
-              ),
             Text(
-              l10n.incomeSplitPreviewRemainder(
-                Money(
-                  minor: preview.primaryAmountMinor,
-                  currencyCode: primary.currencyCode,
-                ).format(locale: locale),
+              l10n.incomeSplitPreviewDeposit(
+                formatAmount(amount.minor),
                 primary.name,
               ),
             ),
+            for (final row in preview.rows)
+              Text(
+                row.rule.method == IncomeAllocationMethod.percentage
+                    ? l10n.incomeSplitPreviewPercentageRule(
+                        row.rule.sortOrder + 1,
+                        percentageLabel(row.rule.percentageBasisPoints ?? 0),
+                        row.rule.calculationBasis ==
+                                IncomeAllocationCalculationBasis.original
+                            ? l10n.incomeSplitBasisOriginal
+                            : l10n.incomeSplitBasisRemaining,
+                        formatAmount(row.amountMinor),
+                        names[row.destinationAccountId] ??
+                            row.destinationAccountId,
+                      )
+                    : l10n.incomeSplitPreviewFixedRule(
+                        row.rule.sortOrder + 1,
+                        formatAmount(row.amountMinor),
+                        names[row.destinationAccountId] ??
+                            row.destinationAccountId,
+                      ),
+              ),
+            if (sourceKind == IncomeSourceKind.salary)
+              Text(
+                includeExtraWorkInPercentage && hasPercentageRules
+                    ? l10n.incomeSplitPreviewExtraIncluded
+                    : extraWorkDestinationAccountId != null
+                    ? l10n.incomeSplitPreviewExtraRouted(
+                        names[extraWorkDestinationAccountId!] ??
+                            extraWorkDestinationAccountId!,
+                      )
+                    : l10n.incomeSplitPreviewExtraKept(primary.name),
+              ),
+            Text(
+              l10n.incomeSplitPreviewRemainder(
+                formatAmount(preview.primaryAmountMinor),
+                primary.name,
+              ),
+            ),
+            if (sourceKind == IncomeSourceKind.salary)
+              Text(
+                rolloverBalanceEnabled && rolloverDestinationAccountId != null
+                    ? l10n.incomeRolloverPreviewMoved(
+                        primary.name,
+                        names[rolloverDestinationAccountId!] ??
+                            rolloverDestinationAccountId!,
+                      )
+                    : l10n.incomeRolloverPreviewKept(primary.name),
+              ),
             if (preview.hasError) ...[
               const SizedBox(height: 8),
               Text(
