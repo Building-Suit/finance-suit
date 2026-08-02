@@ -66,6 +66,8 @@ class IncomeSource {
     required this.allocations,
     this.includeExtraWorkInPercentage = true,
     this.extraWorkDestinationAccountId,
+    this.rolloverBalanceEnabled = false,
+    this.rolloverDestinationAccountId,
     this.categoryId,
     this.notes,
   });
@@ -95,6 +97,10 @@ class IncomeSource {
           json['include_extra_work_in_percentage'] as bool? ?? true,
       extraWorkDestinationAccountId:
           json['extra_work_destination_account_id'] as String?,
+      rolloverBalanceEnabled:
+          json['rollover_balance_enabled'] as bool? ?? false,
+      rolloverDestinationAccountId:
+          json['rollover_destination_account_id'] as String?,
       notes: json['notes'] as String?,
     );
   }
@@ -113,6 +119,8 @@ class IncomeSource {
   final List<IncomeAllocation> allocations;
   final bool includeExtraWorkInPercentage;
   final String? extraWorkDestinationAccountId;
+  final bool rolloverBalanceEnabled;
+  final String? rolloverDestinationAccountId;
   final String? notes;
 
   Money get expectedAmount =>

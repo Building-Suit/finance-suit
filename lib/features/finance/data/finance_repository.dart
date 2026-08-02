@@ -285,6 +285,8 @@ class FinanceRepository {
     required List<IncomeAllocation> allocations,
     bool includeExtraWorkInPercentage = true,
     String? extraWorkDestinationAccountId,
+    bool rolloverBalanceEnabled = false,
+    String? rolloverDestinationAccountId,
     String? categoryId,
     String? notes,
     String? sourceId,
@@ -292,7 +294,7 @@ class FinanceRepository {
   }) {
     return guard(() async {
       return _db.rpc<String>(
-        'save_income_source_v3',
+        'save_income_source_v4',
         params: {
           'p_name': name,
           'p_source_kind': kind.dbValue,
@@ -311,6 +313,8 @@ class FinanceRepository {
           'p_is_active': isActive,
           'p_include_extra_work_in_percentage': includeExtraWorkInPercentage,
           'p_extra_work_destination_account_id': extraWorkDestinationAccountId,
+          'p_rollover_balance_enabled': rolloverBalanceEnabled,
+          'p_rollover_destination_account_id': rolloverDestinationAccountId,
         },
       );
     });
