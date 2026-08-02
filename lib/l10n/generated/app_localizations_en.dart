@@ -1277,7 +1277,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Turn this off if your income is allowance-based or comes from other sources.';
 
   @override
-  String get incomeSourcesTitle => 'Income automation';
+  String get incomeSourcesTitle => 'Income automations';
 
   @override
   String get incomeSourcesSubtitle =>
@@ -1423,7 +1423,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'You can finish setup without a salary and add any income source later from Settings.';
 
   @override
-  String get incomePendingTitle => 'Income waiting for your approval';
+  String get incomePendingTitle => 'Income to approve';
 
   @override
   String incomeDue(String date) {
@@ -1494,11 +1494,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get incomeAutomationCenter => 'Automation center';
+  String get incomeAutomationCenter => 'Income automations';
 
   @override
   String get incomeAutomationOverview =>
-      'Control recurring income, approvals, and account splits';
+      'Set the expected date and account split. Nothing changes your balance until you approve the payment.';
+
+  @override
+  String get incomeActiveAutomations => 'Active automations';
+
+  @override
+  String get incomePausedAutomations => 'Paused automations';
 
   @override
   String get incomeAutomationEnabled => 'Automation enabled';

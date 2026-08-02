@@ -13,19 +13,15 @@ import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/core/widgets/app_money_text.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
-import 'package:work_tracker/core/widgets/top_message.dart';
-import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/finance_widgets.dart';
-import 'package:work_tracker/features/finance/presentation/widgets/income_automation_actions.dart';
 import 'package:work_tracker/features/history/domain/history_models.dart';
 import 'package:work_tracker/features/history/presentation/providers/history_providers.dart';
 import 'package:work_tracker/features/history/presentation/widgets/history_item_tile.dart';
 import 'package:work_tracker/features/reports/domain/report_models.dart';
 import 'package:work_tracker/features/reports/presentation/providers/report_providers.dart';
-import 'package:work_tracker/features/salary/domain/salary_estimate.dart';
 import 'package:work_tracker/features/salary/presentation/providers/salary_providers.dart';
 import 'package:work_tracker/features/salary/presentation/widgets/estimate_breakdown.dart';
 import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
@@ -144,40 +140,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ref.invalidate(pendingIncomeProvider);
   }
 
-  Future<void> _acceptIncome(PendingIncome pending) async {
-    final l10n = AppLocalizations.of(context);
-    final accepted = await acceptPendingIncome(context, ref, pending);
-    if (mounted && accepted) {
-      TopMessage.success(context, l10n.incomeAcceptedMessage);
-    }
-  }
-
-  Future<void> _skipIncome(PendingIncome pending) async {
-    final l10n = AppLocalizations.of(context);
-    final skipped = await skipPendingIncome(context, ref, pending);
-    if (mounted && skipped) {
-      TopMessage.success(context, l10n.incomeSkippedMessage);
-    }
-  }
-
-  Future<void> _snoozeIncome(PendingIncome pending) async {
-    final l10n = AppLocalizations.of(context);
-    final result = await ref
-        .read(financeRepositoryProvider)
-        .snoozeIncomeOccurrence(
-          occurrenceId: pending.occurrence.id,
-          snoozedUntil: DateTime.now().toUtc().add(const Duration(hours: 24)),
-        );
-    if (!mounted) return;
-    result.when(
-      ok: (_) {
-        invalidateIncomeAutomation(ref);
-        TopMessage.success(context, l10n.incomeRemindLater);
-      },
-      err: (_) => TopMessage.error(context, l10n.incomeSnoozeFailed),
-    );
-  }
-
   String _rangeLabel(AppLocalizations l10n, DateRangePreset preset) {
     return switch (preset) {
       DateRangePreset.today => l10n.rangeToday,
@@ -251,9 +213,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   : _PendingIncomeSection(
                       items: items,
                       today: PlainDate.today(),
-                      onAccept: _acceptIncome,
-                      onSkip: _skipIncome,
-                      onLater: _snoozeIncome,
+                      onOpen: () =>
+                          context.push('${AppRoutes.settings}/income-sources'),
                     ),
             ),
             _SectionHeader(title: l10n.homeBalance),
@@ -356,223 +317,97 @@ class _PendingIncomeSection extends ConsumerWidget {
   const _PendingIncomeSection({
     required this.items,
     required this.today,
-    required this.onAccept,
-    required this.onSkip,
-    required this.onLater,
+    required this.onOpen,
   });
 
   final List<PendingIncome> items;
   final PlainDate today;
-  final ValueChanged<PendingIncome> onAccept;
-  final ValueChanged<PendingIncome> onSkip;
-  final ValueChanged<PendingIncome> onLater;
+  final VoidCallback onOpen;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final warning = context.suitColors.warning;
+    final first = items.first;
+    final estimate = first.source.kind == IncomeSourceKind.salary
+        ? ref.watch(
+            pendingSalaryEstimateProvider((
+              occurrenceId: first.occurrence.id,
+              scheduledOn: first.occurrence.scheduledOn,
+            )),
+          )
+        : null;
+    final amount = Money(
+      minor:
+          estimate?.value?.totalMinor ?? first.occurrence.expectedAmountMinor,
+      currencyCode: first.source.currencyCode,
+    ).format();
     return Card(
       color: warning.background,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
+      clipBehavior: Clip.antiAlias,
+      child: Semantics(
+        button: true,
+        label: l10n.incomePendingTitle,
+        child: InkWell(
+          key: const Key('home-pending-income-summary'),
+          onTap: onOpen,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
               children: [
                 FinanceSuitIcon(FinanceSuitIcons.pending, color: warning.icon),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    l10n.incomePendingTitle,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleMedium?.copyWith(color: warning.text),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        l10n.incomePendingTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: warning.text,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        items.length == 1
+                            ? '${first.source.name} · $amount'
+                            : '${l10n.incomePendingCount(items.length)} · '
+                                  '${first.source.name}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      Text(
+                        first.isDueOn(today)
+                            ? l10n.incomeDue(
+                                first.occurrence.scheduledOn.toIso(),
+                              )
+                            : l10n.incomeUpcoming(
+                                first.occurrence.scheduledOn.toIso(),
+                              ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: context.suitColors.textMuted,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            for (final item in items) ...[
-              _PendingIncomeItem(
-                item: item,
-                today: today,
-                estimate: item.source.kind == IncomeSourceKind.salary
-                    ? ref.watch(
-                        pendingSalaryEstimateProvider((
-                          occurrenceId: item.occurrence.id,
-                          scheduledOn: item.occurrence.scheduledOn,
-                        )),
-                      )
-                    : null,
-                onAccept: () => onAccept(item),
-                onSkip: () => onSkip(item),
-                onLater: () => onLater(item),
-              ),
-              if (item != items.last) const Divider(),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PendingIncomeItem extends StatelessWidget {
-  const _PendingIncomeItem({
-    required this.item,
-    required this.today,
-    required this.onAccept,
-    required this.onSkip,
-    required this.onLater,
-    this.estimate,
-  });
-
-  final PendingIncome item;
-  final PlainDate today;
-  final AsyncValue<SalaryEstimate>? estimate;
-  final VoidCallback onAccept;
-  final VoidCallback onSkip;
-  final VoidCallback onLater;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final textTheme = Theme.of(context).textTheme;
-    final salaryEstimate = estimate?.value;
-    final amountMinor =
-        salaryEstimate?.totalMinor ?? item.occurrence.expectedAmountMinor;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 8,
-            runSpacing: 4,
-            children: [
-              Text(
-                item.source.name,
-                style: textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              AppMoneyText(
-                money: Money(
-                  minor: amountMinor,
-                  currencyCode: item.source.currencyCode,
-                ),
-                style: textTheme.titleSmall,
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            item.isDueOn(today)
-                ? l10n.incomeDue(item.occurrence.scheduledOn.toIso())
-                : l10n.incomeUpcoming(item.occurrence.scheduledOn.toIso()),
-            style: textTheme.bodySmall,
-          ),
-          if (salaryEstimate != null) ...[
-            const SizedBox(height: 8),
-            _SalaryPendingSummary(estimate: salaryEstimate),
-          ],
-          if (estimate?.hasError == true) ...[
-            const SizedBox(height: 8),
-            Text(l10n.homePartialDataError, style: textTheme.bodySmall),
-          ],
-          const SizedBox(height: 8),
-          Wrap(
-            alignment: WrapAlignment.end,
-            spacing: 8,
-            runSpacing: 4,
-            children: [
-              TextButton(onPressed: onSkip, child: Text(l10n.incomeSkip)),
-              TextButton(onPressed: onLater, child: Text(l10n.incomeLater)),
-              FilledButton(onPressed: onAccept, child: Text(l10n.incomeAccept)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SalaryPendingSummary extends StatelessWidget {
-  const _SalaryPendingSummary({required this.estimate});
-
-  final SalaryEstimate estimate;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final rows = <({String label, String value, int money})>[
-      (
-        label: l10n.salaryBaseAmount,
-        value: '',
-        money: estimate.baseSalaryMinor,
-      ),
-      (
-        label: l10n.salaryExtraDays,
-        value: (estimate.extraDayUnitsHundredths / 100).toStringAsFixed(2),
-        money: estimate.extraDayAmountMinor,
-      ),
-      (
-        label: l10n.salaryOvertimeDuration,
-        value: l10n.durationHoursMinutes(
-          estimate.overtimeMinutes ~/ 60,
-          estimate.overtimeMinutes % 60,
-        ),
-        money: estimate.overtimeAmountMinor,
-      ),
-      if (estimate.holidayCount != 0)
-        (
-          label: l10n.salaryHolidayWorked,
-          value: estimate.holidayCount.toString(),
-          money: estimate.holidayAmountMinor,
-        ),
-      if (estimate.bonusesMinor != 0)
-        (label: l10n.salAdjBonus, value: '', money: estimate.bonusesMinor),
-      if (estimate.deductionsMinor != 0)
-        (
-          label: l10n.salAdjDeduction,
-          value: '',
-          money: -estimate.deductionsMinor,
-        ),
-      (label: l10n.salaryEstimatedTotal, value: '', money: estimate.totalMinor),
-    ];
-    final textTheme = Theme.of(context).textTheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (final row in rows)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 4),
-            child: Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 8,
-              children: [
-                Text(
-                  row.value.isEmpty ? row.label : '${row.label}: ${row.value}',
-                  style: textTheme.bodySmall,
-                ),
-                AppMoneyText(
-                  money: Money(
-                    minor: row.money,
-                    currencyCode: estimate.currencyCode,
-                  ),
-                  sign: row.money < 0
-                      ? AppMoneySign.automatic
-                      : AppMoneySign.never,
-                  style: textTheme.bodySmall,
+                const SizedBox(width: 8),
+                FinanceSuitIcon(
+                  FinanceSuitIcons.chevronRight,
+                  color: warning.icon,
                 ),
               ],
             ),
           ),
-      ],
+        ),
+      ),
     );
   }
 }

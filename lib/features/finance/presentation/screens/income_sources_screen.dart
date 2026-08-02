@@ -9,16 +9,19 @@ import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
+import 'package:work_tracker/core/widgets/app_money_text.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
+import 'package:work_tracker/core/widgets/top_message.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/income_automation_actions.dart';
+import 'package:work_tracker/features/salary/domain/salary_estimate.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
-/// The control center for recurring income schedules, approvals, and splits.
+/// Manage recurring income schedules, approvals, and account splits.
 class IncomeSourcesScreen extends ConsumerWidget {
   const IncomeSourcesScreen({super.key});
 
@@ -41,6 +44,56 @@ class IncomeSourcesScreen extends ConsumerWidget {
     result.when(
       ok: (_) => invalidateIncomeAutomation(ref),
       err: (failure) => _showFailure(context, failure),
+    );
+  }
+
+  Future<void> _accept(
+    BuildContext context,
+    WidgetRef ref,
+    PendingIncome pending,
+  ) async {
+    final accepted = await acceptPendingIncome(context, ref, pending);
+    if (context.mounted && accepted) {
+      TopMessage.success(
+        context,
+        AppLocalizations.of(context).incomeAcceptedMessage,
+      );
+    }
+  }
+
+  Future<void> _skip(
+    BuildContext context,
+    WidgetRef ref,
+    PendingIncome pending,
+  ) async {
+    final skipped = await skipPendingIncome(context, ref, pending);
+    if (context.mounted && skipped) {
+      TopMessage.success(
+        context,
+        AppLocalizations.of(context).incomeSkippedMessage,
+      );
+    }
+  }
+
+  Future<void> _snooze(
+    BuildContext context,
+    WidgetRef ref,
+    PendingIncome pending,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final result = await ref
+        .read(financeRepositoryProvider)
+        .snoozeIncomeOccurrence(
+          occurrenceId: pending.occurrence.id,
+          snoozedUntil: DateTime.now().toUtc().add(const Duration(hours: 24)),
+        );
+    if (!context.mounted) return;
+    result.when(
+      ok: (_) {
+        invalidateIncomeAutomation(ref);
+        TopMessage.success(context, l10n.incomeRemindLater);
+      },
+      err: (_) => TopMessage.error(context, l10n.incomeSnoozeFailed),
     );
   }
 
@@ -150,8 +203,10 @@ class IncomeSourcesScreen extends ConsumerWidget {
                 ),
               ),
             const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 TextButton(
                   onPressed: () => context.push(
@@ -160,7 +215,6 @@ class IncomeSourcesScreen extends ConsumerWidget {
                   ),
                   child: Text(l10n.commonEdit),
                 ),
-                const SizedBox(width: 8),
                 FilledButton.tonal(
                   onPressed: () =>
                       _toggle(context, ref, source, !source.isActive),
@@ -183,6 +237,18 @@ class IncomeSourcesScreen extends ConsumerWidget {
   ) {
     final l10n = AppLocalizations.of(context);
     final warning = context.suitColors.warning;
+    final estimate = pending.source.kind == IncomeSourceKind.salary
+        ? ref.watch(
+            pendingSalaryEstimateProvider((
+              occurrenceId: pending.occurrence.id,
+              scheduledOn: pending.occurrence.scheduledOn,
+            )),
+          )
+        : null;
+    final salaryEstimate = estimate?.value;
+    final amountMinor =
+        salaryEstimate?.totalMinor ?? pending.occurrence.expectedAmountMinor;
+    final textTheme = Theme.of(context).textTheme;
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: Padding(
@@ -190,10 +256,28 @@ class IncomeSourcesScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              pending.source.name,
-              style: Theme.of(context).textTheme.titleMedium,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                Text(
+                  pending.source.name,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                AppMoneyText(
+                  money: Money(
+                    minor: amountMinor,
+                    currencyCode: pending.source.currencyCode,
+                  ),
+                  style: textTheme.titleMedium,
+                ),
+              ],
             ),
+            const SizedBox(height: 4),
             Row(
               children: [
                 FinanceSuitIcon(FinanceSuitIcons.moreTime, color: warning.icon),
@@ -210,24 +294,69 @@ class IncomeSourcesScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            Text(pending.source.expectedAmount.format()),
+            if (salaryEstimate != null) ...[
+              const SizedBox(height: 8),
+              _SalaryPendingSummary(estimate: salaryEstimate),
+            ],
+            if (estimate?.hasError == true) ...[
+              const SizedBox(height: 8),
+              Text(l10n.homePartialDataError, style: textTheme.bodySmall),
+            ],
             const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 TextButton(
-                  onPressed: () => skipPendingIncome(context, ref, pending),
+                  onPressed: () => _skip(context, ref, pending),
                   child: Text(l10n.incomeSkip),
                 ),
-                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: () => _snooze(context, ref, pending),
+                  child: Text(l10n.incomeLater),
+                ),
                 FilledButton(
-                  onPressed: () => acceptPendingIncome(context, ref, pending),
+                  onPressed: () => _accept(context, ref, pending),
                   child: Text(l10n.incomeAccept),
                 ),
               ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _sectionHeader(
+    BuildContext context, {
+    required String title,
+    required int count,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 20, bottom: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+            ),
+          ),
+          Container(
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: context.suitColors.surfaceMuted,
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: context.suitColors.borderSubtle),
+            ),
+            child: Text('$count'),
+          ),
+        ],
       ),
     );
   }
@@ -239,17 +368,9 @@ class IncomeSourcesScreen extends ConsumerWidget {
     final pending = ref.watch(pendingIncomeProvider);
     final accounts = ref.watch(allAccountBalancesProvider);
     return Scaffold(
-      appBar: FinanceSuitAppBar.focused(
-        semanticTitle: l10n.incomeAutomationCenter,
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () =>
-            context.push('${AppRoutes.settings}/income-sources/new'),
-        icon: const FinanceSuitIcon(FinanceSuitIcons.add),
-        label: Text(l10n.incomeAddSource),
-      ),
+      appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.incomeSourcesTitle),
       body: FinanceSuitFocusedBody(
-        title: l10n.incomeAutomationCenter,
+        title: l10n.incomeSourcesTitle,
         child: AsyncView<List<IncomeSource>>(
           value: sources,
           onRetry: () => ref.invalidate(incomeSourcesProvider),
@@ -259,7 +380,12 @@ class IncomeSourcesScreen extends ConsumerWidget {
               for (final account in accounts.value ?? const <AccountBalance>[])
                 account.accountId: account.name,
             };
-            final activeCount = items.where((source) => source.isActive).length;
+            final activeSources = items
+                .where((source) => source.isActive)
+                .toList(growable: false);
+            final pausedSources = items
+                .where((source) => !source.isActive)
+                .toList(growable: false);
             return RefreshIndicator(
               onRefresh: () async {
                 invalidateIncomeAutomation(ref);
@@ -267,7 +393,7 @@ class IncomeSourcesScreen extends ConsumerWidget {
                 await ref.read(incomeSourcesProvider.future);
               },
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
                 children: [
                   Card(
                     child: Padding(
@@ -275,44 +401,47 @@ class IncomeSourcesScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(
-                            l10n.incomeAutomationOverview,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Chip(
-                                label: Text(
-                                  l10n.incomeActiveCount(activeCount),
-                                ),
-                              ),
-                              Chip(
-                                label: Text(
-                                  l10n.incomePausedCount(
-                                    items.length - activeCount,
-                                  ),
-                                ),
-                              ),
-                              Chip(
-                                label: Text(
-                                  l10n.incomePendingCount(pendingItems.length),
+                              const FinanceSuitIcon(FinanceSuitIcons.info),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      l10n.incomeSourcesSubtitle,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(l10n.incomeAutomationOverview),
+                                  ],
                                 ),
                               ),
                             ],
+                          ),
+                          const SizedBox(height: 12),
+                          FilledButton.icon(
+                            onPressed: () => context.push(
+                              '${AppRoutes.settings}/income-sources/new',
+                            ),
+                            icon: const FinanceSuitIcon(
+                              FinanceSuitIcons.addCircle,
+                            ),
+                            label: Text(l10n.addAutomation),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  Text(
-                    l10n.incomePendingTitle,
-                    style: Theme.of(context).textTheme.titleLarge,
+                  _sectionHeader(
+                    context,
+                    title: l10n.incomePendingTitle,
+                    count: pendingItems.length,
                   ),
-                  const SizedBox(height: 8),
                   if (pending.isLoading)
                     const Center(child: CircularProgressIndicator())
                   else if (pending.hasError)
@@ -331,40 +460,114 @@ class IncomeSourcesScreen extends ConsumerWidget {
                   else
                     for (final item in pendingItems)
                       _pendingCard(context, ref, item),
-                  const SizedBox(height: 20),
-                  Text(
-                    l10n.incomeSourcesTitle,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
                   if (items.isEmpty)
-                    Column(
-                      children: [
-                        EmptyStateView(
-                          icon: FinanceSuitIcons.payments,
-                          message: l10n.incomeAddAutomationEmpty,
-                        ),
-                        const SizedBox(height: 12),
-                        FilledButton.icon(
-                          onPressed: () => context.push(
-                            '${AppRoutes.settings}/income-sources/new',
-                          ),
-                          icon: const FinanceSuitIcon(
-                            FinanceSuitIcons.addCircle,
-                          ),
-                          label: Text(l10n.addAutomation),
-                        ),
-                      ],
+                    EmptyStateView(
+                      icon: FinanceSuitIcons.payments,
+                      message: l10n.incomeAddAutomationEmpty,
                     )
-                  else
-                    for (final source in items)
-                      _sourceCard(context, ref, source, accountNames),
+                  else ...[
+                    if (activeSources.isNotEmpty) ...[
+                      _sectionHeader(
+                        context,
+                        title: l10n.incomeActiveAutomations,
+                        count: activeSources.length,
+                      ),
+                      for (final source in activeSources)
+                        _sourceCard(context, ref, source, accountNames),
+                    ],
+                    if (pausedSources.isNotEmpty) ...[
+                      _sectionHeader(
+                        context,
+                        title: l10n.incomePausedAutomations,
+                        count: pausedSources.length,
+                      ),
+                      for (final source in pausedSources)
+                        _sourceCard(context, ref, source, accountNames),
+                    ],
+                  ],
                 ],
               ),
             );
           },
         ),
       ),
+    );
+  }
+}
+
+class _SalaryPendingSummary extends StatelessWidget {
+  const _SalaryPendingSummary({required this.estimate});
+
+  final SalaryEstimate estimate;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final rows = <({String label, String value, int money})>[
+      (
+        label: l10n.salaryBaseAmount,
+        value: '',
+        money: estimate.baseSalaryMinor,
+      ),
+      (
+        label: l10n.salaryExtraDays,
+        value: (estimate.extraDayUnitsHundredths / 100).toStringAsFixed(2),
+        money: estimate.extraDayAmountMinor,
+      ),
+      (
+        label: l10n.salaryOvertimeDuration,
+        value: l10n.durationHoursMinutes(
+          estimate.overtimeMinutes ~/ 60,
+          estimate.overtimeMinutes % 60,
+        ),
+        money: estimate.overtimeAmountMinor,
+      ),
+      if (estimate.holidayCount != 0)
+        (
+          label: l10n.salaryHolidayWorked,
+          value: estimate.holidayCount.toString(),
+          money: estimate.holidayAmountMinor,
+        ),
+      if (estimate.bonusesMinor != 0)
+        (label: l10n.salAdjBonus, value: '', money: estimate.bonusesMinor),
+      if (estimate.deductionsMinor != 0)
+        (
+          label: l10n.salAdjDeduction,
+          value: '',
+          money: -estimate.deductionsMinor,
+        ),
+      (label: l10n.salaryEstimatedTotal, value: '', money: estimate.totalMinor),
+    ];
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final row in rows)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              children: [
+                Text(
+                  row.value.isEmpty ? row.label : '${row.label}: ${row.value}',
+                  style: textTheme.bodySmall,
+                ),
+                AppMoneyText(
+                  money: Money(
+                    minor: row.money,
+                    currencyCode: estimate.currencyCode,
+                  ),
+                  sign: row.money < 0
+                      ? AppMoneySign.automatic
+                      : AppMoneySign.never,
+                  style: textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }
