@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
+import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 /// Regression tests for automatic focus advancement after committing a
@@ -250,5 +251,116 @@ void main() {
     await selectOption(tester, const Key('first'), 'One');
     final editable = tester.widget<EditableText>(find.byType(EditableText));
     expect(editable.focusNode.hasFocus, isTrue);
+  });
+
+  testWidgets('Enter in a text input focuses the next select input', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        Column(
+          children: [
+            AppTextFormField(key: const Key('first')),
+            selection(key: const Key('second'), onChanged: (_) {}),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('first')));
+    await tester.pump();
+    await tester.testTextInput.receiveAction(TextInputAction.next);
+    await tester.pump();
+
+    final secondNode = Focus.of(
+      tester.element(
+        find.descendant(
+          of: fieldInkWell(const Key('second')),
+          matching: find.byType(InputDecorator),
+        ),
+      ),
+    );
+    expect(secondNode.hasFocus, isTrue);
+  });
+
+  testWidgets('Enter advances exactly once to the next text input', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        Column(
+          children: [
+            AppTextFormField(key: const Key('first')),
+            AppTextFormField(key: const Key('second')),
+            AppTextFormField(key: const Key('third')),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('first')));
+    await tester.pump();
+    await tester.testTextInput.receiveAction(TextInputAction.next);
+    await tester.pump();
+
+    final editables = tester.widgetList<EditableText>(
+      find.byType(EditableText),
+    );
+    expect(editables.elementAt(0).focusNode.hasFocus, isFalse);
+    expect(editables.elementAt(1).focusNode.hasFocus, isTrue);
+    expect(editables.elementAt(2).focusNode.hasFocus, isFalse);
+  });
+
+  testWidgets('multiline Enter remains a newline action', (tester) async {
+    await tester.pumpWidget(
+      host(
+        Column(
+          children: [
+            AppTextFormField(key: const Key('notes'), maxLines: 3),
+            AppTextFormField(key: const Key('after')),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('notes')));
+    await tester.pump();
+
+    final editables = tester.widgetList<EditableText>(
+      find.byType(EditableText),
+    );
+    // Leave the action unset so Flutter keeps its native multiline behavior.
+    expect(editables.first.textInputAction, isNull);
+    expect(editables.first.focusNode.hasFocus, isTrue);
+    expect(editables.last.focusNode.hasFocus, isFalse);
+  });
+
+  testWidgets('explicit Done submit behavior is preserved', (tester) async {
+    var submissions = 0;
+    await tester.pumpWidget(
+      host(
+        Column(
+          children: [
+            AppTextFormField(
+              key: const Key('submit'),
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => submissions++,
+            ),
+            AppTextFormField(key: const Key('after')),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('submit')));
+    await tester.pump();
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+
+    expect(submissions, 1);
+    final editables = tester.widgetList<EditableText>(
+      find.byType(EditableText),
+    );
+    expect(editables.last.focusNode.hasFocus, isFalse);
   });
 }

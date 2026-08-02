@@ -15,19 +15,35 @@ import 'package:flutter/widgets.dart';
 /// or removed by the committed selection settle first — no fixed delays.
 void advanceFocusAfterSelection(FocusNode from) {
   WidgetsBinding.instance.addPostFrameCallback((_) {
-    final context = from.context;
-    if (context == null || !context.mounted || !from.canRequestFocus) return;
-    final policy =
-        FocusTraversalGroup.maybeOf(context) ?? ReadingOrderTraversalPolicy();
-    final last = policy.findLastFocus(from, ignoreCurrentFocus: true);
-    if (from == last) {
-      // The committed field is the final control: release focus instead of
-      // wrapping back to the first field.
-      FocusManager.instance.primaryFocus?.unfocus();
-      return;
-    }
-    // Anchor traversal on the committed field, then advance one step.
-    from.requestFocus();
-    policy.next(from);
+    _advanceFocus(from);
   });
+}
+
+/// Moves focus after the keyboard submits a single-line text input.
+///
+/// The canonical text field suppresses Flutter's built-in editing-complete
+/// traversal and calls this instead, keeping text and selection inputs on the
+/// same non-wrapping focus path.
+void advanceFocusAfterTextInput() {
+  final from = FocusManager.instance.primaryFocus;
+  if (from == null) return;
+  _advanceFocus(from);
+}
+
+void _advanceFocus(FocusNode from) {
+  final context = from.context;
+  if (context == null || !context.mounted || !from.canRequestFocus) return;
+  final policy =
+      FocusTraversalGroup.maybeOf(context) ?? ReadingOrderTraversalPolicy();
+  final last = policy.findLastFocus(from, ignoreCurrentFocus: true);
+  if (from == last) {
+    // The submitted field is the final control: release focus instead of
+    // wrapping back to the first field.
+    from.unfocus();
+    return;
+  }
+
+  // Anchor traversal on the submitted field, then advance one step.
+  from.requestFocus();
+  policy.next(from);
 }

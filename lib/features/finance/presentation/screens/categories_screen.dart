@@ -7,6 +7,7 @@ import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/validation/validators.dart';
+import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
@@ -53,7 +54,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
         title: Text(l10n.commonEdit),
         content: Form(
           key: formKey,
-          child: TextFormField(
+          child: AppTextFormField(
             controller: controller,
             autofocus: true,
             textCapitalization: TextCapitalization.words,

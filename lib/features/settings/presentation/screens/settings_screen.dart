@@ -7,6 +7,7 @@ import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
+import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:work_tracker/features/settings/data/settings_repository.dart';
@@ -31,7 +32,7 @@ class SettingsScreen extends ConsumerWidget {
         title: Text(l10n.setDisplayName),
         content: Form(
           key: formKey,
-          child: TextFormField(
+          child: AppTextFormField(
             controller: controller,
             autofocus: true,
             textCapitalization: TextCapitalization.words,

@@ -6,6 +6,7 @@ import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/validation/validators.dart';
+import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
 import 'package:work_tracker/features/work/data/work_repository.dart';
@@ -88,7 +89,7 @@ class _HolidayFormScreenState extends ConsumerState<HolidayFormScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextFormField(
+                AppTextFormField(
                   controller: _nameController,
                   autofocus: true,
                   enabled: !_busy,
@@ -116,7 +117,7 @@ class _HolidayFormScreenState extends ConsumerState<HolidayFormScreen> {
                   onTap: _pickDate,
                 ),
                 const SizedBox(height: 8),
-                TextFormField(
+                AppTextFormField(
                   controller: _notesController,
                   enabled: !_busy,
                   maxLines: 3,

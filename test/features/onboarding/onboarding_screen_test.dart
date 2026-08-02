@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
+import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
@@ -85,7 +86,10 @@ void main() {
 
     await pumpOnboarding(tester);
 
-    await tester.enterText(find.byType(TextFormField).first, 'Tareq Abdelwhap');
+    await tester.enterText(
+      find.byType(AppTextFormField).first,
+      'Tareq Abdelwhap',
+    );
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
 

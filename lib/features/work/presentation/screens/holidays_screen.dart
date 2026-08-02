@@ -5,6 +5,7 @@ import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/validation/validators.dart';
+import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/work/data/work_repository.dart';
@@ -43,7 +44,7 @@ class HolidaysScreen extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextFormField(
+                AppTextFormField(
                   controller: nameController,
                   textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(labelText: l10n.workHolidayName),
@@ -79,7 +80,7 @@ class HolidaysScreen extends ConsumerWidget {
                     }
                   },
                 ),
-                TextFormField(
+                AppTextFormField(
                   controller: notesController,
                   decoration: InputDecoration(
                     labelText: '${l10n.commonNotes} (${l10n.commonOptional})',
