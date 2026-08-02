@@ -220,8 +220,6 @@ abstract final class BuildingSuitColors {
   static const Color appBarDarkBackground = Color(0xFF151A1F);
   static const Color bottomNavigationLightBackground = Color(0xFFFFFFFF);
   static const Color bottomNavigationDarkBackground = Color(0xFF151A1F);
-  static const Color toastLightBackground = Color(0xFF151A1F);
-  static const Color toastDarkBackground = Color(0xFF252C33);
   static const Color modalLightBackground = Color(0xFFFFFFFF);
   static const Color modalDarkBackground = Color(0xFF252C33);
   static const Color tooltipLightBackground = Color(0xFF151A1F);

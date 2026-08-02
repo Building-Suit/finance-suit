@@ -5,6 +5,7 @@ import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
+import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
@@ -34,13 +35,10 @@ class _MacrosScreenState extends ConsumerState<MacrosScreen> {
     result.when(
       ok: (count) {
         invalidateFinanceData(ref);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.macroApplied(count))));
+        AppToast.success(context, l10n.macroApplied(count));
       },
-      err: (failure) => ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(failureMessage(context, failure)))),
+      err: (failure) =>
+          AppToast.error(context, failureMessage(context, failure)),
     );
   }
 
@@ -70,9 +68,8 @@ class _MacrosScreenState extends ConsumerState<MacrosScreen> {
     if (!mounted) return;
     result.when(
       ok: (_) => ref.invalidate(macrosProvider),
-      err: (failure) => ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(failureMessage(context, failure)))),
+      err: (failure) =>
+          AppToast.error(context, failureMessage(context, failure)),
     );
   }
 

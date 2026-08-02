@@ -9,6 +9,7 @@ import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
+import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
@@ -29,9 +30,7 @@ class SalaryPeriodDetailScreen extends ConsumerWidget {
   final String periodId;
 
   void _showFailure(BuildContext context, AppFailure failure) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(failureMessage(context, failure))));
+    AppToast.error(context, failureMessage(context, failure));
   }
 
   Future<bool> _confirm(

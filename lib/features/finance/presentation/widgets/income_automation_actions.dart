@@ -7,8 +7,8 @@ import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
+import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
-import 'package:work_tracker/core/widgets/top_message.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
@@ -22,7 +22,7 @@ import 'package:work_tracker/features/settings/presentation/providers/settings_d
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 void _showFailure(BuildContext context, AppFailure failure) {
-  TopMessage.error(context, failureMessage(context, failure));
+  AppToast.error(context, failureMessage(context, failure));
 }
 
 /// Confirms a scheduled income, then creates its real transaction and splits.

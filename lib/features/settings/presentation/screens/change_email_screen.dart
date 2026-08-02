@@ -6,6 +6,7 @@ import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
+import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
@@ -40,9 +41,7 @@ class _ChangeEmailScreenState extends ConsumerState<ChangeEmailScreen> {
       setState(() => _failure = failure);
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context).setEmailChangeSent)),
-    );
+    AppToast.success(context, AppLocalizations.of(context).setEmailChangeSent);
     context.pop();
   }
 

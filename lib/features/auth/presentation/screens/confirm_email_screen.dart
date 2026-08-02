@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
+import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
@@ -54,9 +55,7 @@ class _ConfirmEmailScreenState extends ConsumerState<ConfirmEmailScreen> {
       return;
     }
     _startCooldown();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context).authResendDone)),
-    );
+    AppToast.success(context, AppLocalizations.of(context).authResendDone);
   }
 
   @override

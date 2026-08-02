@@ -10,8 +10,8 @@ import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
+import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
-import 'package:work_tracker/core/widgets/top_message.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
@@ -129,7 +129,7 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
     result.when(
       ok: (_) {
         invalidateFinanceData(ref);
-        TopMessage.success(context, AppLocalizations.of(context).setSaved);
+        AppToast.success(context, AppLocalizations.of(context).setSaved);
         context.pop();
       },
       err: (failure) => setState(() => _failure = failure),

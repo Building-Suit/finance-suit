@@ -10,6 +10,7 @@ import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
+import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
@@ -243,9 +244,7 @@ class _SalaryAdjustmentFormScreenState
         _date.isBefore(refreshed.periodStart) ||
         _date.isAfter(refreshed.periodEnd)) {
       setState(() => _busy = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.salPeriodNoLongerOpen)));
+      AppToast.warning(context, l10n.salPeriodNoLongerOpen);
       await _retryLoadPeriods();
       return;
     }
@@ -263,9 +262,7 @@ class _SalaryAdjustmentFormScreenState
     result.when(
       ok: (_) {
         invalidateSalaryData(ref);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).setSaved)),
-        );
+        AppToast.success(context, AppLocalizations.of(context).setSaved);
         context.pop();
       },
       err: (failure) => setState(() => _failure = failure),
