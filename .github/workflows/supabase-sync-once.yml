@@ -1,0 +1,100 @@
+name: One-time Finance Suit Supabase sync
+
+on:
+  push:
+    branches:
+      - agent/release-pipeline-v0-6
+    paths:
+      - .github/workflows/supabase-sync-once.yml
+      - supabase/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-finance-suit-production
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Backup, migrate, verify, and deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: supabase-production
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_REF: kedjrbwnznvfqlzszawa
+      SUPABASE_CLI_VERSION: 2.109.1
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Validate deployment secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${SUPABASE_ACCESS_TOKEN}" ]] || {
+            echo "Missing SUPABASE_ACCESS_TOKEN secret." >&2
+            exit 1
+          }
+          [[ -n "${SUPABASE_DB_PASSWORD}" ]] || {
+            echo "Missing SUPABASE_DB_PASSWORD secret." >&2
+            exit 1
+          }
+
+      - name: Link Finance Suit project
+        run: >-
+          npx --yes supabase@${SUPABASE_CLI_VERSION} link
+          --project-ref "${SUPABASE_PROJECT_REF}"
+          --password "${SUPABASE_DB_PASSWORD}"
+
+      - name: Record migration state before deployment
+        run: npx --yes supabase@${SUPABASE_CLI_VERSION} migration list --linked
+
+      - name: Create pre-migration backups
+        shell: bash
+        run: |
+          set -euo pipefail
+          backup_dir="${RUNNER_TEMP}/finance-suit-supabase-backup"
+          mkdir -p "${backup_dir}"
+          npx --yes supabase@${SUPABASE_CLI_VERSION} db dump --linked \
+            --password "${SUPABASE_DB_PASSWORD}" \
+            --file "${backup_dir}/backup_pre_sync.sql"
+          npx --yes supabase@${SUPABASE_CLI_VERSION} db dump --linked \
+            --password "${SUPABASE_DB_PASSWORD}" \
+            --data-only --use-copy \
+            --file "${backup_dir}/backup_pre_sync_data.sql"
+          sha256sum "${backup_dir}"/*.sql > "${backup_dir}/SHA256SUMS"
+
+      - name: Retain pre-migration backups
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: finance-suit-supabase-pre-sync-${{ github.run_id }}
+          path: ${{ runner.temp }}/finance-suit-supabase-backup
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 9
+
+      - name: Preview pending migrations
+        run: npx --yes supabase@${SUPABASE_CLI_VERSION} db push --linked --dry-run
+
+      - name: Apply pending migrations
+        run: npx --yes supabase@${SUPABASE_CLI_VERSION} db push --linked
+
+      - name: Verify migration state and schema
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes supabase@${SUPABASE_CLI_VERSION} migration list --linked
+          npx --yes supabase@${SUPABASE_CLI_VERSION} db push --linked --dry-run
+          npx --yes supabase@${SUPABASE_CLI_VERSION} db query --linked \
+            --file supabase/verification/production.sql
+
+      - name: Deploy delete-account Edge Function
+        run: >-
+          npx --yes supabase@${SUPABASE_CLI_VERSION} functions deploy delete-account
+          --project-ref "${SUPABASE_PROJECT_REF}"
+          --no-verify-jwt
+          --use-api
