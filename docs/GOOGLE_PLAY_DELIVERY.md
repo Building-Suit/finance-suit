@@ -3,10 +3,10 @@
 Finance Suit uses the permanent Android application ID
 `com.buildingsuit.finance`. Google Play delivery has two repository stages:
 
-| Source | GitHub environment | Play track | Approval |
-| --- | --- | --- | --- |
-| Merge a feature into `test` | `play-test` | Internal testing | Automatic |
-| Promote `test` into `main` | `play-production` | Production | Automatic after the production environment gate |
+| Source                    | GitHub environment | Play track       | Approval                                        |
+| ------------------------- | ------------------ | ---------------- | ----------------------------------------------- |
+| Promote `dev` into `stg`  | `play-test`        | Internal testing | Automatic                                       |
+| Promote `stg` into `main` | `play-production`  | Production       | Automatic after the production environment gate |
 
 Both stages use the production Supabase project. The mobile bundle contains
 only the public Supabase URL and anon key; never add a Supabase `service_role`
@@ -80,7 +80,7 @@ Account-deletion deployment instructions are documented in
 
 After all four signing secrets exist, set the repository variable
 `PLAY_SIGNING_READY` to `true`. Set `PLAY_TEST_DELIVERY_ENABLED` to `true`
-after the first signed bundle has been uploaded manually. A push to `test`
+after the first signed bundle has been uploaded manually. A push to `stg`
 then builds, signs, and publishes the next bundle to Internal testing.
 
 The workflow builds an Android App Bundle rather than a universal APK. Google
@@ -141,35 +141,51 @@ release to `main`.
 
 - Every run uses the workflow-wide run number as Android `versionCode`, so a
   later production build is newer than earlier Internal Testing builds.
-- Test builds use `<pubspec-version>-test.<run-number>` as `versionName`.
+- Test builds use `<pubspec-version>-stg.<run-number>` as `versionName`.
 - Production uses the base `pubspec.yaml` version as `versionName`.
-- Before promoting `test` to `main`, bump `pubspec.yaml` to a version that has
-  never been released. The workflow rejects a tag already used by another
-  commit.
+- Before promoting `dev` to `stg`, set `pubspec.yaml` to the version calculated
+  from all unreleased Conventional Commit titles. Promotion workflows reject
+  an incorrect or previously released version.
 - After Google Play accepts the production bundle, the workflow creates the
   matching `v<pubspec-version>` tag and publishes the AAB and checksum to a
   GitHub Release.
 
 ## Rollout commands
 
-Create feature branches from `test` and merge them back through a pull request.
-Each merge publishes a new Internal Testing build:
+Create feature branches from `dev` and merge them back through a pull request.
+These PRs run fast cached checks without publishing:
 
 ```bash
-git switch test
-git pull --ff-only origin test
-git switch -c feature/my-change
-# Commit and push, then open a pull request targeting test.
+git switch dev
+git pull --ff-only origin dev
+git switch -c feat/my-change
+# Commit and push, then open a pull request targeting dev.
 ```
 
-After QA approves the Internal Testing build, bump the version on `test` if
-needed and open a promotion pull request from `test` to `main`. Merging that
-pull request publishes the exact `main` commit to Production:
+Promote `dev` to `stg` to back up and migrate Supabase, then publish Internal
+Testing. After QA approves that build, promote the exact `stg` state to
+`main` for Production:
 
 ```bash
-gh pr create --base main --head test \
-  --title "release: promote Finance Suit v1.0.0"
+gh pr create --base stg --head dev \
+  --title "chore(release): stage Finance Suit v0.6.0"
+gh pr create --base main --head stg \
+  --title "chore(release): publish Finance Suit v0.6.0"
 ```
 
-The workflow can also be dispatched manually on either `test` or `main`; the
+The workflow can also be dispatched manually on either `stg` or `main`; the
 selected branch still determines the Play track and cannot be overridden.
+
+## Supabase deployment gate
+
+Every `stg` and `main` build calls the reusable Supabase deployment workflow
+before Flutter quality checks. It records migration history, creates schema
+and data dumps, uploads them as a seven-day private artifact, previews and
+applies pending migrations, verifies required objects and RLS, and redeploys
+the `delete-account` Edge Function. A backup or verification failure blocks
+the Android build.
+
+The shared production Supabase project is never mutated by feature or `dev`
+workflows. Database pull requests replay migrations and pgTAP locally instead.
+See [BRANCHING_AND_VERSIONING.md](BRANCHING_AND_VERSIONING.md) for the enforced
+promotion and version-impact rules.

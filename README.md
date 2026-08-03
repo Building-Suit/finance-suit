@@ -36,8 +36,8 @@ The vendored color-token source and synchronization rules are documented in
 ## Google Play delivery
 
 Google Play builds use signed Android App Bundles for smaller device-specific
-downloads. The `test` branch delivers to Internal Testing, while version tags
-on `main` are delivered to Production by an explicit manual workflow run. See
+downloads. Changes move through `feature -> dev -> stg -> main`; `stg`
+delivers to Internal Testing and `main` delivers to Production. See
 [docs/GOOGLE_PLAY_DELIVERY.md](docs/GOOGLE_PLAY_DELIVERY.md) for signing,
 Play Console, service-account, and rollout setup.
 
