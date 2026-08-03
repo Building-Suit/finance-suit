@@ -1743,4 +1743,29 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get onboardingSubmitFailed =>
       'تعذر إكمال الإعداد. راجع البيانات وحاول مرة أخرى.';
+
+  @override
+  String get updateAvailableTitle => 'تحديث متاح';
+
+  @override
+  String get updateAvailableBody =>
+      'يتوفر إصدار جديد من Finance Suit. حدّث الآن للحصول على أحدث التحسينات.';
+
+  @override
+  String get updateLater => 'لاحقًا';
+
+  @override
+  String get updateNow => 'تحديث';
+
+  @override
+  String get heldTypeLabel => 'النوع';
+
+  @override
+  String get heldSettleTitle => 'تسوية المبلغ المعلق';
+
+  @override
+  String get heldSettleDateLabel => 'تاريخ التسوية';
+
+  @override
+  String get heldSettleHelp => 'سيتم تسجيل المعاملة بهذا التاريخ.';
 }

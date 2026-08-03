@@ -178,16 +178,21 @@ GoRouter buildShellTestRouter({String initialLocation = '/home'}) {
 }
 
 /// Pumps the harness app with the given [router].
+///
+/// [extraOverrides] lets individual tests override additional providers
+/// (typed dynamically because Riverpod 3 does not export `Override`).
 Future<void> pumpShellApp(
   WidgetTester tester,
   GoRouter router, {
   Locale locale = const Locale('en'),
+  List<dynamic> extraOverrides = const [],
 }) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         realtimeInvalidationProvider.overrideWith((ref) {}),
         macrosProvider.overrideWith((ref) async => const <TransactionMacro>[]),
+        ...extraOverrides.cast(),
       ],
       child: MaterialApp.router(
         theme: AppTheme.light(locale: locale),

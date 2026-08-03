@@ -648,5 +648,13 @@
   "selectionSearchHint": "Search options",
   "heldLinkedTransactionReference": "Original transaction linked for reference",
   "heldSettlementTransactionHelp": "Settlement creates a separate transaction for the selected account.",
-  "onboardingSubmitFailed": "Setup could not be completed. Check your entries and try again."
+  "onboardingSubmitFailed": "Setup could not be completed. Check your entries and try again.",
+  "updateAvailableTitle": "Update available",
+  "updateAvailableBody": "A new version of Finance Suit is ready. Update now to get the latest improvements.",
+  "updateLater": "Later",
+  "updateNow": "Update",
+  "heldTypeLabel": "Type",
+  "heldSettleTitle": "Settle held amount",
+  "heldSettleDateLabel": "Settlement date",
+  "heldSettleHelp": "The transaction will be recorded on this date."
 }

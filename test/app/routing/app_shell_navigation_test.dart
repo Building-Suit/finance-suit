@@ -2,9 +2,26 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:work_tracker/app/routing/app_shell.dart';
 import 'package:work_tracker/app/routing/finance_suit_navigation_bar.dart';
+import 'package:work_tracker/core/updates/app_update_service.dart';
 
 import 'shell_test_harness.dart';
+
+class _FakeUpdateService implements AppUpdateService {
+  _FakeUpdateService({this.update});
+
+  final PendingAppUpdate? update;
+  var startCalls = 0;
+
+  @override
+  Future<PendingAppUpdate?> checkForUpdate() async => update;
+
+  @override
+  Future<void> startUpdate() async {
+    startCalls++;
+  }
+}
 
 void main() {
   const addButton = Key('global-add-button');
@@ -267,6 +284,61 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('money-root'), findsOneWidget);
     expect(navBar(), findsOneWidget);
+  });
+
+  testWidgets('offers the update drawer once with Later and Update', (
+    tester,
+  ) async {
+    AppShell.updatePromptShown = false;
+    addTearDown(() => AppShell.updatePromptShown = false);
+    final service = _FakeUpdateService(
+      update: const PendingAppUpdate(availableVersionCode: 12),
+    );
+    await pumpShellApp(
+      tester,
+      buildShellTestRouter(),
+      extraOverrides: [appUpdateServiceProvider.overrideWithValue(service)],
+    );
+
+    expect(find.byKey(const Key('app-update-sheet')), findsOneWidget);
+    expect(find.text('Update available'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('app-update-later')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('app-update-sheet')), findsNothing);
+    expect(service.startCalls, 0);
+    // Same session: never offered again.
+    expect(AppShell.updatePromptShown, isTrue);
+  });
+
+  testWidgets('the Update action starts the platform update flow', (
+    tester,
+  ) async {
+    AppShell.updatePromptShown = false;
+    addTearDown(() => AppShell.updatePromptShown = false);
+    final service = _FakeUpdateService(
+      update: const PendingAppUpdate(availableVersionCode: 12),
+    );
+    await pumpShellApp(
+      tester,
+      buildShellTestRouter(),
+      extraOverrides: [appUpdateServiceProvider.overrideWithValue(service)],
+    );
+    await tester.tap(find.byKey(const Key('app-update-now')));
+    await tester.pumpAndSettle();
+    expect(service.startCalls, 1);
+  });
+
+  testWidgets('no drawer when the app is up to date', (tester) async {
+    AppShell.updatePromptShown = false;
+    addTearDown(() => AppShell.updatePromptShown = false);
+    await pumpShellApp(
+      tester,
+      buildShellTestRouter(),
+      extraOverrides: [
+        appUpdateServiceProvider.overrideWithValue(_FakeUpdateService()),
+      ],
+    );
+    expect(find.byKey(const Key('app-update-sheet')), findsNothing);
   });
 
   testWidgets('fits a small phone in Arabic without overflow', (tester) async {
