@@ -38,6 +38,24 @@ still used as the monotonically increasing Android `versionCode`.
 temporary release floor. The checker automatically uses `main` again as soon
 as production contains a newer version.
 
+## User-facing release notes
+
+Every app-version change must update both Google Play locale files:
+
+- `distribution/whatsnew/whatsnew-en-US`
+- `distribution/whatsnew/whatsnew-ar`
+
+Both versions must describe the same user-visible changes in natural, friendly
+language. Explain what users can now do or what became easier or more reliable.
+Do not describe commits, CI/CD, migrations, schemas, APIs, or implementation
+details. Google Play limits each locale to 500 characters.
+
+`tool/check_play_release_notes.sh origin/main check` validates that both notes
+exist, use the expected language, fit the store limit, and were updated when the
+app version changed. The branch-policy job also shows both notes in its workflow
+summary for human accuracy review. The Play upload publishes both files, while
+the production GitHub release combines them into one bilingual description.
+
 ## CI/CD behavior
 
 - Pull requests into `dev` run cached Flutter checks only when app files

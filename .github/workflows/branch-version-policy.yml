@@ -78,6 +78,10 @@ jobs:
         shell: bash
         run: ./tool/check_release_version.sh origin/main report
 
+      - name: Validate bilingual Play release notes
+        shell: bash
+        run: ./tool/check_play_release_notes.sh origin/main check
+
       - name: Enforce release version on stg and main
         if: >-
           (github.event_name == 'pull_request' &&

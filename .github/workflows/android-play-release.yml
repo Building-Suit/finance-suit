@@ -58,6 +58,9 @@ jobs:
       - name: Resolve dependencies
         run: flutter pub get
 
+      - name: Validate bilingual Play release notes
+        run: ./tool/check_play_release_notes.sh
+
       - name: Analyze
         run: flutter analyze
 
@@ -291,6 +294,15 @@ jobs:
             > "release/${{ steps.delivery.outputs.artifact_name }}.aab.sha256"
           tar -czf "release/${{ steps.delivery.outputs.artifact_name }}-dart-symbols.tar.gz" \
             -C build symbols
+          {
+            echo "## What's new"
+            echo
+            cat distribution/whatsnew/whatsnew-en-US
+            echo
+            echo "## ما الجديد"
+            echo
+            cat distribution/whatsnew/whatsnew-ar
+          } > release/release-notes.md
 
       - name: Upload signed bundle and symbols
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -300,6 +312,7 @@ jobs:
             release/${{ steps.delivery.outputs.artifact_name }}.aab
             release/${{ steps.delivery.outputs.artifact_name }}.aab.sha256
             release/${{ steps.delivery.outputs.artifact_name }}-dart-symbols.tar.gz
+            release/release-notes.md
             build/app/outputs/mapping/release/mapping.txt
           if-no-files-found: error
           retention-days: 90
@@ -330,11 +343,13 @@ jobs:
               "release/${{ steps.delivery.outputs.artifact_name }}.aab" \
               "release/${{ steps.delivery.outputs.artifact_name }}.aab.sha256" \
               --clobber
+            gh release edit "${release_tag}" \
+              --notes-file release/release-notes.md
           else
             gh release create "${release_tag}" \
               "release/${{ steps.delivery.outputs.artifact_name }}.aab" \
               "release/${{ steps.delivery.outputs.artifact_name }}.aab.sha256" \
               --target "${release_commit}" \
               --title "Finance Suit ${release_tag}" \
-              --notes "Google Play app bundle built from ${release_commit}."
+              --notes-file release/release-notes.md
           fi

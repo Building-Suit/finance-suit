@@ -7,6 +7,8 @@
 - [ ] Android debug build
 - [ ] Android release signing configured
 - [ ] `tool/check_release_version.sh origin/main check`
+- [ ] English and Arabic Play notes match the actual user-visible release changes
+- [ ] `tool/check_play_release_notes.sh origin/main check`
 - [ ] Feature/fix PR merged into `dev`
 - [ ] `dev` promotion PR merged into `stg`
 - [ ] Internal Testing build approved before the `stg` to `main` PR is merged
