@@ -1,12 +1,13 @@
-name: One-time Finance Suit Supabase sync
+name: Finance Suit Supabase deployment
 
 on:
-  push:
-    branches:
-      - agent/release-pipeline-v0-6
-    paths:
-      - .github/workflows/supabase-sync-once.yml
-      - supabase/**
+  workflow_call:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type DEPLOY to back up, migrate, verify, and deploy.
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -16,8 +17,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  sync:
+  deploy:
     name: Backup, migrate, verify, and deploy
+    if: >-
+      github.event_name == 'workflow_call' ||
+      inputs.confirmation == 'DEPLOY'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: supabase-production
@@ -31,10 +35,17 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
 
-      - name: Validate deployment secrets
+      - name: Validate release branch and secrets
         shell: bash
         run: |
           set -euo pipefail
+          case "${GITHUB_REF_NAME}" in
+            stg | main) ;;
+            *)
+              echo "Supabase deployment is allowed only from stg or main." >&2
+              exit 1
+              ;;
+          esac
           [[ -n "${SUPABASE_ACCESS_TOKEN}" ]] || {
             echo "Missing SUPABASE_ACCESS_TOKEN secret." >&2
             exit 1
@@ -71,17 +82,18 @@ jobs:
       - name: Retain pre-migration backups
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: finance-suit-supabase-pre-sync-${{ github.run_id }}
+          name: finance-suit-supabase-${{ github.ref_name }}-${{ github.run_id }}
           path: ${{ runner.temp }}/finance-suit-supabase-backup
           if-no-files-found: error
           retention-days: 7
           compression-level: 9
 
-      - name: Preview pending migrations
-        run: npx --yes supabase@${SUPABASE_CLI_VERSION} db push --linked --dry-run
-
-      - name: Apply pending migrations
-        run: npx --yes supabase@${SUPABASE_CLI_VERSION} db push --linked
+      - name: Preview and apply pending migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes supabase@${SUPABASE_CLI_VERSION} db push --linked --dry-run
+          npx --yes supabase@${SUPABASE_CLI_VERSION} db push --linked
 
       - name: Verify migration state and schema
         shell: bash

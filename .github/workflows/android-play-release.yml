@@ -15,12 +15,18 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  FLUTTER_VERSION: '3.41.6'
+  FLUTTER_VERSION: "3.41.6"
   PACKAGE_NAME: com.buildingsuit.finance
   AUTH_CALLBACK_SCHEME: worktracker
   AUTH_CALLBACK_HOST: auth-callback
 
 jobs:
+  database:
+    name: Sync Supabase before build
+    needs: quality
+    uses: ./.github/workflows/supabase-deploy.yml
+    secrets: inherit
+
   quality:
     name: Analyze and test
     runs-on: ubuntu-latest
@@ -34,7 +40,12 @@ jobs:
         uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
+          cache: gradle
+          cache-dependency-path: |
+            android/*.gradle.kts
+            android/app/*.gradle.kts
+            android/gradle/wrapper/gradle-wrapper.properties
 
       - name: Set up Flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
@@ -42,6 +53,7 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
+          pub-cache: true
 
       - name: Resolve dependencies
         run: flutter pub get
@@ -53,6 +65,12 @@ jobs:
         run: flutter test
 
       - name: Smoke-test optimized release bundle
+        if: >-
+          vars.PLAY_SIGNING_READY != 'true' ||
+          (github.ref == 'refs/heads/stg' &&
+          vars.PLAY_TEST_DELIVERY_ENABLED != 'true') ||
+          (github.ref == 'refs/heads/main' &&
+          vars.PLAY_PRODUCTION_DELIVERY_ENABLED != 'true')
         shell: bash
         run: |
           set -euo pipefail
@@ -94,7 +112,7 @@ jobs:
 
   build-and-deliver:
     name: Build and deliver ${{ github.ref_name }} AAB
-    needs: quality
+    needs: database
     if: >-
       vars.PLAY_SIGNING_READY == 'true' &&
       ((github.ref == 'refs/heads/stg' &&
@@ -209,7 +227,12 @@ jobs:
         uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
+          cache: gradle
+          cache-dependency-path: |
+            android/*.gradle.kts
+            android/app/*.gradle.kts
+            android/gradle/wrapper/gradle-wrapper.properties
 
       - name: Set up Flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
@@ -217,6 +240,7 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
+          pub-cache: true
 
       - name: Resolve dependencies
         run: flutter pub get

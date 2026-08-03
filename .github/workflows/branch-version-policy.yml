@@ -1,0 +1,88 @@
+name: Branch and version policy
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - stg
+      - main
+    types:
+      - opened
+      - edited
+      - reopened
+      - synchronize
+  push:
+    branches:
+      - dev
+      - stg
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  policy:
+    name: Validate branch flow and release version
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          fetch-depth: 0
+
+      - name: Fetch production baseline
+        run: git fetch --no-tags origin main:refs/remotes/origin/main
+
+      - name: Validate pull-request route and title
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+          HEAD_BRANCH: ${{ github.head_ref }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -euo pipefail
+          case "${BASE_BRANCH}" in
+            dev)
+              if [[ "${HEAD_BRANCH}" == "dev" ||
+                    "${HEAD_BRANCH}" == "stg" ||
+                    "${HEAD_BRANCH}" == "main" ]]; then
+                echo "dev accepts only feature/fix branches." >&2
+                exit 1
+              fi
+              ;;
+            stg)
+              [[ "${HEAD_BRANCH}" == "dev" ]] || {
+                echo "Only dev may be promoted into stg." >&2
+                exit 1
+              }
+              ;;
+            main)
+              [[ "${HEAD_BRANCH}" == "stg" ]] || {
+                echo "Only stg may be promoted into main." >&2
+                exit 1
+              }
+              ;;
+          esac
+
+          if [[ ! "${PR_TITLE}" =~ ^(feat|fix|perf|refactor|docs|test|ci|build|chore)(\([a-z0-9_-]+\))?(!)?:\ .+ ]]; then
+            echo "Use a Conventional Commit PR title so version impact is explicit." >&2
+            echo "Example: feat(finance): add recurring income" >&2
+            exit 1
+          fi
+
+      - name: Calculate release impact
+        id: version
+        shell: bash
+        run: ./tool/check_release_version.sh origin/main report
+
+      - name: Enforce release version on stg and main
+        if: >-
+          (github.event_name == 'pull_request' &&
+          (github.base_ref == 'stg' || github.base_ref == 'main')) ||
+          (github.event_name == 'push' &&
+          (github.ref_name == 'stg' || github.ref_name == 'main'))
+        shell: bash
+        run: ./tool/check_release_version.sh origin/main check

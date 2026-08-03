@@ -1,0 +1,31 @@
+name: Supabase migration checks
+
+on:
+  pull_request:
+    branches:
+      - dev
+    paths:
+      - supabase/**
+      - .github/workflows/supabase-pr-checks.yml
+
+permissions:
+  contents: read
+
+jobs:
+  database:
+    name: Replay migrations and run pgTAP
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Start local Supabase
+        run: npx --yes supabase@2.109.1 start
+
+      - name: Replay migrations
+        run: npx --yes supabase@2.109.1 db reset --local
+
+      - name: Run database tests
+        run: npx --yes supabase@2.109.1 test db
