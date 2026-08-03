@@ -38,10 +38,49 @@ alter table app_finance.held_amounts
   add constraint held_amounts_category_fk
     foreign key (category_id, user_id)
     references app_finance.transaction_categories (id, user_id)
-    on delete set null;
+    on delete set null (category_id);
+
+-- Keep direct inserts from older clients compatible while making direction a
+-- projection of the typed transaction. A legacy direction-only write maps to
+-- the corresponding generic transaction kind; typed writes remain exact.
+create function app_private.normalize_held_amount_kind_direction()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if new.transaction_kind is null
+      or (
+        tg_op = 'UPDATE'
+        and new.transaction_kind is not distinct from old.transaction_kind
+        and new.direction is distinct from old.direction
+      ) then
+    new.transaction_kind := case new.direction
+      when 'i_owe' then 'expense'::app_finance.transaction_kind
+      when 'owed_to_me' then 'custom_income'::app_finance.transaction_kind
+    end;
+  else
+    new.direction := case
+      when new.transaction_kind in ('expense', 'allowance_given')
+        then 'i_owe'::app_finance.held_amount_direction
+      else 'owed_to_me'::app_finance.held_amount_direction
+    end;
+  end if;
+
+  return new;
+end;
+$$;
+
+create trigger trg_normalize_held_amount_kind_direction
+  before insert or update of transaction_kind, direction
+  on app_finance.held_amounts
+  for each row execute function app_private.normalize_held_amount_kind_direction();
+
+revoke execute on function app_private.normalize_held_amount_kind_direction()
+  from public, anon, authenticated;
 
 create index if not exists idx_held_amounts_category
-  on app_finance.held_amounts (category_id)
+  on app_finance.held_amounts (category_id, user_id)
   where category_id is not null;
 
 -- Replace save_held_amount: the caller provides the transaction kind and
@@ -99,11 +138,11 @@ begin
     if v_category_kind is null then
       raise exception 'not_found: category';
     end if;
-    if v_category_kind <> case p_transaction_kind
+    if v_category_kind <> (case p_transaction_kind
       when 'expense' then 'expense'::app_finance.category_kind
       when 'allowance_given' then 'allowance'::app_finance.category_kind
       else 'income'::app_finance.category_kind
-    end then
+    end) then
       raise exception 'invalid_category: category kind does not match transaction kind';
     end if;
   end if;
