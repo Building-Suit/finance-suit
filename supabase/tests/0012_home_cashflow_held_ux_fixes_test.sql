@@ -112,9 +112,10 @@ insert into app_finance.financial_transactions (
 );
 
 select app_finance.save_held_amount(
-  'owed_to_me', 6000, 'EGP', 'Friend', '2026-07-20',
+  'custom_income', 6000, 'EGP', 'Friend', '2026-07-20',
   'Fast food reimbursement', null,
   (select id from app_finance.accounts where name = 'Current Balance'),
+  null,
   (select id from app_finance.financial_transactions where title = 'Fast food')
 );
 
