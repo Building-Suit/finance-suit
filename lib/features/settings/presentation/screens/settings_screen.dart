@@ -5,6 +5,7 @@ import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/configuration/env.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
+import 'package:work_tracker/core/security/biometric_login_controller.dart';
 import 'package:work_tracker/core/security/device_authenticator.dart';
 import 'package:work_tracker/core/security/device_privacy_controller.dart';
 import 'package:work_tracker/core/validation/validators.dart';
@@ -71,6 +72,102 @@ class SettingsScreen extends ConsumerWidget {
       reason: AppLocalizations.of(context).privacyEnableAppLockReason,
     );
     if (context.mounted) _showDeviceAuthOutcome(context, outcome);
+  }
+
+  Future<void> _setBiometricLogin(
+    BuildContext context,
+    WidgetRef ref,
+    bool enabled,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final controller = ref.read(biometricLoginProvider.notifier);
+    if (!enabled) {
+      final outcome = await controller.disable(
+        reason: l10n.privacyDisableBiometricLoginReason,
+      );
+      if (context.mounted) _showDeviceAuthOutcome(context, outcome);
+      return;
+    }
+
+    final password = await _requestPassword(context);
+    if (password == null || !context.mounted) return;
+    final outcome = await controller.enable(
+      reason: l10n.privacyEnableBiometricLoginReason,
+      password: password,
+    );
+    if (!context.mounted) return;
+    switch (outcome) {
+      case BiometricLoginOutcome.authenticated:
+        AppToast.success(context, l10n.setSaved);
+      case BiometricLoginOutcome.canceled:
+        return;
+      case BiometricLoginOutcome.unavailable:
+        AppToast.warning(context, l10n.privacyDeviceAuthUnavailable);
+      case BiometricLoginOutcome.invalidCredentials:
+        AppToast.error(context, l10n.privacyIncorrectPassword);
+      case BiometricLoginOutcome.sessionExpired:
+      case BiometricLoginOutcome.failed:
+        AppToast.error(context, l10n.authBiometricLoginFailed);
+    }
+  }
+
+  Future<String?> _requestPassword(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final passwordController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    final password = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.privacyConfirmPasswordTitle),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(l10n.privacyConfirmPasswordHelp),
+              const SizedBox(height: 16),
+              AppTextFormField(
+                controller: passwordController,
+                autofocus: true,
+                obscureText: true,
+                autocorrect: false,
+                enableSuggestions: false,
+                textInputAction: TextInputAction.done,
+                decoration: InputDecoration(labelText: l10n.authPassword),
+                validator: (value) {
+                  final error = Validators.requiredText(value);
+                  return error == null
+                      ? null
+                      : validationMessage(dialogContext, error);
+                },
+                onFieldSubmitted: (_) {
+                  if (formKey.currentState!.validate()) {
+                    Navigator.of(dialogContext).pop(passwordController.text);
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.of(dialogContext).pop(passwordController.text);
+              }
+            },
+            child: Text(l10n.commonConfirm),
+          ),
+        ],
+      ),
+    );
+    passwordController.dispose();
+    return password;
   }
 
   Future<void> _editDisplayName(
@@ -159,7 +256,12 @@ class SettingsScreen extends ConsumerWidget {
     final locale = ref.watch(appLocaleProvider);
     final profile = ref.watch(profileProvider);
     final privacy = ref.watch(devicePrivacyProvider).value;
-    final securityControlsEnabled = privacy != null && !privacy.authenticating;
+    final biometricLogin = ref.watch(biometricLoginProvider).value;
+    final securityControlsEnabled =
+        privacy != null &&
+        biometricLogin != null &&
+        !privacy.authenticating &&
+        !biometricLogin.authenticating;
 
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.tabSettings),
@@ -238,6 +340,15 @@ class SettingsScreen extends ConsumerWidget {
               value: privacy?.appLockEnabled ?? false,
               onChanged: securityControlsEnabled
                   ? (value) => _setAppLock(context, ref, value)
+                  : null,
+            ),
+            SwitchListTile.adaptive(
+              secondary: const FinanceSuitIcon(FinanceSuitIcons.fingerprint),
+              title: Text(l10n.privacyBiometricLoginTitle),
+              subtitle: Text(l10n.privacyBiometricLoginHelp),
+              value: biometricLogin?.enabled ?? false,
+              onChanged: securityControlsEnabled
+                  ? (value) => _setBiometricLogin(context, ref, value)
                   : null,
             ),
             const Divider(),

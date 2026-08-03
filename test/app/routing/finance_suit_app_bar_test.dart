@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 import 'package:work_tracker/app/branding/finance_suit_mark.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
@@ -14,18 +16,25 @@ import 'package:work_tracker/l10n/generated/app_localizations.dart';
 void main() {
   const menuButton = Key('finance-suit-menu-button');
 
+  setUp(() {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.empty();
+  });
+
   Future<void> pumpBar(
     WidgetTester tester, {
     required PreferredSizeWidget appBar,
     Locale locale = const Locale('en'),
   }) async {
     await tester.pumpWidget(
-      MaterialApp(
-        theme: AppTheme.light(locale: locale),
-        locale: locale,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(appBar: appBar, body: const SizedBox()),
+      ProviderScope(
+        child: MaterialApp(
+          theme: AppTheme.light(locale: locale),
+          locale: locale,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(appBar: appBar, body: const SizedBox()),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -93,13 +102,15 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      MaterialApp(
-        theme: AppTheme.light(),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: const Scaffold(
-          appBar: FinanceSuitAppBar.focused(semanticTitle: 'Details'),
-          body: FinanceSuitFocusedBody(title: 'Details', child: SizedBox()),
+      ProviderScope(
+        child: MaterialApp(
+          theme: AppTheme.light(),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const Scaffold(
+            appBar: FinanceSuitAppBar.focused(semanticTitle: 'Details'),
+            body: FinanceSuitFocusedBody(title: 'Details', child: SizedBox()),
+          ),
         ),
       ),
     );

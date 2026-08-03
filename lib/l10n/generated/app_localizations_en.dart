@@ -507,6 +507,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Require fingerprint, face, PIN, pattern, password, or passcode when opening or returning to the app.';
 
   @override
+  String get privacyBiometricLoginTitle =>
+      'Login with fingerprint or device security';
+
+  @override
+  String get privacyBiometricLoginHelp =>
+      'After you log out, sign in again with fingerprint, face, PIN, pattern, password, or passcode without replacing email and password login.';
+
+  @override
   String get privacyDeviceAuthUnavailableHelp =>
       'Set up a PIN, password, passcode, pattern, fingerprint, or face unlock on this phone to use these options.';
 
@@ -527,6 +535,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'Confirm your identity to enable Finance Suit app lock.';
 
   @override
+  String get privacyEnableBiometricLoginReason =>
+      'Confirm your identity to enable secure quick login for Finance Suit.';
+
+  @override
+  String get privacyConfirmPasswordTitle =>
+      'Confirm your Finance Suit password';
+
+  @override
+  String get privacyConfirmPasswordHelp =>
+      'Enter your current password once to securely set up quick login on this phone.';
+
+  @override
+  String get privacyIncorrectPassword =>
+      'That password is incorrect. Quick login was not enabled.';
+
+  @override
   String get privacyDisableMoneyReason =>
       'Confirm your identity to stop hiding financial amounts in Finance Suit.';
 
@@ -535,8 +559,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Confirm your identity to disable Finance Suit app lock.';
 
   @override
+  String get privacyDisableBiometricLoginReason =>
+      'Confirm your identity to disable secure quick login for Finance Suit.';
+
+  @override
   String get privacyRevealReason =>
       'Confirm your identity to reveal financial amounts in Finance Suit.';
+
+  @override
+  String get privacyShowAmountsTooltip => 'Show money amounts';
+
+  @override
+  String get privacyHideAmountsTooltip => 'Hide money amounts';
 
   @override
   String get privacyHiddenAmountLabel => 'Hidden financial amount';
@@ -561,6 +595,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyUsePassword => 'Use Finance Suit password instead';
+
+  @override
+  String get authBiometricLogin => 'Login with fingerprint or device security';
+
+  @override
+  String get authBiometricLoginReason =>
+      'Confirm your identity to login to Finance Suit.';
+
+  @override
+  String get authBiometricSessionExpired =>
+      'Secure quick login has expired. Login with your email and password, then enable it again in Settings.';
+
+  @override
+  String get authBiometricLoginFailed =>
+      'Secure quick login failed. Try again or use your email and password.';
 
   @override
   String get setTheme => 'Theme';

@@ -22,6 +22,7 @@ class _DevicePrivacyGateState extends ConsumerState<DevicePrivacyGate>
     with WidgetsBindingObserver {
   late final DeviceAuthenticator _authenticator;
   bool _automaticAttempted = false;
+  bool _fullyBackgrounded = false;
   DeviceAuthOutcome? _lastOutcome;
 
   @override
@@ -42,12 +43,22 @@ class _DevicePrivacyGateState extends ConsumerState<DevicePrivacyGate>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.inactive:
+        // Opening notification/quick-settings surfaces and showing the native
+        // authentication dialog can both make the app inactive briefly. They
+        // must not lock the app or arm another fingerprint prompt.
+        return;
       case AppLifecycleState.hidden:
       case AppLifecycleState.paused:
-      case AppLifecycleState.detached:
+        final privacy = ref.read(devicePrivacyProvider).value;
+        if (_fullyBackgrounded || privacy?.authenticating == true) return;
+        _fullyBackgrounded = true;
         ref.read(devicePrivacyProvider.notifier).lockForBackground();
         _automaticAttempted = false;
+      case AppLifecycleState.detached:
+        return;
       case AppLifecycleState.resumed:
+        if (!_fullyBackgrounded) return;
+        _fullyBackgrounded = false;
         if (mounted) setState(() => _automaticAttempted = false);
     }
   }
