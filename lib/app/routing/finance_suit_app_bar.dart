@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/branding/finance_suit_mark.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_menu.dart';
+import 'package:work_tracker/core/security/device_authenticator.dart';
+import 'package:work_tracker/core/security/device_privacy_controller.dart';
+import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 /// The canonical Finance Suit top header.
@@ -80,8 +84,55 @@ class FinanceSuitAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: FinanceSuitMark(size: _logoSize, semanticLabel: null),
         ),
       ),
-      actions: actions,
+      actions: [const _MoneyVisibilityAction(), ...?actions],
       bottom: bottom,
+    );
+  }
+}
+
+class _MoneyVisibilityAction extends ConsumerWidget {
+  const _MoneyVisibilityAction();
+
+  Future<void> _toggle(BuildContext context, WidgetRef ref) async {
+    final privacy = ref.read(devicePrivacyProvider).value;
+    if (privacy == null || privacy.authenticating) return;
+    final controller = ref.read(devicePrivacyProvider.notifier);
+    if (privacy.moneyRevealed) {
+      controller.hideMoney();
+      return;
+    }
+
+    final l10n = AppLocalizations.of(context);
+    final outcome = await controller.revealMoney(
+      reason: l10n.privacyRevealReason,
+    );
+    if (!context.mounted) return;
+    switch (outcome) {
+      case DeviceAuthOutcome.authenticated:
+      case DeviceAuthOutcome.canceled:
+        return;
+      case DeviceAuthOutcome.unavailable:
+        AppToast.warning(context, l10n.privacyDeviceAuthUnavailable);
+      case DeviceAuthOutcome.failed:
+        AppToast.error(context, l10n.privacyDeviceAuthFailed);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final privacy = ref.watch(devicePrivacyProvider).value;
+    if (privacy?.moneyPrivacyEnabled != true) return const SizedBox.shrink();
+    final revealed = privacy!.moneyRevealed;
+    final l10n = AppLocalizations.of(context);
+    return IconButton(
+      key: const Key('money-visibility-button'),
+      tooltip: revealed
+          ? l10n.privacyHideAmountsTooltip
+          : l10n.privacyShowAmountsTooltip,
+      onPressed: privacy.authenticating ? null : () => _toggle(context, ref),
+      icon: FinanceSuitIcon(
+        revealed ? FinanceSuitIcons.visibilityOff : FinanceSuitIcons.visibility,
+      ),
     );
   }
 }

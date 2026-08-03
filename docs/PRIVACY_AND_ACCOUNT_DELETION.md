@@ -19,6 +19,15 @@ Theme, locale, home-report range, protected-amount, and app-lock choices also
 use on-device SharedPreferences. The account-deletion flow clears those values
 after the server confirms deletion.
 
+Quick login is separately opt-in. After a fresh password check and device-owner
+authentication, the app stores the user's email and password in
+`flutter_secure_storage`: Android Keystore-backed encrypted storage or the iOS
+Keychain, restricted to the current device. The credential is used only after
+device authentication for a Supabase password sign-in. Disabling quick login,
+changing the account email/password, or successful Finance Suit profile
+deletion clears it. Android application backup is disabled so this credential
+cannot be restored onto another device.
+
 Optional amount protection and app lock invoke Android or iOS device
 authentication. The OS evaluates the configured fingerprint, face, PIN,
 pattern, password, or passcode and returns only an authentication result. The

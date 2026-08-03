@@ -110,6 +110,14 @@ class DevicePrivacyController extends AsyncNotifier<DevicePrivacyState> {
     return outcome;
   }
 
+  /// Hides every protected amount immediately without authenticating.
+  void hideMoney() {
+    _update(
+      (current) =>
+          current.copyWith(moneyRevealed: !current.moneyPrivacyEnabled),
+    );
+  }
+
   Future<DeviceAuthOutcome> unlockApp({required String reason}) async {
     final current = state.value;
     if (current == null || !current.appLockEnabled) {

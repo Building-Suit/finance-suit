@@ -2,6 +2,12 @@ name: Finance Suit Supabase deployment
 
 on:
   workflow_call:
+    inputs:
+      release-sync:
+        description: Set by the release pipeline to run without manual confirmation.
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       confirmation:
@@ -19,8 +25,10 @@ concurrency:
 jobs:
   deploy:
     name: Backup, migrate, verify, and deploy
+    # `workflow_call` never surfaces as github.event_name (the caller's event
+    # does), so the release pipeline must opt in via the release-sync input.
     if: >-
-      github.event_name == 'workflow_call' ||
+      inputs.release-sync == true ||
       inputs.confirmation == 'DEPLOY'
     runs-on: ubuntu-latest
     timeout-minutes: 30

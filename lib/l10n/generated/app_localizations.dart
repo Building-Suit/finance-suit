@@ -1046,6 +1046,18 @@ abstract class AppLocalizations {
   /// **'Require fingerprint, face, PIN, pattern, password, or passcode when opening or returning to the app.'**
   String get privacyAppLockHelp;
 
+  /// No description provided for @privacyBiometricLoginTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Login with fingerprint or device security'**
+  String get privacyBiometricLoginTitle;
+
+  /// No description provided for @privacyBiometricLoginHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'After you log out, sign in again with fingerprint, face, PIN, pattern, password, or passcode without replacing email and password login.'**
+  String get privacyBiometricLoginHelp;
+
   /// No description provided for @privacyDeviceAuthUnavailableHelp.
   ///
   /// In en, this message translates to:
@@ -1076,6 +1088,30 @@ abstract class AppLocalizations {
   /// **'Confirm your identity to enable Finance Suit app lock.'**
   String get privacyEnableAppLockReason;
 
+  /// No description provided for @privacyEnableBiometricLoginReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your identity to enable secure quick login for Finance Suit.'**
+  String get privacyEnableBiometricLoginReason;
+
+  /// No description provided for @privacyConfirmPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your Finance Suit password'**
+  String get privacyConfirmPasswordTitle;
+
+  /// No description provided for @privacyConfirmPasswordHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your current password once to securely set up quick login on this phone.'**
+  String get privacyConfirmPasswordHelp;
+
+  /// No description provided for @privacyIncorrectPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'That password is incorrect. Quick login was not enabled.'**
+  String get privacyIncorrectPassword;
+
   /// No description provided for @privacyDisableMoneyReason.
   ///
   /// In en, this message translates to:
@@ -1088,11 +1124,29 @@ abstract class AppLocalizations {
   /// **'Confirm your identity to disable Finance Suit app lock.'**
   String get privacyDisableAppLockReason;
 
+  /// No description provided for @privacyDisableBiometricLoginReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your identity to disable secure quick login for Finance Suit.'**
+  String get privacyDisableBiometricLoginReason;
+
   /// No description provided for @privacyRevealReason.
   ///
   /// In en, this message translates to:
   /// **'Confirm your identity to reveal financial amounts in Finance Suit.'**
   String get privacyRevealReason;
+
+  /// No description provided for @privacyShowAmountsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Show money amounts'**
+  String get privacyShowAmountsTooltip;
+
+  /// No description provided for @privacyHideAmountsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide money amounts'**
+  String get privacyHideAmountsTooltip;
 
   /// No description provided for @privacyHiddenAmountLabel.
   ///
@@ -1135,6 +1189,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use Finance Suit password instead'**
   String get privacyUsePassword;
+
+  /// No description provided for @authBiometricLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Login with fingerprint or device security'**
+  String get authBiometricLogin;
+
+  /// No description provided for @authBiometricLoginReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your identity to login to Finance Suit.'**
+  String get authBiometricLoginReason;
+
+  /// No description provided for @authBiometricSessionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Secure quick login has expired. Login with your email and password, then enable it again in Settings.'**
+  String get authBiometricSessionExpired;
+
+  /// No description provided for @authBiometricLoginFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Secure quick login failed. Try again or use your email and password.'**
+  String get authBiometricLoginFailed;
 
   /// No description provided for @setTheme.
   ///

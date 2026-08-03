@@ -35,7 +35,10 @@ class LocalDeviceAuthenticator implements DeviceAuthenticator {
         // password, or passcode when biometrics are unavailable.
         biometricOnly: false,
         sensitiveTransaction: true,
-        persistAcrossBackgrounding: true,
+        // A system surface such as the notification shade can temporarily
+        // interrupt authentication. Returning a cancellation keeps that
+        // interruption from silently starting a second prompt on resume.
+        persistAcrossBackgrounding: false,
       );
       return authenticated
           ? DeviceAuthOutcome.authenticated

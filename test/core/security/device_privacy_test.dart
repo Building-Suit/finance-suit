@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
+import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/security/device_authenticator.dart';
 import 'package:work_tracker/core/security/device_privacy_controller.dart';
 import 'package:work_tracker/core/widgets/device_privacy_gate.dart';
@@ -204,5 +205,86 @@ void main() {
 
     expect(authenticator.authenticationCount, 2);
     expect(find.text('Private app content'), findsOneWidget);
+  });
+
+  testWidgets('notification shade lifecycle does not re-open authentication', (
+    tester,
+  ) async {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.withData({
+          'device_privacy_app_lock_enabled': true,
+        });
+    final authenticator = _FakeDeviceAuthenticator();
+    final container = ProviderContainer(
+      overrides: [
+        authStateProvider.overrideWith(_SignedInAuthNotifier.new),
+        deviceAuthenticatorProvider.overrideWithValue(authenticator),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const DevicePrivacyGate(child: Text('Private app content')),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(authenticator.authenticationCount, 1);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+
+    expect(authenticator.authenticationCount, 1);
+    expect(find.text('Private app content'), findsOneWidget);
+  });
+
+  testWidgets('header eye reveals once and hides without another prompt', (
+    tester,
+  ) async {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.withData({
+          'device_privacy_money_enabled': true,
+        });
+    final authenticator = _FakeDeviceAuthenticator();
+    final container = ProviderContainer(
+      overrides: [deviceAuthenticatorProvider.overrideWithValue(authenticator)],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const Scaffold(
+            appBar: FinanceSuitAppBar.topLevel(semanticTitle: 'Home'),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('money-visibility-button')));
+    await tester.pumpAndSettle();
+    expect(authenticator.authenticationCount, 1);
+    expect(
+      container.read(devicePrivacyProvider).requireValue.moneyRevealed,
+      isTrue,
+    );
+
+    await tester.tap(find.byKey(const Key('money-visibility-button')));
+    await tester.pumpAndSettle();
+    expect(authenticator.authenticationCount, 1);
+    expect(
+      container.read(devicePrivacyProvider).requireValue.moneyRevealed,
+      isFalse,
+    );
   });
 }

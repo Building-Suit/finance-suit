@@ -10,7 +10,7 @@ Effective date: 19 July 2026
 - Review the deletion notice, enter your current password, acknowledge the warning, and confirm.
 - The app securely asks the Finance Suit server to delete the verified Finance Suit profile and its product data. Never send your password to support.
 
-Successful in-app deletion is immediate for the active Finance Suit profile and product database. The app then removes its local authenticated session and locally stored preferences from that device.
+Successful in-app deletion is immediate for the active Finance Suit profile and product database. The app then removes its local authenticated session, locally stored preferences, and any saved quick-login credential from that device.
 
 ## Request deletion without the app
 
@@ -25,7 +25,7 @@ We may send a verification message to the registered address. Once verified, we 
 - Work entries and official holidays.
 - Finance accounts, balances derived from those accounts, categories, transactions, transfers, macros, and held amounts.
 - Other active product records linked to the Supabase user ID.
-- Local Finance Suit preferences on the device used for in-app deletion.
+- Local Finance Suit preferences and any saved quick-login credential on the device used for in-app deletion.
 
 ## Data retained
 

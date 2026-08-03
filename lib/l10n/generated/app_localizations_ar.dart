@@ -506,6 +506,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'اطلب بصمة الإصبع أو الوجه أو رمز PIN أو النمط أو كلمة المرور أو رمز الدخول عند فتح التطبيق أو العودة إليه.';
 
   @override
+  String get privacyBiometricLoginTitle =>
+      'تسجيل الدخول بالبصمة أو أمان الجهاز';
+
+  @override
+  String get privacyBiometricLoginHelp =>
+      'بعد تسجيل الخروج، ادخل مرة أخرى بالبصمة أو الوجه أو رمز PIN أو النمط أو كلمة المرور أو رمز الدخول، مع بقاء تسجيل الدخول بالبريد وكلمة المرور متاحًا.';
+
+  @override
   String get privacyDeviceAuthUnavailableHelp =>
       'أعِدّ رمز PIN أو كلمة مرور أو رمز دخول أو نمطًا أو بصمة إصبع أو وجهًا على هذا الهاتف لاستخدام هذه الخيارات.';
 
@@ -525,6 +533,21 @@ class AppLocalizationsAr extends AppLocalizations {
       'أكّد هويتك لتفعيل قفل تطبيق Finance Suit.';
 
   @override
+  String get privacyEnableBiometricLoginReason =>
+      'أكّد هويتك لتفعيل تسجيل الدخول السريع والآمن إلى Finance Suit.';
+
+  @override
+  String get privacyConfirmPasswordTitle => 'تأكيد كلمة مرور Finance Suit';
+
+  @override
+  String get privacyConfirmPasswordHelp =>
+      'أدخل كلمة مرورك الحالية مرة واحدة لإعداد تسجيل الدخول السريع بأمان على هذا الهاتف.';
+
+  @override
+  String get privacyIncorrectPassword =>
+      'كلمة المرور غير صحيحة. لم يتم تفعيل تسجيل الدخول السريع.';
+
+  @override
   String get privacyDisableMoneyReason =>
       'أكّد هويتك لإيقاف إخفاء المبالغ المالية في Finance Suit.';
 
@@ -533,8 +556,18 @@ class AppLocalizationsAr extends AppLocalizations {
       'أكّد هويتك لتعطيل قفل تطبيق Finance Suit.';
 
   @override
+  String get privacyDisableBiometricLoginReason =>
+      'أكّد هويتك لتعطيل تسجيل الدخول السريع والآمن إلى Finance Suit.';
+
+  @override
   String get privacyRevealReason =>
       'أكّد هويتك لإظهار المبالغ المالية في Finance Suit.';
+
+  @override
+  String get privacyShowAmountsTooltip => 'إظهار المبالغ المالية';
+
+  @override
+  String get privacyHideAmountsTooltip => 'إخفاء المبالغ المالية';
 
   @override
   String get privacyHiddenAmountLabel => 'مبلغ مالي مخفي';
@@ -559,6 +592,21 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get privacyUsePassword =>
       'استخدام كلمة مرور Finance Suit بدلًا من ذلك';
+
+  @override
+  String get authBiometricLogin => 'تسجيل الدخول بالبصمة أو أمان الجهاز';
+
+  @override
+  String get authBiometricLoginReason =>
+      'أكّد هويتك لتسجيل الدخول إلى Finance Suit.';
+
+  @override
+  String get authBiometricSessionExpired =>
+      'انتهت صلاحية تسجيل الدخول السريع. سجّل الدخول بالبريد الإلكتروني وكلمة المرور ثم فعّله مجددًا من الإعدادات.';
+
+  @override
+  String get authBiometricLoginFailed =>
+      'تعذّر تسجيل الدخول السريع. حاول مرة أخرى أو استخدم البريد الإلكتروني وكلمة المرور.';
 
   @override
   String get setTheme => 'السمة';
