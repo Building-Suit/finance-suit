@@ -1,6 +1,6 @@
 # Finance Suit Privacy Policy
 
-Effective date: 2 August 2026
+Effective date: 3 August 2026
 
 Finance Suit is provided by Tareq Abdelwhap ("we", "us", or "our"). This policy explains how Finance Suit collects, uses, stores, and deletes information when you use the mobile application.
 
@@ -24,6 +24,8 @@ Theme, selected language, report-filter preferences, and your choices to hide fi
 
 If you enable amount protection or app lock, Finance Suit asks Android or iOS to authenticate you using the device security you configured, such as fingerprint, face recognition, PIN, pattern, password, or passcode. The operating system performs that authentication and returns only a success, cancellation, or failure result to Finance Suit. Finance Suit does not receive, store, or transmit your biometric templates or device-screen-lock secret.
 
+If you separately enable quick login, Finance Suit stores an encrypted copy of your sign-in email and password only in this device's operating-system keystore or keychain. It is used only after successful device authentication to sign in through Supabase Auth; it is not sent to us or another service separately from that sign-in request. Email-and-password login remains available. Disabling quick login, changing your Finance Suit email or password, or successfully deleting your Finance Suit profile clears the saved quick-login credential.
+
 ## How we use information
 
 - Create and secure your account.
@@ -45,7 +47,7 @@ If we later add another provider, such as a transactional email or crash-reporti
 
 ## Security
 
-Data is transmitted over encrypted HTTPS connections. Product tables use Supabase Row Level Security so authenticated users can access only their own records. Optional amount protection and app lock use the operating system's device-authentication service. Privileged credentials are kept in server-side secrets and are not included in the mobile application. No system can guarantee absolute security, so protect your password and report suspected unauthorized access promptly.
+Data is transmitted over encrypted HTTPS connections. Product tables use Supabase Row Level Security so authenticated users can access only their own records. Optional amount protection, app lock, and quick login use the operating system's device-authentication and protected-storage services. Privileged service credentials are kept in server-side secrets and are not included in the mobile application. No system can guarantee absolute security, so protect your password and report suspected unauthorized access promptly.
 
 ## Retention and deletion
 

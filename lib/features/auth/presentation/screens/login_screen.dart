@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
+import 'package:work_tracker/core/security/biometric_login_controller.dart';
 import 'package:work_tracker/core/security/device_privacy_controller.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
+import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
@@ -58,10 +60,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     // On success the auth state change triggers the router redirect.
   }
 
+  Future<void> _biometricSignIn() async {
+    setState(() => _failure = null);
+    final l10n = AppLocalizations.of(context);
+    final outcome = await ref
+        .read(biometricLoginProvider.notifier)
+        .signIn(reason: l10n.authBiometricLoginReason);
+    if (!mounted) return;
+    switch (outcome) {
+      case BiometricLoginOutcome.authenticated:
+        ref.read(devicePrivacyProvider.notifier).markPasswordAuthenticated();
+      case BiometricLoginOutcome.canceled:
+        return;
+      case BiometricLoginOutcome.unavailable:
+        AppToast.warning(context, l10n.privacyDeviceAuthUnavailable);
+      case BiometricLoginOutcome.invalidCredentials:
+      case BiometricLoginOutcome.sessionExpired:
+        AppToast.warning(context, l10n.authBiometricSessionExpired);
+      case BiometricLoginOutcome.failed:
+        AppToast.error(context, l10n.authBiometricLoginFailed);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final busy = ref.watch(authActionProvider).isLoading;
+    final biometricLogin = ref.watch(biometricLoginProvider).value;
+    final busy =
+        ref.watch(authActionProvider).isLoading ||
+        biometricLogin?.authenticating == true;
 
     return AuthScaffold(
       title: l10n.authLoginTitle,
@@ -114,6 +141,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   busy: busy,
                   onPressed: _submit,
                 ),
+                if (biometricLogin?.canSignIn == true) ...[
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    key: const Key('biometric-login-button'),
+                    onPressed: busy ? null : _biometricSignIn,
+                    icon: const FinanceSuitIcon(FinanceSuitIcons.fingerprint),
+                    label: Text(l10n.authBiometricLogin),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: () => context.go(AppRoutes.register),
