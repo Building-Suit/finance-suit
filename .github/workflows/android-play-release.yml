@@ -25,6 +25,8 @@ jobs:
     name: Sync Supabase before build
     needs: quality
     uses: ./.github/workflows/supabase-deploy.yml
+    with:
+      release-sync: true
     secrets: inherit
 
   quality:
