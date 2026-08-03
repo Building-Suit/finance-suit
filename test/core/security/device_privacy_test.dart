@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -21,9 +23,15 @@ class _FakeDeviceAuthenticator implements DeviceAuthenticator {
   DeviceAuthOutcome outcome;
   int authenticationCount = 0;
 
+  /// When set, [authenticate] stays in flight until the completer resolves,
+  /// mimicking a native prompt waiting for the user's finger.
+  Completer<DeviceAuthOutcome>? pending;
+
   @override
   Future<DeviceAuthOutcome> authenticate({required String reason}) async {
     authenticationCount++;
+    final pending = this.pending;
+    if (pending != null) return pending.future;
     return outcome;
   }
 
@@ -46,6 +54,7 @@ void main() {
   setUp(() {
     SharedPreferencesAsyncPlatform.instance =
         InMemorySharedPreferencesAsync.empty();
+    DeviceAuthSession.reset();
   });
 
   test(
@@ -242,6 +251,235 @@ void main() {
 
     expect(authenticator.authenticationCount, 1);
     expect(find.text('Private app content'), findsOneWidget);
+  });
+
+  testWidgets('a shade pull that stops the activity briefly never locks', (
+    tester,
+  ) async {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.withData({
+          'device_privacy_app_lock_enabled': true,
+        });
+    final authenticator = _FakeDeviceAuthenticator();
+    final container = ProviderContainer(
+      overrides: [
+        authStateProvider.overrideWith(_SignedInAuthNotifier.new),
+        deviceAuthenticatorProvider.overrideWithValue(authenticator),
+      ],
+    );
+    addTearDown(container.dispose);
+    addTearDown(
+      () => tester.binding.handleAppLifecycleStateChanged(
+        AppLifecycleState.resumed,
+      ),
+    );
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const DevicePrivacyGate(child: Text('Private app content')),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(authenticator.authenticationCount, 1);
+    expect(find.text('Private app content'), findsOneWidget);
+
+    // OEM shells stop the activity for a fully expanded notification shade.
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump(const Duration(milliseconds: 500));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+
+    expect(authenticator.authenticationCount, 1);
+    expect(find.text('Private app content'), findsOneWidget);
+  });
+
+  testWidgets('a real backgrounding locks and prompts once after resume', (
+    tester,
+  ) async {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.withData({
+          'device_privacy_app_lock_enabled': true,
+        });
+    final authenticator = _FakeDeviceAuthenticator();
+    final container = ProviderContainer(
+      overrides: [
+        authStateProvider.overrideWith(_SignedInAuthNotifier.new),
+        deviceAuthenticatorProvider.overrideWithValue(authenticator),
+      ],
+    );
+    addTearDown(container.dispose);
+    addTearDown(
+      () => tester.binding.handleAppLifecycleStateChanged(
+        AppLifecycleState.resumed,
+      ),
+    );
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const DevicePrivacyGate(child: Text('Private app content')),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(authenticator.authenticationCount, 1);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump(const Duration(seconds: 3));
+
+    // Locked while away, but no prompt may fire until the app is foreground.
+    expect(
+      container.read(devicePrivacyProvider).requireValue.appUnlocked,
+      isFalse,
+    );
+    expect(authenticator.authenticationCount, 1);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+
+    expect(authenticator.authenticationCount, 2);
+    expect(find.text('Private app content'), findsOneWidget);
+  });
+
+  testWidgets('lifecycle churn from the prompt itself never locks the app', (
+    tester,
+  ) async {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.withData({
+          'device_privacy_money_enabled': true,
+          'device_privacy_app_lock_enabled': true,
+        });
+    final authenticator = _FakeDeviceAuthenticator();
+    final container = ProviderContainer(
+      overrides: [
+        authStateProvider.overrideWith(_SignedInAuthNotifier.new),
+        deviceAuthenticatorProvider.overrideWithValue(authenticator),
+      ],
+    );
+    addTearDown(container.dispose);
+    addTearDown(
+      () => tester.binding.handleAppLifecycleStateChanged(
+        AppLifecycleState.resumed,
+      ),
+    );
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const DevicePrivacyGate(
+            child: Scaffold(body: ProtectedMoneyText('12,345.67 EGP')),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(authenticator.authenticationCount, 1);
+
+    // A fullscreen fingerprint prompt stops the activity while it waits.
+    final prompt = Completer<DeviceAuthOutcome>();
+    authenticator.pending = prompt;
+    await tester.tap(find.byType(ProtectedMoney));
+    await tester.pump();
+    expect(authenticator.authenticationCount, 2);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump(const Duration(seconds: 3));
+
+    // Still authenticating: the deferred lock must keep waiting.
+    expect(
+      container.read(devicePrivacyProvider).requireValue.appUnlocked,
+      isTrue,
+    );
+
+    authenticator.pending = null;
+    prompt.complete(DeviceAuthOutcome.authenticated);
+    await tester.pump();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+
+    // The reveal prompt is the only extra authentication; no relock happened.
+    expect(authenticator.authenticationCount, 2);
+    expect(
+      container.read(devicePrivacyProvider).requireValue.appUnlocked,
+      isTrue,
+    );
+    expect(find.text('12,345.67 EGP'), findsOneWidget);
+  });
+
+  testWidgets('backgrounding away during a prompt still locks the app', (
+    tester,
+  ) async {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.withData({
+          'device_privacy_money_enabled': true,
+          'device_privacy_app_lock_enabled': true,
+        });
+    final authenticator = _FakeDeviceAuthenticator();
+    final container = ProviderContainer(
+      overrides: [
+        authStateProvider.overrideWith(_SignedInAuthNotifier.new),
+        deviceAuthenticatorProvider.overrideWithValue(authenticator),
+      ],
+    );
+    addTearDown(container.dispose);
+    addTearDown(
+      () => tester.binding.handleAppLifecycleStateChanged(
+        AppLifecycleState.resumed,
+      ),
+    );
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const DevicePrivacyGate(
+            child: Scaffold(body: ProtectedMoneyText('12,345.67 EGP')),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(authenticator.authenticationCount, 1);
+
+    final prompt = Completer<DeviceAuthOutcome>();
+    authenticator.pending = prompt;
+    await tester.tap(find.byType(ProtectedMoney));
+    await tester.pump();
+
+    // The user leaves for the launcher while the prompt is still up.
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump(const Duration(seconds: 3));
+
+    authenticator.pending = null;
+    prompt.complete(DeviceAuthOutcome.canceled);
+    await tester.pump(const Duration(seconds: 3));
+
+    expect(
+      container.read(devicePrivacyProvider).requireValue.appUnlocked,
+      isFalse,
+    );
   });
 
   testWidgets('header eye reveals once and hides without another prompt', (

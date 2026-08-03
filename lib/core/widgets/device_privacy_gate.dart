@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_tracker/app/branding/finance_suit_brand.dart';
@@ -20,7 +22,15 @@ class DevicePrivacyGate extends ConsumerStatefulWidget {
 
 class _DevicePrivacyGateState extends ConsumerState<DevicePrivacyGate>
     with WidgetsBindingObserver {
+  /// How long the app must stay backgrounded before it locks. The
+  /// notification shade and fullscreen fingerprint prompts stop the activity
+  /// for a moment on many devices; deferring the lock keeps that churn from
+  /// relocking a live session, while a real backgrounding still locks and a
+  /// cold start is always locked.
+  static const lockGracePeriod = Duration(seconds: 2);
+
   late final DeviceAuthenticator _authenticator;
+  Timer? _pendingLock;
   bool _automaticAttempted = false;
   bool _fullyBackgrounded = false;
   DeviceAuthOutcome? _lastOutcome;
@@ -34,6 +44,7 @@ class _DevicePrivacyGateState extends ConsumerState<DevicePrivacyGate>
 
   @override
   void dispose() {
+    _pendingLock?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _authenticator.cancel();
     super.dispose();
@@ -49,18 +60,40 @@ class _DevicePrivacyGateState extends ConsumerState<DevicePrivacyGate>
         return;
       case AppLifecycleState.hidden:
       case AppLifecycleState.paused:
-        final privacy = ref.read(devicePrivacyProvider).value;
-        if (_fullyBackgrounded || privacy?.authenticating == true) return;
-        _fullyBackgrounded = true;
-        ref.read(devicePrivacyProvider.notifier).lockForBackground();
-        _automaticAttempted = false;
+        // Some devices stop the activity for the notification shade and for
+        // fullscreen fingerprint prompts, so a bare paused event is not proof
+        // of a real backgrounding. Lock only if the app is still in the
+        // background once the grace period passes.
+        _pendingLock ??= Timer(lockGracePeriod, _lockIfStillBackgrounded);
       case AppLifecycleState.detached:
         return;
       case AppLifecycleState.resumed:
+        _pendingLock?.cancel();
+        _pendingLock = null;
         if (!_fullyBackgrounded) return;
         _fullyBackgrounded = false;
         if (mounted) setState(() => _automaticAttempted = false);
     }
+  }
+
+  void _lockIfStillBackgrounded() {
+    _pendingLock = null;
+    if (!mounted) return;
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    if (lifecycle != AppLifecycleState.paused &&
+        lifecycle != AppLifecycleState.hidden) {
+      return;
+    }
+    final privacy = ref.read(devicePrivacyProvider).value;
+    if (privacy?.authenticating == true || DeviceAuthSession.isActive) {
+      // A device prompt is still in flight; check again once it settles so a
+      // user who backgrounds mid-prompt still comes back to a locked app.
+      _pendingLock = Timer(lockGracePeriod, _lockIfStillBackgrounded);
+      return;
+    }
+    _fullyBackgrounded = true;
+    ref.read(devicePrivacyProvider.notifier).lockForBackground();
+    _automaticAttempted = false;
   }
 
   Future<void> _unlock() async {
@@ -91,7 +124,13 @@ class _DevicePrivacyGateState extends ConsumerState<DevicePrivacyGate>
     if (privacy == null) return const SplashScreen();
     if (!privacy.appLockEnabled || privacy.appUnlocked) return widget.child;
 
-    if (!_automaticAttempted && !privacy.authenticating) {
+    // Launch the prompt only while the app is actually in the foreground:
+    // firing it during a background lock would surface a fingerprint dialog
+    // under the notification shade or duplicate one already in flight.
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    final foreground =
+        lifecycle == null || lifecycle == AppLifecycleState.resumed;
+    if (foreground && !_automaticAttempted && !privacy.authenticating) {
       _automaticAttempted = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _unlock();

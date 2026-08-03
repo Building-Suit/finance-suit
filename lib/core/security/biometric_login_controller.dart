@@ -265,10 +265,12 @@ class BiometricLoginController extends AsyncNotifier<BiometricLoginState> {
     if (current?.authenticating == true) return DeviceAuthOutcome.canceled;
     _update((current) => current.copyWith(authenticating: true));
     final authenticator = ref.read(deviceAuthenticatorProvider);
-    final supported = await authenticator.isSupported();
-    final outcome = supported
-        ? await authenticator.authenticate(reason: reason)
-        : DeviceAuthOutcome.unavailable;
+    final outcome = await DeviceAuthSession.run(() async {
+      final supported = await authenticator.isSupported();
+      return supported
+          ? await authenticator.authenticate(reason: reason)
+          : DeviceAuthOutcome.unavailable;
+    });
     _update((current) => current.copyWith(authenticating: false));
     return outcome;
   }
