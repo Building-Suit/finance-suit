@@ -1751,4 +1751,29 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onboardingSubmitFailed =>
       'Setup could not be completed. Check your entries and try again.';
+
+  @override
+  String get updateAvailableTitle => 'Update available';
+
+  @override
+  String get updateAvailableBody =>
+      'A new version of Finance Suit is ready. Update now to get the latest improvements.';
+
+  @override
+  String get updateLater => 'Later';
+
+  @override
+  String get updateNow => 'Update';
+
+  @override
+  String get heldTypeLabel => 'Type';
+
+  @override
+  String get heldSettleTitle => 'Settle held amount';
+
+  @override
+  String get heldSettleDateLabel => 'Settlement date';
+
+  @override
+  String get heldSettleHelp => 'The transaction will be recorded on this date.';
 }

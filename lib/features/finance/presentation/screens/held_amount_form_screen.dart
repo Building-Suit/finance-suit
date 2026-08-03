@@ -11,13 +11,16 @@ import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/app_toast.dart';
+import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/core/widgets/protected_money.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
+import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
+import 'package:work_tracker/features/finance/presentation/widgets/category_selector.dart';
 import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
@@ -43,18 +46,28 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
 
   late PlainDate _date =
       widget.existing?.heldOn ?? widget.prefill?.heldOn ?? PlainDate.today();
-  late HeldAmountDirection _direction =
-      widget.existing?.direction ??
-      widget.prefill?.direction ??
-      HeldAmountDirection.iOwe;
+  late TransactionKind _kind =
+      widget.existing?.transactionKind ??
+      widget.prefill?.transactionKind ??
+      TransactionKind.expense;
   late final String? _transactionId =
       widget.existing?.transactionId ?? widget.prefill?.transactionId;
   String? _accountId;
+  String? _categoryId;
 
   AppFailure? _failure;
   bool _busy = false;
 
   bool get _isEdit => widget.existing != null;
+  bool get _isOutgoing =>
+      _kind == TransactionKind.expense ||
+      _kind == TransactionKind.allowanceGiven;
+
+  CategoryKind get _categoryKind => switch (_kind) {
+    TransactionKind.expense => CategoryKind.expense,
+    TransactionKind.allowanceGiven => CategoryKind.allowance,
+    _ => CategoryKind.income,
+  };
 
   @override
   void initState() {
@@ -71,6 +84,7 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
     _titleController.text = existing?.title ?? prefill?.title ?? '';
     _notesController.text = existing?.notes ?? prefill?.notes ?? '';
     _accountId = existing?.accountId ?? prefill?.accountId;
+    _categoryId = existing?.categoryId ?? prefill?.categoryId;
   }
 
   @override
@@ -110,11 +124,12 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
     final title = _titleController.text.trim();
     final notes = _notesController.text.trim();
     final draft = HeldAmountDraft(
-      direction: _direction,
+      transactionKind: _kind,
       amountMinor: amount.minor,
       currencyCode: _currencyCode,
       counterparty: _counterpartyController.text.trim(),
       heldOn: _date,
+      categoryId: _categoryId,
       transactionId: _transactionId,
       accountId: _accountId,
       title: title.isEmpty ? null : title,
@@ -176,6 +191,7 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final accounts = ref.watch(accountBalancesProvider);
+    final categories = ref.watch(categoriesProvider(_categoryKind));
     final accountList = accounts.value ?? <AccountBalance>[];
     const needsAccount = true;
     if (_accountId == null && accountList.isNotEmpty) {
@@ -242,26 +258,37 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
                   ),
                   const SizedBox(height: 16),
                 ],
-                Text(
-                  l10n.heldDirection,
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-                const SizedBox(height: 8),
-                SegmentedButton<HeldAmountDirection>(
-                  segments: [
-                    ButtonSegment(
-                      value: HeldAmountDirection.iOwe,
-                      label: Text(l10n.heldDirectionIOwe),
-                    ),
-                    ButtonSegment(
-                      value: HeldAmountDirection.owedToMe,
-                      label: Text(l10n.heldDirectionOwedToMe),
-                    ),
+                AppSelectionField<TransactionKind>(
+                  initialValue: _kind,
+                  decoration: InputDecoration(labelText: l10n.heldTypeLabel),
+                  items: [
+                    for (final kind in const [
+                      TransactionKind.expense,
+                      TransactionKind.allowanceGiven,
+                      TransactionKind.customIncome,
+                      TransactionKind.freelanceIncome,
+                    ])
+                      DropdownMenuItem(
+                        value: kind,
+                        child: Text(transactionKindLabel(l10n, kind)),
+                      ),
                   ],
-                  selected: {_direction},
-                  onSelectionChanged: (selection) {
-                    setState(() => _direction = selection.first);
-                  },
+                  onChanged: _busy
+                      ? null
+                      : (value) {
+                          if (value == null || value == _kind) return;
+                          setState(() {
+                            _kind = value;
+                            // Categories are kind-specific; drop the stale one.
+                            _categoryId = null;
+                          });
+                        },
+                ),
+                const SizedBox(height: 16),
+                CategorySelector(
+                  categories: categories.value ?? const <TransactionCategory>[],
+                  selectedCategoryId: _categoryId,
+                  onChanged: (value) => setState(() => _categoryId = value),
                 ),
                 const SizedBox(height: 16),
                 AppTextFormField(
@@ -286,9 +313,7 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
                   controller: _counterpartyController,
                   textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(
-                    labelText: _direction == HeldAmountDirection.iOwe
-                        ? l10n.heldOwedTo
-                        : l10n.heldOwedBy,
+                    labelText: _isOutgoing ? l10n.heldOwedTo : l10n.heldOwedBy,
                   ),
                   validator: (v) {
                     final e = Validators.requiredText(v, maxLength: 120);

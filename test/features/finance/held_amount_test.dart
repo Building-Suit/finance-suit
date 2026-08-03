@@ -13,6 +13,9 @@ HeldAmount heldAmount({
   return HeldAmount(
     id: id,
     direction: direction,
+    transactionKind: direction == HeldAmountDirection.iOwe
+        ? TransactionKind.expense
+        : TransactionKind.customIncome,
     amountMinor: amountMinor,
     currencyCode: currencyCode,
     counterparty: 'Counterparty',
@@ -42,10 +45,12 @@ void main() {
   });
 
   group('HeldAmount', () {
-    test('parses direction from a database row', () {
+    test('parses direction, kind, and category from a database row', () {
       final held = HeldAmount.fromJson({
         'id': 'held-1',
         'direction': 'owed_to_me',
+        'transaction_kind': 'freelance_income',
+        'category_id': 'category-1',
         'amount_minor': 12500,
         'currency_code': 'EGP',
         'counterparty': 'Mona',
@@ -55,27 +60,78 @@ void main() {
       });
 
       expect(held.direction, HeldAmountDirection.owedToMe);
+      expect(held.transactionKind, TransactionKind.freelanceIncome);
+      expect(held.categoryId, 'category-1');
       expect(held.amountMinor, 12500);
       expect(held.isSettled, isFalse);
       expect(held.accountId, 'account-1');
       expect(held.managesTransaction, isTrue);
     });
 
-    test('draft serializes direction explicitly', () {
+    test('falls back to a direction-derived kind on rows without one', () {
+      Map<String, dynamic> row(String direction) => {
+        'id': 'held-$direction',
+        'direction': direction,
+        'amount_minor': 12500,
+        'currency_code': 'EGP',
+        'counterparty': 'Mona',
+        'held_on': '2026-07-16',
+      };
+
+      final iOwe = HeldAmount.fromJson(row('i_owe'));
+      final owedToMe = HeldAmount.fromJson(row('owed_to_me'));
+
+      expect(iOwe.transactionKind, TransactionKind.expense);
+      expect(owedToMe.transactionKind, TransactionKind.customIncome);
+      expect(iOwe.categoryId, isNull);
+    });
+
+    test('draft serializes the kind and category, not a direction', () {
       const draft = HeldAmountDraft(
-        direction: HeldAmountDirection.iOwe,
+        transactionKind: TransactionKind.allowanceGiven,
         amountMinor: 2500,
         currencyCode: 'EGP',
         counterparty: 'Ahmed',
         heldOn: PlainDate(2026, 7, 16),
+        categoryId: 'category-1',
       );
 
-      expect(draft.toJson()['direction'], 'i_owe');
+      final json = draft.toJson();
+      expect(json['p_transaction_kind'], 'allowance_given');
+      expect(json['p_category_id'], 'category-1');
+      expect(json.containsKey('p_direction'), isFalse);
+    });
+
+    test('draft derives the direction from the kind', () {
+      HeldAmountDraft draft(TransactionKind kind) => HeldAmountDraft(
+        transactionKind: kind,
+        amountMinor: 2500,
+        currencyCode: 'EGP',
+        counterparty: 'Ahmed',
+        heldOn: const PlainDate(2026, 7, 16),
+      );
+
+      expect(
+        draft(TransactionKind.expense).direction,
+        HeldAmountDirection.iOwe,
+      );
+      expect(
+        draft(TransactionKind.allowanceGiven).direction,
+        HeldAmountDirection.iOwe,
+      );
+      expect(
+        draft(TransactionKind.customIncome).direction,
+        HeldAmountDirection.owedToMe,
+      );
+      expect(
+        draft(TransactionKind.freelanceIncome).direction,
+        HeldAmountDirection.owedToMe,
+      );
     });
 
     test('draft serializes the account used by a managed transaction', () {
       const draft = HeldAmountDraft(
-        direction: HeldAmountDirection.owedToMe,
+        transactionKind: TransactionKind.customIncome,
         amountMinor: 2500,
         currencyCode: 'EGP',
         counterparty: 'Ahmed',
@@ -83,7 +139,7 @@ void main() {
         accountId: 'account-1',
       );
 
-      expect(draft.toJson()['account_id'], 'account-1');
+      expect(draft.toJson()['p_account_id'], 'account-1');
     });
   });
 

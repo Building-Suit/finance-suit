@@ -257,11 +257,18 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
         await context.push('${AppRoutes.money}/held/edit', extra: held);
         return;
       case 'settle':
-      case 'unsettle':
-        final result = await repo.setHeldAmountSettled(
-          held.id,
-          action == 'settle' ? PlainDate.today() : null,
+        final settledOn = await _pickSettlementDate(l10n);
+        if (settledOn == null || !mounted) return;
+        final result = await repo.setHeldAmountSettled(held.id, settledOn);
+        if (!mounted) return;
+        result.when(
+          ok: (_) => invalidateFinanceData(ref),
+          err: (failure) =>
+              AppToast.error(context, failureMessage(context, failure)),
         );
+        return;
+      case 'unsettle':
+        final result = await repo.setHeldAmountSettled(held.id, null);
         if (!mounted) return;
         result.when(
           ok: (_) => invalidateFinanceData(ref),
@@ -297,6 +304,53 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
         );
         return;
     }
+  }
+
+  /// Asks for the settlement date; the booked transaction lands on it.
+  Future<PlainDate?> _pickSettlementDate(AppLocalizations l10n) {
+    var picked = PlainDate.today();
+    return showDialog<PlainDate>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: Text(l10n.heldSettleTitle),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.heldSettleHelp),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const FinanceSuitIcon(FinanceSuitIcons.calendarToday),
+                title: Text(l10n.heldSettleDateLabel),
+                subtitle: Text(picked.toIso()),
+                onTap: () async {
+                  final date = await showDatePicker(
+                    context: dialogContext,
+                    initialDate: picked.toDateTime(),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                  );
+                  if (date != null) {
+                    setDialogState(() => picked = PlainDate.fromDateTime(date));
+                  }
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(l10n.commonCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(picked),
+              child: Text(l10n.heldSettle),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _heldTab(AppLocalizations l10n) {

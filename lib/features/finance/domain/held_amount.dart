@@ -11,10 +11,12 @@ class HeldAmount {
   const HeldAmount({
     required this.id,
     required this.direction,
+    required this.transactionKind,
     required this.amountMinor,
     required this.currencyCode,
     required this.counterparty,
     required this.heldOn,
+    this.categoryId,
     this.settledOn,
     this.transactionId,
     this.linkedTransactionId,
@@ -25,28 +27,42 @@ class HeldAmount {
     this.notes,
   });
 
-  factory HeldAmount.fromJson(Map<String, dynamic> json) => HeldAmount(
-    id: json['id'] as String,
-    direction: HeldAmountDirection.fromDb(json['direction'] as String),
-    amountMinor: (json['amount_minor'] as num).toInt(),
-    currencyCode: json['currency_code'] as String,
-    counterparty: json['counterparty'] as String,
-    heldOn: PlainDate.parse(json['held_on'] as String),
-    settledOn: switch (json['settled_on'] as String?) {
-      final String iso => PlainDate.parse(iso),
-      null => null,
-    },
-    transactionId: json['transaction_id'] as String?,
-    linkedTransactionId: json['linked_transaction_id'] as String?,
-    settlementTransactionId: json['settlement_transaction_id'] as String?,
-    accountId: json['account_id'] as String?,
-    managesTransaction: json['manages_transaction'] as bool? ?? false,
-    title: json['title'] as String?,
-    notes: json['notes'] as String?,
-  );
+  factory HeldAmount.fromJson(Map<String, dynamic> json) {
+    final direction = HeldAmountDirection.fromDb(json['direction'] as String);
+    return HeldAmount(
+      id: json['id'] as String,
+      direction: direction,
+      transactionKind: switch (json['transaction_kind'] as String?) {
+        final String value => TransactionKind.fromDb(value),
+        // Rows predating typed holds only carry a direction.
+        null =>
+          direction == HeldAmountDirection.iOwe
+              ? TransactionKind.expense
+              : TransactionKind.customIncome,
+      },
+      amountMinor: (json['amount_minor'] as num).toInt(),
+      currencyCode: json['currency_code'] as String,
+      counterparty: json['counterparty'] as String,
+      heldOn: PlainDate.parse(json['held_on'] as String),
+      categoryId: json['category_id'] as String?,
+      settledOn: switch (json['settled_on'] as String?) {
+        final String iso => PlainDate.parse(iso),
+        null => null,
+      },
+      transactionId: json['transaction_id'] as String?,
+      linkedTransactionId: json['linked_transaction_id'] as String?,
+      settlementTransactionId: json['settlement_transaction_id'] as String?,
+      accountId: json['account_id'] as String?,
+      managesTransaction: json['manages_transaction'] as bool? ?? false,
+      title: json['title'] as String?,
+      notes: json['notes'] as String?,
+    );
+  }
 
   final String id;
   final HeldAmountDirection direction;
+  final TransactionKind transactionKind;
+  final String? categoryId;
   final int amountMinor;
   final String currencyCode;
   final String counterparty;
@@ -70,38 +86,49 @@ class HeldAmount {
 @immutable
 class HeldAmountDraft {
   const HeldAmountDraft({
-    required this.direction,
+    required this.transactionKind,
     required this.amountMinor,
     required this.currencyCode,
     required this.counterparty,
     required this.heldOn,
+    this.categoryId,
     this.transactionId,
     this.accountId,
     this.title,
     this.notes,
   });
 
-  final HeldAmountDirection direction;
+  final TransactionKind transactionKind;
   final int amountMinor;
   final String currencyCode;
   final String counterparty;
   final PlainDate heldOn;
+  final String? categoryId;
   final String? transactionId;
   final String? accountId;
   final String? title;
   final String? notes;
 
+  /// Direction derived from the kind: outgoing kinds are money I owe,
+  /// incoming kinds are money owed to me.
+  HeldAmountDirection get direction => switch (transactionKind) {
+    TransactionKind.expense ||
+    TransactionKind.allowanceGiven => HeldAmountDirection.iOwe,
+    _ => HeldAmountDirection.owedToMe,
+  };
+
+  /// Named parameters for the `save_held_amount` RPC.
   Map<String, dynamic> toJson() => {
-    'direction': direction.dbValue,
-    'amount_minor': amountMinor,
-    'currency_code': currencyCode,
-    'counterparty': counterparty,
-    'held_on': heldOn.toIso(),
-    'transaction_id': transactionId,
-    'linked_transaction_id': transactionId,
-    'account_id': accountId,
-    'title': title,
-    'notes': notes,
+    'p_transaction_kind': transactionKind.dbValue,
+    'p_amount_minor': amountMinor,
+    'p_currency_code': currencyCode,
+    'p_counterparty': counterparty,
+    'p_held_on': heldOn.toIso(),
+    'p_title': title,
+    'p_notes': notes,
+    'p_account_id': accountId,
+    'p_category_id': categoryId,
+    'p_transaction_id': transactionId,
   };
 }
 

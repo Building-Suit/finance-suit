@@ -554,7 +554,7 @@ class FinanceRepository {
   }
 
   Map<String, dynamic> _heldParams(HeldAmountDraft draft) => {
-    'p_direction': draft.direction.dbValue,
+    'p_transaction_kind': draft.transactionKind.dbValue,
     'p_amount_minor': draft.amountMinor,
     'p_currency_code': draft.currencyCode,
     'p_counterparty': draft.counterparty,
@@ -562,6 +562,7 @@ class FinanceRepository {
     'p_title': draft.title,
     'p_notes': draft.notes,
     'p_account_id': draft.accountId,
+    'p_category_id': draft.categoryId,
     'p_transaction_id': draft.transactionId,
   };
 

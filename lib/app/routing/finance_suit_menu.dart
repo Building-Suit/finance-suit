@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_brand.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/branding/finance_suit_mark.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
+import 'package:work_tracker/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 /// The Finance Suit navigation side menu.
@@ -36,6 +38,24 @@ abstract final class FinanceSuitMenu {
 
   /// Initial travel toward the opening edge (within the approved 8-24px).
   static const double entryOffset = 16;
+
+  /// Building Suit page-plane adapter: while the menu is open the current
+  /// page translates 60% away from the opening edge, scales to 0.85, and
+  /// gains 40px corners with a lateral shadow, moving as one coherent
+  /// plane on the standard curve.
+  static const double pagePlaneTravel = 0.6;
+  static const double pagePlaneScale = 0.85;
+  static const double pagePlaneRadius = 40;
+  static const Cubic standardCurve = Cubic(0.2, 0, 0, 1);
+
+  /// Progress of the page-plane transform (0 = resting, 1 = menu open).
+  ///
+  /// Driven by the menu route's animation; stays at 0 under reduced motion
+  /// so structural travel is replaced by the panel's short fade only.
+  static final ValueNotifier<double> pageProgress = ValueNotifier<double>(0);
+
+  /// Sentinel result meaning the user chose Logout from the menu.
+  static const String _logoutResult = '::logout';
 
   static _FinanceSuitMenuRoute? _activeRoute;
 
@@ -72,8 +92,40 @@ abstract final class FinanceSuitMenu {
       rootNavigator: true,
     ).push<String>(route);
     if (selectedRoute == null) return;
+    if (selectedRoute == _logoutResult) {
+      if (context.mounted) await _confirmLogout(context);
+      return;
+    }
     if (_currentTopLocation(router) == selectedRoute) return;
     unawaited(router.push(selectedRoute));
+  }
+
+  /// Same confirmation flow as the Settings sign-out entry.
+  static Future<void> _confirmLogout(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.setSignOutConfirmTitle),
+        content: Text(l10n.setSignOutConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.authLogout),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      await ProviderScope.containerOf(
+        context,
+        listen: false,
+      ).read(authActionProvider.notifier).signOut();
+    }
   }
 
   /// The location of the topmost route, including imperative pushes, so an
@@ -101,8 +153,35 @@ class _FinanceSuitMenuRoute extends PopupRoute<String> {
   final String dismissLabel;
   final VoidCallback onDisposed;
 
+  CurvedAnimation? _pagePlaneCurve;
+
+  @override
+  TickerFuture didPush() {
+    if (!reduceMotion) {
+      // The current page moves once as a coherent plane on the standard
+      // curve while the panel enters/exits on its own curves.
+      _pagePlaneCurve = CurvedAnimation(
+        parent: animation!,
+        curve: FinanceSuitMenu.standardCurve,
+        reverseCurve: FinanceSuitMenu.standardCurve.flipped,
+      );
+      animation!.addListener(_syncPagePlane);
+    }
+    return super.didPush();
+  }
+
+  void _syncPagePlane() {
+    final curve = _pagePlaneCurve;
+    if (curve != null) {
+      FinanceSuitMenu.pageProgress.value = curve.value.clamp(0.0, 1.0);
+    }
+  }
+
   @override
   void dispose() {
+    animation?.removeListener(_syncPagePlane);
+    _pagePlaneCurve?.dispose();
+    FinanceSuitMenu.pageProgress.value = 0;
     onDisposed();
     super.dispose();
   }
@@ -281,62 +360,147 @@ class _FinanceSuitMenuPanel extends StatelessWidget {
             child: ListTileTheme.merge(
               visualDensity: VisualDensity.compact,
               contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-              child: ListView(
-                key: const Key('finance-suit-menu-list'),
-                // Keep the last destinations reachable above an open
-                // keyboard.
-                padding: EdgeInsets.only(
-                  bottom: 8 + MediaQuery.viewInsetsOf(context).bottom,
-                ),
+              child: Column(
                 children: [
-                  Padding(
-                    padding: const EdgeInsetsDirectional.fromSTEB(
-                      16,
-                      12,
-                      16,
-                      4,
-                    ),
-                    child: Row(
+                  Expanded(
+                    child: ListView(
+                      key: const Key('finance-suit-menu-list'),
+                      // Keep the last destinations reachable above an open
+                      // keyboard.
+                      padding: EdgeInsets.only(
+                        bottom: 8 + MediaQuery.viewInsetsOf(context).bottom,
+                      ),
                       children: [
-                        const FinanceSuitMark(size: 28, semanticLabel: null),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            FinanceSuitBrand.name,
-                            style: textTheme.titleMedium,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                        Padding(
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                            16,
+                            12,
+                            16,
+                            4,
+                          ),
+                          child: Row(
+                            children: [
+                              const FinanceSuitMark(
+                                size: 28,
+                                semanticLabel: null,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  FinanceSuitBrand.name,
+                                  style: textTheme.titleMedium,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
+                        for (final group in groups) ...[
+                          Padding(
+                            padding: const EdgeInsetsDirectional.fromSTEB(
+                              16,
+                              12,
+                              16,
+                              0,
+                            ),
+                            child: Text(
+                              group.heading,
+                              style: textTheme.labelLarge,
+                            ),
+                          ),
+                          for (final item in group.items)
+                            ListTile(
+                              key: Key('menu-item-${item.route}'),
+                              autofocus: item.route == firstRoute,
+                              visualDensity: VisualDensity.compact,
+                              leading: FinanceSuitIcon(item.icon),
+                              title: Text(item.label),
+                              onTap: () =>
+                                  Navigator.of(context).pop(item.route),
+                            ),
+                        ],
                       ],
                     ),
                   ),
-                  for (final group in groups) ...[
-                    Padding(
-                      padding: const EdgeInsetsDirectional.fromSTEB(
-                        16,
-                        12,
-                        16,
-                        0,
-                      ),
-                      child: Text(group.heading, style: textTheme.labelLarge),
-                    ),
-                    for (final item in group.items)
-                      ListTile(
-                        key: Key('menu-item-${item.route}'),
-                        autofocus: item.route == firstRoute,
-                        visualDensity: VisualDensity.compact,
-                        leading: FinanceSuitIcon(item.icon),
-                        title: Text(item.label),
-                        onTap: () => Navigator.of(context).pop(item.route),
-                      ),
-                  ],
+                  const Divider(height: 1),
+                  ListTile(
+                    key: const Key('menu-item-logout'),
+                    iconColor: Theme.of(context).colorScheme.error,
+                    textColor: Theme.of(context).colorScheme.error,
+                    leading: const FinanceSuitIcon(FinanceSuitIcons.logout),
+                    title: Text(l10n.authLogout),
+                    onTap: () => Navigator.of(
+                      context,
+                    ).pop(FinanceSuitMenu._logoutResult),
+                  ),
                 ],
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Applies the Building Suit page-plane transform to the current page while
+/// the side menu is open: 60% travel away from the opening edge, 0.85
+/// scale, 40px corners, and a lateral shadow, all driven by the menu
+/// route's animation. Wraps the shell because the menu can only be opened
+/// from the four primary destinations.
+class FinanceSuitMenuPagePlane extends StatelessWidget {
+  const FinanceSuitMenuPagePlane({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<double>(
+      valueListenable: FinanceSuitMenu.pageProgress,
+      child: child,
+      builder: (context, progress, page) {
+        if (progress == 0) return page!;
+        final size = MediaQuery.sizeOf(context);
+        final awayFromStartEdge =
+            Directionality.of(context) == TextDirection.rtl ? -1.0 : 1.0;
+        final radius = Radius.circular(
+          FinanceSuitMenu.pagePlaneRadius * progress,
+        );
+        // Lateral shadow strength follows the Building Suit elevation3
+        // token (24px blur at 16% strength) on the theme's scrim role.
+        final shadowColor = Theme.of(
+          context,
+        ).colorScheme.scrim.withValues(alpha: 0.16 * progress);
+        return Transform.translate(
+          offset: Offset(
+            size.width *
+                FinanceSuitMenu.pagePlaneTravel *
+                progress *
+                awayFromStartEdge,
+            0,
+          ),
+          child: Transform.scale(
+            scale: 1 - (1 - FinanceSuitMenu.pagePlaneScale) * progress,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(radius),
+                boxShadow: [
+                  BoxShadow(
+                    color: shadowColor,
+                    blurRadius: 24,
+                    offset: Offset(-8 * awayFromStartEdge, 8),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.all(radius),
+                child: page,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

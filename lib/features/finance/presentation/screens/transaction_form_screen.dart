@@ -64,6 +64,17 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     _ => CategoryKind.income,
   };
 
+  /// Held amounts support only the four bookable kinds; anything else
+  /// falls back to the plain kind for its direction.
+  TransactionKind _heldKindFor(TransactionKind kind) => switch (kind) {
+    TransactionKind.expense ||
+    TransactionKind.allowanceGiven ||
+    TransactionKind.customIncome ||
+    TransactionKind.freelanceIncome => kind,
+    TransactionKind.salaryIncome => TransactionKind.customIncome,
+    TransactionKind.transfer => TransactionKind.expense,
+  };
+
   @override
   void initState() {
     super.initState();
@@ -330,19 +341,20 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                 ),
                 if (_isEdit) ...[
                   const SizedBox(height: 16),
-                  // Preserve the original I-owe behavior for linked prefills;
-                  // the held-amount form lets the user change the direction.
+                  // Carry the transaction's kind and category into the hold;
+                  // the held-amount form lets the user change both.
                   OutlinedButton.icon(
                     onPressed: () {
                       final existing = widget.existing!;
                       context.push(
                         '${AppRoutes.money}/held/new',
                         extra: HeldAmountDraft(
-                          direction: HeldAmountDirection.iOwe,
+                          transactionKind: _heldKindFor(existing.kind),
                           amountMinor: existing.amountMinor,
                           currencyCode: existing.currencyCode,
                           counterparty: '',
                           heldOn: existing.occurredOn,
+                          categoryId: existing.categoryId,
                           transactionId: existing.id,
                           title: existing.title,
                         ),
