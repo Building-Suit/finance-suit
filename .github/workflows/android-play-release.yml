@@ -3,7 +3,7 @@ name: Finance Suit Google Play Delivery
 on:
   push:
     branches:
-      - test
+      - stg
       - main
   workflow_dispatch:
 
@@ -97,7 +97,7 @@ jobs:
     needs: quality
     if: >-
       vars.PLAY_SIGNING_READY == 'true' &&
-      ((github.ref == 'refs/heads/test' &&
+      ((github.ref == 'refs/heads/stg' &&
       vars.PLAY_TEST_DELIVERY_ENABLED == 'true') ||
       (github.ref == 'refs/heads/main' &&
       vars.PLAY_PRODUCTION_DELIVERY_ENABLED == 'true'))
@@ -121,11 +121,11 @@ jobs:
 
           base_version="$(sed -n 's/^version: \([^+]*\).*/\1/p' pubspec.yaml)"
           case "${GITHUB_REF}" in
-            refs/heads/test)
-              stage="test"
+            refs/heads/stg)
+              stage="stg"
               track="internal"
-              build_name="${base_version}-test.${GITHUB_RUN_NUMBER}"
-              artifact_name="finance-suit-test-${GITHUB_RUN_NUMBER}"
+              build_name="${base_version}-stg.${GITHUB_RUN_NUMBER}"
+              artifact_name="finance-suit-stg-${GITHUB_RUN_NUMBER}"
               release_tag=""
               ;;
             refs/heads/main)
@@ -136,7 +136,7 @@ jobs:
               release_tag="v${base_version}"
               ;;
             *)
-              echo "Releases are allowed only from test or main." >&2
+              echo "Releases are allowed only from stg or main." >&2
               exit 1
               ;;
           esac
@@ -165,7 +165,7 @@ jobs:
             tagged_commit="$(git rev-parse "${release_tag}^{commit}")"
             if [[ "${tagged_commit}" != "$(git rev-parse HEAD)" ]]; then
               echo "${release_tag} already belongs to another release." >&2
-              echo "Bump version in pubspec.yaml before promoting test to main." >&2
+              echo "Bump version in pubspec.yaml before promoting stg to main." >&2
               exit 1
             fi
           fi

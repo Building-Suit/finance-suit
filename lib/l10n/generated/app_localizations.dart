@@ -3274,6 +3274,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Setup could not be completed. Check your entries and try again.'**
   String get onboardingSubmitFailed;
+
+  /// No description provided for @updateAvailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available'**
+  String get updateAvailableTitle;
+
+  /// No description provided for @updateAvailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A new version of Finance Suit is ready. Update now to get the latest improvements.'**
+  String get updateAvailableBody;
+
+  /// No description provided for @updateLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get updateLater;
+
+  /// No description provided for @updateNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get updateNow;
+
+  /// No description provided for @heldTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get heldTypeLabel;
+
+  /// No description provided for @heldSettleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle held amount'**
+  String get heldSettleTitle;
+
+  /// No description provided for @heldSettleDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement date'**
+  String get heldSettleDateLabel;
+
+  /// No description provided for @heldSettleHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The transaction will be recorded on this date.'**
+  String get heldSettleHelp;
 }
 
 class _AppLocalizationsDelegate

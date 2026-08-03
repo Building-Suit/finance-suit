@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:work_tracker/app/routing/finance_suit_menu.dart';
 import 'package:work_tracker/app/routing/finance_suit_navigation_bar.dart';
+import 'package:work_tracker/core/errors/app_failure.dart';
+import 'package:work_tracker/features/auth/presentation/controllers/auth_controller.dart';
 
 import 'shell_test_harness.dart';
 
@@ -315,6 +318,80 @@ void main() {
     );
   });
 
+  testWidgets('logout sits at the bottom and signs out after confirming', (
+    tester,
+  ) async {
+    final authAction = _FakeAuthAction();
+    await pumpShellApp(
+      tester,
+      buildShellTestRouter(),
+      extraOverrides: [authActionProvider.overrideWith(() => authAction)],
+    );
+    await openMenu(tester);
+
+    final logout = find.byKey(const Key('menu-item-logout'));
+    expect(logout, findsOneWidget);
+    // Pinned at the panel bottom, below every destination.
+    final logoutDy = tester.getCenter(logout).dy;
+    final lastDestinationDy = tester
+        .getCenter(find.byKey(const Key('menu-item-/money/macros')))
+        .dy;
+    expect(logoutDy, greaterThan(lastDestinationDy));
+
+    await tester.tap(logout);
+    await tester.pumpAndSettle();
+    // Confirmation dialog, same strings as Settings.
+    expect(authAction.signOutCalls, 0);
+    await tester.tap(find.widgetWithText(FilledButton, 'Log out'));
+    await tester.pumpAndSettle();
+    expect(authAction.signOutCalls, 1);
+    expect(find.byKey(panelKey), findsNothing);
+  });
+
+  testWidgets('page plane transforms behind the menu and restores on close', (
+    tester,
+  ) async {
+    await pumpShellApp(tester, buildShellTestRouter());
+    final restingCenter = tester.getCenter(find.text('home-root'));
+
+    await openMenu(tester);
+    expect(
+      FinanceSuitMenu.pageProgress.value,
+      moreOrLessEquals(1, epsilon: 0.001),
+    );
+    final openCenter = tester.getCenter(
+      find.text('home-root', skipOffstage: false),
+    );
+    // LTR: the page travels toward the end (right) edge and scales down.
+    expect(openCenter.dx, greaterThan(restingCenter.dx + 40));
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+    expect(FinanceSuitMenu.pageProgress.value, 0);
+    expect(
+      tester.getCenter(find.text('home-root')).dx,
+      moreOrLessEquals(restingCenter.dx, epsilon: 0.01),
+    );
+  });
+
+  testWidgets('reduced motion keeps the page plane at rest', (tester) async {
+    tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(
+      tester.binding.platformDispatcher.clearAccessibilityFeaturesTestValue,
+    );
+    await pumpShellApp(tester, buildShellTestRouter());
+    final restingCenter = tester.getCenter(find.text('home-root'));
+    await openMenu(tester);
+    expect(FinanceSuitMenu.pageProgress.value, 0);
+    expect(
+      tester.getCenter(find.text('home-root', skipOffstage: false)).dx,
+      moreOrLessEquals(restingCenter.dx, epsilon: 0.01),
+    );
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('menu remains usable at 320x480 and scrolls internally', (
     tester,
   ) async {
@@ -337,4 +414,17 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
+}
+
+class _FakeAuthAction extends AuthActionController {
+  var signOutCalls = 0;
+
+  @override
+  AsyncValue<void> build() => const AsyncValue.data(null);
+
+  @override
+  Future<AppFailure?> signOut() async {
+    signOutCalls++;
+    return null;
+  }
 }

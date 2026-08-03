@@ -27,7 +27,7 @@ select app_core.complete_onboarding(
 
 select lives_ok(
   $$select app_finance.save_held_amount(
-    'i_owe', 2500, 'EGP', 'Ahmed', current_date, 'Held expense', null,
+    'expense', 2500, 'EGP', 'Ahmed', current_date, 'Held expense', null,
     (select id from app_finance.accounts where name = 'Current Balance')
   )$$,
   'standalone payable is saved atomically'
@@ -96,7 +96,7 @@ select is(
 
 select lives_ok(
   $$select app_finance.save_held_amount(
-    'owed_to_me', 5000, 'EGP', 'Mona', current_date, 'Held income', null,
+    'custom_income', 5000, 'EGP', 'Mona', current_date, 'Held income', null,
     (select id from app_finance.accounts where name = 'Current Balance')
   )$$,
   'standalone receivable is saved atomically'

@@ -648,5 +648,13 @@
   "selectionSearchHint": "ابحث في الخيارات",
   "heldLinkedTransactionReference": "المعاملة الأصلية مرتبطة كمرجع",
   "heldSettlementTransactionHelp": "ينشئ التحصيل أو السداد معاملة منفصلة للحساب المحدد.",
-  "onboardingSubmitFailed": "تعذر إكمال الإعداد. راجع البيانات وحاول مرة أخرى."
+  "onboardingSubmitFailed": "تعذر إكمال الإعداد. راجع البيانات وحاول مرة أخرى.",
+  "updateAvailableTitle": "تحديث متاح",
+  "updateAvailableBody": "يتوفر إصدار جديد من Finance Suit. حدّث الآن للحصول على أحدث التحسينات.",
+  "updateLater": "لاحقًا",
+  "updateNow": "تحديث",
+  "heldTypeLabel": "النوع",
+  "heldSettleTitle": "تسوية المبلغ المعلق",
+  "heldSettleDateLabel": "تاريخ التسوية",
+  "heldSettleHelp": "سيتم تسجيل المعاملة بهذا التاريخ."
 }
