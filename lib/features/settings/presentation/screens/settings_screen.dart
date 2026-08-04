@@ -5,6 +5,7 @@ import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/configuration/env.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
+import 'package:work_tracker/core/notifications/notifications_repository.dart';
 import 'package:work_tracker/core/security/biometric_login_controller.dart';
 import 'package:work_tracker/core/security/device_authenticator.dart';
 import 'package:work_tracker/core/security/device_privacy_controller.dart';
@@ -352,6 +353,9 @@ class SettingsScreen extends ConsumerWidget {
                   : null,
             ),
             const Divider(),
+            _SectionHeader(title: l10n.setNotificationsSection),
+            const _NotificationPreferencesSection(),
+            const Divider(),
             _SectionHeader(title: l10n.setProfileSection),
             profile.when(
               data: (p) => ListTile(
@@ -452,6 +456,98 @@ class SettingsScreen extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Due-reminder switches backed by `app_core.notification_preferences`.
+/// Saving is optimistic per switch; a failure re-syncs from the server.
+class _NotificationPreferencesSection extends ConsumerWidget {
+  const _NotificationPreferencesSection();
+
+  Future<void> _update(
+    BuildContext context,
+    WidgetRef ref,
+    NotificationPreferences updated,
+  ) async {
+    final result = await ref
+        .read(notificationsRepositoryProvider)
+        .savePreferences(updated);
+    ref.invalidate(notificationPreferencesProvider);
+    if (!context.mounted) return;
+    result.when(
+      ok: (_) {},
+      err: (failure) =>
+          AppToast.error(context, failureMessage(context, failure)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final preferences =
+        ref.watch(notificationPreferencesProvider).value ??
+        const NotificationPreferences();
+    final loaded = ref.watch(notificationPreferencesProvider).hasValue;
+    return Column(
+      children: [
+        SwitchListTile.adaptive(
+          key: const Key('notif-due-reminders'),
+          secondary: const FinanceSuitIcon(FinanceSuitIcons.eventAvailable),
+          title: Text(l10n.notifDueRemindersTitle),
+          subtitle: Text(l10n.notifDueRemindersHelp),
+          value: preferences.dueRemindersEnabled,
+          onChanged: !loaded
+              ? null
+              : (value) => _update(
+                  context,
+                  ref,
+                  preferences.copyWith(dueRemindersEnabled: value),
+                ),
+        ),
+        SwitchListTile.adaptive(
+          key: const Key('notif-overdue-reminders'),
+          secondary: const FinanceSuitIcon(FinanceSuitIcons.warning),
+          title: Text(l10n.notifOverdueRemindersTitle),
+          subtitle: Text(l10n.notifOverdueRemindersHelp),
+          value: preferences.overdueRemindersEnabled,
+          onChanged: !loaded
+              ? null
+              : (value) => _update(
+                  context,
+                  ref,
+                  preferences.copyWith(overdueRemindersEnabled: value),
+                ),
+        ),
+        SwitchListTile.adaptive(
+          key: const Key('notif-payment-confirmations'),
+          secondary: const FinanceSuitIcon(FinanceSuitIcons.payments),
+          title: Text(l10n.notifPaymentConfirmationsTitle),
+          subtitle: Text(l10n.notifPaymentConfirmationsHelp),
+          value: preferences.paymentConfirmationsEnabled,
+          onChanged: !loaded
+              ? null
+              : (value) => _update(
+                  context,
+                  ref,
+                  preferences.copyWith(paymentConfirmationsEnabled: value),
+                ),
+        ),
+        SwitchListTile.adaptive(
+          key: const Key('notif-show-amounts'),
+          secondary: const FinanceSuitIcon(FinanceSuitIcons.visibilityOff),
+          title: Text(l10n.notifShowAmountsTitle),
+          subtitle: Text(l10n.notifShowAmountsHelp),
+          value: preferences.showAmounts,
+          onChanged: !loaded
+              ? null
+              : (value) => _update(
+                  context,
+                  ref,
+                  preferences.copyWith(showAmounts: value),
+                ),
+        ),
+      ],
     );
   }
 }

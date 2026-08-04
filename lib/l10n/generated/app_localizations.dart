@@ -4456,6 +4456,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Extra fees rolled into the schedule and paid across the installments.'**
   String get purchaseFinancedFeesHelp;
+
+  /// No description provided for @setNotificationsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get setNotificationsSection;
+
+  /// No description provided for @notifDueRemindersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date reminders'**
+  String get notifDueRemindersTitle;
+
+  /// No description provided for @notifDueRemindersHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me before installments and card statements fall due.'**
+  String get notifDueRemindersHelp;
+
+  /// No description provided for @notifOverdueRemindersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue alerts'**
+  String get notifOverdueRemindersTitle;
+
+  /// No description provided for @notifOverdueRemindersHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep alerting me while a payment stays overdue.'**
+  String get notifOverdueRemindersHelp;
+
+  /// No description provided for @notifPaymentConfirmationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment confirmations'**
+  String get notifPaymentConfirmationsTitle;
+
+  /// No description provided for @notifPaymentConfirmationsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify me when a facility payment is recorded.'**
+  String get notifPaymentConfirmationsHelp;
+
+  /// No description provided for @notifShowAmountsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show amounts in notifications'**
+  String get notifShowAmountsTitle;
+
+  /// No description provided for @notifShowAmountsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Off by default so balances never appear on the lock screen.'**
+  String get notifShowAmountsHelp;
 }
 
 class _AppLocalizationsDelegate

@@ -1114,5 +1114,14 @@
   "errInvalidPaidInstallments": "Paid installments must stay below the total count",
   "errPlanPartiallyPaidDue": "Settle the partially paid installment before restructuring",
   "purchaseFinancedFees": "Financed fees",
-  "purchaseFinancedFeesHelp": "Extra fees rolled into the schedule and paid across the installments."
+  "purchaseFinancedFeesHelp": "Extra fees rolled into the schedule and paid across the installments.",
+  "setNotificationsSection": "Notifications",
+  "notifDueRemindersTitle": "Due date reminders",
+  "notifDueRemindersHelp": "Remind me before installments and card statements fall due.",
+  "notifOverdueRemindersTitle": "Overdue alerts",
+  "notifOverdueRemindersHelp": "Keep alerting me while a payment stays overdue.",
+  "notifPaymentConfirmationsTitle": "Payment confirmations",
+  "notifPaymentConfirmationsHelp": "Notify me when a facility payment is recorded.",
+  "notifShowAmountsTitle": "Show amounts in notifications",
+  "notifShowAmountsHelp": "Off by default so balances never appear on the lock screen."
 }

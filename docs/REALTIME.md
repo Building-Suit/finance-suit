@@ -13,6 +13,12 @@ Subscribed tables:
 - `installment_plans`
 - `installment_dues`
 - `installment_payment_allocations`
+- `installment_plan_revisions`
+- `credit_card_statement_cycles`
+- `credit_card_statement_items`
+- `credit_card_statement_allocations`
+- `credit_card_fee_rules`
+- `credit_card_fee_charges`
 - `work_entries`
 - `official_holidays`
 - `salary_periods`

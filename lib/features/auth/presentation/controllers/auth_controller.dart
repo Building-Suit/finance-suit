@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
+import 'package:work_tracker/core/notifications/push_notifications_service.dart';
 import 'package:work_tracker/core/security/biometric_login_controller.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/auth/data/auth_repository.dart';
@@ -161,8 +162,12 @@ class AuthActionController extends Notifier<AsyncValue<void>> {
     return result.failureOrNull;
   });
 
-  Future<AppFailure?> signOut() =>
-      _run(() async => (await _repo.signOut()).failureOrNull);
+  Future<AppFailure?> signOut() => _run(() async {
+    // Stop push reminders for this install before the session is gone;
+    // best-effort so a network hiccup never blocks the sign-out.
+    await ref.read(pushNotificationsServiceProvider).unregister();
+    return (await _repo.signOut()).failureOrNull;
+  });
 
   Future<AppFailure?> deleteAccount(String password) => _run(() async {
     final result = await _repo.deleteAccount(password: password);

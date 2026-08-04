@@ -2396,4 +2396,35 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get purchaseFinancedFeesHelp =>
       'رسوم إضافية تُضاف إلى الجدول وتُدفع ضمن الأقساط.';
+
+  @override
+  String get setNotificationsSection => 'الإشعارات';
+
+  @override
+  String get notifDueRemindersTitle => 'تذكيرات الاستحقاق';
+
+  @override
+  String get notifDueRemindersHelp =>
+      'ذكّرني قبل استحقاق الأقساط وكشوف البطاقة.';
+
+  @override
+  String get notifOverdueRemindersTitle => 'تنبيهات التأخر';
+
+  @override
+  String get notifOverdueRemindersHelp =>
+      'استمر في تنبيهي طالما هناك دفعة متأخرة.';
+
+  @override
+  String get notifPaymentConfirmationsTitle => 'تأكيدات السداد';
+
+  @override
+  String get notifPaymentConfirmationsHelp =>
+      'أعلمني عند تسجيل دفعة على البطاقة.';
+
+  @override
+  String get notifShowAmountsTitle => 'إظهار المبالغ في الإشعارات';
+
+  @override
+  String get notifShowAmountsHelp =>
+      'متوقف افتراضيًا حتى لا تظهر الأرصدة على شاشة القفل.';
 }

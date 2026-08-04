@@ -2411,4 +2411,35 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get purchaseFinancedFeesHelp =>
       'Extra fees rolled into the schedule and paid across the installments.';
+
+  @override
+  String get setNotificationsSection => 'Notifications';
+
+  @override
+  String get notifDueRemindersTitle => 'Due date reminders';
+
+  @override
+  String get notifDueRemindersHelp =>
+      'Remind me before installments and card statements fall due.';
+
+  @override
+  String get notifOverdueRemindersTitle => 'Overdue alerts';
+
+  @override
+  String get notifOverdueRemindersHelp =>
+      'Keep alerting me while a payment stays overdue.';
+
+  @override
+  String get notifPaymentConfirmationsTitle => 'Payment confirmations';
+
+  @override
+  String get notifPaymentConfirmationsHelp =>
+      'Notify me when a facility payment is recorded.';
+
+  @override
+  String get notifShowAmountsTitle => 'Show amounts in notifications';
+
+  @override
+  String get notifShowAmountsHelp =>
+      'Off by default so balances never appear on the lock screen.';
 }

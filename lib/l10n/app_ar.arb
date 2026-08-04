@@ -1114,5 +1114,14 @@
   "errInvalidPaidInstallments": "عدد الأقساط المدفوعة يجب أن يظل أقل من الإجمالي",
   "errPlanPartiallyPaidDue": "سدّد القسط المدفوع جزئيًا قبل إعادة الجدولة",
   "purchaseFinancedFees": "رسوم مموَّلة",
-  "purchaseFinancedFeesHelp": "رسوم إضافية تُضاف إلى الجدول وتُدفع ضمن الأقساط."
+  "purchaseFinancedFeesHelp": "رسوم إضافية تُضاف إلى الجدول وتُدفع ضمن الأقساط.",
+  "setNotificationsSection": "الإشعارات",
+  "notifDueRemindersTitle": "تذكيرات الاستحقاق",
+  "notifDueRemindersHelp": "ذكّرني قبل استحقاق الأقساط وكشوف البطاقة.",
+  "notifOverdueRemindersTitle": "تنبيهات التأخر",
+  "notifOverdueRemindersHelp": "استمر في تنبيهي طالما هناك دفعة متأخرة.",
+  "notifPaymentConfirmationsTitle": "تأكيدات السداد",
+  "notifPaymentConfirmationsHelp": "أعلمني عند تسجيل دفعة على البطاقة.",
+  "notifShowAmountsTitle": "إظهار المبالغ في الإشعارات",
+  "notifShowAmountsHelp": "متوقف افتراضيًا حتى لا تظهر الأرصدة على شاشة القفل."
 }
