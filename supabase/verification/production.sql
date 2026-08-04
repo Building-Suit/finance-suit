@@ -91,10 +91,92 @@ begin
     v_missing := array_append(
       v_missing, 'app_finance.installment_due_statuses');
   end if;
+  if to_regclass('app_finance.installment_plan_revisions') is null then
+    v_missing := array_append(
+      v_missing, 'app_finance.installment_plan_revisions');
+  end if;
+  if to_regclass('app_finance.credit_card_statement_cycles') is null then
+    v_missing := array_append(
+      v_missing, 'app_finance.credit_card_statement_cycles');
+  end if;
+  if to_regclass('app_finance.credit_card_statement_items') is null then
+    v_missing := array_append(
+      v_missing, 'app_finance.credit_card_statement_items');
+  end if;
+  if to_regclass('app_finance.credit_card_statement_allocations') is null then
+    v_missing := array_append(
+      v_missing, 'app_finance.credit_card_statement_allocations');
+  end if;
+  if to_regclass('app_finance.credit_card_fee_rules') is null then
+    v_missing := array_append(
+      v_missing, 'app_finance.credit_card_fee_rules');
+  end if;
+  if to_regclass('app_finance.credit_card_fee_charges') is null then
+    v_missing := array_append(
+      v_missing, 'app_finance.credit_card_fee_charges');
+  end if;
+  if to_regclass('app_finance.credit_card_statement_summaries') is null then
+    v_missing := array_append(
+      v_missing, 'app_finance.credit_card_statement_summaries');
+  end if;
+  if to_regclass('app_core.push_devices') is null then
+    v_missing := array_append(v_missing, 'app_core.push_devices');
+  end if;
+  if to_regclass('app_core.notification_preferences') is null then
+    v_missing := array_append(
+      v_missing, 'app_core.notification_preferences');
+  end if;
+  if to_regclass('app_core.notification_outbox') is null then
+    v_missing := array_append(v_missing, 'app_core.notification_outbox');
+  end if;
+
   if to_regprocedure(
-    'app_finance.create_installment_plan(uuid,text,uuid,date,bigint,integer,date,bigint,uuid,bigint,bigint,text,uuid)'
+    'app_finance.create_installment_plan(uuid,text,uuid,date,bigint,integer,date,bigint,uuid,bigint,bigint,text,uuid,app_finance.plan_pricing_method,bigint,integer,app_finance.interest_rate_period,app_finance.interest_method,bigint,bigint,date,integer)'
   ) is null then
     v_missing := array_append(v_missing, 'create_installment_plan');
+  end if;
+  if to_regprocedure(
+    'app_finance.create_installment_plan(uuid,text,uuid,date,bigint,integer,date,bigint,uuid,bigint,bigint,text,uuid)'
+  ) is not null then
+    raise exception 'Legacy create_installment_plan overload remains';
+  end if;
+  if to_regprocedure(
+    'app_finance.save_credit_facility(text,app_finance.account_type,text,bigint,smallint,smallint,text,smallint,text,uuid,app_finance.facility_status,app_finance.min_payment_method,bigint,integer)'
+  ) is null then
+    v_missing := array_append(v_missing, 'save_credit_facility');
+  end if;
+  if to_regprocedure(
+    'app_finance.save_credit_facility(text,app_finance.account_type,text,bigint,bigint,smallint,smallint,text,smallint,text,uuid)'
+  ) is not null then
+    raise exception 'Legacy opening-owed save_credit_facility overload remains';
+  end if;
+  if to_regprocedure(
+    'app_finance.update_installment_plan(uuid,text,uuid,date,bigint,integer,date,bigint,uuid,bigint,bigint,text,app_finance.plan_pricing_method,bigint,integer,app_finance.interest_rate_period,app_finance.interest_method,bigint,date,integer)'
+  ) is null then
+    v_missing := array_append(v_missing, 'update_installment_plan');
+  end if;
+  if to_regprocedure(
+    'app_finance.restructure_installment_plan(uuid,bigint,integer,date,text,date)'
+  ) is null then
+    v_missing := array_append(v_missing, 'restructure_installment_plan');
+  end if;
+  if to_regprocedure(
+    'app_finance.delete_credit_facility(uuid)'
+  ) is null then
+    v_missing := array_append(v_missing, 'delete_credit_facility');
+  end if;
+  if to_regprocedure(
+    'app_finance.set_credit_facility_status(uuid,app_finance.facility_status)'
+  ) is null then
+    v_missing := array_append(v_missing, 'set_credit_facility_status');
+  end if;
+  if to_regprocedure(
+    'app_finance.charge_credit_card(uuid,text,uuid,date,bigint,text,uuid)'
+  ) is null then
+    v_missing := array_append(v_missing, 'charge_credit_card');
+  end if;
+  if to_regprocedure('app_finance.apply_credit_card_fees(date)') is null then
+    v_missing := array_append(v_missing, 'apply_credit_card_fees');
   end if;
   if to_regprocedure(
     'app_finance.pay_credit_facility(uuid,uuid,bigint,date,jsonb,text,uuid)'

@@ -7,6 +7,7 @@ import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
+import 'package:work_tracker/core/money/money_input.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
@@ -486,6 +487,7 @@ class _AdvancedFilters extends StatelessWidget {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
+                inputFormatters: moneyInputFormatters(),
                 decoration: InputDecoration(
                   labelText: '${l10n.commonAmount} min',
                 ),
@@ -498,6 +500,7 @@ class _AdvancedFilters extends StatelessWidget {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
+                inputFormatters: moneyInputFormatters(),
                 decoration: InputDecoration(
                   labelText: '${l10n.commonAmount} max',
                 ),

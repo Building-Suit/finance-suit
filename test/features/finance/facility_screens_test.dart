@@ -265,8 +265,13 @@ void main() {
       expect(find.byKey(const Key('facility-due-day')), findsOneWidget);
       expect(find.byKey(const Key('facility-statement-day')), findsOneWidget);
       expect(find.byKey(const Key('facility-last-four')), findsOneWidget);
-      expect(find.byKey(const Key('facility-reminder-days')), findsOneWidget);
-      expect(find.text('Opening amount owed'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('facility-reminder-days-3')),
+        findsOneWidget,
+      );
+      // The opening-owed input is gone: new facilities start at zero debt.
+      expect(find.text('Opening amount owed'), findsNothing);
+      expect(find.text('Opening balance'), findsNothing);
       expect(find.text('Allow negative balance'), findsNothing);
 
       // BNPL hides the credit-card-only fields.

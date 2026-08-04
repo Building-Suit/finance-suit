@@ -5,6 +5,14 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Firebase Cloud Messaging needs the Google Services plugin to turn
+// google-services.json into resources. The file holds per-project client
+// config and is intentionally not committed; builds without it stay valid
+// and simply run with push notifications disabled.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 val releaseKeystorePath = providers.environmentVariable("ANDROID_KEYSTORE_PATH").orNull
 val releaseKeystorePassword =
     providers.environmentVariable("ANDROID_KEYSTORE_PASSWORD").orNull

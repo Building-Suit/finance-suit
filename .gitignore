@@ -57,3 +57,8 @@ config/*.json
 # Supabase local
 supabase/.branches
 supabase/.temp
+
+# Firebase client config: per-project, downloaded from the Firebase console.
+# Never commit it; builds without it run with push notifications disabled.
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist

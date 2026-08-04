@@ -8,7 +8,10 @@ import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
+import 'package:work_tracker/core/money/money_input.dart';
+import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_money_text.dart';
+import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
@@ -63,6 +66,34 @@ class CreditFacilityDetailScreen extends ConsumerWidget {
       },
       err: (failure) =>
           AppToast.error(context, failureMessage(context, failure)),
+    );
+  }
+
+  Future<void> _restructurePlan(
+    BuildContext context,
+    WidgetRef ref,
+    InstallmentPlan plan,
+  ) async {
+    final submitted = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => _RestructureDialog(plan: plan, ref: ref),
+    );
+    if (submitted == true && context.mounted) {
+      invalidateFinanceData(ref);
+      AppToast.success(context, AppLocalizations.of(context).setSaved);
+    }
+  }
+
+  Future<void> _showRevisions(
+    BuildContext context,
+    WidgetRef ref,
+    InstallmentPlan plan,
+  ) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (sheetContext) => _RevisionsSheet(plan: plan),
     );
   }
 
@@ -142,6 +173,10 @@ class CreditFacilityDetailScreen extends ConsumerWidget {
             return _FacilityDetailBody(
               summary: summary,
               onCancelPlan: (plan) => _cancelPlan(context, ref, plan),
+              onEditPlan: (plan) =>
+                  context.push('/money/facilities/purchase?planId=${plan.id}'),
+              onRestructurePlan: (plan) => _restructurePlan(context, ref, plan),
+              onShowRevisions: (plan) => _showRevisions(context, ref, plan),
               onReversePayment: (tx) => _reversePayment(context, ref, tx),
             );
           },
@@ -155,11 +190,17 @@ class _FacilityDetailBody extends ConsumerWidget {
   const _FacilityDetailBody({
     required this.summary,
     required this.onCancelPlan,
+    required this.onEditPlan,
+    required this.onRestructurePlan,
+    required this.onShowRevisions,
     required this.onReversePayment,
   });
 
   final CreditFacilitySummary summary;
   final ValueChanged<InstallmentPlan> onCancelPlan;
+  final ValueChanged<InstallmentPlan> onEditPlan;
+  final ValueChanged<InstallmentPlan> onRestructurePlan;
+  final ValueChanged<InstallmentPlan> onShowRevisions;
   final ValueChanged<FinancialTransaction> onReversePayment;
 
   @override
@@ -188,7 +229,7 @@ class _FacilityDetailBody extends ConsumerWidget {
               Expanded(
                 child: FilledButton.icon(
                   key: const Key('facility-add-purchase'),
-                  onPressed: summary.isArchived
+                  onPressed: !summary.canFundPurchases
                       ? null
                       : () => context.push(
                           '/money/facilities/purchase'
@@ -206,7 +247,9 @@ class _FacilityDetailBody extends ConsumerWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   key: const Key('facility-make-payment'),
-                  onPressed: summary.isArchived || summary.outstandingMinor <= 0
+                  // Payments stay possible on archived and frozen cards
+                  // until the debt reaches zero.
+                  onPressed: summary.outstandingMinor <= 0
                       ? null
                       : () => context.push(
                           '/money/facilities/pay'
@@ -222,6 +265,38 @@ class _FacilityDetailBody extends ConsumerWidget {
               ),
             ],
           ),
+          if (summary.accountType == AccountType.creditCard &&
+              summary.statementDay != null) ...[
+            const SizedBox(height: 16),
+            Text(
+              l10n.facilityStatementsSection,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            AsyncView<List<CardStatementSummary>>(
+              value: ref.watch(statementSummariesProvider(summary.accountId)),
+              onRetry: () =>
+                  ref.invalidate(statementSummariesProvider(summary.accountId)),
+              data: (statements) {
+                if (statements.isEmpty) {
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(l10n.facilityNoStatements),
+                    ),
+                  );
+                }
+                return Card(
+                  child: Column(
+                    children: [
+                      for (final statement in statements.take(6))
+                        _StatementTile(statement: statement),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
           const SizedBox(height: 16),
           Text(
             l10n.facilityDuesSection,
@@ -286,6 +361,13 @@ class _FacilityDetailBody extends ConsumerWidget {
                           plan.status == InstallmentPlanStatus.active &&
                               plan.paidMinor == 0
                           ? () => onCancelPlan(plan)
+                          : null,
+                      onEdit: plan.isEditable ? () => onEditPlan(plan) : null,
+                      onRestructure: plan.isEditable && plan.paidMinor > 0
+                          ? () => onRestructurePlan(plan)
+                          : null,
+                      onShowRevisions: plan.revision > 1
+                          ? () => onShowRevisions(plan)
                           : null,
                     ),
                 ],
@@ -547,10 +629,19 @@ class _DueTile extends StatelessWidget {
 }
 
 class _PlanCard extends StatelessWidget {
-  const _PlanCard({required this.plan, this.onCancel});
+  const _PlanCard({
+    required this.plan,
+    this.onCancel,
+    this.onEdit,
+    this.onRestructure,
+    this.onShowRevisions,
+  });
 
   final InstallmentPlan plan;
   final VoidCallback? onCancel;
+  final VoidCallback? onEdit;
+  final VoidCallback? onRestructure;
+  final VoidCallback? onShowRevisions;
 
   @override
   Widget build(BuildContext context) {
@@ -559,6 +650,11 @@ class _PlanCard extends StatelessWidget {
     final progress = plan.totalPayableMinor == 0
         ? 0.0
         : plan.paidMinor / plan.totalPayableMinor;
+    final hasActions =
+        onCancel != null ||
+        onEdit != null ||
+        onRestructure != null ||
+        onShowRevisions != null;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -579,12 +675,37 @@ class _PlanCard extends StatelessWidget {
                   installmentPlanStatusLabel(l10n, plan.status),
                   style: theme.textTheme.labelSmall,
                 ),
-                if (onCancel != null)
-                  IconButton(
-                    key: Key('plan-cancel-${plan.id}'),
-                    tooltip: l10n.planCancel,
-                    onPressed: onCancel,
-                    icon: const FinanceSuitIcon(FinanceSuitIcons.delete),
+                if (hasActions)
+                  PopupMenuButton<VoidCallback>(
+                    key: Key('plan-actions-${plan.id}'),
+                    tooltip: l10n.planActionsTooltip,
+                    onSelected: (action) => action(),
+                    itemBuilder: (menuContext) => [
+                      if (onEdit != null)
+                        PopupMenuItem(
+                          key: Key('plan-edit-${plan.id}'),
+                          value: onEdit!,
+                          child: Text(l10n.planEditAction),
+                        ),
+                      if (onRestructure != null)
+                        PopupMenuItem(
+                          key: Key('plan-restructure-${plan.id}'),
+                          value: onRestructure!,
+                          child: Text(l10n.planRestructureAction),
+                        ),
+                      if (onShowRevisions != null)
+                        PopupMenuItem(
+                          key: Key('plan-revisions-${plan.id}'),
+                          value: onShowRevisions!,
+                          child: Text(l10n.planRevisionsAction),
+                        ),
+                      if (onCancel != null)
+                        PopupMenuItem(
+                          key: Key('plan-cancel-${plan.id}'),
+                          value: onCancel!,
+                          child: Text(l10n.planCancel),
+                        ),
+                    ],
                   ),
               ],
             ),
@@ -674,6 +795,298 @@ class _RelatedActivityTile extends StatelessWidget {
               icon: const FinanceSuitIcon(FinanceSuitIcons.undo),
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _StatementTile extends StatelessWidget {
+  const _StatementTile({required this.statement});
+
+  final CardStatementSummary statement;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colors = context.suitColors;
+    final theme = Theme.of(context);
+    final tone = switch (statement.status) {
+      StatementCycleStatus.overdue => colors.error,
+      StatementCycleStatus.dueToday => colors.warning,
+      _ => colors.info,
+    };
+    return ListTile(
+      dense: true,
+      title: Text(
+        l10n.statementCycleTitle(statement.cycleClose.toIso()),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text(
+        '${l10n.statementDueOn(statement.dueOn.toIso())} · '
+        '${statementCycleStatusLabel(l10n, statement.status)}'
+        '${statement.minimumDueMinor < statement.remainingMinor && statement.remainingMinor > 0 ? '\n${l10n.statementMinimumDue}: ${statement.minimumDue.format()}' : ''}',
+      ),
+      isThreeLine:
+          statement.minimumDueMinor < statement.remainingMinor &&
+          statement.remainingMinor > 0,
+      trailing: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          AppMoneyText(
+            money: statement.remaining,
+            style: theme.textTheme.titleSmall,
+            sign: AppMoneySign.never,
+          ),
+          if (statement.status == StatementCycleStatus.overdue ||
+              statement.status == StatementCycleStatus.dueToday)
+            Text(
+              statementCycleStatusLabel(l10n, statement.status),
+              style: theme.textTheme.labelSmall?.copyWith(color: tone.text),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Restructures the unpaid remainder of a partially paid plan: new total,
+/// new count, and the next due date.
+class _RestructureDialog extends StatefulWidget {
+  const _RestructureDialog({required this.plan, required this.ref});
+
+  final InstallmentPlan plan;
+  final WidgetRef ref;
+
+  @override
+  State<_RestructureDialog> createState() => _RestructureDialogState();
+}
+
+class _RestructureDialogState extends State<_RestructureDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _totalController;
+  late final TextEditingController _countController;
+  final _noteController = TextEditingController();
+  late PlainDate _nextDueOn;
+  AppFailure? _failure;
+  bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _totalController = TextEditingController(
+      text: formatMinorForInput(widget.plan.remainingMinor),
+    );
+    _countController = TextEditingController();
+    _nextDueOn = widget.plan.nextDueOn ?? PlainDate.today().addMonths(1);
+  }
+
+  @override
+  void dispose() {
+    _totalController.dispose();
+    _countController.dispose();
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _nextDueOn.toDateTime(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _nextDueOn = PlainDate.fromDateTime(picked));
+  }
+
+  Future<void> _submit() async {
+    setState(() => _failure = null);
+    if (!_formKey.currentState!.validate()) return;
+    final currency = widget.plan.currencyCode;
+    final total = Money.tryParse(
+      _totalController.text,
+      currencyCode: currency,
+    )!;
+    final count = int.parse(_countController.text.trim());
+    final note = _noteController.text.trim();
+    setState(() => _busy = true);
+    final result = await widget.ref
+        .read(financeRepositoryProvider)
+        .restructureInstallmentPlan(
+          planId: widget.plan.id,
+          remainingTotalMinor: total.minor,
+          remainingCount: count,
+          nextDueOn: _nextDueOn,
+          changeNote: note.isEmpty ? null : note,
+        );
+    if (!mounted) return;
+    setState(() => _busy = false);
+    result.when(
+      ok: (_) => Navigator.of(context).pop(true),
+      err: (failure) => setState(() => _failure = failure),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final currency = widget.plan.currencyCode;
+    return AlertDialog(
+      title: Text(l10n.planRestructureTitle),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.planRestructureBody,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 12),
+              AppTextFormField(
+                key: const Key('restructure-total'),
+                controller: _totalController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                inputFormatters: moneyInputFormatters(),
+                decoration: InputDecoration(
+                  labelText: l10n.planRestructureRemainingTotal,
+                  suffixText: currency,
+                ),
+                validator: (v) {
+                  final e = Validators.positiveAmount(
+                    v,
+                    currencyCode: currency,
+                  );
+                  return e == null ? null : validationMessage(context, e);
+                },
+              ),
+              const SizedBox(height: 12),
+              AppTextFormField(
+                key: const Key('restructure-count'),
+                controller: _countController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: l10n.planRestructureRemainingCount,
+                ),
+                validator: (v) {
+                  final value = int.tryParse(v?.trim() ?? '');
+                  return value == null || value < 1 || value > 120
+                      ? l10n.valInstallmentCount
+                      : null;
+                },
+              ),
+              const SizedBox(height: 4),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+                title: Text(l10n.planRestructureNextDue),
+                subtitle: Text(_nextDueOn.toIso()),
+                trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
+                onTap: _busy ? null : _pickDate,
+              ),
+              AppTextFormField(
+                key: const Key('restructure-note'),
+                controller: _noteController,
+                decoration: InputDecoration(
+                  labelText:
+                      '${l10n.planRestructureNote} (${l10n.commonOptional})',
+                ),
+              ),
+              if (_failure != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  failureMessage(context, _failure!),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _busy ? null : () => Navigator.of(context).pop(false),
+          child: Text(l10n.commonCancel),
+        ),
+        FilledButton(
+          key: const Key('restructure-submit'),
+          onPressed: _busy ? null : _submit,
+          child: Text(l10n.commonSave),
+        ),
+      ],
+    );
+  }
+}
+
+/// Read-only audit trail of a plan's restructures.
+class _RevisionsSheet extends ConsumerWidget {
+  const _RevisionsSheet({required this.plan});
+
+  final InstallmentPlan plan;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final revisionsAsync = ref.watch(planRevisionsProvider(plan.id));
+    Money money(int minor) =>
+        Money(minor: minor, currencyCode: plan.currencyCode);
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.planRevisionsTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Flexible(
+              child: AsyncView<List<InstallmentPlanRevision>>(
+                value: revisionsAsync,
+                onRetry: () => ref.invalidate(planRevisionsProvider(plan.id)),
+                data: (revisions) {
+                  if (revisions.isEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(l10n.planRevisionsEmpty),
+                    );
+                  }
+                  return ListView(
+                    shrinkWrap: true,
+                    children: [
+                      for (final revision in revisions)
+                        ListTile(
+                          dense: true,
+                          leading: CircleAvatar(
+                            radius: 14,
+                            child: Text('${revision.revision}'),
+                          ),
+                          title: Text(revision.changeSummary),
+                          subtitle: ProtectedMoneyText(
+                            '${money(revision.previousTotalPayableMinor).format()}'
+                            ' → '
+                            '${money(revision.newTotalPayableMinor).format()}',
+                            interactive: false,
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

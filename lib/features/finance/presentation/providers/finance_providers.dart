@@ -149,6 +149,26 @@ final installmentDuesProvider = FutureProvider.family
       return result.when(ok: (d) => d, err: (failure) => throw failure);
     });
 
+/// Statement cycles of one credit card, newest first.
+final statementSummariesProvider = FutureProvider.family
+    .autoDispose<List<CardStatementSummary>, String>((ref, accountId) async {
+      ref.watch(currentUserIdProvider);
+      final result = await ref
+          .watch(financeRepositoryProvider)
+          .fetchStatementSummaries(accountId);
+      return result.when(ok: (s) => s, err: (failure) => throw failure);
+    });
+
+/// Restructure history of one installment plan.
+final planRevisionsProvider = FutureProvider.family
+    .autoDispose<List<InstallmentPlanRevision>, String>((ref, planId) async {
+      ref.watch(currentUserIdProvider);
+      final result = await ref
+          .watch(financeRepositoryProvider)
+          .fetchPlanRevisions(planId);
+      return result.when(ok: (r) => r, err: (failure) => throw failure);
+    });
+
 /// Invalidate everything that depends on transaction or account rows.
 void invalidateFinanceData(WidgetRef ref) {
   ref.invalidate(accountBalancesProvider);
@@ -159,6 +179,8 @@ void invalidateFinanceData(WidgetRef ref) {
   ref.invalidate(creditFacilitiesProvider);
   ref.invalidate(installmentPlansProvider);
   ref.invalidate(installmentDuesProvider);
+  ref.invalidate(statementSummariesProvider);
+  ref.invalidate(planRevisionsProvider);
 }
 
 void invalidateIncomeAutomation(WidgetRef ref) {

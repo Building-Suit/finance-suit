@@ -463,8 +463,12 @@
   "workDurationHm": "{hours}س {minutes}د",
   "@workDurationHm": {
     "placeholders": {
-      "hours": {"type": "int"},
-      "minutes": {"type": "int"}
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
     }
   },
   "homeBalance": "الرصيد",
@@ -521,12 +525,24 @@
   "catParent": "الفئة الرئيسية (اختياري)",
   "catTopLevel": "بدون فئة رئيسية — فئة عادية",
   "catSubcategoryOf": "فئة فرعية من {parent}",
-  "@catSubcategoryOf": {"placeholders": {"parent": {"type": "String"}}},
+  "@catSubcategoryOf": {
+    "placeholders": {
+      "parent": {
+        "type": "String"
+      }
+    }
+  },
   "catSubcategoryOptional": "الفئة الفرعية (اختياري)",
   "catUseParentCategory": "بدون فئة فرعية — استخدم الفئة الرئيسية",
   "catAddSubcategory": "إضافة فئة فرعية",
   "catSubcategoryCount": "{count} فئات فرعية",
-  "@catSubcategoryCount": {"placeholders": {"count": {"type": "int"}}},
+  "@catSubcategoryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "catMissingParent": "الفئة الرئيسية مفقودة",
   "catArchiveChildrenFirst": "أرشف الفئات الفرعية المفعلة أولًا.",
   "catRestoreParentFirst": "استعد الفئة الرئيسية قبل استعادة هذه الفئة الفرعية.",
@@ -538,7 +554,13 @@
   "incomeEditSource": "تعديل مصدر الدخل",
   "incomeNoSources": "لا توجد مصادر دخل آلية بعد.",
   "incomeMonthlyOnDay": "شهريًا في يوم {day}",
-  "@incomeMonthlyOnDay": {"placeholders": {"day": {"type": "int"}}},
+  "@incomeMonthlyOnDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
   "incomeSourceType": "نوع الدخل",
   "incomeSourceName": "اسم مصدر الدخل",
   "incomeExpectedAmount": "المبلغ المتوقع",
@@ -551,7 +573,13 @@
   "incomeSplitAddRule": "إضافة قاعدة تقسيم",
   "incomeSplitNoRules": "لا توجد قواعد تقسيم. يبقى كامل المبلغ في حساب الإيداع.",
   "incomeSplitRuleNumber": "قاعدة {number}",
-  "@incomeSplitRuleNumber": {"placeholders": {"number": {"type": "int"}}},
+  "@incomeSplitRuleNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "incomeSplitDestinationAccount": "حساب الوجهة",
   "incomeSplitMethod": "طريقة التقسيم",
   "incomeSplitMethodPercentage": "نسبة مئوية",
@@ -572,24 +600,108 @@
   "incomeRolloverAccount": "وجهة رصيد الشهر السابق",
   "incomeSplitPreviewTitle": "ملخص المعاينة",
   "incomeSplitPreviewDeposit": "يدخل {amount} إلى {account} أولًا.",
-  "@incomeSplitPreviewDeposit": {"placeholders": {"amount": {"type": "String"}, "account": {"type": "String"}}},
+  "@incomeSplitPreviewDeposit": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeSplitPreviewPercentageRule": "القاعدة {number}: {percentage}% من {basis} = {amount} إلى {account}.",
-  "@incomeSplitPreviewPercentageRule": {"placeholders": {"number": {"type": "int"}, "percentage": {"type": "String"}, "basis": {"type": "String"}, "amount": {"type": "String"}, "account": {"type": "String"}}},
+  "@incomeSplitPreviewPercentageRule": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "percentage": {
+        "type": "String"
+      },
+      "basis": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeSplitPreviewFixedRule": "القاعدة {number}: مبلغ ثابت {amount} إلى {account}.",
-  "@incomeSplitPreviewFixedRule": {"placeholders": {"number": {"type": "int"}, "amount": {"type": "String"}, "account": {"type": "String"}}},
+  "@incomeSplitPreviewFixedRule": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeSplitPreviewExtraIncluded": "تدخل أرباح العمل الإضافي ضمن حساب النسب.",
   "incomeSplitPreviewExtraRouted": "تذهب أرباح العمل الإضافي المحمية إلى {account}.",
-  "@incomeSplitPreviewExtraRouted": {"placeholders": {"account": {"type": "String"}}},
+  "@incomeSplitPreviewExtraRouted": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeSplitPreviewExtraKept": "تبقى أرباح العمل الإضافي المحمية في {account}.",
-  "@incomeSplitPreviewExtraKept": {"placeholders": {"account": {"type": "String"}}},
+  "@incomeSplitPreviewExtraKept": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeRolloverPreviewMoved": "قبل إيداع هذا الراتب، ينتقل أي رصيد موجب موجود في {sourceAccount} إلى {destinationAccount}.",
-  "@incomeRolloverPreviewMoved": {"placeholders": {"sourceAccount": {"type": "String"}, "destinationAccount": {"type": "String"}}},
+  "@incomeRolloverPreviewMoved": {
+    "placeholders": {
+      "sourceAccount": {
+        "type": "String"
+      },
+      "destinationAccount": {
+        "type": "String"
+      }
+    }
+  },
   "incomeRolloverPreviewKept": "يبقى الرصيد الموجود في {account} كما هو.",
-  "@incomeRolloverPreviewKept": {"placeholders": {"account": {"type": "String"}}},
+  "@incomeRolloverPreviewKept": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeSplitPreviewLine": "{amount} إلى {account}",
-  "@incomeSplitPreviewLine": {"placeholders": {"amount": {"type": "String"}, "account": {"type": "String"}}},
+  "@incomeSplitPreviewLine": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeSplitPreviewRemainder": "يبقى {amount} في {account}",
-  "@incomeSplitPreviewRemainder": {"placeholders": {"amount": {"type": "String"}, "account": {"type": "String"}}},
+  "@incomeSplitPreviewRemainder": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeSplitPreviewError": "هذه القواعد تتجاوز الدخل المتاح.",
   "incomeKindSalary": "راتب",
   "incomeKindAllowance": "مصروف دوري مستلم",
@@ -600,16 +712,40 @@
   "incomeNoPrimaryHelp": "يمكنك إكمال الإعداد بدون راتب وإضافة أي مصدر دخل لاحقًا من الإعدادات.",
   "incomePendingTitle": "دخل بانتظار الموافقة",
   "incomeDue": "كان متوقعًا في {date} — أكّده عند وصوله",
-  "@incomeDue": {"placeholders": {"date": {"type": "String"}}},
+  "@incomeDue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "incomeUpcoming": "متوقع في {date} — يمكنك قبوله مبكرًا",
-  "@incomeUpcoming": {"placeholders": {"date": {"type": "String"}}},
+  "@incomeUpcoming": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "incomeAcceptTitle": "قبول {name}؟",
-  "@incomeAcceptTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@incomeAcceptTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "incomeAcceptHelp": "لن تُنشأ معاملة الدخل وتقسيماتها بين الحسابات إلا بعد التأكيد.",
   "incomeAccept": "قبول الدخل",
   "incomeSkipTitle": "تخطي هذا الدخل؟",
   "incomeSkipHelp": "لن ينشئ {name} معاملة لهذا الشهر.",
-  "@incomeSkipHelp": {"placeholders": {"name": {"type": "String"}}},
+  "@incomeSkipHelp": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "incomeSkip": "تخطي",
   "incomeLater": "لاحقًا",
   "incomeRemindLater": "تم التأجيل لمدة 24 ساعة.",
@@ -622,7 +758,16 @@
   "salaryHolidayWorked": "عمل يوم عطلة",
   "salaryEstimatedTotal": "الإجمالي المتوقع",
   "durationHoursMinutes": "{hours}س {minutes}د",
-  "@durationHoursMinutes": {"placeholders": {"hours": {"type": "int"}, "minutes": {"type": "int"}}},
+  "@durationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "incomeAutomationCenter": "أتمتة مصادر الدخل",
   "incomeAutomationOverview": "حدد الموعد المتوقع وتقسيم الحسابات. لن يتغير رصيدك حتى توافق على الدفعة.",
   "incomeActiveAutomations": "الأتمتة المفعّلة",
@@ -630,23 +775,74 @@
   "incomeAutomationEnabled": "الأتمتة مفعلة",
   "incomeAutomationEnabledHelp": "أوقف هذا المصدر مؤقتًا دون حذف الجدول أو قواعد التقسيم.",
   "incomeActiveCount": "{count} مفعّل",
-  "@incomeActiveCount": {"placeholders": {"count": {"type": "int"}}},
+  "@incomeActiveCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "incomePausedCount": "{count} متوقف",
-  "@incomePausedCount": {"placeholders": {"count": {"type": "int"}}},
+  "@incomePausedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "incomePendingCount": "{count} بانتظارك",
-  "@incomePendingCount": {"placeholders": {"count": {"type": "int"}}},
+  "@incomePendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "incomeActive": "مفعّل",
   "incomePaused": "متوقف",
   "incomePause": "إيقاف مؤقت",
   "incomeResume": "استئناف",
   "incomeDepositAccount": "حساب الإيداع: {account}",
-  "@incomeDepositAccount": {"placeholders": {"account": {"type": "String"}}},
+  "@incomeDepositAccount": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeSplitAccount": "{percentage}% إلى {account}",
-  "@incomeSplitAccount": {"placeholders": {"percentage": {"type": "String"}, "account": {"type": "String"}}},
+  "@incomeSplitAccount": {
+    "placeholders": {
+      "percentage": {
+        "type": "String"
+      },
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeSplitFixedAccount": "{amount} إلى {account}",
-  "@incomeSplitFixedAccount": {"placeholders": {"amount": {"type": "String"}, "account": {"type": "String"}}},
+  "@incomeSplitFixedAccount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeRemainderSplit": "يبقى {percentage}% في {account}",
-  "@incomeRemainderSplit": {"placeholders": {"percentage": {"type": "String"}, "account": {"type": "String"}}},
+  "@incomeRemainderSplit": {
+    "placeholders": {
+      "percentage": {
+        "type": "String"
+      },
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeNoPending": "لا يوجد دخل ينتظر موافقتك.",
   "addSectionAutomationControl": "التحكم في الأتمتة",
   "addAutomation": "إضافة أتمتة",
@@ -687,7 +883,13 @@
   "facilityAvailable": "الائتمان المتاح",
   "facilityUtilization": "نسبة الاستخدام",
   "facilityNextDue": "الاستحقاق التالي {date}",
-  "@facilityNextDue": {"placeholders": {"date": {"type": "String"}}},
+  "@facilityNextDue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "facilityOverdueBadge": "متأخر",
   "facilityDueNow": "مستحق الآن",
   "facilityDetailTitle": "التسهيل الائتماني",
@@ -707,7 +909,16 @@
   "planStatusCompleted": "مكتملة",
   "planStatusCancelled": "ملغاة",
   "planPaidOfTotal": "تم سداد {paid} من {total}",
-  "@planPaidOfTotal": {"placeholders": {"paid": {"type": "String"}, "total": {"type": "String"}}},
+  "@planPaidOfTotal": {
+    "placeholders": {
+      "paid": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "planCancel": "إلغاء الخطة",
   "planCancelConfirmTitle": "إلغاء هذه الخطة؟",
   "planCancelConfirmBody": "سيُحذف الشراء الممول وسيُلغى جدول الأقساط. هذا ممكن فقط قبل أي سداد.",
@@ -750,7 +961,13 @@
   "paymentFullChip": "كامل المديونية",
   "paymentAllocationPreview": "سيُطبق على",
   "paymentUnallocatedNote": "{amount} يخفض الرصيد المتبقي المستحق",
-  "@paymentUnallocatedNote": {"placeholders": {"amount": {"type": "String"}}},
+  "@paymentUnallocatedNote": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "paymentNothingOwed": "لا توجد مديونية حاليًا.",
   "paymentReverse": "عكس الدفعة",
   "paymentReverseConfirmTitle": "عكس هذه الدفعة؟",
@@ -758,11 +975,29 @@
   "valPaymentAboveOutstanding": "الدفعة أكبر من المبلغ المستحق",
   "homeDuesTitle": "الأقساط",
   "homeDueNow": "{amount} مستحق الآن",
-  "@homeDueNow": {"placeholders": {"amount": {"type": "String"}}},
+  "@homeDueNow": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "homeNextDue": "الاستحقاق التالي {date}",
-  "@homeNextDue": {"placeholders": {"date": {"type": "String"}}},
+  "@homeNextDue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "homeOverdue": "{amount} متأخر",
-  "@homeOverdue": {"placeholders": {"amount": {"type": "String"}}},
+  "@homeOverdue": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "reportsDebtTitle": "الائتمان والأقساط",
   "reportsDebtRepayments": "سداد الديون",
   "reportsDebtUpcoming": "الأقساط القادمة",
@@ -776,5 +1011,117 @@
   "errAccountRoleLocked": "أنشئ حسابًا جديدًا للتبديل بين النقد والائتمان",
   "errAlreadyReversed": "تم عكس هذه الدفعة من قبل",
   "errInvalidFinancing": "رسوم التمويل والإجمالي المستحق غير متطابقين",
-  "errAllocationInvalid": "توزيع الدفعة لا يطابق الأقساط المفتوحة"
+  "errAllocationInvalid": "توزيع الدفعة لا يطابق الأقساط المفتوحة",
+  "facilityReminderDaysHelp": "قبل كم يوم من تاريخ الاستحقاق يذكّرك التطبيق.",
+  "facilityReminderOnDueDay": "في يوم الاستحقاق",
+  "facilityReminderDaysBefore": "قبل {days} أيام من الاستحقاق",
+  "@facilityReminderDaysBefore": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "facilityStatusLabel": "حالة البطاقة",
+  "facilityStatusHelp": "البطاقات المجمّدة والمغلقة تحتفظ بسجلها وديونها لكنها لا تموّل مشتريات جديدة.",
+  "facilityStatusActive": "نشطة",
+  "facilityStatusFrozen": "مجمّدة",
+  "facilityStatusClosed": "مغلقة",
+  "facilityLifecycleTitle": "الأرشفة أو الحذف",
+  "facilityLifecycleBody": "الأرشفة تخفي البطاقة من القوائم بينما يبقى أي دين متبقٍ ظاهرًا وقابلًا للسداد. الحذف ممكن فقط لبطاقة بلا أي نشاط.",
+  "facilityArchiveAction": "أرشفة البطاقة",
+  "facilityUnarchiveAction": "إلغاء أرشفة البطاقة",
+  "facilityDeleteAction": "حذف البطاقة",
+  "facilityDeleteConfirmTitle": "حذف هذه البطاقة؟",
+  "facilityDeleteConfirmBody": "يمكن حذف البطاقة فقط إذا لم يكن عليها أي مشتريات أو مدفوعات أو كشوف أو خطط. غير ذلك يُفضَّل أرشفتها للحفاظ على السجل.",
+  "pricingMethodManualFees": "أعرف الرسوم",
+  "pricingMethodMonthlyAmount": "أعرف القسط الشهري",
+  "pricingMethodTotalPayable": "أعرف الإجمالي المستحق",
+  "pricingMethodInterestRate": "أعرف معدل الفائدة",
+  "purchaseEditTitle": "تعديل خطة التقسيط",
+  "purchaseDownPaymentSection": "المدفوع الآن",
+  "purchaseDownPaymentSectionHelp": "المقدّم وأي رسوم فورية تُخصم من حساب نقدي اليوم ولا تُموَّل أبدًا.",
+  "purchaseUpfrontFees": "رسوم فورية",
+  "purchaseUpfrontFeesHelp": "رسوم إدارية أو رسوم إصدار تُدفع نقدًا اليوم من نفس حساب المقدّم.",
+  "purchaseFinancingSection": "التمويل",
+  "purchaseFinancingSectionHelp": "أدخل الرقم الذي أعطاه لك المموّل وسيُحسب الباقي تلقائيًا.",
+  "purchaseFinancingFeesHelp": "إجمالي التكلفة الإضافية التي يفرضها الممول فوق المبلغ المموَّل.",
+  "purchaseTotalPayableHelp": "كل ما ستدفعه عبر جميع الأقساط كما حدده الممول.",
+  "purchaseMonthlyAmount": "القسط الشهري",
+  "purchaseMonthlyAmountHelp": "المبلغ الذي يحصّله الممول كل شهر بالضبط.",
+  "purchaseMonthlyRate": "معدل الفائدة الشهري",
+  "purchaseAnnualRate": "معدل الفائدة السنوي",
+  "purchaseRateHelp": "كما هو معلن من البنك، مثال: 2.5 تعني 2.5%.",
+  "purchaseRatePeriod": "فترة المعدل",
+  "purchaseRatePerMonth": "شهريًا",
+  "purchaseRatePerYear": "سنويًا",
+  "purchaseInterestMethod": "طريقة احتساب الفائدة",
+  "purchaseInterestMethodHelp": "الثابتة تُحسب على كامل المبلغ كل شهر؛ المتناقصة تُحسب على الرصيد المتبقي.",
+  "purchaseInterestFlat": "ثابتة",
+  "purchaseInterestReducing": "متناقصة",
+  "purchaseImportSection": "خطة قائمة بالفعل",
+  "purchaseImportSectionHelp": "تابع خطة بدأتها قبل استخدام التطبيق: علّم الأقساط المدفوعة ولن يُحتسب كدين جديد إلا المتبقي.",
+  "purchaseImportToggle": "دفعت بعض الأقساط بالفعل",
+  "purchasePaidCount": "عدد الأقساط المدفوعة",
+  "purchasePaidCountHelp": "سيُعتبر هذا العدد من أول الجدول مسددًا خارج التطبيق.",
+  "purchaseInterest": "الفائدة",
+  "purchaseAlreadyPaidPortion": "مدفوع بالفعل ({count} قسطًا)",
+  "@purchaseAlreadyPaidPortion": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "purchaseRemainingCharge": "الدين المتبقي للمتابعة",
+  "valPaidInstallments": "عدد الأقساط المدفوعة يجب أن يظل أقل من الإجمالي",
+  "valInterestRate": "أدخل معدلًا بين 0 و1,000%",
+  "facilityStatementsSection": "كشوف البطاقة",
+  "facilityNoStatements": "ستظهر مشتريات هذه البطاقة هنا مجمّعة حسب الكشف.",
+  "statementCycleTitle": "كشف يُغلق في {date}",
+  "@statementCycleTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "statementDueOn": "يستحق في {date}",
+  "@statementDueOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "statementMinimumDue": "الحد الأدنى للسداد",
+  "statementStatusOpen": "مفتوح",
+  "planActionsTooltip": "إجراءات الخطة",
+  "planEditAction": "تعديل الخطة",
+  "planRestructureAction": "إعادة جدولة المتبقي",
+  "planRevisionsAction": "سجل التغييرات",
+  "planRestructureTitle": "إعادة جدولة الأقساط المتبقية",
+  "planRestructureBody": "الأقساط المدفوعة لا تتغير. وزّع المتبقي على جدول جديد، وأي تكلفة إضافية تُسجَّل كمصروف اليوم.",
+  "planRestructureRemainingTotal": "الإجمالي المتبقي",
+  "planRestructureRemainingCount": "عدد الأقساط المتبقية",
+  "planRestructureNextDue": "تاريخ الاستحقاق التالي",
+  "planRestructureNote": "السبب",
+  "planRevisionsTitle": "سجل تغييرات الخطة",
+  "planRevisionsEmpty": "لم تتم إعادة جدولة هذه الخطة.",
+  "errFacilityHasHistory": "هذه البطاقة عليها نشاط؛ قم بأرشفتها بدلًا من حذفها",
+  "errFacilityNotActive": "هذه البطاقة مجمّدة أو مغلقة ولا يمكنها تمويل مشتريات جديدة",
+  "errCardNotConfigured": "حدّد يوم إغلاق كشف البطاقة أولًا",
+  "errInvalidPaidInstallments": "عدد الأقساط المدفوعة يجب أن يظل أقل من الإجمالي",
+  "errPlanPartiallyPaidDue": "سدّد القسط المدفوع جزئيًا قبل إعادة الجدولة",
+  "purchaseFinancedFees": "رسوم مموَّلة",
+  "purchaseFinancedFeesHelp": "رسوم إضافية تُضاف إلى الجدول وتُدفع ضمن الأقساط.",
+  "setNotificationsSection": "الإشعارات",
+  "notifDueRemindersTitle": "تذكيرات الاستحقاق",
+  "notifDueRemindersHelp": "ذكّرني قبل استحقاق الأقساط وكشوف البطاقة.",
+  "notifOverdueRemindersTitle": "تنبيهات التأخر",
+  "notifOverdueRemindersHelp": "استمر في تنبيهي طالما هناك دفعة متأخرة.",
+  "notifPaymentConfirmationsTitle": "تأكيدات السداد",
+  "notifPaymentConfirmationsHelp": "أعلمني عند تسجيل دفعة على البطاقة.",
+  "notifShowAmountsTitle": "إظهار المبالغ في الإشعارات",
+  "notifShowAmountsHelp": "متوقف افتراضيًا حتى لا تظهر الأرصدة على شاشة القفل."
 }

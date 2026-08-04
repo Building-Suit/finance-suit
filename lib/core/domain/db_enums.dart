@@ -103,6 +103,99 @@ enum AccountType {
 /// owes (liability). Mirrors `app_finance.account_role` in SQL.
 enum AccountRole { asset, liability }
 
+/// Lifecycle of a credit facility. `closed` keeps history but never funds
+/// new purchases; `frozen` is a temporary hold. Archiving stays a separate
+/// account-level flag.
+enum FacilityStatus {
+  active('active'),
+  frozen('frozen'),
+  closed('closed');
+
+  const FacilityStatus(this.dbValue);
+  final String dbValue;
+
+  static FacilityStatus fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+/// How the financing cost of an installment plan was entered.
+enum PlanPricingMethod {
+  manualFees('manual_fees'),
+  monthlyAmount('monthly_amount'),
+  totalPayable('total_payable'),
+  interestRate('interest_rate');
+
+  const PlanPricingMethod(this.dbValue);
+  final String dbValue;
+
+  static PlanPricingMethod fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+enum InterestRatePeriod {
+  monthly('monthly'),
+  annual('annual');
+
+  const InterestRatePeriod(this.dbValue);
+  final String dbValue;
+
+  static InterestRatePeriod fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+enum InterestMethod {
+  flat('flat'),
+  reducing('reducing');
+
+  const InterestMethod(this.dbValue);
+  final String dbValue;
+
+  static InterestMethod fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+/// Whether a plan was created in-app or imported mid-flight with some
+/// installments already paid outside Finance Suit.
+enum PlanOrigin {
+  app('app'),
+  historicalImport('historical_import');
+
+  const PlanOrigin(this.dbValue);
+  final String dbValue;
+
+  static PlanOrigin fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+enum MinPaymentMethod {
+  full('full'),
+  fixed('fixed'),
+  percent('percent'),
+  greaterOf('greater_of');
+
+  const MinPaymentMethod(this.dbValue);
+  final String dbValue;
+
+  static MinPaymentMethod fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+/// Derived status of a credit-card statement cycle.
+enum StatementCycleStatus {
+  open('open'),
+  upcoming('upcoming'),
+  dueToday('due_today'),
+  overdue('overdue'),
+  partiallyPaid('partially_paid'),
+  paid('paid');
+
+  const StatementCycleStatus(this.dbValue);
+  final String dbValue;
+
+  static StatementCycleStatus fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
 enum InstallmentPlanStatus {
   active('active'),
   completed('completed'),

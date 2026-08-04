@@ -5,6 +5,7 @@ import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
+import 'package:work_tracker/core/money/money_input.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/app_toast.dart';
@@ -86,7 +87,7 @@ Future<bool> acceptPendingIncome(
   final defaultMinor =
       salaryEstimate?.totalMinor ?? pending.occurrence.expectedAmountMinor;
   final amountController = TextEditingController(
-    text: (defaultMinor / Money.minorUnitsPerMajor).toStringAsFixed(2),
+    text: formatMinorForInput(defaultMinor),
   );
   final notesController = TextEditingController();
   var receivedOn = PlainDate.today();
@@ -109,6 +110,7 @@ Future<bool> acceptPendingIncome(
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  inputFormatters: moneyInputFormatters(),
                   decoration: InputDecoration(
                     labelText: l10n.salActualAmount,
                     suffixText: pending.source.currencyCode,

@@ -42,6 +42,37 @@ String installmentPlanStatusLabel(
   };
 }
 
+String facilityStatusLabel(AppLocalizations l10n, FacilityStatus status) {
+  return switch (status) {
+    FacilityStatus.active => l10n.facilityStatusActive,
+    FacilityStatus.frozen => l10n.facilityStatusFrozen,
+    FacilityStatus.closed => l10n.facilityStatusClosed,
+  };
+}
+
+String planPricingMethodLabel(AppLocalizations l10n, PlanPricingMethod m) {
+  return switch (m) {
+    PlanPricingMethod.manualFees => l10n.pricingMethodManualFees,
+    PlanPricingMethod.monthlyAmount => l10n.pricingMethodMonthlyAmount,
+    PlanPricingMethod.totalPayable => l10n.pricingMethodTotalPayable,
+    PlanPricingMethod.interestRate => l10n.pricingMethodInterestRate,
+  };
+}
+
+String statementCycleStatusLabel(
+  AppLocalizations l10n,
+  StatementCycleStatus status,
+) {
+  return switch (status) {
+    StatementCycleStatus.open => l10n.statementStatusOpen,
+    StatementCycleStatus.upcoming => l10n.dueStatusUpcoming,
+    StatementCycleStatus.dueToday => l10n.dueStatusDueToday,
+    StatementCycleStatus.overdue => l10n.dueStatusOverdue,
+    StatementCycleStatus.partiallyPaid => l10n.dueStatusPartiallyPaid,
+    StatementCycleStatus.paid => l10n.dueStatusPaid,
+  };
+}
+
 String transactionKindLabel(AppLocalizations l10n, TransactionKind kind) {
   return switch (kind) {
     TransactionKind.expense => l10n.txExpense,

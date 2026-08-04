@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
+import 'package:work_tracker/core/money/money_input.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
@@ -508,6 +509,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
+              inputFormatters: moneyInputFormatters(),
               decoration: InputDecoration(
                 labelText: l10n.incomeExpectedAmount,
                 suffixText: _currency,
@@ -602,6 +604,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             onFieldSubmitted: (_) => _submitCurrentStep(),
             controller: _openingBalanceController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: moneyInputFormatters(),
             decoration: InputDecoration(
               labelText: l10n.accOpeningBalance,
               suffixText: _currency,

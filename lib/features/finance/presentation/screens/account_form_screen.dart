@@ -5,6 +5,7 @@ import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
+import 'package:work_tracker/core/money/money_input.dart';
 import 'package:work_tracker/core/result/result.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
@@ -24,8 +25,9 @@ import 'package:work_tracker/l10n/generated/app_localizations.dart';
 /// Create (accountId == null) or edit an account.
 ///
 /// Asset accounts keep the original fields. Selecting a Credit Card or
-/// BNPL type swaps in the facility fields (credit limit, opening amount
-/// owed, due day, reminders) and saves through the atomic facility RPC.
+/// BNPL type swaps in the facility fields (credit limit, due day,
+/// reminders, lifecycle) and saves through the atomic facility RPC. New
+/// facilities always start at zero debt — there is no opening-owed input.
 class AccountFormScreen extends ConsumerStatefulWidget {
   const AccountFormScreen({super.key, this.accountId});
 
@@ -34,6 +36,9 @@ class AccountFormScreen extends ConsumerStatefulWidget {
   @override
   ConsumerState<AccountFormScreen> createState() => _AccountFormScreenState();
 }
+
+/// Choices for how many days before a due date the reminder fires.
+const _reminderLeadChoices = [0, 1, 2, 3, 5, 7, 10, 14];
 
 class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
   final _formKey = GlobalKey<FormState>();
@@ -44,14 +49,16 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
   final _dueDayController = TextEditingController(text: '1');
   final _statementDayController = TextEditingController();
   final _lastFourController = TextEditingController();
-  final _reminderDaysController = TextEditingController(text: '3');
 
   AccountType _accountType = AccountType.current;
   bool _allowNegative = false;
+  int _reminderLeadDays = 3;
+  FacilityStatus _facilityStatus = FacilityStatus.active;
   AppFailure? _failure;
   bool _busy = false;
   bool _loaded = false;
   Account? _existing;
+  CreditFacilitySummary? _existingFacility;
 
   bool get _isEdit => widget.accountId != null;
   bool get _isLiability => _accountType.isLiability;
@@ -89,21 +96,21 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
           .firstOrNull;
     }
     _existing = account;
+    _existingFacility = facility;
     _nameController.text = account.name;
-    _balanceController.text =
-        (account.openingBalanceMinor / Money.minorUnitsPerMajor)
-            .toStringAsFixed(2);
+    _balanceController.text = formatMinorForInput(account.openingBalanceMinor);
     _notesController.text = account.notes ?? '';
     if (facility != null) {
-      _creditLimitController.text =
-          (facility.creditLimitMinor / Money.minorUnitsPerMajor)
-              .toStringAsFixed(2);
+      _creditLimitController.text = formatMinorForInput(
+        facility.creditLimitMinor,
+      );
       _dueDayController.text = '${facility.defaultDueDay}';
       _statementDayController.text = facility.statementDay == null
           ? ''
           : '${facility.statementDay}';
       _lastFourController.text = facility.lastFourDigits ?? '';
-      _reminderDaysController.text = '${facility.reminderLeadDays}';
+      _reminderLeadDays = facility.reminderLeadDays;
+      _facilityStatus = facility.facilityStatus;
     }
     setState(() {
       _accountType = account.accountType;
@@ -121,7 +128,6 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
     _dueDayController.dispose();
     _statementDayController.dispose();
     _lastFourController.dispose();
-    _reminderDaysController.dispose();
     super.dispose();
   }
 
@@ -141,10 +147,6 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
   Future<void> _save() async {
     setState(() => _failure = null);
     if (!_formKey.currentState!.validate()) return;
-    final opening = Money.tryParse(
-      _balanceController.text,
-      currencyCode: _currencyCode,
-    )!;
     final notes = _notesController.text.trim();
     setState(() => _busy = true);
     final repo = ref.read(financeRepositoryProvider);
@@ -161,7 +163,6 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
           name: _nameController.text.trim(),
           accountType: _accountType,
           currencyCode: _currencyCode,
-          openingOwedMinor: opening.minor,
           creditLimitMinor: limit.minor,
           defaultDueDay: int.parse(_dueDayController.text.trim()),
           statementDay:
@@ -172,12 +173,21 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
               _accountType == AccountType.creditCard && lastFour.isNotEmpty
               ? lastFour
               : null,
-          reminderLeadDays: int.parse(_reminderDaysController.text.trim()),
+          reminderLeadDays: _reminderLeadDays,
           notes: notes.isEmpty ? null : notes,
           accountId: widget.accountId,
+          facilityStatus: _facilityStatus,
+          minPaymentMethod:
+              _existingFacility?.minPaymentMethod ?? MinPaymentMethod.full,
+          minPaymentFixedMinor: _existingFacility?.minPaymentFixedMinor,
+          minPaymentBasisPoints: _existingFacility?.minPaymentBasisPoints,
         ),
       );
     } else {
+      final opening = Money.tryParse(
+        _balanceController.text,
+        currencyCode: _currencyCode,
+      )!;
       result = _isEdit
           ? await repo.updateAccount(
               id: widget.accountId!,
@@ -196,6 +206,65 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
               notes: notes.isEmpty ? null : notes,
             );
     }
+    if (!mounted) return;
+    setState(() => _busy = false);
+    result.when(
+      ok: (_) {
+        invalidateFinanceData(ref);
+        AppToast.success(context, AppLocalizations.of(context).setSaved);
+        context.pop();
+      },
+      err: (failure) => setState(() => _failure = failure),
+    );
+  }
+
+  Future<void> _setArchived(bool archived) async {
+    setState(() {
+      _failure = null;
+      _busy = true;
+    });
+    final result = await ref
+        .read(financeRepositoryProvider)
+        .setArchived(widget.accountId!, archived: archived);
+    if (!mounted) return;
+    setState(() => _busy = false);
+    result.when(
+      ok: (_) {
+        invalidateFinanceData(ref);
+        AppToast.success(context, AppLocalizations.of(context).setSaved);
+        context.pop();
+      },
+      err: (failure) => setState(() => _failure = failure),
+    );
+  }
+
+  Future<void> _deleteFacility() async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.facilityDeleteConfirmTitle),
+        content: Text(l10n.facilityDeleteConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.commonDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() {
+      _failure = null;
+      _busy = true;
+    });
+    final result = await ref
+        .read(financeRepositoryProvider)
+        .deleteCreditFacility(widget.accountId!);
     if (!mounted) return;
     setState(() => _busy = false);
     result.when(
@@ -258,32 +327,29 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                           if (v != null) setState(() => _accountType = v);
                         },
                       ),
-                      const SizedBox(height: 16),
-                      AppTextFormField(
-                        controller: _balanceController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
+                      if (!_isLiability) ...[
+                        const SizedBox(height: 16),
+                        AppTextFormField(
+                          controller: _balanceController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          inputFormatters: moneyInputFormatters(),
+                          decoration: InputDecoration(
+                            labelText: l10n.accOpeningBalance,
+                            suffixText: _currencyCode,
+                          ),
+                          validator: (v) {
+                            final e = Validators.nonNegativeAmount(
+                              v,
+                              currencyCode: _currencyCode,
+                            );
+                            return e == null
+                                ? null
+                                : validationMessage(context, e);
+                          },
                         ),
-                        decoration: InputDecoration(
-                          labelText: _isLiability
-                              ? l10n.accOpeningOwed
-                              : l10n.accOpeningBalance,
-                          helperText: _isLiability
-                              ? l10n.accOpeningOwedHelp
-                              : null,
-                          helperMaxLines: 3,
-                          suffixText: _currencyCode,
-                        ),
-                        validator: (v) {
-                          final e = Validators.nonNegativeAmount(
-                            v,
-                            currencyCode: _currencyCode,
-                          );
-                          return e == null
-                              ? null
-                              : validationMessage(context, e);
-                        },
-                      ),
+                      ],
                       if (_isLiability) ...[
                         const SizedBox(height: 16),
                         AppTextFormField(
@@ -292,6 +358,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                           keyboardType: const TextInputType.numberWithOptions(
                             decimal: true,
                           ),
+                          inputFormatters: moneyInputFormatters(),
                           decoration: InputDecoration(
                             labelText: l10n.facilityCreditLimit,
                             suffixText: _currencyCode,
@@ -358,20 +425,58 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                           ),
                         ],
                         const SizedBox(height: 16),
-                        AppTextFormField(
-                          key: const Key('facility-reminder-days'),
-                          controller: _reminderDaysController,
-                          keyboardType: TextInputType.number,
+                        AppSelectionField<int>(
+                          key: ValueKey(
+                            'facility-reminder-days-$_reminderLeadDays',
+                          ),
+                          initialValue:
+                              _reminderLeadChoices.contains(_reminderLeadDays)
+                              ? _reminderLeadDays
+                              : 3,
                           decoration: InputDecoration(
                             labelText: l10n.facilityReminderDays,
+                            helperText: l10n.facilityReminderDaysHelp,
+                            helperMaxLines: 3,
                           ),
-                          validator: (v) {
-                            final value = int.tryParse(v?.trim() ?? '');
-                            return value == null || value < 0 || value > 31
-                                ? l10n.valFacilityReminderDays
-                                : null;
-                          },
+                          items: [
+                            for (final days in _reminderLeadChoices)
+                              DropdownMenuItem(
+                                value: days,
+                                child: Text(
+                                  days == 0
+                                      ? l10n.facilityReminderOnDueDay
+                                      : l10n.facilityReminderDaysBefore(days),
+                                ),
+                              ),
+                          ],
+                          onChanged: (v) =>
+                              setState(() => _reminderLeadDays = v ?? 3),
                         ),
+                        if (_isEdit && _existingFacility != null) ...[
+                          const SizedBox(height: 16),
+                          AppSelectionField<FacilityStatus>(
+                            key: ValueKey('facility-status-$_facilityStatus'),
+                            initialValue: _facilityStatus,
+                            decoration: InputDecoration(
+                              labelText: l10n.facilityStatusLabel,
+                              helperText: l10n.facilityStatusHelp,
+                              helperMaxLines: 3,
+                            ),
+                            items: [
+                              for (final status in FacilityStatus.values)
+                                DropdownMenuItem(
+                                  value: status,
+                                  child: Text(
+                                    facilityStatusLabel(l10n, status),
+                                  ),
+                                ),
+                            ],
+                            onChanged: (v) => setState(
+                              () =>
+                                  _facilityStatus = v ?? FacilityStatus.active,
+                            ),
+                          ),
+                        ],
                       ] else ...[
                         const SizedBox(height: 8),
                         SwitchListTile(
@@ -396,6 +501,43 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                               : validationMessage(context, e);
                         },
                       ),
+                      if (_isEdit && _isLiability) ...[
+                        const SizedBox(height: 24),
+                        Text(
+                          l10n.facilityLifecycleTitle,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          l10n.facilityLifecycleBody,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          key: const Key('facility-archive'),
+                          onPressed: _busy
+                              ? null
+                              : () => _setArchived(!(_existing!.isArchived)),
+                          icon: const Icon(Icons.archive_outlined),
+                          label: Text(
+                            _existing?.isArchived == true
+                                ? l10n.facilityUnarchiveAction
+                                : l10n.facilityArchiveAction,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        OutlinedButton.icon(
+                          key: const Key('facility-delete'),
+                          onPressed: _busy ? null : _deleteFacility,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Theme.of(
+                              context,
+                            ).colorScheme.error,
+                          ),
+                          icon: const Icon(Icons.delete_outline),
+                          label: Text(l10n.facilityDeleteAction),
+                        ),
+                      ],
                       const SizedBox(height: 16),
                       AuthErrorBanner(failure: _failure),
                       AuthSubmitButton(

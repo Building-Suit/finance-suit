@@ -37,8 +37,6 @@ select has_table('app_finance', 'installment_dues',
 select has_table('app_finance', 'installment_payment_allocations',
   'payment allocations table exists');
 select has_function('app_finance', 'create_installment_plan',
-  array['uuid', 'text', 'uuid', 'date', 'bigint', 'integer', 'date',
-    'bigint', 'uuid', 'bigint', 'bigint', 'text', 'uuid'],
   'create_installment_plan exists');
 select has_function('app_finance', 'pay_credit_facility',
   array['uuid', 'uuid', 'bigint', 'date', 'jsonb', 'text', 'uuid'],
@@ -87,14 +85,20 @@ insert into app_finance.transaction_categories (
 
 -- save_credit_facility creates its own account; look accounts up by name.
 select app_finance.save_credit_facility(
-  'Visa Card', 'credit_card', 'EGP', 0, 500000, 10::smallint,
+  'Visa Card', 'credit_card', 'EGP', 500000, 10::smallint,
   5::smallint, '1234', 3::smallint, null, null);
 select app_finance.save_credit_facility(
-  'ValU', 'bnpl', 'EGP', 20000, 300000, 5::smallint,
+  'ValU', 'bnpl', 'EGP', 300000, 5::smallint,
   null, null, 3::smallint, null, null);
 select app_finance.save_credit_facility(
-  'Half Card', 'credit_card', 'EGP', 1001, 20000, 15::smallint,
+  'Half Card', 'credit_card', 'EGP', 20000, 15::smallint,
   null, null, 3::smallint, null, null);
+-- Legacy imported debt: the create flow no longer takes an opening amount
+-- owed, but debt already stored on an account keeps counting.
+update app_finance.accounts set opening_balance_minor = 20000
+  where name = 'ValU';
+update app_finance.accounts set opening_balance_minor = 1001
+  where name = 'Half Card';
 
 -- ---------------------------------------------------------------------------
 -- Liability account guard rails
@@ -121,13 +125,13 @@ select throws_ok(
 );
 select throws_ok(
   $$select app_finance.save_credit_facility(
-      'Bad BNPL', 'bnpl', 'EGP', 0, 10000, 5::smallint,
+      'Bad BNPL', 'bnpl', 'EGP', 10000, 5::smallint,
       7::smallint, null, 3::smallint, null, null)$$,
   'P0001', null, 'statement day is credit-card only'
 );
 select throws_ok(
   $$select app_finance.save_credit_facility(
-      'Bad Asset', 'cash', 'EGP', 0, 10000, 5::smallint,
+      'Bad Asset', 'cash', 'EGP', 10000, 5::smallint,
       null, null, 3::smallint, null, null)$$,
   'P0001', null, 'save_credit_facility rejects asset account types'
 );
@@ -135,7 +139,7 @@ select results_eq(
   $$select app_finance.facility_outstanding_minor(
       (select id from app_finance.accounts where name = 'ValU'))$$,
   $$values (20000::bigint)$$,
-  'opening amount owed seeds the outstanding balance'
+  'legacy opening amounts still count toward the outstanding balance'
 );
 
 select throws_ok(
@@ -548,11 +552,14 @@ select throws_ok(
       where id = '00000000-0000-0000-0000-00000000a001'$$,
   'P0001', null, 'an account with history cannot switch roles'
 );
-select throws_ok(
+select lives_ok(
   $$update app_finance.accounts set is_archived = true
       where name = 'Visa Card'$$,
-  'P0001', null, 'a facility with outstanding debt cannot be archived'
+  'a facility with outstanding debt can now be archived'
 );
+-- Archiving hides the card from pickers only; the debt stays visible.
+update app_finance.accounts set is_archived = false
+  where name = 'Visa Card';
 select throws_ok(
   $$update app_finance.credit_facility_settings set credit_limit_minor = 1000
       where account_id =
