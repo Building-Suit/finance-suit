@@ -4,6 +4,7 @@ import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
+import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
@@ -119,14 +120,24 @@ final pendingSalaryEstimateProvider =
     });
 
 /// Active credit-card and BNPL facilities with their derived debt figures.
+///
+/// Loading facilities first settles any card fees that have fallen due —
+/// the generator is idempotent server-side, so refresh spam cannot
+/// double-charge, and a generation hiccup never blocks the list itself.
 final creditFacilitiesProvider = FutureProvider<List<CreditFacilitySummary>>((
   ref,
 ) async {
   ref.watch(currentUserIdProvider);
-  final result = await ref
-      .watch(financeRepositoryProvider)
-      .fetchCreditFacilities();
-  return result.when(ok: (f) => f, err: (failure) => throw failure);
+  final repository = ref.watch(financeRepositoryProvider);
+  final applied = await repository.applyCreditCardFees();
+  final result = await repository.fetchCreditFacilities();
+  final facilities = result.when(ok: (f) => f, err: (failure) => throw failure);
+  if ((applied.valueOrNull ?? 0) > 0) {
+    // Newly booked fees changed balances and statements elsewhere too.
+    ref.invalidate(recentTransactionsProvider);
+    ref.invalidate(statementSummariesProvider);
+  }
+  return facilities;
 });
 
 /// Installment plans of one facility, newest first.
@@ -159,6 +170,16 @@ final statementSummariesProvider = FutureProvider.family
       return result.when(ok: (s) => s, err: (failure) => throw failure);
     });
 
+/// Fee rules of one credit card, active first.
+final feeRulesProvider = FutureProvider.family
+    .autoDispose<List<CardFeeRule>, String>((ref, accountId) async {
+      ref.watch(currentUserIdProvider);
+      final result = await ref
+          .watch(financeRepositoryProvider)
+          .fetchFeeRules(accountId);
+      return result.when(ok: (r) => r, err: (failure) => throw failure);
+    });
+
 /// Restructure history of one installment plan.
 final planRevisionsProvider = FutureProvider.family
     .autoDispose<List<InstallmentPlanRevision>, String>((ref, planId) async {
@@ -181,6 +202,7 @@ void invalidateFinanceData(WidgetRef ref) {
   ref.invalidate(installmentDuesProvider);
   ref.invalidate(statementSummariesProvider);
   ref.invalidate(planRevisionsProvider);
+  ref.invalidate(feeRulesProvider);
 }
 
 void invalidateIncomeAutomation(WidgetRef ref) {

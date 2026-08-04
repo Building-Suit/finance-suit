@@ -49,11 +49,14 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
   final _dueDayController = TextEditingController(text: '1');
   final _statementDayController = TextEditingController();
   final _lastFourController = TextEditingController();
+  final _minFixedController = TextEditingController();
+  final _minPercentController = TextEditingController();
 
   AccountType _accountType = AccountType.current;
   bool _allowNegative = false;
   int _reminderLeadDays = 3;
   FacilityStatus _facilityStatus = FacilityStatus.active;
+  MinPaymentMethod _minPaymentMethod = MinPaymentMethod.full;
   AppFailure? _failure;
   bool _busy = false;
   bool _loaded = false;
@@ -111,6 +114,16 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
       _lastFourController.text = facility.lastFourDigits ?? '';
       _reminderLeadDays = facility.reminderLeadDays;
       _facilityStatus = facility.facilityStatus;
+      _minPaymentMethod = facility.minPaymentMethod;
+      if (facility.minPaymentFixedMinor != null) {
+        _minFixedController.text = formatMinorForInput(
+          facility.minPaymentFixedMinor!,
+        );
+      }
+      if (facility.minPaymentBasisPoints != null) {
+        _minPercentController.text = (facility.minPaymentBasisPoints! / 100)
+            .toStringAsFixed(2);
+      }
     }
     setState(() {
       _accountType = account.accountType;
@@ -128,7 +141,24 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
     _dueDayController.dispose();
     _statementDayController.dispose();
     _lastFourController.dispose();
+    _minFixedController.dispose();
+    _minPercentController.dispose();
     super.dispose();
+  }
+
+  bool get _minPaymentUsesFixed =>
+      _minPaymentMethod == MinPaymentMethod.fixed ||
+      _minPaymentMethod == MinPaymentMethod.greaterOf;
+
+  bool get _minPaymentUsesPercent =>
+      _minPaymentMethod == MinPaymentMethod.percent ||
+      _minPaymentMethod == MinPaymentMethod.greaterOf;
+
+  int? get _minPaymentBasisPoints {
+    final value = double.tryParse(_minPercentController.text.trim());
+    if (value == null) return null;
+    final basisPoints = (value * 100).round();
+    return basisPoints < 1 || basisPoints > 10000 ? null : basisPoints;
   }
 
   String get _currencyCode {
@@ -177,10 +207,20 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
           notes: notes.isEmpty ? null : notes,
           accountId: widget.accountId,
           facilityStatus: _facilityStatus,
-          minPaymentMethod:
-              _existingFacility?.minPaymentMethod ?? MinPaymentMethod.full,
-          minPaymentFixedMinor: _existingFacility?.minPaymentFixedMinor,
-          minPaymentBasisPoints: _existingFacility?.minPaymentBasisPoints,
+          minPaymentMethod: _accountType == AccountType.creditCard
+              ? _minPaymentMethod
+              : MinPaymentMethod.full,
+          minPaymentFixedMinor:
+              _accountType == AccountType.creditCard && _minPaymentUsesFixed
+              ? Money.tryParse(
+                  _minFixedController.text,
+                  currencyCode: _currencyCode,
+                )?.minor
+              : null,
+          minPaymentBasisPoints:
+              _accountType == AccountType.creditCard && _minPaymentUsesPercent
+              ? _minPaymentBasisPoints
+              : null,
         ),
       );
     } else {
@@ -423,6 +463,74 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                                   : l10n.valFacilityLastFour;
                             },
                           ),
+                          const SizedBox(height: 16),
+                          AppSelectionField<MinPaymentMethod>(
+                            key: ValueKey(
+                              'facility-min-method-$_minPaymentMethod',
+                            ),
+                            initialValue: _minPaymentMethod,
+                            decoration: InputDecoration(
+                              labelText: l10n.minPaymentLabel,
+                              helperText: l10n.minPaymentHelp,
+                              helperMaxLines: 3,
+                            ),
+                            items: [
+                              for (final method in MinPaymentMethod.values)
+                                DropdownMenuItem(
+                                  value: method,
+                                  child: Text(
+                                    minPaymentMethodLabel(l10n, method),
+                                  ),
+                                ),
+                            ],
+                            onChanged: (v) => setState(
+                              () => _minPaymentMethod =
+                                  v ?? MinPaymentMethod.full,
+                            ),
+                          ),
+                          if (_minPaymentUsesFixed) ...[
+                            const SizedBox(height: 16),
+                            AppTextFormField(
+                              key: const Key('facility-min-fixed'),
+                              controller: _minFixedController,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              inputFormatters: moneyInputFormatters(),
+                              decoration: InputDecoration(
+                                labelText: l10n.minPaymentFixedAmount,
+                                suffixText: _currencyCode,
+                              ),
+                              validator: (v) {
+                                final e = Validators.positiveAmount(
+                                  v,
+                                  currencyCode: _currencyCode,
+                                );
+                                return e == null
+                                    ? null
+                                    : validationMessage(context, e);
+                              },
+                            ),
+                          ],
+                          if (_minPaymentUsesPercent) ...[
+                            const SizedBox(height: 16),
+                            AppTextFormField(
+                              key: const Key('facility-min-percent'),
+                              controller: _minPercentController,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: InputDecoration(
+                                labelText: l10n.minPaymentPercentAmount,
+                                suffixText: '%',
+                              ),
+                              validator: (v) => _minPaymentBasisPoints == null
+                                  ? l10n.valMinPaymentPercent
+                                  : null,
+                            ),
+                          ],
                         ],
                         const SizedBox(height: 16),
                         AppSelectionField<int>(

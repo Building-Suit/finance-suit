@@ -66,7 +66,10 @@ spending goes through `charge_credit_card`: one expense assigned to the
 statement cycle of its business date (`statement_day` is the cycle
 CLOSING day; the cycle's payment falls due on the next
 `default_due_day`). Recurring card fees are `credit_card_fee_rules`
-materialized idempotently by `apply_credit_card_fees`. Repayments are
+(managed from the card's detail screen) materialized idempotently by
+`apply_credit_card_fees`; the client runs the generator every time the
+facility list loads, so due fees book themselves without any scheduler.
+Repayments are
 transfers created by `pay_credit_facility`, which settles statement dues
 and installment dues together (oldest first, statements before
 installments on the same day); direct client writes on facility-linked

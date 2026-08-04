@@ -2442,4 +2442,149 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notifShowAmountsHelp =>
       'Off by default so balances never appear on the lock screen.';
+
+  @override
+  String get minPaymentLabel => 'Minimum payment';
+
+  @override
+  String get minPaymentHelp =>
+      'How the minimum due of each monthly statement is calculated.';
+
+  @override
+  String get minPaymentFull => 'Full statement balance';
+
+  @override
+  String get minPaymentFixed => 'Fixed amount';
+
+  @override
+  String get minPaymentPercent => 'Percent of statement';
+
+  @override
+  String get minPaymentGreaterOf => 'Greater of fixed or percent';
+
+  @override
+  String get minPaymentFixedAmount => 'Minimum fixed amount';
+
+  @override
+  String get minPaymentPercentAmount => 'Minimum percent';
+
+  @override
+  String get valMinPaymentPercent => 'Enter a percent between 0.01 and 100.';
+
+  @override
+  String get feeRulesSection => 'Card fees';
+
+  @override
+  String get feeRuleAdd => 'Add fee';
+
+  @override
+  String get feeRuleEdit => 'Edit fee';
+
+  @override
+  String get feeRuleName => 'Fee name';
+
+  @override
+  String get feeRuleType => 'Fee type';
+
+  @override
+  String get feeTypeAnnualMembership => 'Annual membership';
+
+  @override
+  String get feeTypeInsurance => 'Insurance';
+
+  @override
+  String get feeTypeAdministration => 'Administration';
+
+  @override
+  String get feeTypeStampTax => 'Stamp tax';
+
+  @override
+  String get feeTypeForeignTransaction => 'Foreign transaction';
+
+  @override
+  String get feeTypeCashAdvance => 'Cash advance';
+
+  @override
+  String get feeTypeLatePayment => 'Late payment';
+
+  @override
+  String get feeTypeOverLimit => 'Over limit';
+
+  @override
+  String get feeTypeInstallmentConversion => 'Installment conversion';
+
+  @override
+  String get feeTypeOther => 'Other';
+
+  @override
+  String get feeRulePercentToggle => 'Percent-based fee';
+
+  @override
+  String get feeRulePercentLabel => 'Fee percent';
+
+  @override
+  String get feeRulePercentBasis => 'Percent of';
+
+  @override
+  String get feeBasisStatementBalance => 'Statement balance';
+
+  @override
+  String get feeBasisOutstandingBalance => 'Outstanding balance';
+
+  @override
+  String get feeBasisCreditLimit => 'Credit limit';
+
+  @override
+  String get feeRuleFixedAmount => 'Fee amount';
+
+  @override
+  String get feeRuleFrequency => 'Repeats';
+
+  @override
+  String get feeFrequencyOnce => 'Once';
+
+  @override
+  String get feeFrequencyMonthly => 'Monthly';
+
+  @override
+  String get feeFrequencyQuarterly => 'Quarterly';
+
+  @override
+  String get feeFrequencyAnnually => 'Annually';
+
+  @override
+  String get feeRuleStartsOn => 'First charge date';
+
+  @override
+  String feeRuleNextCharge(String date) {
+    return 'Next charge $date';
+  }
+
+  @override
+  String get feeRuleInactive => 'Paused';
+
+  @override
+  String get feeRuleDeactivate => 'Pause';
+
+  @override
+  String get feeRuleActivate => 'Resume';
+
+  @override
+  String get feeRuleDeleteConfirmTitle => 'Delete this fee?';
+
+  @override
+  String get feeRuleDeleteConfirmBody =>
+      'Future charges stop. Fees already charged stay in your history.';
+
+  @override
+  String get feeRulesEmpty =>
+      'No fees configured for this card yet. Add the annual membership or insurance fee so it books itself.';
+
+  @override
+  String feeRulePercentOfBasis(String percent, String basis) {
+    return '$percent% of $basis';
+  }
+
+  @override
+  String get valFeePercent => 'Enter a percent between 0.01 and 1,000.';
 }

@@ -1123,5 +1123,68 @@
   "notifPaymentConfirmationsTitle": "Payment confirmations",
   "notifPaymentConfirmationsHelp": "Notify me when a facility payment is recorded.",
   "notifShowAmountsTitle": "Show amounts in notifications",
-  "notifShowAmountsHelp": "Off by default so balances never appear on the lock screen."
+  "notifShowAmountsHelp": "Off by default so balances never appear on the lock screen.",
+  "minPaymentLabel": "Minimum payment",
+  "minPaymentHelp": "How the minimum due of each monthly statement is calculated.",
+  "minPaymentFull": "Full statement balance",
+  "minPaymentFixed": "Fixed amount",
+  "minPaymentPercent": "Percent of statement",
+  "minPaymentGreaterOf": "Greater of fixed or percent",
+  "minPaymentFixedAmount": "Minimum fixed amount",
+  "minPaymentPercentAmount": "Minimum percent",
+  "valMinPaymentPercent": "Enter a percent between 0.01 and 100.",
+  "feeRulesSection": "Card fees",
+  "feeRuleAdd": "Add fee",
+  "feeRuleEdit": "Edit fee",
+  "feeRuleName": "Fee name",
+  "feeRuleType": "Fee type",
+  "feeTypeAnnualMembership": "Annual membership",
+  "feeTypeInsurance": "Insurance",
+  "feeTypeAdministration": "Administration",
+  "feeTypeStampTax": "Stamp tax",
+  "feeTypeForeignTransaction": "Foreign transaction",
+  "feeTypeCashAdvance": "Cash advance",
+  "feeTypeLatePayment": "Late payment",
+  "feeTypeOverLimit": "Over limit",
+  "feeTypeInstallmentConversion": "Installment conversion",
+  "feeTypeOther": "Other",
+  "feeRulePercentToggle": "Percent-based fee",
+  "feeRulePercentLabel": "Fee percent",
+  "feeRulePercentBasis": "Percent of",
+  "feeBasisStatementBalance": "Statement balance",
+  "feeBasisOutstandingBalance": "Outstanding balance",
+  "feeBasisCreditLimit": "Credit limit",
+  "feeRuleFixedAmount": "Fee amount",
+  "feeRuleFrequency": "Repeats",
+  "feeFrequencyOnce": "Once",
+  "feeFrequencyMonthly": "Monthly",
+  "feeFrequencyQuarterly": "Quarterly",
+  "feeFrequencyAnnually": "Annually",
+  "feeRuleStartsOn": "First charge date",
+  "feeRuleNextCharge": "Next charge {date}",
+  "@feeRuleNextCharge": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "feeRuleInactive": "Paused",
+  "feeRuleDeactivate": "Pause",
+  "feeRuleActivate": "Resume",
+  "feeRuleDeleteConfirmTitle": "Delete this fee?",
+  "feeRuleDeleteConfirmBody": "Future charges stop. Fees already charged stay in your history.",
+  "feeRulesEmpty": "No fees configured for this card yet. Add the annual membership or insurance fee so it books itself.",
+  "feeRulePercentOfBasis": "{percent}% of {basis}",
+  "@feeRulePercentOfBasis": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      },
+      "basis": {
+        "type": "String"
+      }
+    }
+  },
+  "valFeePercent": "Enter a percent between 0.01 and 1,000."
 }

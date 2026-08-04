@@ -1123,5 +1123,68 @@
   "notifPaymentConfirmationsTitle": "تأكيدات السداد",
   "notifPaymentConfirmationsHelp": "أعلمني عند تسجيل دفعة على البطاقة.",
   "notifShowAmountsTitle": "إظهار المبالغ في الإشعارات",
-  "notifShowAmountsHelp": "متوقف افتراضيًا حتى لا تظهر الأرصدة على شاشة القفل."
+  "notifShowAmountsHelp": "متوقف افتراضيًا حتى لا تظهر الأرصدة على شاشة القفل.",
+  "minPaymentLabel": "الحد الأدنى للسداد",
+  "minPaymentHelp": "طريقة حساب الحد الأدنى المستحق لكل كشف حساب شهري.",
+  "minPaymentFull": "كامل رصيد كشف الحساب",
+  "minPaymentFixed": "مبلغ ثابت",
+  "minPaymentPercent": "نسبة من كشف الحساب",
+  "minPaymentGreaterOf": "الأكبر بين الثابت والنسبة",
+  "minPaymentFixedAmount": "الحد الأدنى الثابت",
+  "minPaymentPercentAmount": "الحد الأدنى بالنسبة",
+  "valMinPaymentPercent": "أدخل نسبة بين 0.01 و100.",
+  "feeRulesSection": "رسوم البطاقة",
+  "feeRuleAdd": "إضافة رسم",
+  "feeRuleEdit": "تعديل الرسم",
+  "feeRuleName": "اسم الرسم",
+  "feeRuleType": "نوع الرسم",
+  "feeTypeAnnualMembership": "عضوية سنوية",
+  "feeTypeInsurance": "تأمين",
+  "feeTypeAdministration": "رسوم إدارية",
+  "feeTypeStampTax": "دمغة",
+  "feeTypeForeignTransaction": "معاملات أجنبية",
+  "feeTypeCashAdvance": "سحب نقدي",
+  "feeTypeLatePayment": "تأخير سداد",
+  "feeTypeOverLimit": "تجاوز الحد",
+  "feeTypeInstallmentConversion": "تحويل إلى تقسيط",
+  "feeTypeOther": "أخرى",
+  "feeRulePercentToggle": "رسم بنسبة مئوية",
+  "feeRulePercentLabel": "نسبة الرسم",
+  "feeRulePercentBasis": "نسبة من",
+  "feeBasisStatementBalance": "رصيد كشف الحساب",
+  "feeBasisOutstandingBalance": "الرصيد المستحق",
+  "feeBasisCreditLimit": "الحد الائتماني",
+  "feeRuleFixedAmount": "قيمة الرسم",
+  "feeRuleFrequency": "التكرار",
+  "feeFrequencyOnce": "مرة واحدة",
+  "feeFrequencyMonthly": "شهريًا",
+  "feeFrequencyQuarterly": "ربع سنوي",
+  "feeFrequencyAnnually": "سنويًا",
+  "feeRuleStartsOn": "تاريخ أول خصم",
+  "feeRuleNextCharge": "الخصم القادم {date}",
+  "@feeRuleNextCharge": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "feeRuleInactive": "موقوف",
+  "feeRuleDeactivate": "إيقاف مؤقت",
+  "feeRuleActivate": "استئناف",
+  "feeRuleDeleteConfirmTitle": "حذف هذا الرسم؟",
+  "feeRuleDeleteConfirmBody": "ستتوقف الخصومات المستقبلية، وتبقى الرسوم المسجلة سابقًا في السجل.",
+  "feeRulesEmpty": "لا توجد رسوم مضبوطة لهذه البطاقة بعد. أضف رسم العضوية السنوية أو التأمين ليُسجَّل تلقائيًا.",
+  "feeRulePercentOfBasis": "{percent}% من {basis}",
+  "@feeRulePercentOfBasis": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      },
+      "basis": {
+        "type": "String"
+      }
+    }
+  },
+  "valFeePercent": "أدخل نسبة بين 0.01 و1,000."
 }

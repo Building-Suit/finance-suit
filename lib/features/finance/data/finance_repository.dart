@@ -6,6 +6,7 @@ import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/result/result.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
+import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
@@ -851,6 +852,76 @@ class FinanceRepository {
           .eq('plan_id', planId)
           .order('revision', ascending: true);
       return rows.map(InstallmentPlanRevision.fromJson).toList();
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // Card fee rules
+  // ---------------------------------------------------------------------
+
+  /// Fee rules of one card, active first, then by name.
+  Future<Result<List<CardFeeRule>>> fetchFeeRules(String accountId) {
+    return guard(() async {
+      final rows = await _db
+          .from('credit_card_fee_rules')
+          .select()
+          .eq('user_id', _userId)
+          .eq('account_id', accountId)
+          .order('is_active', ascending: false)
+          .order('name', ascending: true);
+      return rows.map(CardFeeRule.fromJson).toList();
+    });
+  }
+
+  /// Creates a fee rule, or replaces the editable fields of [ruleId].
+  /// Rules are plain owner rows; only the generated charges are locked.
+  Future<Result<void>> saveFeeRule(CardFeeRuleDraft draft, {String? ruleId}) {
+    return guard(() async {
+      if (ruleId == null) {
+        await _db.from('credit_card_fee_rules').insert(draft.toJson(_userId));
+      } else {
+        // A schedule edit restarts the rule from its new start date.
+        final patch = draft.toJson(_userId)
+          ..remove('user_id')
+          ..remove('account_id')
+          ..['next_charge_on'] = null;
+        await _db
+            .from('credit_card_fee_rules')
+            .update(patch)
+            .eq('id', ruleId)
+            .eq('user_id', _userId);
+      }
+    });
+  }
+
+  Future<Result<void>> setFeeRuleActive(String ruleId, {required bool active}) {
+    return guard(() async {
+      await _db
+          .from('credit_card_fee_rules')
+          .update({'is_active': active})
+          .eq('id', ruleId)
+          .eq('user_id', _userId);
+    });
+  }
+
+  /// Deleting a rule stops future generation and drops its charge audit
+  /// links; the already-booked fee expenses stay in the ledger.
+  Future<Result<void>> deleteFeeRule(String ruleId) {
+    return guard(() async {
+      await _db
+          .from('credit_card_fee_rules')
+          .delete()
+          .eq('id', ruleId)
+          .eq('user_id', _userId);
+    });
+  }
+
+  /// Generates every fee due through today, exactly once per rule and
+  /// date; safe to call on every facility refresh.
+  Future<Result<int>> applyCreditCardFees() {
+    return guard(() async {
+      final count = await _db.rpc<int>('apply_credit_card_fees');
+      return count;
     });
   }
 }

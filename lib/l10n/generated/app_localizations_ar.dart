@@ -2427,4 +2427,149 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get notifShowAmountsHelp =>
       'متوقف افتراضيًا حتى لا تظهر الأرصدة على شاشة القفل.';
+
+  @override
+  String get minPaymentLabel => 'الحد الأدنى للسداد';
+
+  @override
+  String get minPaymentHelp =>
+      'طريقة حساب الحد الأدنى المستحق لكل كشف حساب شهري.';
+
+  @override
+  String get minPaymentFull => 'كامل رصيد كشف الحساب';
+
+  @override
+  String get minPaymentFixed => 'مبلغ ثابت';
+
+  @override
+  String get minPaymentPercent => 'نسبة من كشف الحساب';
+
+  @override
+  String get minPaymentGreaterOf => 'الأكبر بين الثابت والنسبة';
+
+  @override
+  String get minPaymentFixedAmount => 'الحد الأدنى الثابت';
+
+  @override
+  String get minPaymentPercentAmount => 'الحد الأدنى بالنسبة';
+
+  @override
+  String get valMinPaymentPercent => 'أدخل نسبة بين 0.01 و100.';
+
+  @override
+  String get feeRulesSection => 'رسوم البطاقة';
+
+  @override
+  String get feeRuleAdd => 'إضافة رسم';
+
+  @override
+  String get feeRuleEdit => 'تعديل الرسم';
+
+  @override
+  String get feeRuleName => 'اسم الرسم';
+
+  @override
+  String get feeRuleType => 'نوع الرسم';
+
+  @override
+  String get feeTypeAnnualMembership => 'عضوية سنوية';
+
+  @override
+  String get feeTypeInsurance => 'تأمين';
+
+  @override
+  String get feeTypeAdministration => 'رسوم إدارية';
+
+  @override
+  String get feeTypeStampTax => 'دمغة';
+
+  @override
+  String get feeTypeForeignTransaction => 'معاملات أجنبية';
+
+  @override
+  String get feeTypeCashAdvance => 'سحب نقدي';
+
+  @override
+  String get feeTypeLatePayment => 'تأخير سداد';
+
+  @override
+  String get feeTypeOverLimit => 'تجاوز الحد';
+
+  @override
+  String get feeTypeInstallmentConversion => 'تحويل إلى تقسيط';
+
+  @override
+  String get feeTypeOther => 'أخرى';
+
+  @override
+  String get feeRulePercentToggle => 'رسم بنسبة مئوية';
+
+  @override
+  String get feeRulePercentLabel => 'نسبة الرسم';
+
+  @override
+  String get feeRulePercentBasis => 'نسبة من';
+
+  @override
+  String get feeBasisStatementBalance => 'رصيد كشف الحساب';
+
+  @override
+  String get feeBasisOutstandingBalance => 'الرصيد المستحق';
+
+  @override
+  String get feeBasisCreditLimit => 'الحد الائتماني';
+
+  @override
+  String get feeRuleFixedAmount => 'قيمة الرسم';
+
+  @override
+  String get feeRuleFrequency => 'التكرار';
+
+  @override
+  String get feeFrequencyOnce => 'مرة واحدة';
+
+  @override
+  String get feeFrequencyMonthly => 'شهريًا';
+
+  @override
+  String get feeFrequencyQuarterly => 'ربع سنوي';
+
+  @override
+  String get feeFrequencyAnnually => 'سنويًا';
+
+  @override
+  String get feeRuleStartsOn => 'تاريخ أول خصم';
+
+  @override
+  String feeRuleNextCharge(String date) {
+    return 'الخصم القادم $date';
+  }
+
+  @override
+  String get feeRuleInactive => 'موقوف';
+
+  @override
+  String get feeRuleDeactivate => 'إيقاف مؤقت';
+
+  @override
+  String get feeRuleActivate => 'استئناف';
+
+  @override
+  String get feeRuleDeleteConfirmTitle => 'حذف هذا الرسم؟';
+
+  @override
+  String get feeRuleDeleteConfirmBody =>
+      'ستتوقف الخصومات المستقبلية، وتبقى الرسوم المسجلة سابقًا في السجل.';
+
+  @override
+  String get feeRulesEmpty =>
+      'لا توجد رسوم مضبوطة لهذه البطاقة بعد. أضف رسم العضوية السنوية أو التأمين ليُسجَّل تلقائيًا.';
+
+  @override
+  String feeRulePercentOfBasis(String percent, String basis) {
+    return '$percent% من $basis';
+  }
+
+  @override
+  String get valFeePercent => 'أدخل نسبة بين 0.01 و1,000.';
 }
