@@ -316,7 +316,8 @@ class _IncomeSourceFormScreenState
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final accountsAsync = ref.watch(accountBalancesProvider);
-    final accounts = accountsAsync.value ?? <AccountBalance>[];
+    // Income lands in the user's own cash accounts, never a liability.
+    final accounts = (accountsAsync.value ?? <AccountBalance>[]).assetAccounts;
     final categories =
         ref.watch(categoriesProvider(CategoryKind.income)).value ??
         <TransactionCategory>[];

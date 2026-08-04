@@ -9,6 +9,10 @@ Subscribed tables:
 - `financial_transactions`
 - `accounts`
 - `transaction_categories`
+- `credit_facility_settings`
+- `installment_plans`
+- `installment_dues`
+- `installment_payment_allocations`
 - `work_entries`
 - `official_holidays`
 - `salary_periods`

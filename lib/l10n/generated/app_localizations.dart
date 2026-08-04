@@ -3400,6 +3400,612 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The transaction will be recorded on this date.'**
   String get heldSettleHelp;
+
+  /// No description provided for @accTypeCreditCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit Card'**
+  String get accTypeCreditCard;
+
+  /// No description provided for @accTypeBnpl.
+  ///
+  /// In en, this message translates to:
+  /// **'BNPL / Finance Company'**
+  String get accTypeBnpl;
+
+  /// No description provided for @accOpeningOwed.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening amount owed'**
+  String get accOpeningOwed;
+
+  /// No description provided for @accOpeningOwedHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt already used on this facility before you started tracking it in Finance Suit.'**
+  String get accOpeningOwedHelp;
+
+  /// No description provided for @facilityCreditLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit limit'**
+  String get facilityCreditLimit;
+
+  /// No description provided for @facilityDefaultDueDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Default due day'**
+  String get facilityDefaultDueDay;
+
+  /// No description provided for @facilityStatementDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Statement day'**
+  String get facilityStatementDay;
+
+  /// No description provided for @facilityLastFour.
+  ///
+  /// In en, this message translates to:
+  /// **'Last four digits'**
+  String get facilityLastFour;
+
+  /// No description provided for @facilityReminderDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder lead days'**
+  String get facilityReminderDays;
+
+  /// No description provided for @valFacilityLastFour.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter exactly four digits'**
+  String get valFacilityLastFour;
+
+  /// No description provided for @valFacilityReminderDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter between 0 and 31 days'**
+  String get valFacilityReminderDays;
+
+  /// No description provided for @moneyAssetsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash & bank'**
+  String get moneyAssetsSection;
+
+  /// No description provided for @moneyLiabilitiesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit & installments'**
+  String get moneyLiabilitiesSection;
+
+  /// No description provided for @facilityOwed.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount owed'**
+  String get facilityOwed;
+
+  /// No description provided for @facilityAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available credit'**
+  String get facilityAvailable;
+
+  /// No description provided for @facilityUtilization.
+  ///
+  /// In en, this message translates to:
+  /// **'Utilization'**
+  String get facilityUtilization;
+
+  /// No description provided for @facilityNextDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Next due {date}'**
+  String facilityNextDue(String date);
+
+  /// No description provided for @facilityOverdueBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get facilityOverdueBadge;
+
+  /// No description provided for @facilityDueNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Due now'**
+  String get facilityDueNow;
+
+  /// No description provided for @facilityDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit facility'**
+  String get facilityDetailTitle;
+
+  /// No description provided for @facilityAddPurchase.
+  ///
+  /// In en, this message translates to:
+  /// **'Add installment purchase'**
+  String get facilityAddPurchase;
+
+  /// No description provided for @facilityMakePayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Make payment'**
+  String get facilityMakePayment;
+
+  /// No description provided for @facilityDuesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming installments'**
+  String get facilityDuesSection;
+
+  /// No description provided for @facilityNoDues.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is scheduled on this facility.'**
+  String get facilityNoDues;
+
+  /// No description provided for @facilityPlansSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment plans'**
+  String get facilityPlansSection;
+
+  /// No description provided for @facilityNoPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'No installment plans yet.'**
+  String get facilityNoPlans;
+
+  /// No description provided for @facilityHistorySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Related activity'**
+  String get facilityHistorySection;
+
+  /// No description provided for @facilityRepaymentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Facility payment'**
+  String get facilityRepaymentLabel;
+
+  /// No description provided for @facilityReversalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment reversal'**
+  String get facilityReversalLabel;
+
+  /// No description provided for @facilityPurchaseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit purchase'**
+  String get facilityPurchaseLabel;
+
+  /// No description provided for @facilityEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No credit card or BNPL accounts yet'**
+  String get facilityEmptyTitle;
+
+  /// No description provided for @facilityEmptyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add credit account'**
+  String get facilityEmptyAction;
+
+  /// No description provided for @planStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get planStatusActive;
+
+  /// No description provided for @planStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get planStatusCompleted;
+
+  /// No description provided for @planStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get planStatusCancelled;
+
+  /// No description provided for @planPaidOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{paid} of {total} paid'**
+  String planPaidOfTotal(String paid, String total);
+
+  /// No description provided for @planCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel plan'**
+  String get planCancel;
+
+  /// No description provided for @planCancelConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this plan?'**
+  String get planCancelConfirmTitle;
+
+  /// No description provided for @planCancelConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The financed purchase will be removed and its schedule cancelled. This is only possible before any payment.'**
+  String get planCancelConfirmBody;
+
+  /// No description provided for @dueStatusUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get dueStatusUpcoming;
+
+  /// No description provided for @dueStatusDueToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Due today'**
+  String get dueStatusDueToday;
+
+  /// No description provided for @dueStatusOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get dueStatusOverdue;
+
+  /// No description provided for @dueStatusPartiallyPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Partially paid'**
+  String get dueStatusPartiallyPaid;
+
+  /// No description provided for @dueStatusPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get dueStatusPaid;
+
+  /// No description provided for @dueStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get dueStatusCancelled;
+
+  /// No description provided for @purchaseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New installment purchase'**
+  String get purchaseTitle;
+
+  /// No description provided for @purchaseFacility.
+  ///
+  /// In en, this message translates to:
+  /// **'Facility'**
+  String get purchaseFacility;
+
+  /// No description provided for @purchaseMerchant.
+  ///
+  /// In en, this message translates to:
+  /// **'Merchant or title'**
+  String get purchaseMerchant;
+
+  /// No description provided for @purchaseDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase date'**
+  String get purchaseDateLabel;
+
+  /// No description provided for @purchasePrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase price'**
+  String get purchasePrice;
+
+  /// No description provided for @purchaseDownPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Down payment'**
+  String get purchaseDownPayment;
+
+  /// No description provided for @purchaseDownPaymentAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid from'**
+  String get purchaseDownPaymentAccount;
+
+  /// No description provided for @purchaseFinancingMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Financing input'**
+  String get purchaseFinancingMode;
+
+  /// No description provided for @purchaseFinancingModeFees.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter financing fees'**
+  String get purchaseFinancingModeFees;
+
+  /// No description provided for @purchaseFinancingModeTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter total payable'**
+  String get purchaseFinancingModeTotal;
+
+  /// No description provided for @purchaseFinancingFees.
+  ///
+  /// In en, this message translates to:
+  /// **'Financing fees'**
+  String get purchaseFinancingFees;
+
+  /// No description provided for @purchaseTotalPayable.
+  ///
+  /// In en, this message translates to:
+  /// **'Total payable'**
+  String get purchaseTotalPayable;
+
+  /// No description provided for @purchaseFinancedPrincipal.
+  ///
+  /// In en, this message translates to:
+  /// **'Financed principal'**
+  String get purchaseFinancedPrincipal;
+
+  /// No description provided for @purchaseInstallmentCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of installments'**
+  String get purchaseInstallmentCount;
+
+  /// No description provided for @purchaseSingleCycleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'One installment means the full amount is due on the next due date.'**
+  String get purchaseSingleCycleHint;
+
+  /// No description provided for @purchaseFirstDueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'First due date'**
+  String get purchaseFirstDueDate;
+
+  /// No description provided for @purchasePreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What will be recorded'**
+  String get purchasePreviewTitle;
+
+  /// No description provided for @purchaseMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly schedule'**
+  String get purchaseMonthly;
+
+  /// No description provided for @purchaseAvailableBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Available credit now'**
+  String get purchaseAvailableBefore;
+
+  /// No description provided for @purchaseAvailableAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'Available after purchase'**
+  String get purchaseAvailableAfter;
+
+  /// No description provided for @purchaseExceedsCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'This purchase exceeds the available credit'**
+  String get purchaseExceedsCredit;
+
+  /// No description provided for @valDownPaymentTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The down payment must stay below the purchase price'**
+  String get valDownPaymentTooLarge;
+
+  /// No description provided for @valTotalBelowFinanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Total payable cannot be below the financed principal'**
+  String get valTotalBelowFinanced;
+
+  /// No description provided for @valInstallmentCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose between 1 and 120 installments'**
+  String get valInstallmentCount;
+
+  /// No description provided for @valCategoryRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a category'**
+  String get valCategoryRequired;
+
+  /// No description provided for @paymentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay credit facility'**
+  String get paymentTitle;
+
+  /// No description provided for @paymentSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay from'**
+  String get paymentSource;
+
+  /// No description provided for @paymentDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment date'**
+  String get paymentDate;
+
+  /// No description provided for @paymentDueNowChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Due now'**
+  String get paymentDueNowChip;
+
+  /// No description provided for @paymentNextChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Next installment'**
+  String get paymentNextChip;
+
+  /// No description provided for @paymentFullChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Full outstanding'**
+  String get paymentFullChip;
+
+  /// No description provided for @paymentAllocationPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Will be applied to'**
+  String get paymentAllocationPreview;
+
+  /// No description provided for @paymentUnallocatedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} reduces the remaining balance owed'**
+  String paymentUnallocatedNote(String amount);
+
+  /// No description provided for @paymentNothingOwed.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is owed right now.'**
+  String get paymentNothingOwed;
+
+  /// No description provided for @paymentReverse.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverse payment'**
+  String get paymentReverse;
+
+  /// No description provided for @paymentReverseConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverse this payment?'**
+  String get paymentReverseConfirmTitle;
+
+  /// No description provided for @paymentReverseConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The money returns to the source account and the covered installments reopen.'**
+  String get paymentReverseConfirmBody;
+
+  /// No description provided for @valPaymentAboveOutstanding.
+  ///
+  /// In en, this message translates to:
+  /// **'The payment is larger than the amount owed'**
+  String get valPaymentAboveOutstanding;
+
+  /// No description provided for @homeDuesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Installments'**
+  String get homeDuesTitle;
+
+  /// No description provided for @homeDueNow.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} due now'**
+  String homeDueNow(String amount);
+
+  /// No description provided for @homeNextDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Next due {date}'**
+  String homeNextDue(String date);
+
+  /// No description provided for @homeOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} overdue'**
+  String homeOverdue(String amount);
+
+  /// No description provided for @reportsDebtTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit & installments'**
+  String get reportsDebtTitle;
+
+  /// No description provided for @reportsDebtRepayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt repayments'**
+  String get reportsDebtRepayments;
+
+  /// No description provided for @reportsDebtUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming installments'**
+  String get reportsDebtUpcoming;
+
+  /// No description provided for @reportsDebtOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get reportsDebtOverdue;
+
+  /// No description provided for @reportsDebtOutstanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding debt'**
+  String get reportsDebtOutstanding;
+
+  /// No description provided for @errCreditLimitBelowOutstanding.
+  ///
+  /// In en, this message translates to:
+  /// **'The credit limit cannot be below the amount owed'**
+  String get errCreditLimitBelowOutstanding;
+
+  /// No description provided for @errFacilityArchiveBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Money is still owed on this facility'**
+  String get errFacilityArchiveBlocked;
+
+  /// No description provided for @errFacilityNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a credit limit for this facility first'**
+  String get errFacilityNotConfigured;
+
+  /// No description provided for @errPlanHasPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverse the payments before cancelling this plan'**
+  String get errPlanHasPayments;
+
+  /// No description provided for @errFacilityLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment records are managed from the facility screen'**
+  String get errFacilityLocked;
+
+  /// No description provided for @errAccountRoleLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a new account to switch between cash and credit'**
+  String get errAccountRoleLocked;
+
+  /// No description provided for @errAlreadyReversed.
+  ///
+  /// In en, this message translates to:
+  /// **'This payment was already reversed'**
+  String get errAlreadyReversed;
+
+  /// No description provided for @errInvalidFinancing.
+  ///
+  /// In en, this message translates to:
+  /// **'The financing fees and total payable do not match'**
+  String get errInvalidFinancing;
+
+  /// No description provided for @errAllocationInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'The payment split does not match the open installments'**
+  String get errAllocationInvalid;
 }
 
 class _AppLocalizationsDelegate

@@ -170,6 +170,41 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 currencyCode: currencyCode,
               ),
             ),
+            _AsyncReportCard<List<DebtSummary>>(
+              title: l10n.reportsDebtTitle,
+              value: ref.watch(debtSummaryProvider(range)),
+              data: (rows) {
+                final row =
+                    rows
+                        .where((r) => r.currencyCode == currencyCode)
+                        .firstOrNull ??
+                    rows.firstOrNull;
+                if (row == null) return _NoData();
+                Money money(int minor) =>
+                    Money(minor: minor, currencyCode: row.currencyCode);
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _DebtSummaryRow(
+                      label: l10n.reportsDebtRepayments,
+                      money: money(row.repaymentsMinor),
+                    ),
+                    _DebtSummaryRow(
+                      label: l10n.reportsDebtUpcoming,
+                      money: money(row.upcomingDuesMinor),
+                    ),
+                    _DebtSummaryRow(
+                      label: l10n.reportsDebtOverdue,
+                      money: money(row.overdueMinor),
+                    ),
+                    _DebtSummaryRow(
+                      label: l10n.reportsDebtOutstanding,
+                      money: money(row.outstandingMinor),
+                    ),
+                  ],
+                );
+              },
+            ),
             _AsyncReportCard<List<CategoryTotal>>(
               title: l10n.reportsExpensesByCategory,
               value: ref.watch(expenseCategoryTotalsProvider(range)),
@@ -772,6 +807,38 @@ class _NoData extends StatelessWidget {
     return EmptyStateView(
       icon: FinanceSuitIcons.barChart,
       message: l10n.reportsNoData,
+    );
+  }
+}
+
+class _DebtSummaryRow extends StatelessWidget {
+  const _DebtSummaryRow({required this.label, required this.money});
+
+  final String label;
+  final Money money;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: theme.textTheme.bodyMedium,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          ProtectedMoneyText(
+            money.format(),
+            style: theme.textTheme.titleSmall,
+            interactive: false,
+          ),
+        ],
+      ),
     );
   }
 }

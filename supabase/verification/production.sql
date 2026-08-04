@@ -69,6 +69,52 @@ begin
     v_missing := array_append(v_missing, 'delete_held_amount');
   end if;
 
+  if to_regclass('app_finance.credit_facility_settings') is null then
+    v_missing := array_append(
+      v_missing, 'app_finance.credit_facility_settings');
+  end if;
+  if to_regclass('app_finance.installment_plans') is null then
+    v_missing := array_append(v_missing, 'app_finance.installment_plans');
+  end if;
+  if to_regclass('app_finance.installment_dues') is null then
+    v_missing := array_append(v_missing, 'app_finance.installment_dues');
+  end if;
+  if to_regclass('app_finance.installment_payment_allocations') is null then
+    v_missing := array_append(
+      v_missing, 'app_finance.installment_payment_allocations');
+  end if;
+  if to_regclass('app_finance.credit_facility_summaries') is null then
+    v_missing := array_append(
+      v_missing, 'app_finance.credit_facility_summaries');
+  end if;
+  if to_regclass('app_finance.installment_due_statuses') is null then
+    v_missing := array_append(
+      v_missing, 'app_finance.installment_due_statuses');
+  end if;
+  if to_regprocedure(
+    'app_finance.create_installment_plan(uuid,text,uuid,date,bigint,integer,date,bigint,uuid,bigint,bigint,text,uuid)'
+  ) is null then
+    v_missing := array_append(v_missing, 'create_installment_plan');
+  end if;
+  if to_regprocedure(
+    'app_finance.pay_credit_facility(uuid,uuid,bigint,date,jsonb,text,uuid)'
+  ) is null then
+    v_missing := array_append(v_missing, 'pay_credit_facility');
+  end if;
+  if to_regprocedure(
+    'app_finance.reverse_facility_payment(uuid)'
+  ) is null then
+    v_missing := array_append(v_missing, 'reverse_facility_payment');
+  end if;
+  if to_regprocedure(
+    'app_finance.cancel_installment_plan(uuid)'
+  ) is null then
+    v_missing := array_append(v_missing, 'cancel_installment_plan');
+  end if;
+  if to_regprocedure('app_reports.debt_summary(date,date)') is null then
+    v_missing := array_append(v_missing, 'app_reports.debt_summary');
+  end if;
+
   if cardinality(v_missing) > 0 then
     raise exception 'Missing required Finance Suit objects: %',
       array_to_string(v_missing, ', ');

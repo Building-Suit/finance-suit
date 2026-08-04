@@ -92,4 +92,17 @@ class AccountBalance {
       Money(minor: totalIncomingMinor, currencyCode: currencyCode);
   Money get totalOutgoing =>
       Money(minor: totalOutgoingMinor, currencyCode: currencyCode);
+
+  /// Credit cards and BNPL facilities owe money instead of holding it.
+  bool get isLiability => accountType.isLiability;
+}
+
+/// Central picker eligibility: every flow that moves the user's own cash
+/// (income destinations, expense/allowance sources, transfers, down
+/// payments, facility repayments, defaults) selects from asset accounts
+/// only. Liability accounts participate exclusively through the dedicated
+/// facility flows, and the database enforces the same rule.
+extension AccountBalanceEligibility on Iterable<AccountBalance> {
+  List<AccountBalance> get assetAccounts =>
+      where((account) => !account.isLiability).toList();
 }

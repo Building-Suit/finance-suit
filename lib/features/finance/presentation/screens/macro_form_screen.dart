@@ -365,9 +365,11 @@ class _MacroItemFormScreenState extends ConsumerState<_MacroItemFormScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    // Macros replay ordinary asset-account actions; facility flows are
+    // excluded until the macro system understands installments.
     final accounts = ref.watch(accountBalancesProvider);
     final categories = ref.watch(categoriesProvider(_categoryKind));
-    final accountList = accounts.value ?? <AccountBalance>[];
+    final accountList = (accounts.value ?? <AccountBalance>[]).assetAccounts;
     if (_accountId == null && accountList.isNotEmpty) {
       _accountId =
           (accountList.where((a) => a.isDefault).firstOrNull ??

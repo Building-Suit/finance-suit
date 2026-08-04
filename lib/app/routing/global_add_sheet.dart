@@ -124,6 +124,18 @@ class _GlobalAddSheetState extends State<GlobalAddSheet> {
                   label: l10n.heldNew,
                   route: '/money/held/new',
                 ),
+                _routeTile(
+                  context,
+                  icon: FinanceSuitIcons.creditCard,
+                  label: l10n.facilityAddPurchase,
+                  route: '/money/facilities/purchase',
+                ),
+                _routeTile(
+                  context,
+                  icon: FinanceSuitIcons.payments,
+                  label: l10n.facilityMakePayment,
+                  route: '/money/facilities/pay',
+                ),
                 const Divider(indent: 16, endIndent: 16),
                 _routeTile(
                   context,

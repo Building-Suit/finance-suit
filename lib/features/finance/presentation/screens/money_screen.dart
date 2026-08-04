@@ -15,6 +15,7 @@ import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
+import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
@@ -139,12 +140,18 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
 
   Widget _accountsTab(AppLocalizations l10n) {
     final accounts = ref.watch(allAccountBalancesProvider);
+    final facilities = ref.watch(creditFacilitiesProvider);
     return AsyncView<List<AccountBalance>>(
       value: accounts,
       onRetry: () => ref.invalidate(allAccountBalancesProvider),
       data: (all) {
-        final active = all.where((a) => !a.isArchived).toList();
-        final archived = all.where((a) => a.isArchived).toList();
+        // Liability accounts render as facility tiles with their own debt
+        // figures — never as spendable cash below.
+        final assets = all.assetAccounts;
+        final active = assets.where((a) => !a.isArchived).toList();
+        final archived = assets.where((a) => a.isArchived).toList();
+        final facilityList =
+            facilities.value ?? const <CreditFacilitySummary>[];
         if (all.isEmpty) {
           return EmptyStateView(
             icon: FinanceSuitIcons.accountBalanceWallet,
@@ -187,12 +194,36 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
                   ),
                 ),
               ),
+              if (active.isNotEmpty && facilityList.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 4),
+                  child: Text(
+                    l10n.moneyAssetsSection,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
               for (final account in active)
                 _AccountTile(
                   account: account,
                   l10n: l10n,
                   onAction: (action) => _accountAction(account, action),
                 ),
+              if (facilityList.isNotEmpty) ...[
+                Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 4),
+                  child: Text(
+                    l10n.moneyLiabilitiesSection,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
+                for (final facility in facilityList)
+                  FacilityTile(
+                    facility: facility,
+                    onTap: () => context.push(
+                      '${AppRoutes.money}/facilities/${facility.accountId}',
+                    ),
+                  ),
+              ],
               if (archived.isNotEmpty)
                 SwitchListTile(
                   title: Text(l10n.moneyShowArchived),

@@ -13,6 +13,31 @@ enum ReportBucket {
 }
 
 @immutable
+/// One `app_reports.debt_summary` row: per-currency credit-facility figures.
+class DebtSummary {
+  const DebtSummary({
+    required this.currencyCode,
+    required this.repaymentsMinor,
+    required this.upcomingDuesMinor,
+    required this.overdueMinor,
+    required this.outstandingMinor,
+  });
+
+  factory DebtSummary.fromJson(Map<String, dynamic> json) => DebtSummary(
+    currencyCode: json['currency_code'] as String? ?? 'EGP',
+    repaymentsMinor: (json['repayments_minor'] as num).toInt(),
+    upcomingDuesMinor: (json['upcoming_dues_minor'] as num).toInt(),
+    overdueMinor: (json['overdue_minor'] as num).toInt(),
+    outstandingMinor: (json['outstanding_minor'] as num).toInt(),
+  );
+
+  final String currencyCode;
+  final int repaymentsMinor;
+  final int upcomingDuesMinor;
+  final int overdueMinor;
+  final int outstandingMinor;
+}
+
 class CashFlowSummary {
   const CashFlowSummary({
     required this.currencyCode,

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
+import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/widgets/app_money_text.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
+import 'package:work_tracker/core/widgets/protected_money.dart';
+import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
@@ -29,6 +32,8 @@ FinanceSuitGlyph accountTypeIcon(AccountType type) {
     AccountType.emergency => FinanceSuitIcons.medicalServices,
     AccountType.vacation => FinanceSuitIcons.beachAccess,
     AccountType.custom => FinanceSuitIcons.category,
+    AccountType.creditCard => FinanceSuitIcons.creditCard,
+    AccountType.bnpl => FinanceSuitIcons.requestQuote,
   };
 }
 
@@ -137,6 +142,125 @@ class BalanceText extends StatelessWidget {
       money: money,
       color: money.isNegative ? scheme.error : null,
       style: style ?? Theme.of(context).textTheme.titleMedium,
+    );
+  }
+}
+
+/// Compact card for one credit card or BNPL facility. Debt is shown as a
+/// positive "amount owed" — never as spendable cash — with available
+/// credit, the limit, a utilization bar, and the next due when present.
+class FacilityTile extends StatelessWidget {
+  const FacilityTile({super.key, required this.facility, this.onTap});
+
+  final CreditFacilitySummary facility;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final colors = context.suitColors;
+    final tone = facility.hasOverdue
+        ? colors.error
+        : facility.utilizationFraction >= 0.9
+        ? colors.warning
+        : colors.info;
+    return Card(
+      key: Key('facility-tile-${facility.accountId}'),
+      margin: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 4),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  FinanceSuitIcon(
+                    accountTypeIcon(facility.accountType),
+                    color: tone.icon,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          facility.name,
+                          style: theme.textTheme.titleSmall,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          accountTypeLabel(l10n, facility.accountType),
+                          style: theme.textTheme.bodySmall,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(l10n.facilityOwed, style: theme.textTheme.bodySmall),
+                      AppMoneyText(
+                        money: facility.outstanding,
+                        style: theme.textTheme.titleSmall,
+                        sign: AppMoneySign.never,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: facility.utilizationFraction,
+                  minHeight: 4,
+                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                  color: tone.icon,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 12,
+                runSpacing: 2,
+                children: [
+                  ProtectedMoneyText(
+                    '${l10n.facilityAvailable}: '
+                    '${facility.availableCredit.format()}',
+                    style: theme.textTheme.bodySmall,
+                    interactive: false,
+                  ),
+                  ProtectedMoneyText(
+                    '${l10n.facilityCreditLimit}: '
+                    '${facility.creditLimit.format()}',
+                    style: theme.textTheme.bodySmall,
+                    interactive: false,
+                  ),
+                  if (facility.nextDueOn != null)
+                    Text(
+                      l10n.facilityNextDue(facility.nextDueOn!.toIso()),
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  if (facility.hasOverdue)
+                    Text(
+                      l10n.facilityOverdueBadge,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colors.error.text,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

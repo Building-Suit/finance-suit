@@ -1825,4 +1825,335 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get heldSettleHelp => 'The transaction will be recorded on this date.';
+
+  @override
+  String get accTypeCreditCard => 'Credit Card';
+
+  @override
+  String get accTypeBnpl => 'BNPL / Finance Company';
+
+  @override
+  String get accOpeningOwed => 'Opening amount owed';
+
+  @override
+  String get accOpeningOwedHelp =>
+      'Debt already used on this facility before you started tracking it in Finance Suit.';
+
+  @override
+  String get facilityCreditLimit => 'Credit limit';
+
+  @override
+  String get facilityDefaultDueDay => 'Default due day';
+
+  @override
+  String get facilityStatementDay => 'Statement day';
+
+  @override
+  String get facilityLastFour => 'Last four digits';
+
+  @override
+  String get facilityReminderDays => 'Reminder lead days';
+
+  @override
+  String get valFacilityLastFour => 'Enter exactly four digits';
+
+  @override
+  String get valFacilityReminderDays => 'Enter between 0 and 31 days';
+
+  @override
+  String get moneyAssetsSection => 'Cash & bank';
+
+  @override
+  String get moneyLiabilitiesSection => 'Credit & installments';
+
+  @override
+  String get facilityOwed => 'Amount owed';
+
+  @override
+  String get facilityAvailable => 'Available credit';
+
+  @override
+  String get facilityUtilization => 'Utilization';
+
+  @override
+  String facilityNextDue(String date) {
+    return 'Next due $date';
+  }
+
+  @override
+  String get facilityOverdueBadge => 'Overdue';
+
+  @override
+  String get facilityDueNow => 'Due now';
+
+  @override
+  String get facilityDetailTitle => 'Credit facility';
+
+  @override
+  String get facilityAddPurchase => 'Add installment purchase';
+
+  @override
+  String get facilityMakePayment => 'Make payment';
+
+  @override
+  String get facilityDuesSection => 'Upcoming installments';
+
+  @override
+  String get facilityNoDues => 'Nothing is scheduled on this facility.';
+
+  @override
+  String get facilityPlansSection => 'Installment plans';
+
+  @override
+  String get facilityNoPlans => 'No installment plans yet.';
+
+  @override
+  String get facilityHistorySection => 'Related activity';
+
+  @override
+  String get facilityRepaymentLabel => 'Facility payment';
+
+  @override
+  String get facilityReversalLabel => 'Payment reversal';
+
+  @override
+  String get facilityPurchaseLabel => 'Credit purchase';
+
+  @override
+  String get facilityEmptyTitle => 'No credit card or BNPL accounts yet';
+
+  @override
+  String get facilityEmptyAction => 'Add credit account';
+
+  @override
+  String get planStatusActive => 'Active';
+
+  @override
+  String get planStatusCompleted => 'Completed';
+
+  @override
+  String get planStatusCancelled => 'Cancelled';
+
+  @override
+  String planPaidOfTotal(String paid, String total) {
+    return '$paid of $total paid';
+  }
+
+  @override
+  String get planCancel => 'Cancel plan';
+
+  @override
+  String get planCancelConfirmTitle => 'Cancel this plan?';
+
+  @override
+  String get planCancelConfirmBody =>
+      'The financed purchase will be removed and its schedule cancelled. This is only possible before any payment.';
+
+  @override
+  String get dueStatusUpcoming => 'Upcoming';
+
+  @override
+  String get dueStatusDueToday => 'Due today';
+
+  @override
+  String get dueStatusOverdue => 'Overdue';
+
+  @override
+  String get dueStatusPartiallyPaid => 'Partially paid';
+
+  @override
+  String get dueStatusPaid => 'Paid';
+
+  @override
+  String get dueStatusCancelled => 'Cancelled';
+
+  @override
+  String get purchaseTitle => 'New installment purchase';
+
+  @override
+  String get purchaseFacility => 'Facility';
+
+  @override
+  String get purchaseMerchant => 'Merchant or title';
+
+  @override
+  String get purchaseDateLabel => 'Purchase date';
+
+  @override
+  String get purchasePrice => 'Purchase price';
+
+  @override
+  String get purchaseDownPayment => 'Down payment';
+
+  @override
+  String get purchaseDownPaymentAccount => 'Paid from';
+
+  @override
+  String get purchaseFinancingMode => 'Financing input';
+
+  @override
+  String get purchaseFinancingModeFees => 'Enter financing fees';
+
+  @override
+  String get purchaseFinancingModeTotal => 'Enter total payable';
+
+  @override
+  String get purchaseFinancingFees => 'Financing fees';
+
+  @override
+  String get purchaseTotalPayable => 'Total payable';
+
+  @override
+  String get purchaseFinancedPrincipal => 'Financed principal';
+
+  @override
+  String get purchaseInstallmentCount => 'Number of installments';
+
+  @override
+  String get purchaseSingleCycleHint =>
+      'One installment means the full amount is due on the next due date.';
+
+  @override
+  String get purchaseFirstDueDate => 'First due date';
+
+  @override
+  String get purchasePreviewTitle => 'What will be recorded';
+
+  @override
+  String get purchaseMonthly => 'Monthly schedule';
+
+  @override
+  String get purchaseAvailableBefore => 'Available credit now';
+
+  @override
+  String get purchaseAvailableAfter => 'Available after purchase';
+
+  @override
+  String get purchaseExceedsCredit =>
+      'This purchase exceeds the available credit';
+
+  @override
+  String get valDownPaymentTooLarge =>
+      'The down payment must stay below the purchase price';
+
+  @override
+  String get valTotalBelowFinanced =>
+      'Total payable cannot be below the financed principal';
+
+  @override
+  String get valInstallmentCount => 'Choose between 1 and 120 installments';
+
+  @override
+  String get valCategoryRequired => 'Choose a category';
+
+  @override
+  String get paymentTitle => 'Pay credit facility';
+
+  @override
+  String get paymentSource => 'Pay from';
+
+  @override
+  String get paymentDate => 'Payment date';
+
+  @override
+  String get paymentDueNowChip => 'Due now';
+
+  @override
+  String get paymentNextChip => 'Next installment';
+
+  @override
+  String get paymentFullChip => 'Full outstanding';
+
+  @override
+  String get paymentAllocationPreview => 'Will be applied to';
+
+  @override
+  String paymentUnallocatedNote(String amount) {
+    return '$amount reduces the remaining balance owed';
+  }
+
+  @override
+  String get paymentNothingOwed => 'Nothing is owed right now.';
+
+  @override
+  String get paymentReverse => 'Reverse payment';
+
+  @override
+  String get paymentReverseConfirmTitle => 'Reverse this payment?';
+
+  @override
+  String get paymentReverseConfirmBody =>
+      'The money returns to the source account and the covered installments reopen.';
+
+  @override
+  String get valPaymentAboveOutstanding =>
+      'The payment is larger than the amount owed';
+
+  @override
+  String get homeDuesTitle => 'Installments';
+
+  @override
+  String homeDueNow(String amount) {
+    return '$amount due now';
+  }
+
+  @override
+  String homeNextDue(String date) {
+    return 'Next due $date';
+  }
+
+  @override
+  String homeOverdue(String amount) {
+    return '$amount overdue';
+  }
+
+  @override
+  String get reportsDebtTitle => 'Credit & installments';
+
+  @override
+  String get reportsDebtRepayments => 'Debt repayments';
+
+  @override
+  String get reportsDebtUpcoming => 'Upcoming installments';
+
+  @override
+  String get reportsDebtOverdue => 'Overdue';
+
+  @override
+  String get reportsDebtOutstanding => 'Outstanding debt';
+
+  @override
+  String get errCreditLimitBelowOutstanding =>
+      'The credit limit cannot be below the amount owed';
+
+  @override
+  String get errFacilityArchiveBlocked =>
+      'Money is still owed on this facility';
+
+  @override
+  String get errFacilityNotConfigured =>
+      'Set a credit limit for this facility first';
+
+  @override
+  String get errPlanHasPayments =>
+      'Reverse the payments before cancelling this plan';
+
+  @override
+  String get errFacilityLocked =>
+      'Installment records are managed from the facility screen';
+
+  @override
+  String get errAccountRoleLocked =>
+      'Create a new account to switch between cash and credit';
+
+  @override
+  String get errAlreadyReversed => 'This payment was already reversed';
+
+  @override
+  String get errInvalidFinancing =>
+      'The financing fees and total payable do not match';
+
+  @override
+  String get errAllocationInvalid =>
+      'The payment split does not match the open installments';
 }
