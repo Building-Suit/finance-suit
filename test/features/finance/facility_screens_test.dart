@@ -6,6 +6,7 @@ import 'package:shared_preferences_platform_interface/shared_preferences_async_p
 import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
+import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
@@ -171,6 +172,9 @@ List<dynamic> _baseOverrides({
       (ref, kind) async =>
           kind == CategoryKind.expense ? [_expenseCategory] : const [],
     ),
+    feeRulesProvider.overrideWith(
+      (ref, accountId) async => const <CardFeeRule>[],
+    ),
   ];
 }
 
@@ -283,6 +287,73 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('facility-statement-day')), findsNothing);
       expect(find.byKey(const Key('facility-last-four')), findsNothing);
+    });
+
+    testWidgets('credit cards expose the minimum payment method', (
+      tester,
+    ) async {
+      await _pump(tester, const AccountFormScreen());
+
+      await tester.tap(find.text('Current balance'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).last, 'Credit Card');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Credit Card').last);
+      await tester.pumpAndSettle();
+
+      final minMethod = find.byKey(
+        const ValueKey('facility-min-method-MinPaymentMethod.full'),
+      );
+      expect(minMethod, findsOneWidget);
+      expect(find.byKey(const Key('facility-min-fixed')), findsNothing);
+      expect(find.byKey(const Key('facility-min-percent')), findsNothing);
+
+      await tester.ensureVisible(minMethod);
+      await tester.tap(minMethod);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Greater of fixed or percent').last);
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('facility-min-fixed')), findsOneWidget);
+      expect(find.byKey(const Key('facility-min-percent')), findsOneWidget);
+    });
+  });
+
+  group('card fee rules', () {
+    testWidgets('detail screen lists fees and opens the fee dialog', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        const CreditFacilityDetailScreen(accountId: 'facility-1'),
+      );
+
+      // The fee section sits below the fold of the lazy detail list.
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('fee-rule-add')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Card fees'), findsOneWidget);
+      expect(find.textContaining('No fees configured'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('fee-rule-add')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('fee-rule-name')), findsOneWidget);
+      expect(find.byKey(const Key('fee-rule-amount')), findsOneWidget);
+      expect(find.byKey(const Key('fee-rule-percent')), findsNothing);
+
+      // The percent mode swaps the fixed amount for a rate and its basis.
+      await tester.tap(find.byKey(const Key('fee-rule-percent-toggle')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('fee-rule-amount')), findsNothing);
+      expect(find.byKey(const Key('fee-rule-percent')), findsOneWidget);
+
+      // An empty name or percent blocks the save.
+      await tester.tap(find.byKey(const Key('fee-rule-submit')));
+      await tester.pumpAndSettle();
+      expect(find.text('This field is required.'), findsWidgets);
     });
   });
 

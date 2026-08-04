@@ -167,6 +167,52 @@ enum PlanOrigin {
       values.firstWhere((e) => e.dbValue == value);
 }
 
+/// What a recurring credit-card fee is for.
+enum CardFeeType {
+  annualMembership('annual_membership'),
+  insurance('insurance'),
+  administration('administration'),
+  stampTax('stamp_tax'),
+  foreignTransaction('foreign_transaction'),
+  cashAdvance('cash_advance'),
+  latePayment('late_payment'),
+  overLimit('over_limit'),
+  installmentConversion('installment_conversion'),
+  other('other');
+
+  const CardFeeType(this.dbValue);
+  final String dbValue;
+
+  static CardFeeType fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+enum FeeFrequency {
+  once('once'),
+  monthly('monthly'),
+  quarterly('quarterly'),
+  annually('annually');
+
+  const FeeFrequency(this.dbValue);
+  final String dbValue;
+
+  static FeeFrequency fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+/// The balance a percent-based card fee is computed from.
+enum FeePercentBasis {
+  statementBalance('statement_balance'),
+  outstandingBalance('outstanding_balance'),
+  creditLimit('credit_limit');
+
+  const FeePercentBasis(this.dbValue);
+  final String dbValue;
+
+  static FeePercentBasis fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
 enum MinPaymentMethod {
   full('full'),
   fixed('fixed'),

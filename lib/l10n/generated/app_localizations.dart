@@ -4510,6 +4510,282 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Off by default so balances never appear on the lock screen.'**
   String get notifShowAmountsHelp;
+
+  /// No description provided for @minPaymentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum payment'**
+  String get minPaymentLabel;
+
+  /// No description provided for @minPaymentHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'How the minimum due of each monthly statement is calculated.'**
+  String get minPaymentHelp;
+
+  /// No description provided for @minPaymentFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full statement balance'**
+  String get minPaymentFull;
+
+  /// No description provided for @minPaymentFixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed amount'**
+  String get minPaymentFixed;
+
+  /// No description provided for @minPaymentPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Percent of statement'**
+  String get minPaymentPercent;
+
+  /// No description provided for @minPaymentGreaterOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Greater of fixed or percent'**
+  String get minPaymentGreaterOf;
+
+  /// No description provided for @minPaymentFixedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum fixed amount'**
+  String get minPaymentFixedAmount;
+
+  /// No description provided for @minPaymentPercentAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum percent'**
+  String get minPaymentPercentAmount;
+
+  /// No description provided for @valMinPaymentPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a percent between 0.01 and 100.'**
+  String get valMinPaymentPercent;
+
+  /// No description provided for @feeRulesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Card fees'**
+  String get feeRulesSection;
+
+  /// No description provided for @feeRuleAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add fee'**
+  String get feeRuleAdd;
+
+  /// No description provided for @feeRuleEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit fee'**
+  String get feeRuleEdit;
+
+  /// No description provided for @feeRuleName.
+  ///
+  /// In en, this message translates to:
+  /// **'Fee name'**
+  String get feeRuleName;
+
+  /// No description provided for @feeRuleType.
+  ///
+  /// In en, this message translates to:
+  /// **'Fee type'**
+  String get feeRuleType;
+
+  /// No description provided for @feeTypeAnnualMembership.
+  ///
+  /// In en, this message translates to:
+  /// **'Annual membership'**
+  String get feeTypeAnnualMembership;
+
+  /// No description provided for @feeTypeInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance'**
+  String get feeTypeInsurance;
+
+  /// No description provided for @feeTypeAdministration.
+  ///
+  /// In en, this message translates to:
+  /// **'Administration'**
+  String get feeTypeAdministration;
+
+  /// No description provided for @feeTypeStampTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Stamp tax'**
+  String get feeTypeStampTax;
+
+  /// No description provided for @feeTypeForeignTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Foreign transaction'**
+  String get feeTypeForeignTransaction;
+
+  /// No description provided for @feeTypeCashAdvance.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash advance'**
+  String get feeTypeCashAdvance;
+
+  /// No description provided for @feeTypeLatePayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Late payment'**
+  String get feeTypeLatePayment;
+
+  /// No description provided for @feeTypeOverLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Over limit'**
+  String get feeTypeOverLimit;
+
+  /// No description provided for @feeTypeInstallmentConversion.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment conversion'**
+  String get feeTypeInstallmentConversion;
+
+  /// No description provided for @feeTypeOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get feeTypeOther;
+
+  /// No description provided for @feeRulePercentToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Percent-based fee'**
+  String get feeRulePercentToggle;
+
+  /// No description provided for @feeRulePercentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Fee percent'**
+  String get feeRulePercentLabel;
+
+  /// No description provided for @feeRulePercentBasis.
+  ///
+  /// In en, this message translates to:
+  /// **'Percent of'**
+  String get feeRulePercentBasis;
+
+  /// No description provided for @feeBasisStatementBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Statement balance'**
+  String get feeBasisStatementBalance;
+
+  /// No description provided for @feeBasisOutstandingBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding balance'**
+  String get feeBasisOutstandingBalance;
+
+  /// No description provided for @feeBasisCreditLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit limit'**
+  String get feeBasisCreditLimit;
+
+  /// No description provided for @feeRuleFixedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Fee amount'**
+  String get feeRuleFixedAmount;
+
+  /// No description provided for @feeRuleFrequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeats'**
+  String get feeRuleFrequency;
+
+  /// No description provided for @feeFrequencyOnce.
+  ///
+  /// In en, this message translates to:
+  /// **'Once'**
+  String get feeFrequencyOnce;
+
+  /// No description provided for @feeFrequencyMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get feeFrequencyMonthly;
+
+  /// No description provided for @feeFrequencyQuarterly.
+  ///
+  /// In en, this message translates to:
+  /// **'Quarterly'**
+  String get feeFrequencyQuarterly;
+
+  /// No description provided for @feeFrequencyAnnually.
+  ///
+  /// In en, this message translates to:
+  /// **'Annually'**
+  String get feeFrequencyAnnually;
+
+  /// No description provided for @feeRuleStartsOn.
+  ///
+  /// In en, this message translates to:
+  /// **'First charge date'**
+  String get feeRuleStartsOn;
+
+  /// No description provided for @feeRuleNextCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Next charge {date}'**
+  String feeRuleNextCharge(String date);
+
+  /// No description provided for @feeRuleInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get feeRuleInactive;
+
+  /// No description provided for @feeRuleDeactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get feeRuleDeactivate;
+
+  /// No description provided for @feeRuleActivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get feeRuleActivate;
+
+  /// No description provided for @feeRuleDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this fee?'**
+  String get feeRuleDeleteConfirmTitle;
+
+  /// No description provided for @feeRuleDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Future charges stop. Fees already charged stay in your history.'**
+  String get feeRuleDeleteConfirmBody;
+
+  /// No description provided for @feeRulesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No fees configured for this card yet. Add the annual membership or insurance fee so it books itself.'**
+  String get feeRulesEmpty;
+
+  /// No description provided for @feeRulePercentOfBasis.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of {basis}'**
+  String feeRulePercentOfBasis(String percent, String basis);
+
+  /// No description provided for @valFeePercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a percent between 0.01 and 1,000.'**
+  String get valFeePercent;
 }
 
 class _AppLocalizationsDelegate
