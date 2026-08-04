@@ -1,7 +1,32 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:local_auth/local_auth.dart';
 
 enum DeviceAuthOutcome { authenticated, canceled, unavailable, failed }
+
+/// Tracks whether any device-credential prompt is in flight, across every
+/// controller that can open one (privacy reveals, app unlock, quick login).
+///
+/// Fullscreen fingerprint prompts and credential screens stop the host
+/// activity on many devices, so the privacy gate must be able to tell
+/// prompt-induced lifecycle churn apart from a real backgrounding.
+abstract final class DeviceAuthSession {
+  static int _active = 0;
+
+  static bool get isActive => _active > 0;
+
+  static Future<T> run<T>(Future<T> Function() action) async {
+    _active += 1;
+    try {
+      return await action();
+    } finally {
+      _active -= 1;
+    }
+  }
+
+  @visibleForTesting
+  static void reset() => _active = 0;
+}
 
 abstract interface class DeviceAuthenticator {
   Future<bool> isSupported();
@@ -35,10 +60,10 @@ class LocalDeviceAuthenticator implements DeviceAuthenticator {
         // password, or passcode when biometrics are unavailable.
         biometricOnly: false,
         sensitiveTransaction: true,
-        // A system surface such as the notification shade can temporarily
-        // interrupt authentication. Returning a cancellation keeps that
-        // interruption from silently starting a second prompt on resume.
-        persistAcrossBackgrounding: false,
+        // Fullscreen fingerprint UIs and the notification shade background
+        // the activity mid-prompt on some devices. Persisting resumes the
+        // same session instead of canceling and arming a duplicate prompt.
+        persistAcrossBackgrounding: true,
       );
       return authenticated
           ? DeviceAuthOutcome.authenticated
