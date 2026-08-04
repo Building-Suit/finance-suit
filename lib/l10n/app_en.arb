@@ -463,8 +463,12 @@
   "workDurationHm": "{hours}h {minutes}m",
   "@workDurationHm": {
     "placeholders": {
-      "hours": {"type": "int"},
-      "minutes": {"type": "int"}
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
     }
   },
   "homeBalance": "Balance",
@@ -521,12 +525,24 @@
   "catParent": "Parent category (optional)",
   "catTopLevel": "No parent — regular category",
   "catSubcategoryOf": "Subcategory of {parent}",
-  "@catSubcategoryOf": {"placeholders": {"parent": {"type": "String"}}},
+  "@catSubcategoryOf": {
+    "placeholders": {
+      "parent": {
+        "type": "String"
+      }
+    }
+  },
   "catSubcategoryOptional": "Subcategory (optional)",
   "catUseParentCategory": "No subcategory — use the parent category",
   "catAddSubcategory": "Add subcategory",
   "catSubcategoryCount": "{count} subcategories",
-  "@catSubcategoryCount": {"placeholders": {"count": {"type": "int"}}},
+  "@catSubcategoryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "catMissingParent": "Missing parent category",
   "catArchiveChildrenFirst": "Archive this category's active subcategories first.",
   "catRestoreParentFirst": "Restore the parent category before restoring this subcategory.",
@@ -538,7 +554,13 @@
   "incomeEditSource": "Edit income source",
   "incomeNoSources": "No automated income sources yet.",
   "incomeMonthlyOnDay": "Monthly on day {day}",
-  "@incomeMonthlyOnDay": {"placeholders": {"day": {"type": "int"}}},
+  "@incomeMonthlyOnDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
   "incomeSourceType": "Income type",
   "incomeSourceName": "Income source name",
   "incomeExpectedAmount": "Expected amount",
@@ -551,7 +573,13 @@
   "incomeSplitAddRule": "Add split rule",
   "incomeSplitNoRules": "No split rules. The full amount stays in the deposit account.",
   "incomeSplitRuleNumber": "Rule {number}",
-  "@incomeSplitRuleNumber": {"placeholders": {"number": {"type": "int"}}},
+  "@incomeSplitRuleNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "incomeSplitDestinationAccount": "Destination account",
   "incomeSplitMethod": "Split method",
   "incomeSplitMethodPercentage": "Percentage",
@@ -572,24 +600,108 @@
   "incomeRolloverAccount": "Previous-balance destination",
   "incomeSplitPreviewTitle": "Summary preview",
   "incomeSplitPreviewDeposit": "{amount} enters {account} first.",
-  "@incomeSplitPreviewDeposit": {"placeholders": {"amount": {"type": "String"}, "account": {"type": "String"}}},
+  "@incomeSplitPreviewDeposit": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeSplitPreviewPercentageRule": "Rule {number}: {percentage}% of the {basis} = {amount} to {account}.",
-  "@incomeSplitPreviewPercentageRule": {"placeholders": {"number": {"type": "int"}, "percentage": {"type": "String"}, "basis": {"type": "String"}, "amount": {"type": "String"}, "account": {"type": "String"}}},
+  "@incomeSplitPreviewPercentageRule": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "percentage": {
+        "type": "String"
+      },
+      "basis": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeSplitPreviewFixedRule": "Rule {number}: fixed {amount} to {account}.",
-  "@incomeSplitPreviewFixedRule": {"placeholders": {"number": {"type": "int"}, "amount": {"type": "String"}, "account": {"type": "String"}}},
+  "@incomeSplitPreviewFixedRule": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeSplitPreviewExtraIncluded": "Extra-work earnings are included in percentage calculations.",
   "incomeSplitPreviewExtraRouted": "Protected extra-work earnings go to {account}.",
-  "@incomeSplitPreviewExtraRouted": {"placeholders": {"account": {"type": "String"}}},
+  "@incomeSplitPreviewExtraRouted": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeSplitPreviewExtraKept": "Protected extra-work earnings stay in {account}.",
-  "@incomeSplitPreviewExtraKept": {"placeholders": {"account": {"type": "String"}}},
+  "@incomeSplitPreviewExtraKept": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeRolloverPreviewMoved": "Before this salary is deposited, any positive existing balance in {sourceAccount} moves to {destinationAccount}.",
-  "@incomeRolloverPreviewMoved": {"placeholders": {"sourceAccount": {"type": "String"}, "destinationAccount": {"type": "String"}}},
+  "@incomeRolloverPreviewMoved": {
+    "placeholders": {
+      "sourceAccount": {
+        "type": "String"
+      },
+      "destinationAccount": {
+        "type": "String"
+      }
+    }
+  },
   "incomeRolloverPreviewKept": "The existing balance in {account} stays where it is.",
-  "@incomeRolloverPreviewKept": {"placeholders": {"account": {"type": "String"}}},
+  "@incomeRolloverPreviewKept": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeSplitPreviewLine": "{amount} to {account}",
-  "@incomeSplitPreviewLine": {"placeholders": {"amount": {"type": "String"}, "account": {"type": "String"}}},
+  "@incomeSplitPreviewLine": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeSplitPreviewRemainder": "{amount} remains in {account}",
-  "@incomeSplitPreviewRemainder": {"placeholders": {"amount": {"type": "String"}, "account": {"type": "String"}}},
+  "@incomeSplitPreviewRemainder": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeSplitPreviewError": "These rules exceed the available income.",
   "incomeKindSalary": "Salary",
   "incomeKindAllowance": "Allowance received",
@@ -600,16 +712,40 @@
   "incomeNoPrimaryHelp": "You can finish setup without a salary and add any income source later from Settings.",
   "incomePendingTitle": "Income to approve",
   "incomeDue": "Expected on {date} — confirm when it arrives",
-  "@incomeDue": {"placeholders": {"date": {"type": "String"}}},
+  "@incomeDue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "incomeUpcoming": "Expected on {date} — you can accept it early",
-  "@incomeUpcoming": {"placeholders": {"date": {"type": "String"}}},
+  "@incomeUpcoming": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "incomeAcceptTitle": "Accept {name}?",
-  "@incomeAcceptTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@incomeAcceptTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "incomeAcceptHelp": "The income transaction and its account splits are created only after you confirm.",
   "incomeAccept": "Accept income",
   "incomeSkipTitle": "Skip this income?",
   "incomeSkipHelp": "{name} will not create a transaction for this month.",
-  "@incomeSkipHelp": {"placeholders": {"name": {"type": "String"}}},
+  "@incomeSkipHelp": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "incomeSkip": "Skip",
   "incomeLater": "Later",
   "incomeRemindLater": "Snoozed for 24 hours.",
@@ -622,7 +758,16 @@
   "salaryHolidayWorked": "Holiday worked",
   "salaryEstimatedTotal": "Estimated total",
   "durationHoursMinutes": "{hours}h {minutes}m",
-  "@durationHoursMinutes": {"placeholders": {"hours": {"type": "int"}, "minutes": {"type": "int"}}},
+  "@durationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "incomeAutomationCenter": "Income automations",
   "incomeAutomationOverview": "Set the expected date and account split. Nothing changes your balance until you approve the payment.",
   "incomeActiveAutomations": "Active automations",
@@ -630,23 +775,74 @@
   "incomeAutomationEnabled": "Automation enabled",
   "incomeAutomationEnabledHelp": "Pause this source without deleting its schedule or split rules.",
   "incomeActiveCount": "{count} active",
-  "@incomeActiveCount": {"placeholders": {"count": {"type": "int"}}},
+  "@incomeActiveCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "incomePausedCount": "{count} paused",
-  "@incomePausedCount": {"placeholders": {"count": {"type": "int"}}},
+  "@incomePausedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "incomePendingCount": "{count} waiting",
-  "@incomePendingCount": {"placeholders": {"count": {"type": "int"}}},
+  "@incomePendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "incomeActive": "Active",
   "incomePaused": "Paused",
   "incomePause": "Pause",
   "incomeResume": "Resume",
   "incomeDepositAccount": "Deposit account: {account}",
-  "@incomeDepositAccount": {"placeholders": {"account": {"type": "String"}}},
+  "@incomeDepositAccount": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeSplitAccount": "{percentage}% to {account}",
-  "@incomeSplitAccount": {"placeholders": {"percentage": {"type": "String"}, "account": {"type": "String"}}},
+  "@incomeSplitAccount": {
+    "placeholders": {
+      "percentage": {
+        "type": "String"
+      },
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeSplitFixedAccount": "{amount} to {account}",
-  "@incomeSplitFixedAccount": {"placeholders": {"amount": {"type": "String"}, "account": {"type": "String"}}},
+  "@incomeSplitFixedAccount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeRemainderSplit": "{percentage}% remains in {account}",
-  "@incomeRemainderSplit": {"placeholders": {"percentage": {"type": "String"}, "account": {"type": "String"}}},
+  "@incomeRemainderSplit": {
+    "placeholders": {
+      "percentage": {
+        "type": "String"
+      },
+      "account": {
+        "type": "String"
+      }
+    }
+  },
   "incomeNoPending": "No income is waiting for approval.",
   "addSectionAutomationControl": "Automation Control",
   "addAutomation": "Add automation",
@@ -687,7 +883,13 @@
   "facilityAvailable": "Available credit",
   "facilityUtilization": "Utilization",
   "facilityNextDue": "Next due {date}",
-  "@facilityNextDue": {"placeholders": {"date": {"type": "String"}}},
+  "@facilityNextDue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "facilityOverdueBadge": "Overdue",
   "facilityDueNow": "Due now",
   "facilityDetailTitle": "Credit facility",
@@ -707,7 +909,16 @@
   "planStatusCompleted": "Completed",
   "planStatusCancelled": "Cancelled",
   "planPaidOfTotal": "{paid} of {total} paid",
-  "@planPaidOfTotal": {"placeholders": {"paid": {"type": "String"}, "total": {"type": "String"}}},
+  "@planPaidOfTotal": {
+    "placeholders": {
+      "paid": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "planCancel": "Cancel plan",
   "planCancelConfirmTitle": "Cancel this plan?",
   "planCancelConfirmBody": "The financed purchase will be removed and its schedule cancelled. This is only possible before any payment.",
@@ -750,7 +961,13 @@
   "paymentFullChip": "Full outstanding",
   "paymentAllocationPreview": "Will be applied to",
   "paymentUnallocatedNote": "{amount} reduces the remaining balance owed",
-  "@paymentUnallocatedNote": {"placeholders": {"amount": {"type": "String"}}},
+  "@paymentUnallocatedNote": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "paymentNothingOwed": "Nothing is owed right now.",
   "paymentReverse": "Reverse payment",
   "paymentReverseConfirmTitle": "Reverse this payment?",
@@ -758,11 +975,29 @@
   "valPaymentAboveOutstanding": "The payment is larger than the amount owed",
   "homeDuesTitle": "Installments",
   "homeDueNow": "{amount} due now",
-  "@homeDueNow": {"placeholders": {"amount": {"type": "String"}}},
+  "@homeDueNow": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "homeNextDue": "Next due {date}",
-  "@homeNextDue": {"placeholders": {"date": {"type": "String"}}},
+  "@homeNextDue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "homeOverdue": "{amount} overdue",
-  "@homeOverdue": {"placeholders": {"amount": {"type": "String"}}},
+  "@homeOverdue": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "reportsDebtTitle": "Credit & installments",
   "reportsDebtRepayments": "Debt repayments",
   "reportsDebtUpcoming": "Upcoming installments",
@@ -776,5 +1011,108 @@
   "errAccountRoleLocked": "Create a new account to switch between cash and credit",
   "errAlreadyReversed": "This payment was already reversed",
   "errInvalidFinancing": "The financing fees and total payable do not match",
-  "errAllocationInvalid": "The payment split does not match the open installments"
+  "errAllocationInvalid": "The payment split does not match the open installments",
+  "facilityReminderDaysHelp": "How many days before each due date the app reminds you.",
+  "facilityReminderOnDueDay": "On the due day",
+  "facilityReminderDaysBefore": "{days} days before the due date",
+  "@facilityReminderDaysBefore": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "facilityStatusLabel": "Card status",
+  "facilityStatusHelp": "Frozen and closed cards keep their history and debt but cannot fund new purchases.",
+  "facilityStatusActive": "Active",
+  "facilityStatusFrozen": "Frozen",
+  "facilityStatusClosed": "Closed",
+  "facilityLifecycleTitle": "Archive or delete",
+  "facilityLifecycleBody": "Archiving hides the card from pickers while any remaining debt stays visible and payable. Deleting is only possible for a card that never had any activity.",
+  "facilityArchiveAction": "Archive card",
+  "facilityUnarchiveAction": "Unarchive card",
+  "facilityDeleteAction": "Delete card",
+  "facilityDeleteConfirmTitle": "Delete this card?",
+  "facilityDeleteConfirmBody": "Only a card with no purchases, payments, statements, or plans can be deleted. Anything else should be archived so history stays intact.",
+  "pricingMethodManualFees": "I know the fees",
+  "pricingMethodMonthlyAmount": "I know the monthly amount",
+  "pricingMethodTotalPayable": "I know the total payable",
+  "pricingMethodInterestRate": "I know the interest rate",
+  "purchaseEditTitle": "Edit installment plan",
+  "purchaseDownPaymentSection": "Paid now",
+  "purchaseDownPaymentSectionHelp": "The down payment and any upfront fees leave a cash account today; they are never financed.",
+  "purchaseUpfrontFees": "Upfront fees",
+  "purchaseUpfrontFeesHelp": "Admin or processing fees paid in cash today from the same account as the down payment.",
+  "purchaseFinancingSection": "Financing",
+  "purchaseFinancingSectionHelp": "Tell the app whichever number the lender quoted; everything else is derived.",
+  "purchaseFinancingFeesHelp": "The total extra cost the lender charges on top of the financed amount.",
+  "purchaseTotalPayableHelp": "Everything you will pay across all installments, as quoted by the lender.",
+  "purchaseMonthlyAmount": "Monthly installment",
+  "purchaseMonthlyAmountHelp": "The exact amount the lender collects each month.",
+  "purchaseMonthlyRate": "Monthly interest rate",
+  "purchaseAnnualRate": "Annual interest rate",
+  "purchaseRateHelp": "As quoted by the bank, e.g. 2.5 for 2.5%.",
+  "purchaseRatePeriod": "Rate period",
+  "purchaseRatePerMonth": "Per month",
+  "purchaseRatePerYear": "Per year",
+  "purchaseInterestMethod": "Interest method",
+  "purchaseInterestMethodHelp": "Flat charges the rate on the full amount every month; reducing charges it on the remaining balance.",
+  "purchaseInterestFlat": "Flat",
+  "purchaseInterestReducing": "Reducing balance",
+  "purchaseImportSection": "Already running plan",
+  "purchaseImportSectionHelp": "Track a plan you started before using the app: mark the installments you already paid and only the remainder counts as new debt.",
+  "purchaseImportToggle": "I already paid some installments",
+  "purchasePaidCount": "Installments already paid",
+  "purchasePaidCountHelp": "That many dues from the start of the schedule are marked as settled outside the app.",
+  "purchaseInterest": "Interest",
+  "purchaseAlreadyPaidPortion": "Already paid ({count} installments)",
+  "@purchaseAlreadyPaidPortion": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "purchaseRemainingCharge": "Remaining debt to track",
+  "valPaidInstallments": "Paid installments must stay below the total count",
+  "valInterestRate": "Enter a rate between 0 and 1,000%",
+  "facilityStatementsSection": "Card statements",
+  "facilityNoStatements": "Charges on this card will appear here grouped by statement.",
+  "statementCycleTitle": "Statement closing {date}",
+  "@statementCycleTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "statementDueOn": "Due {date}",
+  "@statementDueOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "statementMinimumDue": "Minimum due",
+  "statementStatusOpen": "Open",
+  "planActionsTooltip": "Plan actions",
+  "planEditAction": "Edit plan",
+  "planRestructureAction": "Restructure remaining",
+  "planRevisionsAction": "Change history",
+  "planRestructureTitle": "Restructure remaining installments",
+  "planRestructureBody": "Paid installments stay untouched. Spread what is still owed over a new schedule; any extra cost is booked as an expense today.",
+  "planRestructureRemainingTotal": "Remaining total",
+  "planRestructureRemainingCount": "Remaining installments",
+  "planRestructureNextDue": "Next due date",
+  "planRestructureNote": "Reason",
+  "planRevisionsTitle": "Plan change history",
+  "planRevisionsEmpty": "This plan has not been restructured.",
+  "errFacilityHasHistory": "This card has activity; archive it instead of deleting",
+  "errFacilityNotActive": "This card is frozen or closed and cannot fund new purchases",
+  "errCardNotConfigured": "Set the card's statement closing day first",
+  "errInvalidPaidInstallments": "Paid installments must stay below the total count",
+  "errPlanPartiallyPaidDue": "Settle the partially paid installment before restructuring",
+  "purchaseFinancedFees": "Financed fees",
+  "purchaseFinancedFeesHelp": "Extra fees rolled into the schedule and paid across the installments."
 }

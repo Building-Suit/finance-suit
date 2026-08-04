@@ -7,6 +7,7 @@ import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
+import 'package:work_tracker/core/money/money_input.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
@@ -41,8 +42,7 @@ class _IncomeSourceFormScreenState
   late final _amountController = TextEditingController(
     text: widget.existing == null
         ? ''
-        : (widget.existing!.expectedAmountMinor / Money.minorUnitsPerMajor)
-              .toStringAsFixed(2),
+        : formatMinorForInput(widget.existing!.expectedAmountMinor),
   );
   late final _notesController = TextEditingController(
     text: widget.existing?.notes ?? '',
@@ -438,6 +438,7 @@ class _IncomeSourceFormScreenState
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  inputFormatters: moneyInputFormatters(),
                   decoration: InputDecoration(
                     labelText: l10n.incomeExpectedAmount,
                     suffixText: primary?.currencyCode,

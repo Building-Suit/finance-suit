@@ -2142,4 +2142,258 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get errAllocationInvalid => 'توزيع الدفعة لا يطابق الأقساط المفتوحة';
+
+  @override
+  String get facilityReminderDaysHelp =>
+      'قبل كم يوم من تاريخ الاستحقاق يذكّرك التطبيق.';
+
+  @override
+  String get facilityReminderOnDueDay => 'في يوم الاستحقاق';
+
+  @override
+  String facilityReminderDaysBefore(int days) {
+    return 'قبل $days أيام من الاستحقاق';
+  }
+
+  @override
+  String get facilityStatusLabel => 'حالة البطاقة';
+
+  @override
+  String get facilityStatusHelp =>
+      'البطاقات المجمّدة والمغلقة تحتفظ بسجلها وديونها لكنها لا تموّل مشتريات جديدة.';
+
+  @override
+  String get facilityStatusActive => 'نشطة';
+
+  @override
+  String get facilityStatusFrozen => 'مجمّدة';
+
+  @override
+  String get facilityStatusClosed => 'مغلقة';
+
+  @override
+  String get facilityLifecycleTitle => 'الأرشفة أو الحذف';
+
+  @override
+  String get facilityLifecycleBody =>
+      'الأرشفة تخفي البطاقة من القوائم بينما يبقى أي دين متبقٍ ظاهرًا وقابلًا للسداد. الحذف ممكن فقط لبطاقة بلا أي نشاط.';
+
+  @override
+  String get facilityArchiveAction => 'أرشفة البطاقة';
+
+  @override
+  String get facilityUnarchiveAction => 'إلغاء أرشفة البطاقة';
+
+  @override
+  String get facilityDeleteAction => 'حذف البطاقة';
+
+  @override
+  String get facilityDeleteConfirmTitle => 'حذف هذه البطاقة؟';
+
+  @override
+  String get facilityDeleteConfirmBody =>
+      'يمكن حذف البطاقة فقط إذا لم يكن عليها أي مشتريات أو مدفوعات أو كشوف أو خطط. غير ذلك يُفضَّل أرشفتها للحفاظ على السجل.';
+
+  @override
+  String get pricingMethodManualFees => 'أعرف الرسوم';
+
+  @override
+  String get pricingMethodMonthlyAmount => 'أعرف القسط الشهري';
+
+  @override
+  String get pricingMethodTotalPayable => 'أعرف الإجمالي المستحق';
+
+  @override
+  String get pricingMethodInterestRate => 'أعرف معدل الفائدة';
+
+  @override
+  String get purchaseEditTitle => 'تعديل خطة التقسيط';
+
+  @override
+  String get purchaseDownPaymentSection => 'المدفوع الآن';
+
+  @override
+  String get purchaseDownPaymentSectionHelp =>
+      'المقدّم وأي رسوم فورية تُخصم من حساب نقدي اليوم ولا تُموَّل أبدًا.';
+
+  @override
+  String get purchaseUpfrontFees => 'رسوم فورية';
+
+  @override
+  String get purchaseUpfrontFeesHelp =>
+      'رسوم إدارية أو رسوم إصدار تُدفع نقدًا اليوم من نفس حساب المقدّم.';
+
+  @override
+  String get purchaseFinancingSection => 'التمويل';
+
+  @override
+  String get purchaseFinancingSectionHelp =>
+      'أدخل الرقم الذي أعطاه لك المموّل وسيُحسب الباقي تلقائيًا.';
+
+  @override
+  String get purchaseFinancingFeesHelp =>
+      'إجمالي التكلفة الإضافية التي يفرضها الممول فوق المبلغ المموَّل.';
+
+  @override
+  String get purchaseTotalPayableHelp =>
+      'كل ما ستدفعه عبر جميع الأقساط كما حدده الممول.';
+
+  @override
+  String get purchaseMonthlyAmount => 'القسط الشهري';
+
+  @override
+  String get purchaseMonthlyAmountHelp =>
+      'المبلغ الذي يحصّله الممول كل شهر بالضبط.';
+
+  @override
+  String get purchaseMonthlyRate => 'معدل الفائدة الشهري';
+
+  @override
+  String get purchaseAnnualRate => 'معدل الفائدة السنوي';
+
+  @override
+  String get purchaseRateHelp => 'كما هو معلن من البنك، مثال: 2.5 تعني 2.5%.';
+
+  @override
+  String get purchaseRatePeriod => 'فترة المعدل';
+
+  @override
+  String get purchaseRatePerMonth => 'شهريًا';
+
+  @override
+  String get purchaseRatePerYear => 'سنويًا';
+
+  @override
+  String get purchaseInterestMethod => 'طريقة احتساب الفائدة';
+
+  @override
+  String get purchaseInterestMethodHelp =>
+      'الثابتة تُحسب على كامل المبلغ كل شهر؛ المتناقصة تُحسب على الرصيد المتبقي.';
+
+  @override
+  String get purchaseInterestFlat => 'ثابتة';
+
+  @override
+  String get purchaseInterestReducing => 'متناقصة';
+
+  @override
+  String get purchaseImportSection => 'خطة قائمة بالفعل';
+
+  @override
+  String get purchaseImportSectionHelp =>
+      'تابع خطة بدأتها قبل استخدام التطبيق: علّم الأقساط المدفوعة ولن يُحتسب كدين جديد إلا المتبقي.';
+
+  @override
+  String get purchaseImportToggle => 'دفعت بعض الأقساط بالفعل';
+
+  @override
+  String get purchasePaidCount => 'عدد الأقساط المدفوعة';
+
+  @override
+  String get purchasePaidCountHelp =>
+      'سيُعتبر هذا العدد من أول الجدول مسددًا خارج التطبيق.';
+
+  @override
+  String get purchaseInterest => 'الفائدة';
+
+  @override
+  String purchaseAlreadyPaidPortion(int count) {
+    return 'مدفوع بالفعل ($count قسطًا)';
+  }
+
+  @override
+  String get purchaseRemainingCharge => 'الدين المتبقي للمتابعة';
+
+  @override
+  String get valPaidInstallments =>
+      'عدد الأقساط المدفوعة يجب أن يظل أقل من الإجمالي';
+
+  @override
+  String get valInterestRate => 'أدخل معدلًا بين 0 و1,000%';
+
+  @override
+  String get facilityStatementsSection => 'كشوف البطاقة';
+
+  @override
+  String get facilityNoStatements =>
+      'ستظهر مشتريات هذه البطاقة هنا مجمّعة حسب الكشف.';
+
+  @override
+  String statementCycleTitle(String date) {
+    return 'كشف يُغلق في $date';
+  }
+
+  @override
+  String statementDueOn(String date) {
+    return 'يستحق في $date';
+  }
+
+  @override
+  String get statementMinimumDue => 'الحد الأدنى للسداد';
+
+  @override
+  String get statementStatusOpen => 'مفتوح';
+
+  @override
+  String get planActionsTooltip => 'إجراءات الخطة';
+
+  @override
+  String get planEditAction => 'تعديل الخطة';
+
+  @override
+  String get planRestructureAction => 'إعادة جدولة المتبقي';
+
+  @override
+  String get planRevisionsAction => 'سجل التغييرات';
+
+  @override
+  String get planRestructureTitle => 'إعادة جدولة الأقساط المتبقية';
+
+  @override
+  String get planRestructureBody =>
+      'الأقساط المدفوعة لا تتغير. وزّع المتبقي على جدول جديد، وأي تكلفة إضافية تُسجَّل كمصروف اليوم.';
+
+  @override
+  String get planRestructureRemainingTotal => 'الإجمالي المتبقي';
+
+  @override
+  String get planRestructureRemainingCount => 'عدد الأقساط المتبقية';
+
+  @override
+  String get planRestructureNextDue => 'تاريخ الاستحقاق التالي';
+
+  @override
+  String get planRestructureNote => 'السبب';
+
+  @override
+  String get planRevisionsTitle => 'سجل تغييرات الخطة';
+
+  @override
+  String get planRevisionsEmpty => 'لم تتم إعادة جدولة هذه الخطة.';
+
+  @override
+  String get errFacilityHasHistory =>
+      'هذه البطاقة عليها نشاط؛ قم بأرشفتها بدلًا من حذفها';
+
+  @override
+  String get errFacilityNotActive =>
+      'هذه البطاقة مجمّدة أو مغلقة ولا يمكنها تمويل مشتريات جديدة';
+
+  @override
+  String get errCardNotConfigured => 'حدّد يوم إغلاق كشف البطاقة أولًا';
+
+  @override
+  String get errInvalidPaidInstallments =>
+      'عدد الأقساط المدفوعة يجب أن يظل أقل من الإجمالي';
+
+  @override
+  String get errPlanPartiallyPaidDue =>
+      'سدّد القسط المدفوع جزئيًا قبل إعادة الجدولة';
+
+  @override
+  String get purchaseFinancedFees => 'رسوم مموَّلة';
+
+  @override
+  String get purchaseFinancedFeesHelp =>
+      'رسوم إضافية تُضاف إلى الجدول وتُدفع ضمن الأقساط.';
 }

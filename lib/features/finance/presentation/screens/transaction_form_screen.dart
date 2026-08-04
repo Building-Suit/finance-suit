@@ -8,6 +8,7 @@ import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
+import 'package:work_tracker/core/money/money_input.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
@@ -17,6 +18,7 @@ import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
+import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
@@ -80,8 +82,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     super.initState();
     final existing = widget.existing;
     if (existing != null) {
-      _amountController.text = (existing.amountMinor / Money.minorUnitsPerMajor)
-          .toStringAsFixed(2);
+      _amountController.text = formatMinorForInput(existing.amountMinor);
       _counterpartyController.text = existing.counterparty ?? '';
       _titleController.text = existing.title ?? '';
       _notesController.text = existing.notes ?? '';
@@ -116,6 +117,12 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     }
   }
 
+  /// The active credit card selected as the expense source, if any.
+  CreditFacilitySummary? get _selectedCard =>
+      (ref.read(creditFacilitiesProvider).value ?? const [])
+          .where((f) => f.accountId == _accountId)
+          .firstOrNull;
+
   Future<void> _save() async {
     setState(() => _failure = null);
     if (!_formKey.currentState!.validate()) return;
@@ -126,6 +133,45 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     final counterparty = _counterpartyController.text.trim();
     final title = _titleController.text.trim();
     final notes = _notesController.text.trim();
+
+    // Spending from a credit card books a statement charge, not a cash
+    // expense; everything else keeps the ordinary transaction path.
+    final card = !_isEdit && _kind == TransactionKind.expense
+        ? _selectedCard
+        : null;
+    if (card != null) {
+      if (_categoryId == null) {
+        setState(
+          () => _failure = const ValidationFailure(
+            'invalid_category: expense category required',
+          ),
+        );
+        return;
+      }
+      setState(() => _busy = true);
+      final chargeResult = await ref
+          .read(financeRepositoryProvider)
+          .chargeCreditCard(
+            accountId: card.accountId,
+            title: title.isEmpty ? card.name : title,
+            categoryId: _categoryId!,
+            occurredOn: _date,
+            amountMinor: amount.minor,
+            notes: notes.isEmpty ? null : notes,
+          );
+      if (!mounted) return;
+      setState(() => _busy = false);
+      chargeResult.when(
+        ok: (_) {
+          invalidateFinanceData(ref);
+          AppToast.success(context, AppLocalizations.of(context).setSaved);
+          context.pop();
+        },
+        err: (failure) => setState(() => _failure = failure),
+      );
+      return;
+    }
+
     final draft = TransactionDraft(
       kind: _kind,
       occurredOn: _date,
@@ -201,6 +247,18 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     // are charged only through the installment purchase flow.
     final categories = ref.watch(categoriesProvider(_categoryKind));
     final accountList = (accounts.value ?? <AccountBalance>[]).assetAccounts;
+    // New expenses can also be charged on an active credit card; the charge
+    // lands on the card's statement cycle instead of moving cash.
+    final cards = !_isEdit && _kind == TransactionKind.expense
+        ? (ref.watch(creditFacilitiesProvider).value ?? const [])
+              .where(
+                (f) =>
+                    f.accountType == AccountType.creditCard &&
+                    f.canFundPurchases &&
+                    f.statementDay != null,
+              )
+              .toList()
+        : const <CreditFacilitySummary>[];
     if (_accountId == null && accountList.isNotEmpty) {
       // Preselect the default account (or the first one) on new transactions.
       _accountId =
@@ -255,6 +313,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  inputFormatters: moneyInputFormatters(),
                   decoration: InputDecoration(
                     labelText: l10n.commonAmount,
                     suffixText: _currencyCode,
@@ -292,6 +351,11 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                       DropdownMenuItem(
                         value: account.accountId,
                         child: Text(account.name),
+                      ),
+                    for (final card in cards)
+                      DropdownMenuItem(
+                        value: card.accountId,
+                        child: Text('${card.name} · ${l10n.accTypeCreditCard}'),
                       ),
                   ],
                   onChanged: (v) => setState(() => _accountId = v),

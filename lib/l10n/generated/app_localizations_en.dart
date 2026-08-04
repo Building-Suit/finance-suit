@@ -2156,4 +2156,259 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errAllocationInvalid =>
       'The payment split does not match the open installments';
+
+  @override
+  String get facilityReminderDaysHelp =>
+      'How many days before each due date the app reminds you.';
+
+  @override
+  String get facilityReminderOnDueDay => 'On the due day';
+
+  @override
+  String facilityReminderDaysBefore(int days) {
+    return '$days days before the due date';
+  }
+
+  @override
+  String get facilityStatusLabel => 'Card status';
+
+  @override
+  String get facilityStatusHelp =>
+      'Frozen and closed cards keep their history and debt but cannot fund new purchases.';
+
+  @override
+  String get facilityStatusActive => 'Active';
+
+  @override
+  String get facilityStatusFrozen => 'Frozen';
+
+  @override
+  String get facilityStatusClosed => 'Closed';
+
+  @override
+  String get facilityLifecycleTitle => 'Archive or delete';
+
+  @override
+  String get facilityLifecycleBody =>
+      'Archiving hides the card from pickers while any remaining debt stays visible and payable. Deleting is only possible for a card that never had any activity.';
+
+  @override
+  String get facilityArchiveAction => 'Archive card';
+
+  @override
+  String get facilityUnarchiveAction => 'Unarchive card';
+
+  @override
+  String get facilityDeleteAction => 'Delete card';
+
+  @override
+  String get facilityDeleteConfirmTitle => 'Delete this card?';
+
+  @override
+  String get facilityDeleteConfirmBody =>
+      'Only a card with no purchases, payments, statements, or plans can be deleted. Anything else should be archived so history stays intact.';
+
+  @override
+  String get pricingMethodManualFees => 'I know the fees';
+
+  @override
+  String get pricingMethodMonthlyAmount => 'I know the monthly amount';
+
+  @override
+  String get pricingMethodTotalPayable => 'I know the total payable';
+
+  @override
+  String get pricingMethodInterestRate => 'I know the interest rate';
+
+  @override
+  String get purchaseEditTitle => 'Edit installment plan';
+
+  @override
+  String get purchaseDownPaymentSection => 'Paid now';
+
+  @override
+  String get purchaseDownPaymentSectionHelp =>
+      'The down payment and any upfront fees leave a cash account today; they are never financed.';
+
+  @override
+  String get purchaseUpfrontFees => 'Upfront fees';
+
+  @override
+  String get purchaseUpfrontFeesHelp =>
+      'Admin or processing fees paid in cash today from the same account as the down payment.';
+
+  @override
+  String get purchaseFinancingSection => 'Financing';
+
+  @override
+  String get purchaseFinancingSectionHelp =>
+      'Tell the app whichever number the lender quoted; everything else is derived.';
+
+  @override
+  String get purchaseFinancingFeesHelp =>
+      'The total extra cost the lender charges on top of the financed amount.';
+
+  @override
+  String get purchaseTotalPayableHelp =>
+      'Everything you will pay across all installments, as quoted by the lender.';
+
+  @override
+  String get purchaseMonthlyAmount => 'Monthly installment';
+
+  @override
+  String get purchaseMonthlyAmountHelp =>
+      'The exact amount the lender collects each month.';
+
+  @override
+  String get purchaseMonthlyRate => 'Monthly interest rate';
+
+  @override
+  String get purchaseAnnualRate => 'Annual interest rate';
+
+  @override
+  String get purchaseRateHelp => 'As quoted by the bank, e.g. 2.5 for 2.5%.';
+
+  @override
+  String get purchaseRatePeriod => 'Rate period';
+
+  @override
+  String get purchaseRatePerMonth => 'Per month';
+
+  @override
+  String get purchaseRatePerYear => 'Per year';
+
+  @override
+  String get purchaseInterestMethod => 'Interest method';
+
+  @override
+  String get purchaseInterestMethodHelp =>
+      'Flat charges the rate on the full amount every month; reducing charges it on the remaining balance.';
+
+  @override
+  String get purchaseInterestFlat => 'Flat';
+
+  @override
+  String get purchaseInterestReducing => 'Reducing balance';
+
+  @override
+  String get purchaseImportSection => 'Already running plan';
+
+  @override
+  String get purchaseImportSectionHelp =>
+      'Track a plan you started before using the app: mark the installments you already paid and only the remainder counts as new debt.';
+
+  @override
+  String get purchaseImportToggle => 'I already paid some installments';
+
+  @override
+  String get purchasePaidCount => 'Installments already paid';
+
+  @override
+  String get purchasePaidCountHelp =>
+      'That many dues from the start of the schedule are marked as settled outside the app.';
+
+  @override
+  String get purchaseInterest => 'Interest';
+
+  @override
+  String purchaseAlreadyPaidPortion(int count) {
+    return 'Already paid ($count installments)';
+  }
+
+  @override
+  String get purchaseRemainingCharge => 'Remaining debt to track';
+
+  @override
+  String get valPaidInstallments =>
+      'Paid installments must stay below the total count';
+
+  @override
+  String get valInterestRate => 'Enter a rate between 0 and 1,000%';
+
+  @override
+  String get facilityStatementsSection => 'Card statements';
+
+  @override
+  String get facilityNoStatements =>
+      'Charges on this card will appear here grouped by statement.';
+
+  @override
+  String statementCycleTitle(String date) {
+    return 'Statement closing $date';
+  }
+
+  @override
+  String statementDueOn(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String get statementMinimumDue => 'Minimum due';
+
+  @override
+  String get statementStatusOpen => 'Open';
+
+  @override
+  String get planActionsTooltip => 'Plan actions';
+
+  @override
+  String get planEditAction => 'Edit plan';
+
+  @override
+  String get planRestructureAction => 'Restructure remaining';
+
+  @override
+  String get planRevisionsAction => 'Change history';
+
+  @override
+  String get planRestructureTitle => 'Restructure remaining installments';
+
+  @override
+  String get planRestructureBody =>
+      'Paid installments stay untouched. Spread what is still owed over a new schedule; any extra cost is booked as an expense today.';
+
+  @override
+  String get planRestructureRemainingTotal => 'Remaining total';
+
+  @override
+  String get planRestructureRemainingCount => 'Remaining installments';
+
+  @override
+  String get planRestructureNextDue => 'Next due date';
+
+  @override
+  String get planRestructureNote => 'Reason';
+
+  @override
+  String get planRevisionsTitle => 'Plan change history';
+
+  @override
+  String get planRevisionsEmpty => 'This plan has not been restructured.';
+
+  @override
+  String get errFacilityHasHistory =>
+      'This card has activity; archive it instead of deleting';
+
+  @override
+  String get errFacilityNotActive =>
+      'This card is frozen or closed and cannot fund new purchases';
+
+  @override
+  String get errCardNotConfigured =>
+      'Set the card\'s statement closing day first';
+
+  @override
+  String get errInvalidPaidInstallments =>
+      'Paid installments must stay below the total count';
+
+  @override
+  String get errPlanPartiallyPaidDue =>
+      'Settle the partially paid installment before restructuring';
+
+  @override
+  String get purchaseFinancedFees => 'Financed fees';
+
+  @override
+  String get purchaseFinancedFeesHelp =>
+      'Extra fees rolled into the schedule and paid across the installments.';
 }

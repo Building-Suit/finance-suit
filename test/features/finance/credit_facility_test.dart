@@ -185,19 +185,20 @@ void main() {
       name: 'Visa',
       accountType: AccountType.creditCard,
       currencyCode: 'EGP',
-      openingOwedMinor: 1000,
       creditLimitMinor: 500000,
       defaultDueDay: 10,
       statementDay: 5,
       lastFourDigits: '1234',
       notes: 'main card',
       accountId: 'acc-1',
+      facilityStatus: FacilityStatus.frozen,
+      minPaymentMethod: MinPaymentMethod.percent,
+      minPaymentBasisPoints: 500,
     );
     expect(facilityDraft.toJson(), {
       'p_name': 'Visa',
       'p_account_type': 'credit_card',
       'p_currency_code': 'EGP',
-      'p_opening_owed_minor': 1000,
       'p_credit_limit_minor': 500000,
       'p_default_due_day': 10,
       'p_statement_day': 5,
@@ -205,6 +206,10 @@ void main() {
       'p_reminder_lead_days': 3,
       'p_notes': 'main card',
       'p_account_id': 'acc-1',
+      'p_facility_status': 'frozen',
+      'p_min_payment_method': 'percent',
+      'p_min_payment_fixed_minor': null,
+      'p_min_payment_basis_points': 500,
     });
 
     const planDraft = InstallmentPlanDraft(

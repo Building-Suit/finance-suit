@@ -638,6 +638,22 @@ class FinanceRepository {
     });
   }
 
+  /// One plan by id, for the edit form.
+  Future<Result<InstallmentPlan>> fetchInstallmentPlan(String planId) {
+    return guard(() async {
+      final row = await _db
+          .from('installment_plan_summaries')
+          .select()
+          .eq('user_id', _userId)
+          .eq('id', planId)
+          .maybeSingle();
+      if (row == null) {
+        throw const NotFoundFailure(debugDetails: 'installment plan');
+      }
+      return InstallmentPlan.fromJson(row);
+    });
+  }
+
   Future<Result<List<InstallmentPlan>>> fetchInstallmentPlans({
     String? accountId,
   }) {
@@ -715,6 +731,126 @@ class FinanceRepository {
         'cancel_installment_plan',
         params: {'p_plan_id': planId},
       );
+    });
+  }
+
+  /// Hard-deletes a facility that never carried any history; the server
+  /// rejects everything else with `facility_has_history`.
+  Future<Result<void>> deleteCreditFacility(String accountId) {
+    return guard(() async {
+      await _db.rpc<void>(
+        'delete_credit_facility',
+        params: {'p_account_id': accountId},
+      );
+    });
+  }
+
+  /// Freezes, closes, or re-activates a facility without touching history.
+  Future<Result<void>> setCreditFacilityStatus(
+    String accountId,
+    FacilityStatus status,
+  ) {
+    return guard(() async {
+      await _db.rpc<void>(
+        'set_credit_facility_status',
+        params: {'p_account_id': accountId, 'p_status': status.dbValue},
+      );
+    });
+  }
+
+  /// One ordinary credit-card purchase: a single expense assigned to the
+  /// statement cycle of its business date. Never touches cash accounts.
+  Future<Result<String>> chargeCreditCard({
+    required String accountId,
+    required String title,
+    required String categoryId,
+    required PlainDate occurredOn,
+    required int amountMinor,
+    String? notes,
+    String? chargeId,
+  }) {
+    return guard(() async {
+      final id = await _db.rpc<String>(
+        'charge_credit_card',
+        params: {
+          'p_account_id': accountId,
+          'p_title': title,
+          'p_category_id': categoryId,
+          'p_occurred_on': occurredOn.toIso(),
+          'p_amount_minor': amountMinor,
+          'p_notes': notes,
+          'p_charge_id': chargeId,
+        },
+      );
+      return id;
+    });
+  }
+
+  /// Statement cycles of one card, newest first.
+  Future<Result<List<CardStatementSummary>>> fetchStatementSummaries(
+    String accountId,
+  ) {
+    return guard(() async {
+      final rows = await _db
+          .from('credit_card_statement_summaries')
+          .select()
+          .eq('user_id', _userId)
+          .eq('account_id', accountId)
+          .order('cycle_close', ascending: false);
+      return rows.map(CardStatementSummary.fromJson).toList();
+    });
+  }
+
+  /// Rebuilds an unpaid plan in place from the edited draft.
+  Future<Result<String>> updateInstallmentPlan(
+    String planId,
+    InstallmentPlanDraft draft,
+  ) {
+    return guard(() async {
+      final id = await _db.rpc<String>(
+        'update_installment_plan',
+        params: draft.toUpdateJson(planId),
+      );
+      return id;
+    });
+  }
+
+  /// Re-spreads the unpaid remainder of a partially paid plan.
+  Future<Result<String>> restructureInstallmentPlan({
+    required String planId,
+    required int remainingTotalMinor,
+    required int remainingCount,
+    required PlainDate nextDueOn,
+    String? changeNote,
+  }) {
+    return guard(() async {
+      final id = await _db.rpc<String>(
+        'restructure_installment_plan',
+        params: {
+          'p_plan_id': planId,
+          'p_remaining_total_minor': remainingTotalMinor,
+          'p_remaining_count': remainingCount,
+          'p_next_due_on': nextDueOn.toIso(),
+          'p_change_note': changeNote,
+          'p_adjusted_on': PlainDate.today().toIso(),
+        },
+      );
+      return id;
+    });
+  }
+
+  /// Restructure history of one plan, oldest first.
+  Future<Result<List<InstallmentPlanRevision>>> fetchPlanRevisions(
+    String planId,
+  ) {
+    return guard(() async {
+      final rows = await _db
+          .from('installment_plan_revisions')
+          .select()
+          .eq('user_id', _userId)
+          .eq('plan_id', planId)
+          .order('revision', ascending: true);
+      return rows.map(InstallmentPlanRevision.fromJson).toList();
     });
   }
 }
