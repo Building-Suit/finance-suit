@@ -6,12 +6,18 @@ The app does not create product tables, views, or RPCs in the default Supabase
 schema. Module schemas are:
 
 - `app_core`: `profiles`, `user_preferences`, backward-compatible onboarding
-  RPCs
+  RPCs, plus push infrastructure: `push_devices`,
+  `notification_preferences`, and the service-role-only
+  `notification_outbox` delivery log
 - `app_finance`: `accounts`, `transaction_categories`,
   `financial_transactions`, recurring `income_sources`, percentage
   `income_source_allocations`, approval-based `income_occurrences`,
   liability `credit_facility_settings`, `installment_plans`,
-  `installment_dues`, `installment_payment_allocations`, account
+  `installment_dues`, `installment_payment_allocations`,
+  `installment_plan_revisions`, credit-card statement tables
+  (`credit_card_statement_cycles`, `credit_card_statement_items`,
+  `credit_card_statement_allocations`), fee rules
+  (`credit_card_fee_rules`, `credit_card_fee_charges`), account
   balance views, and atomic transfer/income/facility RPCs
 - `app_work`: `official_holidays`, `work_entries`
 - `app_salary`: `salary_settings`, `salary_adjustments`, `salary_periods`,
@@ -26,6 +32,7 @@ Important derived objects:
 - `app_finance.credit_facility_summaries`
 - `app_finance.installment_plan_summaries`
 - `app_finance.installment_due_statuses`
+- `app_finance.credit_card_statement_summaries`
 - `app_reports.history_items`
 - `app_reports.debt_summary`
 - `app_reports.cash_flow_summary`
@@ -46,17 +53,47 @@ top-level categories and transactions continue to reference the same
 the same category kind.
 
 Credit cards and BNPL providers are liability accounts
-(`app_finance.account_role`). Outstanding debt is positive:
-`opening_balance_minor` (opening amount owed) plus charges minus
-repayments. A financed purchase books one expense transaction from the
+(`app_finance.account_role`). Outstanding debt is positive: legacy
+`opening_balance_minor` plus charges minus repayments — the create/edit
+flows no longer take an opening amount owed, but previously stored values
+keep counting. A financed purchase books one expense transaction from the
 facility on the purchase date (plus an optional asset-account down
-payment); the monthly `installment_dues` rows are schedule entries, never
-transactions, so expenses are counted exactly once. Repayments are
-transfers created by `pay_credit_facility`, which also allocates them to
-the oldest unpaid dues; direct client writes on facility-linked ledger
-rows are blocked by triggers and only the facility RPCs
-(`save_credit_facility`, `create_installment_plan`, `pay_credit_facility`,
-`reverse_facility_payment`, `cancel_installment_plan`) mutate them.
+payment and optional cash upfront fees); the monthly `installment_dues`
+rows are schedule entries, never transactions, so expenses are counted
+exactly once. Imported running plans mark their pre-tracking dues
+`is_presettled` and only book the remaining amount. Ordinary card
+spending goes through `charge_credit_card`: one expense assigned to the
+statement cycle of its business date (`statement_day` is the cycle
+CLOSING day; the cycle's payment falls due on the next
+`default_due_day`). Recurring card fees are `credit_card_fee_rules`
+materialized idempotently by `apply_credit_card_fees`. Repayments are
+transfers created by `pay_credit_facility`, which settles statement dues
+and installment dues together (oldest first, statements before
+installments on the same day); direct client writes on facility-linked
+ledger rows are blocked by triggers and only the facility RPCs
+(`save_credit_facility`, `delete_credit_facility`,
+`set_credit_facility_status`, `charge_credit_card`,
+`apply_credit_card_fees`, `create_installment_plan`,
+`update_installment_plan`, `restructure_installment_plan`,
+`pay_credit_facility`, `reverse_facility_payment`,
+`cancel_installment_plan`) mutate them.
+
+Facility lifecycle: `facility_status` (`active`/`frozen`/`closed`) gates
+new purchases only; archiving the account hides it from pickers while any
+remaining debt stays visible and payable, and `delete_credit_facility`
+hard-deletes only a facility with zero history. Plans with no recorded
+payments can be fully edited in place (`update_installment_plan`); once
+money moved, `restructure_installment_plan` re-spreads only the unpaid
+remainder, bumps `revision`, and records an `installment_plan_revisions`
+audit row (extra recognized cost books an explicit adjustment expense).
+
+Push notifications: devices register their FCM token in
+`app_core.push_devices` (owner RLS); `app_core.notification_preferences`
+holds per-user switches with amounts hidden by default; the
+`send-due-reminders` Edge Function writes `app_core.notification_outbox`
+(select-only for clients) whose unique key makes each reminder
+exactly-once per device, obligation, kind, and local date. See
+`docs/NOTIFICATIONS_FCM.md` for the activation guide.
 
 Recurring income is materialized as pending occurrences. Materialization alone
 never creates a financial transaction. `accept_income_occurrence` atomically

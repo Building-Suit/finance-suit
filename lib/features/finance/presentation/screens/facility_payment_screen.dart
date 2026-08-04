@@ -7,6 +7,7 @@ import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
+import 'package:work_tracker/core/money/money_input.dart';
 import 'package:work_tracker/core/utils/client_uuid.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
@@ -74,9 +75,7 @@ class _FacilityPaymentScreenState extends ConsumerState<FacilityPaymentScreen> {
   }
 
   void _setAmount(int minor) {
-    _amountController.text = (minor / Money.minorUnitsPerMajor).toStringAsFixed(
-      2,
-    );
+    _amountController.text = formatMinorForInput(minor);
     setState(() {});
   }
 
@@ -278,6 +277,7 @@ class _FacilityPaymentScreenState extends ConsumerState<FacilityPaymentScreen> {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
+              inputFormatters: moneyInputFormatters(),
               decoration: InputDecoration(
                 labelText: l10n.commonAmount,
                 suffixText: currency,

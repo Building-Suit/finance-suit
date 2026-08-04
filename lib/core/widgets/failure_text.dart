@@ -65,6 +65,12 @@ String _dbValidationMessage(AppLocalizations l10n, String raw) {
     'invalid_category' => l10n.valCategoryRequired,
     'allocation_exceeds_due' => l10n.errAllocationInvalid,
     'allocation_exceeds_payment' => l10n.errAllocationInvalid,
+    'invalid_allocations' => l10n.errAllocationInvalid,
+    'facility_has_history' => l10n.errFacilityHasHistory,
+    'facility_not_active' => l10n.errFacilityNotActive,
+    'card_not_configured' => l10n.errCardNotConfigured,
+    'invalid_paid_installments' => l10n.errInvalidPaidInstallments,
+    'plan_partially_paid_due' => l10n.errPlanPartiallyPaidDue,
     _ => l10n.commonError,
   };
 }

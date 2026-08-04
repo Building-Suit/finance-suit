@@ -4006,6 +4006,510 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The payment split does not match the open installments'**
   String get errAllocationInvalid;
+
+  /// No description provided for @facilityReminderDaysHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'How many days before each due date the app reminds you.'**
+  String get facilityReminderDaysHelp;
+
+  /// No description provided for @facilityReminderOnDueDay.
+  ///
+  /// In en, this message translates to:
+  /// **'On the due day'**
+  String get facilityReminderOnDueDay;
+
+  /// No description provided for @facilityReminderDaysBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days before the due date'**
+  String facilityReminderDaysBefore(int days);
+
+  /// No description provided for @facilityStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Card status'**
+  String get facilityStatusLabel;
+
+  /// No description provided for @facilityStatusHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Frozen and closed cards keep their history and debt but cannot fund new purchases.'**
+  String get facilityStatusHelp;
+
+  /// No description provided for @facilityStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get facilityStatusActive;
+
+  /// No description provided for @facilityStatusFrozen.
+  ///
+  /// In en, this message translates to:
+  /// **'Frozen'**
+  String get facilityStatusFrozen;
+
+  /// No description provided for @facilityStatusClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get facilityStatusClosed;
+
+  /// No description provided for @facilityLifecycleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive or delete'**
+  String get facilityLifecycleTitle;
+
+  /// No description provided for @facilityLifecycleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Archiving hides the card from pickers while any remaining debt stays visible and payable. Deleting is only possible for a card that never had any activity.'**
+  String get facilityLifecycleBody;
+
+  /// No description provided for @facilityArchiveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive card'**
+  String get facilityArchiveAction;
+
+  /// No description provided for @facilityUnarchiveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Unarchive card'**
+  String get facilityUnarchiveAction;
+
+  /// No description provided for @facilityDeleteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete card'**
+  String get facilityDeleteAction;
+
+  /// No description provided for @facilityDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this card?'**
+  String get facilityDeleteConfirmTitle;
+
+  /// No description provided for @facilityDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Only a card with no purchases, payments, statements, or plans can be deleted. Anything else should be archived so history stays intact.'**
+  String get facilityDeleteConfirmBody;
+
+  /// No description provided for @pricingMethodManualFees.
+  ///
+  /// In en, this message translates to:
+  /// **'I know the fees'**
+  String get pricingMethodManualFees;
+
+  /// No description provided for @pricingMethodMonthlyAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'I know the monthly amount'**
+  String get pricingMethodMonthlyAmount;
+
+  /// No description provided for @pricingMethodTotalPayable.
+  ///
+  /// In en, this message translates to:
+  /// **'I know the total payable'**
+  String get pricingMethodTotalPayable;
+
+  /// No description provided for @pricingMethodInterestRate.
+  ///
+  /// In en, this message translates to:
+  /// **'I know the interest rate'**
+  String get pricingMethodInterestRate;
+
+  /// No description provided for @purchaseEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit installment plan'**
+  String get purchaseEditTitle;
+
+  /// No description provided for @purchaseDownPaymentSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid now'**
+  String get purchaseDownPaymentSection;
+
+  /// No description provided for @purchaseDownPaymentSectionHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The down payment and any upfront fees leave a cash account today; they are never financed.'**
+  String get purchaseDownPaymentSectionHelp;
+
+  /// No description provided for @purchaseUpfrontFees.
+  ///
+  /// In en, this message translates to:
+  /// **'Upfront fees'**
+  String get purchaseUpfrontFees;
+
+  /// No description provided for @purchaseUpfrontFeesHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin or processing fees paid in cash today from the same account as the down payment.'**
+  String get purchaseUpfrontFeesHelp;
+
+  /// No description provided for @purchaseFinancingSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Financing'**
+  String get purchaseFinancingSection;
+
+  /// No description provided for @purchaseFinancingSectionHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell the app whichever number the lender quoted; everything else is derived.'**
+  String get purchaseFinancingSectionHelp;
+
+  /// No description provided for @purchaseFinancingFeesHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The total extra cost the lender charges on top of the financed amount.'**
+  String get purchaseFinancingFeesHelp;
+
+  /// No description provided for @purchaseTotalPayableHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything you will pay across all installments, as quoted by the lender.'**
+  String get purchaseTotalPayableHelp;
+
+  /// No description provided for @purchaseMonthlyAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly installment'**
+  String get purchaseMonthlyAmount;
+
+  /// No description provided for @purchaseMonthlyAmountHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The exact amount the lender collects each month.'**
+  String get purchaseMonthlyAmountHelp;
+
+  /// No description provided for @purchaseMonthlyRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly interest rate'**
+  String get purchaseMonthlyRate;
+
+  /// No description provided for @purchaseAnnualRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Annual interest rate'**
+  String get purchaseAnnualRate;
+
+  /// No description provided for @purchaseRateHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'As quoted by the bank, e.g. 2.5 for 2.5%.'**
+  String get purchaseRateHelp;
+
+  /// No description provided for @purchaseRatePeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate period'**
+  String get purchaseRatePeriod;
+
+  /// No description provided for @purchaseRatePerMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Per month'**
+  String get purchaseRatePerMonth;
+
+  /// No description provided for @purchaseRatePerYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Per year'**
+  String get purchaseRatePerYear;
+
+  /// No description provided for @purchaseInterestMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest method'**
+  String get purchaseInterestMethod;
+
+  /// No description provided for @purchaseInterestMethodHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Flat charges the rate on the full amount every month; reducing charges it on the remaining balance.'**
+  String get purchaseInterestMethodHelp;
+
+  /// No description provided for @purchaseInterestFlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Flat'**
+  String get purchaseInterestFlat;
+
+  /// No description provided for @purchaseInterestReducing.
+  ///
+  /// In en, this message translates to:
+  /// **'Reducing balance'**
+  String get purchaseInterestReducing;
+
+  /// No description provided for @purchaseImportSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Already running plan'**
+  String get purchaseImportSection;
+
+  /// No description provided for @purchaseImportSectionHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Track a plan you started before using the app: mark the installments you already paid and only the remainder counts as new debt.'**
+  String get purchaseImportSectionHelp;
+
+  /// No description provided for @purchaseImportToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'I already paid some installments'**
+  String get purchaseImportToggle;
+
+  /// No description provided for @purchasePaidCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Installments already paid'**
+  String get purchasePaidCount;
+
+  /// No description provided for @purchasePaidCountHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'That many dues from the start of the schedule are marked as settled outside the app.'**
+  String get purchasePaidCountHelp;
+
+  /// No description provided for @purchaseInterest.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest'**
+  String get purchaseInterest;
+
+  /// No description provided for @purchaseAlreadyPaidPortion.
+  ///
+  /// In en, this message translates to:
+  /// **'Already paid ({count} installments)'**
+  String purchaseAlreadyPaidPortion(int count);
+
+  /// No description provided for @purchaseRemainingCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining debt to track'**
+  String get purchaseRemainingCharge;
+
+  /// No description provided for @valPaidInstallments.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid installments must stay below the total count'**
+  String get valPaidInstallments;
+
+  /// No description provided for @valInterestRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a rate between 0 and 1,000%'**
+  String get valInterestRate;
+
+  /// No description provided for @facilityStatementsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Card statements'**
+  String get facilityStatementsSection;
+
+  /// No description provided for @facilityNoStatements.
+  ///
+  /// In en, this message translates to:
+  /// **'Charges on this card will appear here grouped by statement.'**
+  String get facilityNoStatements;
+
+  /// No description provided for @statementCycleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Statement closing {date}'**
+  String statementCycleTitle(String date);
+
+  /// No description provided for @statementDueOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date}'**
+  String statementDueOn(String date);
+
+  /// No description provided for @statementMinimumDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum due'**
+  String get statementMinimumDue;
+
+  /// No description provided for @statementStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get statementStatusOpen;
+
+  /// No description provided for @planActionsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan actions'**
+  String get planActionsTooltip;
+
+  /// No description provided for @planEditAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit plan'**
+  String get planEditAction;
+
+  /// No description provided for @planRestructureAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Restructure remaining'**
+  String get planRestructureAction;
+
+  /// No description provided for @planRevisionsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Change history'**
+  String get planRevisionsAction;
+
+  /// No description provided for @planRestructureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restructure remaining installments'**
+  String get planRestructureTitle;
+
+  /// No description provided for @planRestructureBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid installments stay untouched. Spread what is still owed over a new schedule; any extra cost is booked as an expense today.'**
+  String get planRestructureBody;
+
+  /// No description provided for @planRestructureRemainingTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining total'**
+  String get planRestructureRemainingTotal;
+
+  /// No description provided for @planRestructureRemainingCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining installments'**
+  String get planRestructureRemainingCount;
+
+  /// No description provided for @planRestructureNextDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Next due date'**
+  String get planRestructureNextDue;
+
+  /// No description provided for @planRestructureNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get planRestructureNote;
+
+  /// No description provided for @planRevisionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan change history'**
+  String get planRevisionsTitle;
+
+  /// No description provided for @planRevisionsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'This plan has not been restructured.'**
+  String get planRevisionsEmpty;
+
+  /// No description provided for @errFacilityHasHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'This card has activity; archive it instead of deleting'**
+  String get errFacilityHasHistory;
+
+  /// No description provided for @errFacilityNotActive.
+  ///
+  /// In en, this message translates to:
+  /// **'This card is frozen or closed and cannot fund new purchases'**
+  String get errFacilityNotActive;
+
+  /// No description provided for @errCardNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the card\'s statement closing day first'**
+  String get errCardNotConfigured;
+
+  /// No description provided for @errInvalidPaidInstallments.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid installments must stay below the total count'**
+  String get errInvalidPaidInstallments;
+
+  /// No description provided for @errPlanPartiallyPaidDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle the partially paid installment before restructuring'**
+  String get errPlanPartiallyPaidDue;
+
+  /// No description provided for @purchaseFinancedFees.
+  ///
+  /// In en, this message translates to:
+  /// **'Financed fees'**
+  String get purchaseFinancedFees;
+
+  /// No description provided for @purchaseFinancedFeesHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra fees rolled into the schedule and paid across the installments.'**
+  String get purchaseFinancedFeesHelp;
+
+  /// No description provided for @setNotificationsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get setNotificationsSection;
+
+  /// No description provided for @notifDueRemindersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date reminders'**
+  String get notifDueRemindersTitle;
+
+  /// No description provided for @notifDueRemindersHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me before installments and card statements fall due.'**
+  String get notifDueRemindersHelp;
+
+  /// No description provided for @notifOverdueRemindersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue alerts'**
+  String get notifOverdueRemindersTitle;
+
+  /// No description provided for @notifOverdueRemindersHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep alerting me while a payment stays overdue.'**
+  String get notifOverdueRemindersHelp;
+
+  /// No description provided for @notifPaymentConfirmationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment confirmations'**
+  String get notifPaymentConfirmationsTitle;
+
+  /// No description provided for @notifPaymentConfirmationsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify me when a facility payment is recorded.'**
+  String get notifPaymentConfirmationsHelp;
+
+  /// No description provided for @notifShowAmountsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show amounts in notifications'**
+  String get notifShowAmountsTitle;
+
+  /// No description provided for @notifShowAmountsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Off by default so balances never appear on the lock screen.'**
+  String get notifShowAmountsHelp;
 }
 
 class _AppLocalizationsDelegate

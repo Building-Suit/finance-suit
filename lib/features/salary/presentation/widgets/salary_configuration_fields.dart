@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
+import 'package:work_tracker/core/money/money_input.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
@@ -37,6 +38,7 @@ class SalaryConfigurationFields extends StatelessWidget {
         AppTextFormField(
           controller: draft.baseSalaryController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: moneyInputFormatters(),
           decoration: InputDecoration(
             labelText: l10n.salBaseSalary,
             suffixText: currencyCode,
@@ -282,6 +284,7 @@ class SalaryConfigurationFields extends StatelessWidget {
         AppTextFormField(
           controller: controller,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: moneyInputFormatters(),
           decoration: InputDecoration(
             labelText: manualLabel,
             suffixText: currencyCode,

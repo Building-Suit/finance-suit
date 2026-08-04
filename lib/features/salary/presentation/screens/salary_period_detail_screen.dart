@@ -6,6 +6,7 @@ import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
+import 'package:work_tracker/core/money/money_input.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
@@ -115,7 +116,7 @@ class SalaryPeriodDetailScreen extends ConsumerWidget {
         (ref.read(accountBalancesProvider).value ?? <AccountBalance>[])
             .assetAccounts;
     final amountController = TextEditingController(
-      text: (estimate.totalMinor / Money.minorUnitsPerMajor).toStringAsFixed(2),
+      text: formatMinorForInput(estimate.totalMinor),
     );
     final notesController = TextEditingController();
     var receivedDate = PlainDate.today();
@@ -141,6 +142,7 @@ class SalaryPeriodDetailScreen extends ConsumerWidget {
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
+                    inputFormatters: moneyInputFormatters(),
                     decoration: InputDecoration(
                       labelText: l10n.salActualAmount,
                       suffixText: estimate.currencyCode,
@@ -258,9 +260,7 @@ class SalaryPeriodDetailScreen extends ConsumerWidget {
   ) async {
     final l10n = AppLocalizations.of(context);
     final amountController = TextEditingController(
-      text: (existing.amountMinor / Money.minorUnitsPerMajor).toStringAsFixed(
-        2,
-      ),
+      text: formatMinorForInput(existing.amountMinor),
     );
     final titleController = TextEditingController(text: existing.title ?? '');
     final notesController = TextEditingController(text: existing.notes ?? '');
@@ -300,6 +300,7 @@ class SalaryPeriodDetailScreen extends ConsumerWidget {
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
+                    inputFormatters: moneyInputFormatters(),
                     decoration: InputDecoration(
                       labelText: l10n.commonAmount,
                       suffixText: currencyCode,

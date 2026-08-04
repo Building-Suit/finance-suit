@@ -273,6 +273,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => InstallmentPurchaseScreen(
                       accountId: state.uri.queryParameters['accountId'],
+                      planId: state.uri.queryParameters['planId'],
                     ),
                   ),
                   GoRoute(
