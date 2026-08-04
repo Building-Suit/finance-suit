@@ -95,8 +95,11 @@ class _TransferFormScreenState extends ConsumerState<TransferFormScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final accounts = ref.watch(accountBalancesProvider);
+    // Transfers move cash between the user's own asset accounts; paying a
+    // credit facility goes through the dedicated facility payment flow.
     final items = [
-      for (final account in accounts.value ?? <AccountBalance>[])
+      for (final account
+          in (accounts.value ?? <AccountBalance>[]).assetAccounts)
         DropdownMenuItem(
           value: account.accountId,
           child: ProtectedMoney(

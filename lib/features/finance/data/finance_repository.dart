@@ -6,6 +6,7 @@ import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/result/result.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
+import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
@@ -601,6 +602,118 @@ class FinanceRepository {
           'p_occurred_on': occurredOn.toIso(),
           'p_notes': notes,
         },
+      );
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // Credit facilities and installments
+  // ---------------------------------------------------------------------
+
+  Future<Result<List<CreditFacilitySummary>>> fetchCreditFacilities({
+    bool includeArchived = false,
+  }) {
+    return guard(() async {
+      var query = _db
+          .from('credit_facility_summaries')
+          .select()
+          .eq('user_id', _userId);
+      if (!includeArchived) {
+        query = query.eq('is_archived', false);
+      }
+      final rows = await query.order('name', ascending: true);
+      return rows.map(CreditFacilitySummary.fromJson).toList();
+    });
+  }
+
+  /// Atomically creates or updates the liability account together with its
+  /// facility settings through `save_credit_facility`.
+  Future<Result<String>> saveCreditFacility(CreditFacilityDraft draft) {
+    return guard(() async {
+      final id = await _db.rpc<String>(
+        'save_credit_facility',
+        params: draft.toJson(),
+      );
+      return id;
+    });
+  }
+
+  Future<Result<List<InstallmentPlan>>> fetchInstallmentPlans({
+    String? accountId,
+  }) {
+    return guard(() async {
+      var query = _db
+          .from('installment_plan_summaries')
+          .select()
+          .eq('user_id', _userId);
+      if (accountId != null) {
+        query = query.eq('account_id', accountId);
+      }
+      final rows = await query.order('created_at', ascending: false);
+      return rows.map(InstallmentPlan.fromJson).toList();
+    });
+  }
+
+  Future<Result<List<InstallmentDue>>> fetchInstallmentDues({
+    String? accountId,
+    String? planId,
+  }) {
+    return guard(() async {
+      var query = _db
+          .from('installment_due_statuses')
+          .select()
+          .eq('user_id', _userId);
+      if (accountId != null) {
+        query = query.eq('account_id', accountId);
+      }
+      if (planId != null) {
+        query = query.eq('plan_id', planId);
+      }
+      final rows = await query
+          .order('due_on', ascending: true)
+          .order('sequence_number', ascending: true);
+      return rows.map(InstallmentDue.fromJson).toList();
+    });
+  }
+
+  /// Atomic installment purchase: books the financed expense (and optional
+  /// down payment) once and generates the complete due schedule.
+  Future<Result<String>> createInstallmentPlan(InstallmentPlanDraft draft) {
+    return guard(() async {
+      final id = await _db.rpc<String>(
+        'create_installment_plan',
+        params: draft.toJson(),
+      );
+      return id;
+    });
+  }
+
+  /// Atomic facility repayment: one transfer from the asset account plus
+  /// due allocations, oldest due first unless explicit allocations are sent.
+  Future<Result<String>> payCreditFacility(FacilityPaymentDraft draft) {
+    return guard(() async {
+      final id = await _db.rpc<String>(
+        'pay_credit_facility',
+        params: draft.toJson(),
+      );
+      return id;
+    });
+  }
+
+  Future<Result<void>> reverseFacilityPayment(String transactionId) {
+    return guard(() async {
+      await _db.rpc<String>(
+        'reverse_facility_payment',
+        params: {'p_transaction_id': transactionId},
+      );
+    });
+  }
+
+  Future<Result<void>> cancelInstallmentPlan(String planId) {
+    return guard(() async {
+      await _db.rpc<void>(
+        'cancel_installment_plan',
+        params: {'p_plan_id': planId},
       );
     });
   }

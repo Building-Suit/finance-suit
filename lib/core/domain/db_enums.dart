@@ -79,12 +79,54 @@ enum AccountType {
   wallet('wallet'),
   emergency('emergency'),
   vacation('vacation'),
-  custom('custom');
+  custom('custom'),
+  creditCard('credit_card'),
+  bnpl('bnpl');
 
   const AccountType(this.dbValue);
   final String dbValue;
 
   static AccountType fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+
+  /// Dart mirror of `app_finance.account_role`: credit cards and BNPL
+  /// facilities are liabilities, everything else is an asset.
+  AccountRole get role => switch (this) {
+    AccountType.creditCard || AccountType.bnpl => AccountRole.liability,
+    _ => AccountRole.asset,
+  };
+
+  bool get isLiability => role == AccountRole.liability;
+}
+
+/// Whether an account holds the user's money (asset) or money the user
+/// owes (liability). Mirrors `app_finance.account_role` in SQL.
+enum AccountRole { asset, liability }
+
+enum InstallmentPlanStatus {
+  active('active'),
+  completed('completed'),
+  cancelled('cancelled');
+
+  const InstallmentPlanStatus(this.dbValue);
+  final String dbValue;
+
+  static InstallmentPlanStatus fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+enum InstallmentDueStatus {
+  upcoming('upcoming'),
+  dueToday('due_today'),
+  overdue('overdue'),
+  partiallyPaid('partially_paid'),
+  paid('paid'),
+  cancelled('cancelled');
+
+  const InstallmentDueStatus(this.dbValue);
+  final String dbValue;
+
+  static InstallmentDueStatus fromDb(String value) =>
       values.firstWhere((e) => e.dbValue == value);
 }
 

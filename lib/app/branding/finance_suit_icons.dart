@@ -98,6 +98,7 @@ abstract final class FinanceSuitIcons {
     mirrorInRtl: true,
   );
   static const close = FinanceSuitGlyph(HugeIconsStrokeRounded.cancel01);
+  static const creditCard = FinanceSuitGlyph(HugeIconsStrokeRounded.creditCard);
   static const delete = FinanceSuitGlyph(HugeIconsStrokeRounded.delete02);
   static const edit = FinanceSuitGlyph(HugeIconsStrokeRounded.edit02);
   static const email = FinanceSuitGlyph(HugeIconsStrokeRounded.mail01);

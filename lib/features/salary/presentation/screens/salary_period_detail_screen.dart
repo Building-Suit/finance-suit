@@ -110,8 +110,10 @@ class SalaryPeriodDetailScreen extends ConsumerWidget {
     SalaryEstimate estimate,
   ) async {
     final l10n = AppLocalizations.of(context);
+    // Salary is paid into the user's own cash accounts, never a liability.
     final accounts =
-        ref.read(accountBalancesProvider).value ?? <AccountBalance>[];
+        (ref.read(accountBalancesProvider).value ?? <AccountBalance>[])
+            .assetAccounts;
     final amountController = TextEditingController(
       text: (estimate.totalMinor / Money.minorUnitsPerMajor).toStringAsFixed(2),
     );

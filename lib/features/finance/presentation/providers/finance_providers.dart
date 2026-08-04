@@ -4,6 +4,7 @@ import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
+import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
@@ -117,6 +118,37 @@ final pendingSalaryEstimateProvider =
       );
     });
 
+/// Active credit-card and BNPL facilities with their derived debt figures.
+final creditFacilitiesProvider = FutureProvider<List<CreditFacilitySummary>>((
+  ref,
+) async {
+  ref.watch(currentUserIdProvider);
+  final result = await ref
+      .watch(financeRepositoryProvider)
+      .fetchCreditFacilities();
+  return result.when(ok: (f) => f, err: (failure) => throw failure);
+});
+
+/// Installment plans of one facility, newest first.
+final installmentPlansProvider = FutureProvider.family
+    .autoDispose<List<InstallmentPlan>, String>((ref, accountId) async {
+      ref.watch(currentUserIdProvider);
+      final result = await ref
+          .watch(financeRepositoryProvider)
+          .fetchInstallmentPlans(accountId: accountId);
+      return result.when(ok: (p) => p, err: (failure) => throw failure);
+    });
+
+/// Dues of one facility ordered by due date.
+final installmentDuesProvider = FutureProvider.family
+    .autoDispose<List<InstallmentDue>, String>((ref, accountId) async {
+      ref.watch(currentUserIdProvider);
+      final result = await ref
+          .watch(financeRepositoryProvider)
+          .fetchInstallmentDues(accountId: accountId);
+      return result.when(ok: (d) => d, err: (failure) => throw failure);
+    });
+
 /// Invalidate everything that depends on transaction or account rows.
 void invalidateFinanceData(WidgetRef ref) {
   ref.invalidate(accountBalancesProvider);
@@ -124,6 +156,9 @@ void invalidateFinanceData(WidgetRef ref) {
   ref.invalidate(recentTransactionsProvider);
   ref.invalidate(heldAmountsProvider);
   ref.invalidate(pendingIncomeProvider);
+  ref.invalidate(creditFacilitiesProvider);
+  ref.invalidate(installmentPlansProvider);
+  ref.invalidate(installmentDuesProvider);
 }
 
 void invalidateIncomeAutomation(WidgetRef ref) {

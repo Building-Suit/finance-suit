@@ -1,0 +1,403 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
+import 'package:work_tracker/app/theme/app_theme.dart';
+import 'package:work_tracker/core/domain/db_enums.dart';
+import 'package:work_tracker/features/finance/domain/account.dart';
+import 'package:work_tracker/features/finance/domain/credit_facility.dart';
+import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
+import 'package:work_tracker/features/finance/domain/held_amount.dart';
+import 'package:work_tracker/features/finance/domain/transaction_category.dart';
+import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
+import 'package:work_tracker/features/finance/presentation/screens/account_form_screen.dart';
+import 'package:work_tracker/features/finance/presentation/screens/credit_facility_detail_screen.dart';
+import 'package:work_tracker/features/finance/presentation/screens/facility_payment_screen.dart';
+import 'package:work_tracker/features/finance/presentation/screens/installment_purchase_screen.dart';
+import 'package:work_tracker/features/finance/presentation/screens/money_screen.dart';
+import 'package:work_tracker/features/finance/presentation/widgets/finance_widgets.dart';
+import 'package:work_tracker/l10n/generated/app_localizations.dart';
+
+const _wallet = AccountBalance(
+  accountId: 'asset-1',
+  name: 'Main Wallet',
+  accountType: AccountType.cash,
+  currencyCode: 'EGP',
+  isDefault: true,
+  isArchived: false,
+  allowNegativeBalance: false,
+  openingBalanceMinor: 1000000,
+  balanceMinor: 947000,
+  totalIncomingMinor: 0,
+  totalOutgoingMinor: 53000,
+);
+
+const _dollarWallet = AccountBalance(
+  accountId: 'asset-2',
+  name: 'Dollar Wallet',
+  accountType: AccountType.cash,
+  currencyCode: 'USD',
+  isDefault: false,
+  isArchived: false,
+  allowNegativeBalance: false,
+  openingBalanceMinor: 100000,
+  balanceMinor: 100000,
+  totalIncomingMinor: 0,
+  totalOutgoingMinor: 0,
+);
+
+const _visaBalanceRow = AccountBalance(
+  accountId: 'facility-1',
+  name: 'Visa Card',
+  accountType: AccountType.creditCard,
+  currencyCode: 'EGP',
+  isDefault: false,
+  isArchived: false,
+  allowNegativeBalance: false,
+  openingBalanceMinor: 0,
+  balanceMinor: -238000,
+  totalIncomingMinor: 33000,
+  totalOutgoingMinor: 271000,
+);
+
+final _visa = CreditFacilitySummary.fromJson(const {
+  'account_id': 'facility-1',
+  'name': 'Visa Card',
+  'account_type': 'credit_card',
+  'currency_code': 'EGP',
+  'is_archived': false,
+  'notes': null,
+  'opening_owed_minor': 0,
+  'credit_limit_minor': 500000,
+  'statement_day': 5,
+  'default_due_day': 10,
+  'last_four_digits': '1234',
+  'reminder_lead_days': 3,
+  'outstanding_minor': 238000,
+  'available_credit_minor': 262000,
+  'utilization_basis_points': 4760,
+  'due_now_minor': 18000,
+  'overdue_minor': 10000,
+  'next_due_on': '2026-08-10',
+  'next_due_amount_minor': 10000,
+  'active_plan_count': 2,
+});
+
+final _fridgePlan = InstallmentPlan.fromJson(const {
+  'id': 'plan-1',
+  'account_id': 'facility-1',
+  'title': 'Fridge',
+  'category_id': 'cat-1',
+  'purchased_on': '2026-07-01',
+  'first_due_on': '2026-07-10',
+  'installment_count': 12,
+  'purchase_price_minor': 120000,
+  'down_payment_minor': 0,
+  'financed_principal_minor': 120000,
+  'financing_fees_minor': 0,
+  'total_payable_minor': 120000,
+  'currency_code': 'EGP',
+  'status': 'active',
+  'paid_minor': 10000,
+  'remaining_minor': 110000,
+  'next_due_on': '2026-08-10',
+  'next_due_amount_minor': 10000,
+  'notes': null,
+});
+
+final _overdueDue = InstallmentDue.fromJson(const {
+  'id': 'due-1',
+  'plan_id': 'plan-1',
+  'account_id': 'facility-1',
+  'sequence_number': 2,
+  'due_on': '2026-08-01',
+  'amount_minor': 10000,
+  'currency_code': 'EGP',
+  'plan_title': 'Fridge',
+  'plan_status': 'active',
+  'paid_minor': 0,
+  'remaining_minor': 10000,
+  'due_status': 'overdue',
+});
+
+final _upcomingDue = InstallmentDue.fromJson(const {
+  'id': 'due-2',
+  'plan_id': 'plan-1',
+  'account_id': 'facility-1',
+  'sequence_number': 3,
+  'due_on': '2026-09-10',
+  'amount_minor': 10000,
+  'currency_code': 'EGP',
+  'plan_title': 'Fridge',
+  'plan_status': 'active',
+  'paid_minor': 0,
+  'remaining_minor': 10000,
+  'due_status': 'upcoming',
+});
+
+const _expenseCategory = TransactionCategory(
+  id: 'cat-1',
+  name: 'Shopping',
+  kind: CategoryKind.expense,
+  icon: 'category',
+  sortOrder: 0,
+  isArchived: false,
+);
+
+List<dynamic> _baseOverrides({
+  List<CreditFacilitySummary>? facilities,
+  List<AccountBalance>? accounts,
+}) {
+  final facilityList = facilities ?? [_visa];
+  final accountList = accounts ?? [_wallet, _dollarWallet, _visaBalanceRow];
+  return [
+    accountBalancesProvider.overrideWith(
+      (ref) async => accountList.where((a) => !a.isArchived).toList(),
+    ),
+    allAccountBalancesProvider.overrideWith((ref) async => accountList),
+    creditFacilitiesProvider.overrideWith((ref) async => facilityList),
+    installmentPlansProvider.overrideWith(
+      (ref, accountId) async => [_fridgePlan],
+    ),
+    installmentDuesProvider.overrideWith(
+      (ref, accountId) async => [_overdueDue, _upcomingDue],
+    ),
+    recentTransactionsProvider.overrideWith(
+      (ref) async => const <FinancialTransaction>[],
+    ),
+    heldAmountsProvider.overrideWith((ref) async => const <HeldAmount>[]),
+    categoriesProvider.overrideWith(
+      (ref, kind) async =>
+          kind == CategoryKind.expense ? [_expenseCategory] : const [],
+    ),
+  ];
+}
+
+Future<void> _pump(
+  WidgetTester tester,
+  Widget home, {
+  List<CreditFacilitySummary>? facilities,
+  List<AccountBalance>? accounts,
+  Locale locale = const Locale('en'),
+}) async {
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        ..._baseOverrides(facilities: facilities, accounts: accounts).cast(),
+      ],
+      child: MaterialApp(
+        theme: AppTheme.light(),
+        locale: locale,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: home,
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.empty();
+  });
+
+  group('money screen', () {
+    testWidgets('separates cash accounts from credit facilities', (
+      tester,
+    ) async {
+      await _pump(tester, const MoneyScreen());
+
+      expect(find.text('Cash & bank'), findsOneWidget);
+      expect(find.text('Credit & installments'), findsOneWidget);
+      final tile = find.byKey(const Key('facility-tile-facility-1'));
+      expect(tile, findsOneWidget);
+      expect(
+        find.descendant(of: tile, matching: find.text('Amount owed')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: tile,
+          matching: find.textContaining('Available credit'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: tile,
+          matching: find.textContaining('Next due 2026-08-10'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: tile, matching: find.text('Overdue')),
+        findsOneWidget,
+      );
+      // The liability never renders in the asset list as spendable cash.
+      expect(find.text('Visa Card'), findsOneWidget);
+    });
+  });
+
+  group('account form', () {
+    testWidgets('selecting a liability type swaps in facility fields', (
+      tester,
+    ) async {
+      await _pump(tester, const AccountFormScreen());
+
+      expect(find.byKey(const Key('facility-credit-limit')), findsNothing);
+      expect(find.text('Allow negative balance'), findsOneWidget);
+
+      // Ten account types trigger the searchable sheet; filter to the
+      // liability option instead of scrolling the lazy list.
+      await tester.tap(find.text('Current balance'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).last, 'Credit Card');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Credit Card').last);
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('facility-credit-limit')), findsOneWidget);
+      expect(find.byKey(const Key('facility-due-day')), findsOneWidget);
+      expect(find.byKey(const Key('facility-statement-day')), findsOneWidget);
+      expect(find.byKey(const Key('facility-last-four')), findsOneWidget);
+      expect(find.byKey(const Key('facility-reminder-days')), findsOneWidget);
+      expect(find.text('Opening amount owed'), findsOneWidget);
+      expect(find.text('Allow negative balance'), findsNothing);
+
+      // BNPL hides the credit-card-only fields.
+      await tester.tap(find.text('Credit Card').first);
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).last, 'BNPL');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('BNPL / Finance Company').last);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('facility-statement-day')), findsNothing);
+      expect(find.byKey(const Key('facility-last-four')), findsNothing);
+    });
+  });
+
+  group('installment purchase form', () {
+    testWidgets('shows the empty state when no facility exists', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        const InstallmentPurchaseScreen(),
+        facilities: const <CreditFacilitySummary>[],
+      );
+      expect(find.text('No credit card or BNPL accounts yet'), findsOneWidget);
+      expect(find.text('Add credit account'), findsOneWidget);
+    });
+
+    testWidgets('previews the exact schedule and blocks over-limit saves', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        const InstallmentPurchaseScreen(accountId: 'facility-1'),
+      );
+
+      await tester.enterText(
+        find.byKey(const Key('purchase-merchant')),
+        'Fridge',
+      );
+      await tester.enterText(find.byKey(const Key('purchase-price')), '1000');
+      await tester.enterText(find.byKey(const Key('purchase-count')), '3');
+      await tester.pumpAndSettle();
+
+      final preview = find.byKey(const Key('purchase-preview'));
+      expect(preview, findsOneWidget);
+      // 1000.00 over 3 -> 333.34 + 333.33 + 333.33.
+      expect(
+        find.descendant(of: preview, matching: find.textContaining('333.34')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: preview, matching: find.textContaining('333.33')),
+        findsNWidgets(2),
+      );
+      expect(find.byKey(const Key('purchase-over-limit')), findsNothing);
+
+      // Available credit is 2,620.00 — a 5,000.00 purchase must be blocked.
+      await tester.enterText(find.byKey(const Key('purchase-price')), '5000');
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('purchase-over-limit')), findsOneWidget);
+    });
+  });
+
+  group('facility payment form', () {
+    testWidgets(
+      'filters sources to same-currency assets and previews allocation',
+      (tester) async {
+        await _pump(
+          tester,
+          const FacilityPaymentScreen(accountId: 'facility-1'),
+        );
+
+        // Quick chips prefill the amount from the facility summary.
+        await tester.tap(find.byKey(const Key('payment-chip-due-now')));
+        await tester.pumpAndSettle();
+        expect(find.text('180.00'), findsOneWidget);
+
+        final preview = find.byKey(const Key('payment-allocation-preview'));
+        expect(preview, findsOneWidget);
+        expect(
+          find.descendant(
+            of: preview,
+            matching: find.textContaining('2026-08-01'),
+          ),
+          findsOneWidget,
+        );
+
+        // Source picker: EGP asset yes, USD asset no, and the facility
+        // itself appears only in the facility selector above.
+        await tester.tap(find.text('Pay from'));
+        await tester.pumpAndSettle();
+        expect(find.textContaining('Main Wallet'), findsWidgets);
+        expect(find.textContaining('Dollar Wallet'), findsNothing);
+        expect(find.textContaining('Visa Card ('), findsOneWidget);
+      },
+    );
+  });
+
+  group('facility detail', () {
+    testWidgets('shows summary figures, dues, and plans', (tester) async {
+      tester.view.physicalSize = const Size(800, 2000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await _pump(
+        tester,
+        const CreditFacilityDetailScreen(accountId: 'facility-1'),
+      );
+
+      expect(find.text('Amount owed'), findsOneWidget);
+      expect(find.textContaining('Available credit'), findsWidgets);
+      expect(find.byKey(const Key('facility-add-purchase')), findsOneWidget);
+      expect(find.byKey(const Key('facility-make-payment')), findsOneWidget);
+      expect(find.text('Upcoming installments'), findsOneWidget);
+      expect(find.textContaining('Fridge'), findsWidgets);
+      expect(find.text('Installment plans'), findsOneWidget);
+    });
+  });
+
+  group('right-to-left', () {
+    testWidgets('facility tile renders in Arabic without overflow', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 480);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await _pump(tester, const MoneyScreen(), locale: const Locale('ar'));
+      await tester.drag(find.byType(ListView).first, const Offset(0, -800));
+      await tester.pumpAndSettle();
+      expect(find.byType(FacilityTile), findsOneWidget);
+      expect(find.text('المبلغ المستحق'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
+}

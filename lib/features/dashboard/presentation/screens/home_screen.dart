@@ -15,6 +15,7 @@ import 'package:work_tracker/core/widgets/app_money_text.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/protected_money.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
+import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/finance_widgets.dart';
@@ -218,6 +219,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           context.push('${AppRoutes.settings}/income-sources'),
                     ),
             ),
+            compactSection(
+              ref.watch(creditFacilitiesProvider),
+              loading: const SizedBox.shrink(),
+              data: (facilities) {
+                final today = PlainDate.today();
+                final relevant = facilities
+                    .where(
+                      (f) =>
+                          f.dueNowMinor > 0 ||
+                          (f.nextDueOn != null &&
+                              f.nextDueOn!.differenceInDays(today) <=
+                                  f.reminderLeadDays),
+                    )
+                    .toList();
+                if (relevant.isEmpty) return const SizedBox.shrink();
+                return _InstallmentDuesSection(
+                  facilities: relevant,
+                  onOpen: () => context.push(
+                    relevant.length == 1
+                        ? '${AppRoutes.money}/facilities/'
+                              '${relevant.first.accountId}'
+                        : AppRoutes.money,
+                  ),
+                );
+              },
+            ),
             _SectionHeader(title: l10n.homeBalance),
             compactSection(
               accountsAsync,
@@ -308,6 +335,113 @@ class _HomeDataStatusCard extends StatelessWidget {
               label: Text(l10n.commonRetry),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Compact reminder for upcoming, due, and overdue installment payments
+/// across every credit facility. One card, never one card per due.
+class _InstallmentDuesSection extends StatelessWidget {
+  const _InstallmentDuesSection({
+    required this.facilities,
+    required this.onOpen,
+  });
+
+  final List<CreditFacilitySummary> facilities;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final hasOverdue = facilities.any((f) => f.hasOverdue);
+    final tone = hasOverdue
+        ? context.suitColors.error
+        : context.suitColors.warning;
+    final currency = facilities.first.currencyCode;
+    var dueNowMinor = 0;
+    var overdueMinor = 0;
+    for (final f in facilities.where((f) => f.currencyCode == currency)) {
+      dueNowMinor += f.dueNowMinor;
+      overdueMinor += f.overdueMinor;
+    }
+    final nextDue = facilities
+        .map((f) => f.nextDueOn)
+        .whereType<PlainDate>()
+        .fold<PlainDate?>(
+          null,
+          (min, d) => min == null || d.isBefore(min) ? d : min,
+        );
+    final line = dueNowMinor > 0
+        ? l10n.homeDueNow(
+            Money(minor: dueNowMinor, currencyCode: currency).format(),
+          )
+        : nextDue != null
+        ? l10n.homeNextDue(nextDue.toIso())
+        : '';
+    return Card(
+      color: tone.background,
+      clipBehavior: Clip.antiAlias,
+      child: Semantics(
+        button: true,
+        label: l10n.homeDuesTitle,
+        child: InkWell(
+          key: const Key('home-installment-dues-summary'),
+          onTap: onOpen,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                FinanceSuitIcon(FinanceSuitIcons.creditCard, color: tone.icon),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        l10n.homeDuesTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: tone.text,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      if (line.isNotEmpty)
+                        ProtectedMoneyText(
+                          line,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      if (overdueMinor > 0)
+                        ProtectedMoneyText(
+                          l10n.homeOverdue(
+                            Money(
+                              minor: overdueMinor,
+                              currencyCode: currency,
+                            ).format(),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(color: tone.text),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                FinanceSuitIcon(
+                  FinanceSuitIcons.chevronRight,
+                  color: tone.icon,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

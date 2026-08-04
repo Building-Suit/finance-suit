@@ -14,6 +14,7 @@ import 'package:work_tracker/core/supabase/realtime_invalidation.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
+import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
@@ -90,6 +91,18 @@ void main() {
         (ref) async => const <FinancialTransaction>[],
       ),
       heldAmountsProvider.overrideWith((ref) async => const <HeldAmount>[]),
+      creditFacilitiesProvider.overrideWith(
+        (ref) async => const <CreditFacilitySummary>[],
+      ),
+      installmentPlansProvider.overrideWith(
+        (ref, accountId) async => const <InstallmentPlan>[],
+      ),
+      installmentDuesProvider.overrideWith(
+        (ref, accountId) async => const <InstallmentDue>[],
+      ),
+      debtSummaryProvider.overrideWith(
+        (ref, range) async => const <DebtSummary>[],
+      ),
       macrosProvider.overrideWith((ref) async => const <TransactionMacro>[]),
       pendingIncomeProvider.overrideWith(
         (ref) async => const <PendingIncome>[],

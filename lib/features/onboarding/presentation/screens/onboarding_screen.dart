@@ -585,11 +585,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             initialValue: _accountType,
             decoration: InputDecoration(labelText: l10n.accType),
             items: [
+              // The first account is the default deposit account, so it must
+              // be an asset; credit facilities are added later from Money.
               for (final type in AccountType.values)
-                DropdownMenuItem(
-                  value: type,
-                  child: Text(accountTypeLabel(l10n, type)),
-                ),
+                if (!type.isLiability)
+                  DropdownMenuItem(
+                    value: type,
+                    child: Text(accountTypeLabel(l10n, type)),
+                  ),
             ],
             onChanged: (v) =>
                 setState(() => _accountType = v ?? AccountType.current),

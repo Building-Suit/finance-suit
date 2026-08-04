@@ -192,7 +192,8 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
     final l10n = AppLocalizations.of(context);
     final accounts = ref.watch(accountBalancesProvider);
     final categories = ref.watch(categoriesProvider(_categoryKind));
-    final accountList = accounts.value ?? <AccountBalance>[];
+    // Held amounts settle into the user's own cash, never a facility.
+    final accountList = (accounts.value ?? <AccountBalance>[]).assetAccounts;
     const needsAccount = true;
     if (_accountId == null && accountList.isNotEmpty) {
       _accountId =

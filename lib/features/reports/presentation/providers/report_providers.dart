@@ -9,6 +9,16 @@ typedef ReportSeriesKey = ({DateRange range, ReportBucket bucket});
 typedef AccountBalanceHistoryKey = ({String accountId, DateRange range});
 typedef CategoryTotalsKey = ({DateRange range, String transactionKind});
 
+final debtSummaryProvider = FutureProvider.family<List<DebtSummary>, DateRange>(
+  (ref, range) async {
+    ref.watch(currentUserIdProvider);
+    final result = await ref
+        .watch(reportRepositoryProvider)
+        .fetchDebtSummary(range);
+    return result.when(ok: (rows) => rows, err: (failure) => throw failure);
+  },
+);
+
 final cashFlowSummaryProvider =
     FutureProvider.family<List<CashFlowSummary>, DateRange>((ref, range) async {
       ref.watch(currentUserIdProvider);
@@ -125,6 +135,7 @@ final salaryWorkPeriodsProvider =
 
 void invalidateReportData(WidgetRef ref) {
   ref
+    ..invalidate(debtSummaryProvider)
     ..invalidate(cashFlowSummaryProvider)
     ..invalidate(financeSeriesProvider)
     ..invalidate(expenseCategoryTotalsProvider)

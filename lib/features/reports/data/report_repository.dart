@@ -25,6 +25,20 @@ class ReportRepository {
     });
   }
 
+  /// Debt-repayment and upcoming-installment figures for credit facilities;
+  /// repayments are transfers and never mix into income/expense totals.
+  Future<Result<List<DebtSummary>>> fetchDebtSummary(DateRange range) {
+    return guard(() async {
+      final rows = await _db.rpc<List<dynamic>>(
+        'debt_summary',
+        params: {'p_start': range.start.toIso(), 'p_end': range.end.toIso()},
+      );
+      return rows
+          .map((row) => DebtSummary.fromJson(row as Map<String, dynamic>))
+          .toList();
+    });
+  }
+
   Future<Result<List<FinanceSeriesPoint>>> fetchFinanceSeries({
     required DateRange range,
     required ReportBucket bucket,
