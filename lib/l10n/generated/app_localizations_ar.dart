@@ -1816,4 +1816,330 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get heldSettleHelp => 'سيتم تسجيل المعاملة بهذا التاريخ.';
+
+  @override
+  String get accTypeCreditCard => 'بطاقة ائتمان';
+
+  @override
+  String get accTypeBnpl => 'شركة تقسيط / اشترِ الآن وادفع لاحقًا';
+
+  @override
+  String get accOpeningOwed => 'المبلغ المستحق الافتتاحي';
+
+  @override
+  String get accOpeningOwedHelp =>
+      'دين مستخدم على هذه البطاقة أو الجهة قبل أن تبدأ تتبعه في Finance Suit.';
+
+  @override
+  String get facilityCreditLimit => 'الحد الائتماني';
+
+  @override
+  String get facilityDefaultDueDay => 'يوم الاستحقاق الافتراضي';
+
+  @override
+  String get facilityStatementDay => 'يوم كشف الحساب';
+
+  @override
+  String get facilityLastFour => 'آخر أربعة أرقام';
+
+  @override
+  String get facilityReminderDays => 'أيام التذكير المسبق';
+
+  @override
+  String get valFacilityLastFour => 'أدخل أربعة أرقام بالضبط';
+
+  @override
+  String get valFacilityReminderDays => 'أدخل من 0 إلى 31 يومًا';
+
+  @override
+  String get moneyAssetsSection => 'النقد والبنوك';
+
+  @override
+  String get moneyLiabilitiesSection => 'الائتمان والأقساط';
+
+  @override
+  String get facilityOwed => 'المبلغ المستحق';
+
+  @override
+  String get facilityAvailable => 'الائتمان المتاح';
+
+  @override
+  String get facilityUtilization => 'نسبة الاستخدام';
+
+  @override
+  String facilityNextDue(String date) {
+    return 'الاستحقاق التالي $date';
+  }
+
+  @override
+  String get facilityOverdueBadge => 'متأخر';
+
+  @override
+  String get facilityDueNow => 'مستحق الآن';
+
+  @override
+  String get facilityDetailTitle => 'التسهيل الائتماني';
+
+  @override
+  String get facilityAddPurchase => 'إضافة شراء بالتقسيط';
+
+  @override
+  String get facilityMakePayment => 'سداد دفعة';
+
+  @override
+  String get facilityDuesSection => 'الأقساط القادمة';
+
+  @override
+  String get facilityNoDues => 'لا توجد أقساط مجدولة على هذا الحساب.';
+
+  @override
+  String get facilityPlansSection => 'خطط التقسيط';
+
+  @override
+  String get facilityNoPlans => 'لا توجد خطط تقسيط بعد.';
+
+  @override
+  String get facilityHistorySection => 'الحركات المرتبطة';
+
+  @override
+  String get facilityRepaymentLabel => 'دفعة سداد';
+
+  @override
+  String get facilityReversalLabel => 'عكس دفعة';
+
+  @override
+  String get facilityPurchaseLabel => 'شراء بالائتمان';
+
+  @override
+  String get facilityEmptyTitle => 'لا توجد بطاقات ائتمان أو حسابات تقسيط بعد';
+
+  @override
+  String get facilityEmptyAction => 'إضافة حساب ائتماني';
+
+  @override
+  String get planStatusActive => 'نشطة';
+
+  @override
+  String get planStatusCompleted => 'مكتملة';
+
+  @override
+  String get planStatusCancelled => 'ملغاة';
+
+  @override
+  String planPaidOfTotal(String paid, String total) {
+    return 'تم سداد $paid من $total';
+  }
+
+  @override
+  String get planCancel => 'إلغاء الخطة';
+
+  @override
+  String get planCancelConfirmTitle => 'إلغاء هذه الخطة؟';
+
+  @override
+  String get planCancelConfirmBody =>
+      'سيُحذف الشراء الممول وسيُلغى جدول الأقساط. هذا ممكن فقط قبل أي سداد.';
+
+  @override
+  String get dueStatusUpcoming => 'قادم';
+
+  @override
+  String get dueStatusDueToday => 'مستحق اليوم';
+
+  @override
+  String get dueStatusOverdue => 'متأخر';
+
+  @override
+  String get dueStatusPartiallyPaid => 'مسدد جزئيًا';
+
+  @override
+  String get dueStatusPaid => 'مسدد';
+
+  @override
+  String get dueStatusCancelled => 'ملغى';
+
+  @override
+  String get purchaseTitle => 'شراء جديد بالتقسيط';
+
+  @override
+  String get purchaseFacility => 'التسهيل الائتماني';
+
+  @override
+  String get purchaseMerchant => 'المتجر أو العنوان';
+
+  @override
+  String get purchaseDateLabel => 'تاريخ الشراء';
+
+  @override
+  String get purchasePrice => 'سعر الشراء';
+
+  @override
+  String get purchaseDownPayment => 'الدفعة المقدمة';
+
+  @override
+  String get purchaseDownPaymentAccount => 'تُدفع من';
+
+  @override
+  String get purchaseFinancingMode => 'طريقة إدخال التمويل';
+
+  @override
+  String get purchaseFinancingModeFees => 'إدخال رسوم التمويل';
+
+  @override
+  String get purchaseFinancingModeTotal => 'إدخال الإجمالي المستحق';
+
+  @override
+  String get purchaseFinancingFees => 'رسوم التمويل';
+
+  @override
+  String get purchaseTotalPayable => 'الإجمالي المستحق';
+
+  @override
+  String get purchaseFinancedPrincipal => 'المبلغ الممول';
+
+  @override
+  String get purchaseInstallmentCount => 'عدد الأقساط';
+
+  @override
+  String get purchaseSingleCycleHint =>
+      'قسط واحد يعني استحقاق كامل المبلغ في تاريخ الاستحقاق التالي.';
+
+  @override
+  String get purchaseFirstDueDate => 'تاريخ أول قسط';
+
+  @override
+  String get purchasePreviewTitle => 'ما سيتم تسجيله';
+
+  @override
+  String get purchaseMonthly => 'الجدول الشهري';
+
+  @override
+  String get purchaseAvailableBefore => 'الائتمان المتاح الآن';
+
+  @override
+  String get purchaseAvailableAfter => 'المتاح بعد الشراء';
+
+  @override
+  String get purchaseExceedsCredit => 'هذا الشراء يتجاوز الائتمان المتاح';
+
+  @override
+  String get valDownPaymentTooLarge =>
+      'يجب أن تبقى الدفعة المقدمة أقل من سعر الشراء';
+
+  @override
+  String get valTotalBelowFinanced =>
+      'لا يمكن أن يكون الإجمالي المستحق أقل من المبلغ الممول';
+
+  @override
+  String get valInstallmentCount => 'اختر بين 1 و120 قسطًا';
+
+  @override
+  String get valCategoryRequired => 'اختر فئة';
+
+  @override
+  String get paymentTitle => 'سداد التسهيل الائتماني';
+
+  @override
+  String get paymentSource => 'الدفع من';
+
+  @override
+  String get paymentDate => 'تاريخ الدفع';
+
+  @override
+  String get paymentDueNowChip => 'المستحق الآن';
+
+  @override
+  String get paymentNextChip => 'القسط التالي';
+
+  @override
+  String get paymentFullChip => 'كامل المديونية';
+
+  @override
+  String get paymentAllocationPreview => 'سيُطبق على';
+
+  @override
+  String paymentUnallocatedNote(String amount) {
+    return '$amount يخفض الرصيد المتبقي المستحق';
+  }
+
+  @override
+  String get paymentNothingOwed => 'لا توجد مديونية حاليًا.';
+
+  @override
+  String get paymentReverse => 'عكس الدفعة';
+
+  @override
+  String get paymentReverseConfirmTitle => 'عكس هذه الدفعة؟';
+
+  @override
+  String get paymentReverseConfirmBody =>
+      'سيعود المبلغ إلى حساب المصدر وتُفتح الأقساط المغطاة من جديد.';
+
+  @override
+  String get valPaymentAboveOutstanding => 'الدفعة أكبر من المبلغ المستحق';
+
+  @override
+  String get homeDuesTitle => 'الأقساط';
+
+  @override
+  String homeDueNow(String amount) {
+    return '$amount مستحق الآن';
+  }
+
+  @override
+  String homeNextDue(String date) {
+    return 'الاستحقاق التالي $date';
+  }
+
+  @override
+  String homeOverdue(String amount) {
+    return '$amount متأخر';
+  }
+
+  @override
+  String get reportsDebtTitle => 'الائتمان والأقساط';
+
+  @override
+  String get reportsDebtRepayments => 'سداد الديون';
+
+  @override
+  String get reportsDebtUpcoming => 'الأقساط القادمة';
+
+  @override
+  String get reportsDebtOverdue => 'المتأخر';
+
+  @override
+  String get reportsDebtOutstanding => 'إجمالي المديونية';
+
+  @override
+  String get errCreditLimitBelowOutstanding =>
+      'لا يمكن أن يكون الحد الائتماني أقل من المبلغ المستحق';
+
+  @override
+  String get errFacilityArchiveBlocked =>
+      'لا يزال هناك مبلغ مستحق على هذا الحساب';
+
+  @override
+  String get errFacilityNotConfigured => 'حدد حدًا ائتمانيًا لهذا الحساب أولًا';
+
+  @override
+  String get errPlanHasPayments => 'اعكس الدفعات قبل إلغاء هذه الخطة';
+
+  @override
+  String get errFacilityLocked =>
+      'تُدار سجلات التقسيط من شاشة التسهيل الائتماني';
+
+  @override
+  String get errAccountRoleLocked =>
+      'أنشئ حسابًا جديدًا للتبديل بين النقد والائتمان';
+
+  @override
+  String get errAlreadyReversed => 'تم عكس هذه الدفعة من قبل';
+
+  @override
+  String get errInvalidFinancing =>
+      'رسوم التمويل والإجمالي المستحق غير متطابقين';
+
+  @override
+  String get errAllocationInvalid => 'توزيع الدفعة لا يطابق الأقساط المفتوحة';
 }

@@ -81,6 +81,24 @@ GoRouter buildShellTestRouter({String initialLocation = '/home'}) {
                     const StubPrimaryScreen(label: 'money-root'),
                 routes: [
                   GoRoute(
+                    path: 'facilities/purchase',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) =>
+                        const StubFocusedScreen(label: 'facility-purchase'),
+                  ),
+                  GoRoute(
+                    path: 'facilities/pay',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) =>
+                        const StubFocusedScreen(label: 'facility-pay'),
+                  ),
+                  GoRoute(
+                    path: 'facilities/:id',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) =>
+                        const StubFocusedScreen(label: 'facility-detail'),
+                  ),
+                  GoRoute(
                     path: 'tx/new',
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => StubFocusedScreen(

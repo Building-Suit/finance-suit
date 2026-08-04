@@ -197,8 +197,10 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final accounts = ref.watch(accountBalancesProvider);
+    // Ordinary transactions move the user's own cash; liability facilities
+    // are charged only through the installment purchase flow.
     final categories = ref.watch(categoriesProvider(_categoryKind));
-    final accountList = accounts.value ?? <AccountBalance>[];
+    final accountList = (accounts.value ?? <AccountBalance>[]).assetAccounts;
     if (_accountId == null && accountList.isNotEmpty) {
       // Preselect the default account (or the first one) on new transactions.
       _accountId =

@@ -12,6 +12,33 @@ String accountTypeLabel(AppLocalizations l10n, AccountType type) {
     AccountType.emergency => l10n.accTypeEmergency,
     AccountType.vacation => l10n.accTypeVacation,
     AccountType.custom => l10n.accTypeCustom,
+    AccountType.creditCard => l10n.accTypeCreditCard,
+    AccountType.bnpl => l10n.accTypeBnpl,
+  };
+}
+
+String installmentDueStatusLabel(
+  AppLocalizations l10n,
+  InstallmentDueStatus status,
+) {
+  return switch (status) {
+    InstallmentDueStatus.upcoming => l10n.dueStatusUpcoming,
+    InstallmentDueStatus.dueToday => l10n.dueStatusDueToday,
+    InstallmentDueStatus.overdue => l10n.dueStatusOverdue,
+    InstallmentDueStatus.partiallyPaid => l10n.dueStatusPartiallyPaid,
+    InstallmentDueStatus.paid => l10n.dueStatusPaid,
+    InstallmentDueStatus.cancelled => l10n.dueStatusCancelled,
+  };
+}
+
+String installmentPlanStatusLabel(
+  AppLocalizations l10n,
+  InstallmentPlanStatus status,
+) {
+  return switch (status) {
+    InstallmentPlanStatus.active => l10n.planStatusActive,
+    InstallmentPlanStatus.completed => l10n.planStatusCompleted,
+    InstallmentPlanStatus.cancelled => l10n.planStatusCancelled,
   };
 }
 

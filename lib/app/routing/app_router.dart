@@ -20,9 +20,12 @@ import 'package:work_tracker/features/finance/domain/transaction_macro.dart';
 import 'package:work_tracker/features/finance/presentation/screens/account_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/categories_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/category_form_screen.dart';
+import 'package:work_tracker/features/finance/presentation/screens/credit_facility_detail_screen.dart';
+import 'package:work_tracker/features/finance/presentation/screens/facility_payment_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/held_amount_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/income_source_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/income_sources_screen.dart';
+import 'package:work_tracker/features/finance/presentation/screens/installment_purchase_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/macro_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/macros_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/money_screen.dart';
@@ -262,6 +265,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => AccountFormScreen(
                       accountId: state.pathParameters['id'],
+                    ),
+                  ),
+                  // Static facility routes must precede the ':id' pattern.
+                  GoRoute(
+                    path: 'facilities/purchase',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => InstallmentPurchaseScreen(
+                      accountId: state.uri.queryParameters['accountId'],
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'facilities/pay',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => FacilityPaymentScreen(
+                      accountId: state.uri.queryParameters['accountId'],
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'facilities/:id',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => CreditFacilityDetailScreen(
+                      accountId: state.pathParameters['id']!,
                     ),
                   ),
                   GoRoute(
