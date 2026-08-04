@@ -11,6 +11,7 @@ import 'package:work_tracker/core/money/money.dart';
 import 'package:work_tracker/core/money/money_input.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_money_text.dart';
+import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
@@ -18,6 +19,7 @@ import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/core/widgets/protected_money.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
+import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
@@ -94,6 +96,81 @@ class CreditFacilityDetailScreen extends ConsumerWidget {
       showDragHandle: true,
       useSafeArea: true,
       builder: (sheetContext) => _RevisionsSheet(plan: plan),
+    );
+  }
+
+  Future<void> _editFeeRule(
+    BuildContext context,
+    WidgetRef ref,
+    CreditFacilitySummary summary, {
+    CardFeeRule? existing,
+  }) async {
+    final submitted = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) =>
+          _FeeRuleDialog(summary: summary, existing: existing, ref: ref),
+    );
+    if (submitted == true && context.mounted) {
+      ref.invalidate(feeRulesProvider(summary.accountId));
+      invalidateFinanceData(ref);
+      AppToast.success(context, AppLocalizations.of(context).setSaved);
+    }
+  }
+
+  Future<void> _toggleFeeRule(
+    BuildContext context,
+    WidgetRef ref,
+    CardFeeRule rule,
+  ) async {
+    final result = await ref
+        .read(financeRepositoryProvider)
+        .setFeeRuleActive(rule.id, active: !rule.isActive);
+    if (!context.mounted) return;
+    result.when(
+      ok: (_) {
+        ref.invalidate(feeRulesProvider(rule.accountId));
+        AppToast.success(context, AppLocalizations.of(context).setSaved);
+      },
+      err: (failure) =>
+          AppToast.error(context, failureMessage(context, failure)),
+    );
+  }
+
+  Future<void> _deleteFeeRule(
+    BuildContext context,
+    WidgetRef ref,
+    CardFeeRule rule,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.feeRuleDeleteConfirmTitle),
+        content: Text(l10n.feeRuleDeleteConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.commonDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    final result = await ref
+        .read(financeRepositoryProvider)
+        .deleteFeeRule(rule.id);
+    if (!context.mounted) return;
+    result.when(
+      ok: (_) {
+        ref.invalidate(feeRulesProvider(rule.accountId));
+        AppToast.success(context, l10n.setSaved);
+      },
+      err: (failure) =>
+          AppToast.error(context, failureMessage(context, failure)),
     );
   }
 
@@ -178,6 +255,11 @@ class CreditFacilityDetailScreen extends ConsumerWidget {
               onRestructurePlan: (plan) => _restructurePlan(context, ref, plan),
               onShowRevisions: (plan) => _showRevisions(context, ref, plan),
               onReversePayment: (tx) => _reversePayment(context, ref, tx),
+              onAddFeeRule: () => _editFeeRule(context, ref, summary),
+              onEditFeeRule: (rule) =>
+                  _editFeeRule(context, ref, summary, existing: rule),
+              onToggleFeeRule: (rule) => _toggleFeeRule(context, ref, rule),
+              onDeleteFeeRule: (rule) => _deleteFeeRule(context, ref, rule),
             );
           },
         ),
@@ -194,6 +276,10 @@ class _FacilityDetailBody extends ConsumerWidget {
     required this.onRestructurePlan,
     required this.onShowRevisions,
     required this.onReversePayment,
+    required this.onAddFeeRule,
+    required this.onEditFeeRule,
+    required this.onToggleFeeRule,
+    required this.onDeleteFeeRule,
   });
 
   final CreditFacilitySummary summary;
@@ -202,6 +288,10 @@ class _FacilityDetailBody extends ConsumerWidget {
   final ValueChanged<InstallmentPlan> onRestructurePlan;
   final ValueChanged<InstallmentPlan> onShowRevisions;
   final ValueChanged<FinancialTransaction> onReversePayment;
+  final VoidCallback onAddFeeRule;
+  final ValueChanged<CardFeeRule> onEditFeeRule;
+  final ValueChanged<CardFeeRule> onToggleFeeRule;
+  final ValueChanged<CardFeeRule> onDeleteFeeRule;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -291,6 +381,54 @@ class _FacilityDetailBody extends ConsumerWidget {
                     children: [
                       for (final statement in statements.take(6))
                         _StatementTile(statement: statement),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+          if (summary.accountType == AccountType.creditCard) ...[
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.feeRulesSection,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                TextButton.icon(
+                  key: const Key('fee-rule-add'),
+                  onPressed: onAddFeeRule,
+                  icon: const FinanceSuitIcon(FinanceSuitIcons.addCircle),
+                  label: Text(l10n.feeRuleAdd),
+                ),
+              ],
+            ),
+            AsyncView<List<CardFeeRule>>(
+              value: ref.watch(feeRulesProvider(summary.accountId)),
+              onRetry: () =>
+                  ref.invalidate(feeRulesProvider(summary.accountId)),
+              data: (rules) {
+                if (rules.isEmpty) {
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(l10n.feeRulesEmpty),
+                    ),
+                  );
+                }
+                return Card(
+                  child: Column(
+                    children: [
+                      for (final rule in rules)
+                        _FeeRuleTile(
+                          rule: rule,
+                          currencyCode: summary.currencyCode,
+                          onEdit: () => onEditFeeRule(rule),
+                          onToggle: () => onToggleFeeRule(rule),
+                          onDelete: () => onDeleteFeeRule(rule),
+                        ),
                     ],
                   ),
                 );
@@ -1088,6 +1226,363 @@ class _RevisionsSheet extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _FeeRuleTile extends StatelessWidget {
+  const _FeeRuleTile({
+    required this.rule,
+    required this.currencyCode,
+    required this.onEdit,
+    required this.onToggle,
+    required this.onDelete,
+  });
+
+  final CardFeeRule rule;
+  final String currencyCode;
+  final VoidCallback onEdit;
+  final VoidCallback onToggle;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final amountText = rule.isPercent
+        ? l10n.feeRulePercentOfBasis(
+            (rule.percentValue ?? 0).toStringAsFixed(2),
+            feePercentBasisLabel(l10n, rule.percentBasis!),
+          )
+        : rule.fixedAmount(currencyCode)!.format();
+    final schedule = rule.isActive
+        ? rule.nextChargeOn == null
+              ? feeFrequencyLabel(l10n, rule.frequency)
+              : l10n.feeRuleNextCharge(rule.nextChargeOn!.toIso())
+        : l10n.feeRuleInactive;
+    return ListTile(
+      dense: true,
+      title: Text(rule.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Text(
+        '${cardFeeTypeLabel(l10n, rule.feeType)} · '
+        '${feeFrequencyLabel(l10n, rule.frequency)}\n$schedule',
+      ),
+      isThreeLine: true,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (rule.isPercent)
+            Text(amountText, style: theme.textTheme.titleSmall)
+          else
+            ProtectedMoneyText(
+              amountText,
+              style: theme.textTheme.titleSmall,
+              interactive: false,
+            ),
+          PopupMenuButton<VoidCallback>(
+            key: Key('fee-rule-actions-${rule.id}'),
+            tooltip: l10n.planActionsTooltip,
+            onSelected: (action) => action(),
+            itemBuilder: (menuContext) => [
+              PopupMenuItem(value: onEdit, child: Text(l10n.commonEdit)),
+              PopupMenuItem(
+                value: onToggle,
+                child: Text(
+                  rule.isActive ? l10n.feeRuleDeactivate : l10n.feeRuleActivate,
+                ),
+              ),
+              PopupMenuItem(value: onDelete, child: Text(l10n.commonDelete)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Creates or edits one recurring card fee rule. Fixed-amount fees take an
+/// exact amount; percent fees take a rate and the balance it applies to.
+class _FeeRuleDialog extends StatefulWidget {
+  const _FeeRuleDialog({
+    required this.summary,
+    required this.ref,
+    this.existing,
+  });
+
+  final CreditFacilitySummary summary;
+  final CardFeeRule? existing;
+  final WidgetRef ref;
+
+  @override
+  State<_FeeRuleDialog> createState() => _FeeRuleDialogState();
+}
+
+class _FeeRuleDialogState extends State<_FeeRuleDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _nameController;
+  late final TextEditingController _amountController;
+  late final TextEditingController _percentController;
+
+  late CardFeeType _feeType;
+  late FeeFrequency _frequency;
+  late FeePercentBasis _percentBasis;
+  late bool _isPercent;
+  late PlainDate _startsOn;
+  String? _categoryId;
+  AppFailure? _failure;
+  bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final existing = widget.existing;
+    _nameController = TextEditingController(text: existing?.name ?? '');
+    _amountController = TextEditingController(
+      text: existing?.fixedAmountMinor == null
+          ? ''
+          : formatMinorForInput(existing!.fixedAmountMinor!),
+    );
+    _percentController = TextEditingController(
+      text: existing?.percentValue == null
+          ? ''
+          : existing!.percentValue!.toStringAsFixed(2),
+    );
+    _feeType = existing?.feeType ?? CardFeeType.annualMembership;
+    _frequency = existing?.frequency ?? FeeFrequency.annually;
+    _percentBasis = existing?.percentBasis ?? FeePercentBasis.creditLimit;
+    _isPercent = existing?.isPercent ?? false;
+    _startsOn = existing?.startsOn ?? PlainDate.today();
+    _categoryId = existing?.categoryId;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _amountController.dispose();
+    _percentController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _startsOn.toDateTime(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _startsOn = PlainDate.fromDateTime(picked));
+  }
+
+  int? get _percentBasisPoints {
+    final value = double.tryParse(_percentController.text.trim());
+    if (value == null) return null;
+    final basisPoints = (value * 100).round();
+    return basisPoints < 1 || basisPoints > 100000 ? null : basisPoints;
+  }
+
+  Future<void> _submit() async {
+    setState(() => _failure = null);
+    if (!_formKey.currentState!.validate() || _categoryId == null) return;
+    final currency = widget.summary.currencyCode;
+    final draft = CardFeeRuleDraft(
+      accountId: widget.summary.accountId,
+      name: _nameController.text.trim(),
+      feeType: _feeType,
+      frequency: _frequency,
+      startsOn: _startsOn,
+      categoryId: _categoryId!,
+      fixedAmountMinor: _isPercent
+          ? null
+          : Money.tryParse(
+              _amountController.text,
+              currencyCode: currency,
+            )!.minor,
+      percentBasisPoints: _isPercent ? _percentBasisPoints : null,
+      percentBasis: _isPercent ? _percentBasis : null,
+    );
+    setState(() => _busy = true);
+    final result = await widget.ref
+        .read(financeRepositoryProvider)
+        .saveFeeRule(draft, ruleId: widget.existing?.id);
+    if (!mounted) return;
+    setState(() => _busy = false);
+    result.when(
+      ok: (_) => Navigator.of(context).pop(true),
+      err: (failure) => setState(() => _failure = failure),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final currency = widget.summary.currencyCode;
+    final categories =
+        widget.ref.watch(categoriesProvider(CategoryKind.expense)).value ??
+        const [];
+    if (_categoryId == null && categories.isNotEmpty) {
+      _categoryId = categories.first.id;
+    }
+    return AlertDialog(
+      title: Text(widget.existing == null ? l10n.feeRuleAdd : l10n.feeRuleEdit),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AppTextFormField(
+                key: const Key('fee-rule-name'),
+                controller: _nameController,
+                textCapitalization: TextCapitalization.words,
+                decoration: InputDecoration(labelText: l10n.feeRuleName),
+                validator: (v) {
+                  final e = Validators.requiredText(v, maxLength: 80);
+                  return e == null ? null : validationMessage(context, e);
+                },
+              ),
+              const SizedBox(height: 12),
+              AppSelectionField<CardFeeType>(
+                key: ValueKey('fee-rule-type-$_feeType'),
+                initialValue: _feeType,
+                decoration: InputDecoration(labelText: l10n.feeRuleType),
+                items: [
+                  for (final type in CardFeeType.values)
+                    DropdownMenuItem(
+                      value: type,
+                      child: Text(cardFeeTypeLabel(l10n, type)),
+                    ),
+                ],
+                onChanged: (v) => setState(
+                  () => _feeType = v ?? CardFeeType.annualMembership,
+                ),
+              ),
+              const SizedBox(height: 12),
+              SwitchListTile(
+                key: const Key('fee-rule-percent-toggle'),
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+                title: Text(l10n.feeRulePercentToggle),
+                value: _isPercent,
+                onChanged: _busy ? null : (v) => setState(() => _isPercent = v),
+              ),
+              if (_isPercent) ...[
+                AppTextFormField(
+                  key: const Key('fee-rule-percent'),
+                  controller: _percentController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: l10n.feeRulePercentLabel,
+                    suffixText: '%',
+                  ),
+                  validator: (v) =>
+                      _percentBasisPoints == null ? l10n.valFeePercent : null,
+                ),
+                const SizedBox(height: 12),
+                AppSelectionField<FeePercentBasis>(
+                  key: ValueKey('fee-rule-basis-$_percentBasis'),
+                  initialValue: _percentBasis,
+                  decoration: InputDecoration(
+                    labelText: l10n.feeRulePercentBasis,
+                  ),
+                  items: [
+                    for (final basis in FeePercentBasis.values)
+                      DropdownMenuItem(
+                        value: basis,
+                        child: Text(feePercentBasisLabel(l10n, basis)),
+                      ),
+                  ],
+                  onChanged: (v) => setState(
+                    () => _percentBasis = v ?? FeePercentBasis.creditLimit,
+                  ),
+                ),
+              ] else
+                AppTextFormField(
+                  key: const Key('fee-rule-amount'),
+                  controller: _amountController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  inputFormatters: moneyInputFormatters(),
+                  decoration: InputDecoration(
+                    labelText: l10n.feeRuleFixedAmount,
+                    suffixText: currency,
+                  ),
+                  validator: (v) {
+                    final e = Validators.positiveAmount(
+                      v,
+                      currencyCode: currency,
+                    );
+                    return e == null ? null : validationMessage(context, e);
+                  },
+                ),
+              const SizedBox(height: 12),
+              AppSelectionField<FeeFrequency>(
+                key: ValueKey('fee-rule-frequency-$_frequency'),
+                initialValue: _frequency,
+                decoration: InputDecoration(labelText: l10n.feeRuleFrequency),
+                items: [
+                  for (final frequency in FeeFrequency.values)
+                    DropdownMenuItem(
+                      value: frequency,
+                      child: Text(feeFrequencyLabel(l10n, frequency)),
+                    ),
+                ],
+                onChanged: (v) =>
+                    setState(() => _frequency = v ?? FeeFrequency.annually),
+              ),
+              const SizedBox(height: 4),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+                title: Text(l10n.feeRuleStartsOn),
+                subtitle: Text(_startsOn.toIso()),
+                trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
+                onTap: _busy ? null : _pickDate,
+              ),
+              AppSelectionField<String>(
+                key: ValueKey('fee-rule-category-$_categoryId'),
+                initialValue: _categoryId,
+                decoration: InputDecoration(labelText: l10n.txCategory),
+                items: [
+                  for (final category in categories)
+                    DropdownMenuItem(
+                      value: category.id,
+                      child: Text(category.name),
+                    ),
+                ],
+                onChanged: (v) => setState(() => _categoryId = v),
+                validator: (v) => v == null
+                    ? validationMessage(context, ValidationError.required)
+                    : null,
+              ),
+              if (_failure != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  failureMessage(context, _failure!),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _busy ? null : () => Navigator.of(context).pop(false),
+          child: Text(l10n.commonCancel),
+        ),
+        FilledButton(
+          key: const Key('fee-rule-submit'),
+          onPressed: _busy ? null : _submit,
+          child: Text(l10n.commonSave),
+        ),
+      ],
     );
   }
 }

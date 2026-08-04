@@ -59,6 +59,47 @@ String planPricingMethodLabel(AppLocalizations l10n, PlanPricingMethod m) {
   };
 }
 
+String minPaymentMethodLabel(AppLocalizations l10n, MinPaymentMethod method) {
+  return switch (method) {
+    MinPaymentMethod.full => l10n.minPaymentFull,
+    MinPaymentMethod.fixed => l10n.minPaymentFixed,
+    MinPaymentMethod.percent => l10n.minPaymentPercent,
+    MinPaymentMethod.greaterOf => l10n.minPaymentGreaterOf,
+  };
+}
+
+String cardFeeTypeLabel(AppLocalizations l10n, CardFeeType type) {
+  return switch (type) {
+    CardFeeType.annualMembership => l10n.feeTypeAnnualMembership,
+    CardFeeType.insurance => l10n.feeTypeInsurance,
+    CardFeeType.administration => l10n.feeTypeAdministration,
+    CardFeeType.stampTax => l10n.feeTypeStampTax,
+    CardFeeType.foreignTransaction => l10n.feeTypeForeignTransaction,
+    CardFeeType.cashAdvance => l10n.feeTypeCashAdvance,
+    CardFeeType.latePayment => l10n.feeTypeLatePayment,
+    CardFeeType.overLimit => l10n.feeTypeOverLimit,
+    CardFeeType.installmentConversion => l10n.feeTypeInstallmentConversion,
+    CardFeeType.other => l10n.feeTypeOther,
+  };
+}
+
+String feeFrequencyLabel(AppLocalizations l10n, FeeFrequency frequency) {
+  return switch (frequency) {
+    FeeFrequency.once => l10n.feeFrequencyOnce,
+    FeeFrequency.monthly => l10n.feeFrequencyMonthly,
+    FeeFrequency.quarterly => l10n.feeFrequencyQuarterly,
+    FeeFrequency.annually => l10n.feeFrequencyAnnually,
+  };
+}
+
+String feePercentBasisLabel(AppLocalizations l10n, FeePercentBasis basis) {
+  return switch (basis) {
+    FeePercentBasis.statementBalance => l10n.feeBasisStatementBalance,
+    FeePercentBasis.outstandingBalance => l10n.feeBasisOutstandingBalance,
+    FeePercentBasis.creditLimit => l10n.feeBasisCreditLimit,
+  };
+}
+
 String statementCycleStatusLabel(
   AppLocalizations l10n,
   StatementCycleStatus status,
