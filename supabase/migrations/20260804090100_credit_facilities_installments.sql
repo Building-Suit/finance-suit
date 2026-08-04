@@ -1007,6 +1007,9 @@ begin
       'insufficient_credit: purchase exceeds available credit';
   end if;
 
+  -- The transaction-local flag lets only this function's writes through the
+  -- protection triggers; it is cleared again before returning so nothing
+  -- else in the same transaction inherits the bypass.
   perform set_config('app_finance.facility_internal', 'on', true);
 
   -- One reportable expense for the financed principal plus fees, dated on
@@ -1063,6 +1066,8 @@ begin
       v_base + case when v_seq <= v_remainder then 1 else 0 end
     );
   end loop;
+
+  perform set_config('app_finance.facility_internal', '', true);
 
   return v_plan_id;
 end;
@@ -1227,6 +1232,8 @@ begin
         where s.plan_id = p.id and s.remaining_minor > 0
       );
 
+  perform set_config('app_finance.facility_internal', '', true);
+
   return v_tx_id;
 end;
 $$;
@@ -1297,6 +1304,8 @@ begin
         where s.plan_id = p.id and s.remaining_minor > 0
       );
 
+  perform set_config('app_finance.facility_internal', '', true);
+
   return v_reversal_id;
 end;
 $$;
@@ -1351,6 +1360,8 @@ begin
       and id in (
         v_plan.purchase_transaction_id, v_plan.down_payment_transaction_id
       );
+
+  perform set_config('app_finance.facility_internal', '', true);
 end;
 $$;
 
@@ -1490,6 +1501,8 @@ begin
   delete from app_salary.salary_settings where user_id = p_user_id;
   delete from app_core.user_preferences where user_id = p_user_id;
   delete from app_core.profiles where id = p_user_id;
+
+  perform set_config('app_finance.facility_internal', '', true);
 end;
 $$;
 

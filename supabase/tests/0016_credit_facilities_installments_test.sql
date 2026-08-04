@@ -230,7 +230,8 @@ select app_finance.create_installment_plan(
 );
 select results_eq(
   $$select
-      (select sum(amount_minor) from app_finance.financial_transactions
+      (select sum(amount_minor)::bigint
+        from app_finance.financial_transactions
         where user_id = '00000000-0000-0000-0000-000000000044'
           and transaction_kind = 'expense'),
       (select total_payable_minor from app_finance.installment_plans
