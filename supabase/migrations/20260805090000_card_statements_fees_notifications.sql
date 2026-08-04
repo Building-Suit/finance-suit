@@ -645,6 +645,14 @@ $$;
 -- Derived views
 -- ---------------------------------------------------------------------------
 
+-- The redefinitions add columns in the middle of the existing views, which
+-- CREATE OR REPLACE VIEW cannot do (42P16). Drop the old views first,
+-- dependents before dependencies; every one is recreated below in the same
+-- transaction, so nothing can observe the gap.
+drop view if exists app_finance.credit_facility_summaries;
+drop view if exists app_finance.installment_plan_summaries;
+drop view if exists app_finance.installment_due_statuses;
+
 -- Imported plans mark their pre-tracking dues as presettled: those dues are
 -- fully paid without any current-period cash transfer.
 create or replace view app_finance.installment_due_statuses
