@@ -5026,6 +5026,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Upcoming reminders disappear. Payments already recorded stay in your history.'**
   String get recurringDeleteConfirmBody;
+
+  /// No description provided for @incomeRemainderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} — remaining'**
+  String incomeRemainderTitle(String name);
+
+  /// No description provided for @incomePartialTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the remaining {amount} pending'**
+  String incomePartialTrack(String amount);
+
+  /// No description provided for @incomePartialTrackHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The shortfall stays on your pending list until you receive it or skip it. Turning this off records only what you entered.'**
+  String get incomePartialTrackHelp;
+
+  /// No description provided for @errInvalidPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'For a partial acceptance the amount received must be less than the amount owed.'**
+  String get errInvalidPartial;
 }
 
 class _AppLocalizationsDelegate

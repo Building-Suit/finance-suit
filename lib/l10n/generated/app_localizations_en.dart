@@ -2721,4 +2721,22 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get recurringDeleteConfirmBody =>
       'Upcoming reminders disappear. Payments already recorded stay in your history.';
+
+  @override
+  String incomeRemainderTitle(String name) {
+    return '$name — remaining';
+  }
+
+  @override
+  String incomePartialTrack(String amount) {
+    return 'Keep the remaining $amount pending';
+  }
+
+  @override
+  String get incomePartialTrackHelp =>
+      'The shortfall stays on your pending list until you receive it or skip it. Turning this off records only what you entered.';
+
+  @override
+  String get errInvalidPartial =>
+      'For a partial acceptance the amount received must be less than the amount owed.';
 }

@@ -72,6 +72,7 @@ String _dbValidationMessage(AppLocalizations l10n, String raw) {
     'invalid_paid_installments' => l10n.errInvalidPaidInstallments,
     'plan_partially_paid_due' => l10n.errPlanPartiallyPaidDue,
     'category_in_use' => l10n.errCategoryInUse,
+    'invalid_partial' => l10n.errInvalidPartial,
     'not_found_or_already_decided' => l10n.errAlreadyDecided,
     'already_decided' => l10n.errAlreadyDecided,
     _ => l10n.commonError,
