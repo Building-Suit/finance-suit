@@ -572,7 +572,9 @@ class _PendingIncomeSection extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final warning = context.suitColors.warning;
     final first = items.first;
-    final estimate = first.source.kind == IncomeSourceKind.salary
+    final estimate =
+        first.source.kind == IncomeSourceKind.salary &&
+            !first.occurrence.isRemainder
         ? ref.watch(
             pendingSalaryEstimateProvider((
               occurrenceId: first.occurrence.id,
@@ -580,6 +582,9 @@ class _PendingIncomeSection extends ConsumerWidget {
             )),
           )
         : null;
+    final firstName = first.occurrence.isRemainder
+        ? l10n.incomeRemainderTitle(first.source.name)
+        : first.source.name;
     final amount = Money(
       minor:
           estimate?.value?.totalMinor ?? first.occurrence.expectedAmountMinor,
@@ -617,7 +622,7 @@ class _PendingIncomeSection extends ConsumerWidget {
                       const SizedBox(height: 2),
                       if (items.length == 1)
                         ProtectedMoneyText(
-                          '${first.source.name} · $amount',
+                          '$firstName · $amount',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.bodyMedium,
@@ -625,7 +630,7 @@ class _PendingIncomeSection extends ConsumerWidget {
                       else
                         Text(
                           '${l10n.incomePendingCount(items.length)} · '
-                          '${first.source.name}',
+                          '$firstName',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.bodyMedium,

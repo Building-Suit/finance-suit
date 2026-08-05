@@ -81,6 +81,17 @@ ledger rows are blocked by triggers and only the facility RPCs
 `pay_credit_facility`, `reverse_facility_payment`,
 `cancel_installment_plan`) mutate them.
 
+Partial income acceptance: when less money arrives than was owed,
+`accept_income_occurrence_partial` books the received part exactly like a
+normal acceptance (salary period, splits, and extra-work routing all run
+on what arrived) and spawns a linked pending *remainder occurrence*
+(`income_occurrences.remainder_of_occurrence_id`) for the shortfall.
+The remainder keeps showing as pending income until it is accepted —
+which books one plain income transaction with no second period or split
+pass — or skipped to write it off. The schedule uniqueness key applies
+only to materialized rows, so remainders never collide with the monthly
+schedule.
+
 Recurring automation covers every entry kind, not only income:
 `recurring_rules` (expense from cash or a credit card, or transfer;
 weekly/monthly/quarterly/annual schedules) materialize into

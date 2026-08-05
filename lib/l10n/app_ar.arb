@@ -1250,5 +1250,23 @@
   "recurringSkipTitle": "تخطي هذه الدفعة؟",
   "recurringSkipHelp": "التخطي لا يسجل شيئًا لهذا التاريخ، والدفعة التالية تصل في موعدها.",
   "recurringDeleteConfirmTitle": "حذف هذه القاعدة؟",
-  "recurringDeleteConfirmBody": "تختفي التذكيرات القادمة، وتبقى المدفوعات المسجلة في السجل."
+  "recurringDeleteConfirmBody": "تختفي التذكيرات القادمة، وتبقى المدفوعات المسجلة في السجل.",
+  "incomeRemainderTitle": "{name} — المتبقي",
+  "@incomeRemainderTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "incomePartialTrack": "إبقاء المتبقي {amount} معلقًا",
+  "@incomePartialTrack": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "incomePartialTrackHelp": "يبقى المبلغ الناقص في قائمة المعلقات حتى تستلمه أو تتخطاه. إيقاف هذا الخيار يسجل ما أدخلته فقط.",
+  "errInvalidPartial": "في القبول الجزئي يجب أن يكون المبلغ المستلم أقل من المبلغ المستحق."
 }
