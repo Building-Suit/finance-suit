@@ -1186,5 +1186,69 @@
       }
     }
   },
-  "valFeePercent": "أدخل نسبة بين 0.01 و1,000."
+  "valFeePercent": "أدخل نسبة بين 0.01 و1,000.",
+  "errCategoryInUse": "لا يزال هذا التصنيف مستخدمًا في سجلات أو له تصنيفات فرعية. أرشِفه بدلًا من ذلك أو أزل ما يستخدمه أولًا.",
+  "errAlreadyDecided": "تم التعامل مع هذا العنصر بالفعل.",
+  "catDeleteConfirmTitle": "حذف هذا التصنيف؟",
+  "catDeleteConfirmBody": "الحذف ممكن فقط عندما لا يستخدمه أي سجل. ما هو مستخدم يُؤرشف بدلًا من ذلك.",
+  "recurringCenterTitle": "المدفوعات المتكررة",
+  "recurringCenterSubtitle": "أتمتة الإيجار والاشتراكات والتحويلات الشهرية للمدخرات.",
+  "recurringPendingTitle": "مدفوعات في انتظارك",
+  "recurringPendingCount": "{count} مدفوعات منتظرة",
+  "@recurringPendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recurringRulesTitle": "القواعد",
+  "recurringAddRule": "إضافة دفعة متكررة",
+  "recurringEditRule": "تعديل الدفعة المتكررة",
+  "recurringEmptyTitle": "لا مدفوعات متكررة بعد. أتمت الإيجار أو الاشتراكات أو تحويلًا شهريًا للمدخرات.",
+  "recurringKindLabel": "ما الذي يتكرر",
+  "recurringKindExpense": "مصروف",
+  "recurringKindTransfer": "تحويل بين الحسابات",
+  "recurringNameLabel": "الاسم",
+  "recurringAmountLabel": "المبلغ",
+  "recurringPayFrom": "الدفع من",
+  "recurringCardSourceHint": "مدفوعات البطاقة تُسجَّل على كشف حساب البطاقة الشهري، لا على نقدك.",
+  "recurringFrequencyLabel": "التكرار",
+  "recurringFrequencyWeekly": "أسبوعيًا",
+  "recurringFrequencyMonthly": "شهريًا",
+  "recurringFrequencyQuarterly": "ربع سنوي",
+  "recurringFrequencyAnnually": "سنويًا",
+  "recurringWeekdayLabel": "في يوم",
+  "recurringDayOfMonthLabel": "في يوم من الشهر",
+  "recurringDayOfMonthHelp": "الأيام 1–28 لتكون موجودة في كل الشهور.",
+  "recurringScheduleOnDay": "{frequency} · يوم {day}",
+  "@recurringScheduleOnDay": {
+    "placeholders": {
+      "frequency": {
+        "type": "String"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "recurringPaused": "موقوفة",
+  "recurringPause": "إيقاف مؤقت",
+  "recurringResume": "استئناف",
+  "recurringPayNow": "تسجيل الدفعة",
+  "recurringPaidOn": "تاريخ الدفع",
+  "recurringAcceptTitle": "تسجيل هذه الدفعة؟",
+  "recurringAcceptHelp": "أكد المبلغ والتاريخ لـ\"{name}\"؛ يُسجَّل القيد تمامًا كالإدخال اليدوي.",
+  "@recurringAcceptHelp": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "recurringAcceptedMessage": "تم تسجيل الدفعة.",
+  "recurringSkipTitle": "تخطي هذه الدفعة؟",
+  "recurringSkipHelp": "التخطي لا يسجل شيئًا لهذا التاريخ، والدفعة التالية تصل في موعدها.",
+  "recurringDeleteConfirmTitle": "حذف هذه القاعدة؟",
+  "recurringDeleteConfirmBody": "تختفي التذكيرات القادمة، وتبقى المدفوعات المسجلة في السجل."
 }

@@ -4786,6 +4786,246 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a percent between 0.01 and 1,000.'**
   String get valFeePercent;
+
+  /// No description provided for @errCategoryInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'This category still labels records or has subcategories. Archive it instead, or remove those first.'**
+  String get errCategoryInUse;
+
+  /// No description provided for @errAlreadyDecided.
+  ///
+  /// In en, this message translates to:
+  /// **'This entry was already handled.'**
+  String get errAlreadyDecided;
+
+  /// No description provided for @catDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this category?'**
+  String get catDeleteConfirmTitle;
+
+  /// No description provided for @catDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Deletion only works while nothing uses the category. Anything in use should be archived instead.'**
+  String get catDeleteConfirmBody;
+
+  /// No description provided for @recurringCenterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring payments'**
+  String get recurringCenterTitle;
+
+  /// No description provided for @recurringCenterSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Automate rent, subscriptions, and monthly savings transfers.'**
+  String get recurringCenterSubtitle;
+
+  /// No description provided for @recurringPendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments waiting for you'**
+  String get recurringPendingTitle;
+
+  /// No description provided for @recurringPendingCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} payments waiting'**
+  String recurringPendingCount(int count);
+
+  /// No description provided for @recurringRulesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rules'**
+  String get recurringRulesTitle;
+
+  /// No description provided for @recurringAddRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Add recurring payment'**
+  String get recurringAddRule;
+
+  /// No description provided for @recurringEditRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit recurring payment'**
+  String get recurringEditRule;
+
+  /// No description provided for @recurringEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No recurring payments yet. Automate rent, subscriptions, or a monthly transfer to savings.'**
+  String get recurringEmptyTitle;
+
+  /// No description provided for @recurringKindLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What repeats'**
+  String get recurringKindLabel;
+
+  /// No description provided for @recurringKindExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get recurringKindExpense;
+
+  /// No description provided for @recurringKindTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer between accounts'**
+  String get recurringKindTransfer;
+
+  /// No description provided for @recurringNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get recurringNameLabel;
+
+  /// No description provided for @recurringAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get recurringAmountLabel;
+
+  /// No description provided for @recurringPayFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay from'**
+  String get recurringPayFrom;
+
+  /// No description provided for @recurringCardSourceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Card payments land on the card\'s monthly statement, not your cash.'**
+  String get recurringCardSourceHint;
+
+  /// No description provided for @recurringFrequencyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeats'**
+  String get recurringFrequencyLabel;
+
+  /// No description provided for @recurringFrequencyWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get recurringFrequencyWeekly;
+
+  /// No description provided for @recurringFrequencyMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get recurringFrequencyMonthly;
+
+  /// No description provided for @recurringFrequencyQuarterly.
+  ///
+  /// In en, this message translates to:
+  /// **'Quarterly'**
+  String get recurringFrequencyQuarterly;
+
+  /// No description provided for @recurringFrequencyAnnually.
+  ///
+  /// In en, this message translates to:
+  /// **'Annually'**
+  String get recurringFrequencyAnnually;
+
+  /// No description provided for @recurringWeekdayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'On weekday'**
+  String get recurringWeekdayLabel;
+
+  /// No description provided for @recurringDayOfMonthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'On day of month'**
+  String get recurringDayOfMonthLabel;
+
+  /// No description provided for @recurringDayOfMonthHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Days 1–28, so every month has the date.'**
+  String get recurringDayOfMonthHelp;
+
+  /// No description provided for @recurringScheduleOnDay.
+  ///
+  /// In en, this message translates to:
+  /// **'{frequency} · day {day}'**
+  String recurringScheduleOnDay(String frequency, int day);
+
+  /// No description provided for @recurringPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get recurringPaused;
+
+  /// No description provided for @recurringPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get recurringPause;
+
+  /// No description provided for @recurringResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get recurringResume;
+
+  /// No description provided for @recurringPayNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Record payment'**
+  String get recurringPayNow;
+
+  /// No description provided for @recurringPaidOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid on'**
+  String get recurringPaidOn;
+
+  /// No description provided for @recurringAcceptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Record this payment?'**
+  String get recurringAcceptTitle;
+
+  /// No description provided for @recurringAcceptHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm the amount and date for \"{name}\"; the entry is booked exactly like a manual one.'**
+  String recurringAcceptHelp(String name);
+
+  /// No description provided for @recurringAcceptedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment recorded.'**
+  String get recurringAcceptedMessage;
+
+  /// No description provided for @recurringSkipTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip this payment?'**
+  String get recurringSkipTitle;
+
+  /// No description provided for @recurringSkipHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipping records nothing for this date. The next occurrence still arrives on schedule.'**
+  String get recurringSkipHelp;
+
+  /// No description provided for @recurringDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this rule?'**
+  String get recurringDeleteConfirmTitle;
+
+  /// No description provided for @recurringDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming reminders disappear. Payments already recorded stay in your history.'**
+  String get recurringDeleteConfirmBody;
 }
 
 class _AppLocalizationsDelegate

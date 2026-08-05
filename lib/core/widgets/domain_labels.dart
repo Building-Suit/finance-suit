@@ -59,6 +59,36 @@ String planPricingMethodLabel(AppLocalizations l10n, PlanPricingMethod m) {
   };
 }
 
+String recurringRuleKindLabel(AppLocalizations l10n, RecurringRuleKind kind) {
+  return switch (kind) {
+    RecurringRuleKind.expense => l10n.recurringKindExpense,
+    RecurringRuleKind.transfer => l10n.recurringKindTransfer,
+  };
+}
+
+String recurringFrequencyLabel(
+  AppLocalizations l10n,
+  RecurringFrequency frequency,
+) {
+  return switch (frequency) {
+    RecurringFrequency.weekly => l10n.recurringFrequencyWeekly,
+    RecurringFrequency.monthly => l10n.recurringFrequencyMonthly,
+    RecurringFrequency.quarterly => l10n.recurringFrequencyQuarterly,
+    RecurringFrequency.annually => l10n.recurringFrequencyAnnually,
+  };
+}
+
+/// One-line schedule summary such as "Monthly · day 5".
+String recurringScheduleLabel(
+  AppLocalizations l10n,
+  RecurringFrequency frequency,
+  int paymentDay,
+) {
+  final base = recurringFrequencyLabel(l10n, frequency);
+  if (frequency == RecurringFrequency.weekly) return base;
+  return l10n.recurringScheduleOnDay(base, paymentDay);
+}
+
 String minPaymentMethodLabel(AppLocalizations l10n, MinPaymentMethod method) {
   return switch (method) {
     MinPaymentMethod.full => l10n.minPaymentFull,

@@ -10,6 +10,7 @@ import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
+import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/screens/account_form_screen.dart';
@@ -157,7 +158,13 @@ List<dynamic> _baseOverrides({
       (ref) async => accountList.where((a) => !a.isArchived).toList(),
     ),
     allAccountBalancesProvider.overrideWith((ref) async => accountList),
-    creditFacilitiesProvider.overrideWith((ref) async => facilityList),
+    creditFacilitiesProvider.overrideWith(
+      (ref) async => facilityList.where((f) => !f.isArchived).toList(),
+    ),
+    allCreditFacilitiesProvider.overrideWith((ref) async => facilityList),
+    pendingRecurringProvider.overrideWith(
+      (ref) async => const <PendingRecurring>[],
+    ),
     installmentPlansProvider.overrideWith(
       (ref, accountId) async => [_fridgePlan],
     ),

@@ -71,6 +71,9 @@ String _dbValidationMessage(AppLocalizations l10n, String raw) {
     'card_not_configured' => l10n.errCardNotConfigured,
     'invalid_paid_installments' => l10n.errInvalidPaidInstallments,
     'plan_partially_paid_due' => l10n.errPlanPartiallyPaidDue,
+    'category_in_use' => l10n.errCategoryInUse,
+    'not_found_or_already_decided' => l10n.errAlreadyDecided,
+    'already_decided' => l10n.errAlreadyDecided,
     _ => l10n.commonError,
   };
 }

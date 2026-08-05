@@ -9,6 +9,7 @@ import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
+import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 import 'package:work_tracker/features/finance/domain/transaction_macro.dart';
 import 'package:work_tracker/features/salary/domain/salary_estimate.dart';
@@ -170,6 +171,18 @@ final statementSummariesProvider = FutureProvider.family
       return result.when(ok: (s) => s, err: (failure) => throw failure);
     });
 
+/// Every facility including archived ones, for the Money account list —
+/// an archived card keeps its debt visible until it is settled.
+final allCreditFacilitiesProvider = FutureProvider<List<CreditFacilitySummary>>(
+  (ref) async {
+    ref.watch(currentUserIdProvider);
+    final result = await ref
+        .watch(financeRepositoryProvider)
+        .fetchCreditFacilities(includeArchived: true);
+    return result.when(ok: (f) => f, err: (failure) => throw failure);
+  },
+);
+
 /// Fee rules of one credit card, active first.
 final feeRulesProvider = FutureProvider.family
     .autoDispose<List<CardFeeRule>, String>((ref, accountId) async {
@@ -198,6 +211,7 @@ void invalidateFinanceData(WidgetRef ref) {
   ref.invalidate(heldAmountsProvider);
   ref.invalidate(pendingIncomeProvider);
   ref.invalidate(creditFacilitiesProvider);
+  ref.invalidate(allCreditFacilitiesProvider);
   ref.invalidate(installmentPlansProvider);
   ref.invalidate(installmentDuesProvider);
   ref.invalidate(statementSummariesProvider);
@@ -209,4 +223,30 @@ void invalidateIncomeAutomation(WidgetRef ref) {
   ref
     ..invalidate(incomeSourcesProvider)
     ..invalidate(pendingIncomeProvider);
+}
+
+/// Recurring expense/transfer rules, active first.
+final recurringRulesProvider = FutureProvider<List<RecurringRule>>((ref) async {
+  ref.watch(currentUserIdProvider);
+  final result = await ref
+      .watch(financeRepositoryProvider)
+      .fetchRecurringRules();
+  return result.when(ok: (r) => r, err: (failure) => throw failure);
+});
+
+/// Pending recurring outflows awaiting an accept/skip decision.
+final pendingRecurringProvider = FutureProvider<List<PendingRecurring>>((
+  ref,
+) async {
+  ref.watch(currentUserIdProvider);
+  final result = await ref
+      .watch(financeRepositoryProvider)
+      .fetchPendingRecurring(PlainDate.today());
+  return result.when(ok: (items) => items, err: (failure) => throw failure);
+});
+
+void invalidateRecurringAutomation(WidgetRef ref) {
+  ref
+    ..invalidate(recurringRulesProvider)
+    ..invalidate(pendingRecurringProvider);
 }

@@ -183,6 +183,45 @@ begin
   ) is null then
     v_missing := array_append(v_missing, 'pay_credit_facility');
   end if;
+
+  if to_regclass('app_finance.recurring_rules') is null then
+    v_missing := array_append(v_missing, 'app_finance.recurring_rules');
+  end if;
+  if to_regclass('app_finance.recurring_occurrences') is null then
+    v_missing := array_append(
+      v_missing, 'app_finance.recurring_occurrences');
+  end if;
+  if to_regprocedure(
+    'app_finance.save_recurring_rule(text,app_finance.recurring_rule_kind,bigint,app_finance.recurring_frequency,smallint,date,smallint,uuid,uuid,uuid,text,uuid,boolean)'
+  ) is null then
+    v_missing := array_append(v_missing, 'save_recurring_rule');
+  end if;
+  if to_regprocedure(
+    'app_finance.materialize_recurring_occurrences(date)'
+  ) is null then
+    v_missing := array_append(
+      v_missing, 'materialize_recurring_occurrences');
+  end if;
+  if to_regprocedure(
+    'app_finance.accept_recurring_occurrence(uuid,bigint,date,text)'
+  ) is null then
+    v_missing := array_append(v_missing, 'accept_recurring_occurrence');
+  end if;
+  if to_regprocedure(
+    'app_finance.skip_recurring_occurrence(uuid)'
+  ) is null then
+    v_missing := array_append(v_missing, 'skip_recurring_occurrence');
+  end if;
+  if to_regprocedure(
+    'app_finance.snooze_recurring_occurrence(uuid,timestamptz)'
+  ) is null then
+    v_missing := array_append(v_missing, 'snooze_recurring_occurrence');
+  end if;
+  if to_regprocedure(
+    'app_finance.delete_transaction_category(uuid)'
+  ) is null then
+    v_missing := array_append(v_missing, 'delete_transaction_category');
+  end if;
   if to_regprocedure(
     'app_finance.reverse_facility_payment(uuid)'
   ) is null then

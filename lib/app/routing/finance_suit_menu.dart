@@ -311,6 +311,11 @@ class _FinanceSuitMenuPanel extends StatelessWidget {
             label: l10n.incomeAutomationCenter,
             route: '${AppRoutes.settings}/income-sources',
           ),
+          (
+            icon: FinanceSuitIcons.eventRepeat,
+            label: l10n.recurringCenterTitle,
+            route: '${AppRoutes.settings}/recurring',
+          ),
         ],
       ),
       (

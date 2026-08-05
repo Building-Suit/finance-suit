@@ -2587,4 +2587,138 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get valFeePercent => 'Enter a percent between 0.01 and 1,000.';
+
+  @override
+  String get errCategoryInUse =>
+      'This category still labels records or has subcategories. Archive it instead, or remove those first.';
+
+  @override
+  String get errAlreadyDecided => 'This entry was already handled.';
+
+  @override
+  String get catDeleteConfirmTitle => 'Delete this category?';
+
+  @override
+  String get catDeleteConfirmBody =>
+      'Deletion only works while nothing uses the category. Anything in use should be archived instead.';
+
+  @override
+  String get recurringCenterTitle => 'Recurring payments';
+
+  @override
+  String get recurringCenterSubtitle =>
+      'Automate rent, subscriptions, and monthly savings transfers.';
+
+  @override
+  String get recurringPendingTitle => 'Payments waiting for you';
+
+  @override
+  String recurringPendingCount(int count) {
+    return '$count payments waiting';
+  }
+
+  @override
+  String get recurringRulesTitle => 'Rules';
+
+  @override
+  String get recurringAddRule => 'Add recurring payment';
+
+  @override
+  String get recurringEditRule => 'Edit recurring payment';
+
+  @override
+  String get recurringEmptyTitle =>
+      'No recurring payments yet. Automate rent, subscriptions, or a monthly transfer to savings.';
+
+  @override
+  String get recurringKindLabel => 'What repeats';
+
+  @override
+  String get recurringKindExpense => 'Expense';
+
+  @override
+  String get recurringKindTransfer => 'Transfer between accounts';
+
+  @override
+  String get recurringNameLabel => 'Name';
+
+  @override
+  String get recurringAmountLabel => 'Amount';
+
+  @override
+  String get recurringPayFrom => 'Pay from';
+
+  @override
+  String get recurringCardSourceHint =>
+      'Card payments land on the card\'s monthly statement, not your cash.';
+
+  @override
+  String get recurringFrequencyLabel => 'Repeats';
+
+  @override
+  String get recurringFrequencyWeekly => 'Weekly';
+
+  @override
+  String get recurringFrequencyMonthly => 'Monthly';
+
+  @override
+  String get recurringFrequencyQuarterly => 'Quarterly';
+
+  @override
+  String get recurringFrequencyAnnually => 'Annually';
+
+  @override
+  String get recurringWeekdayLabel => 'On weekday';
+
+  @override
+  String get recurringDayOfMonthLabel => 'On day of month';
+
+  @override
+  String get recurringDayOfMonthHelp =>
+      'Days 1–28, so every month has the date.';
+
+  @override
+  String recurringScheduleOnDay(String frequency, int day) {
+    return '$frequency · day $day';
+  }
+
+  @override
+  String get recurringPaused => 'Paused';
+
+  @override
+  String get recurringPause => 'Pause';
+
+  @override
+  String get recurringResume => 'Resume';
+
+  @override
+  String get recurringPayNow => 'Record payment';
+
+  @override
+  String get recurringPaidOn => 'Paid on';
+
+  @override
+  String get recurringAcceptTitle => 'Record this payment?';
+
+  @override
+  String recurringAcceptHelp(String name) {
+    return 'Confirm the amount and date for \"$name\"; the entry is booked exactly like a manual one.';
+  }
+
+  @override
+  String get recurringAcceptedMessage => 'Payment recorded.';
+
+  @override
+  String get recurringSkipTitle => 'Skip this payment?';
+
+  @override
+  String get recurringSkipHelp =>
+      'Skipping records nothing for this date. The next occurrence still arrives on schedule.';
+
+  @override
+  String get recurringDeleteConfirmTitle => 'Delete this rule?';
+
+  @override
+  String get recurringDeleteConfirmBody =>
+      'Upcoming reminders disappear. Payments already recorded stay in your history.';
 }

@@ -194,7 +194,10 @@ class FacilityTile extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          accountTypeLabel(l10n, facility.accountType),
+                          facility.isArchived
+                              ? '${accountTypeLabel(l10n, facility.accountType)}'
+                                    ' · ${l10n.moneyArchivedLabel}'
+                              : accountTypeLabel(l10n, facility.accountType),
                           style: theme.textTheme.bodySmall,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
