@@ -35,7 +35,11 @@ Future<bool> acceptPendingIncome(
   final l10n = AppLocalizations.of(context);
   SalaryEstimate? salaryEstimate;
   SalaryPeriod? salaryPeriod;
-  if (pending.source.kind == IncomeSourceKind.salary) {
+  // A remainder is the late part of an already-accepted payment: its
+  // salary period was handled by the parent acceptance, so it books
+  // plainly and must never re-enter the period flow.
+  final isRemainder = pending.occurrence.isRemainder;
+  if (!isRemainder && pending.source.kind == IncomeSourceKind.salary) {
     // A failing salary provider must surface as a message, not an
     // unhandled exception that leaves the pending card unresponsive.
     final PeriodBounds bounds;
@@ -84,14 +88,19 @@ Future<bool> acceptPendingIncome(
     }
   }
 
-  final defaultMinor =
+  final owedMinor =
       salaryEstimate?.totalMinor ?? pending.occurrence.expectedAmountMinor;
   final amountController = TextEditingController(
-    text: formatMinorForInput(defaultMinor),
+    text: formatMinorForInput(owedMinor),
   );
   final notesController = TextEditingController();
   var receivedOn = PlainDate.today();
+  var trackRemainder = true;
   final formKey = GlobalKey<FormState>();
+  int? parsedMinor() => Money.tryParse(
+    amountController.text,
+    currencyCode: pending.source.currencyCode,
+  )?.minor;
   final accepted = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => StatefulBuilder(
@@ -115,6 +124,7 @@ Future<bool> acceptPendingIncome(
                     labelText: l10n.salActualAmount,
                     suffixText: pending.source.currencyCode,
                   ),
+                  onChanged: (_) => setDialogState(() {}),
                   validator: (value) {
                     final error = Validators.positiveAmount(
                       value,
@@ -125,6 +135,29 @@ Future<bool> acceptPendingIncome(
                         : validationMessage(dialogContext, error);
                   },
                 ),
+                // Receiving less than what is owed offers to keep the
+                // difference as a pending remainder instead of silently
+                // shrinking the income.
+                if (parsedMinor() != null && parsedMinor()! < owedMinor) ...[
+                  const SizedBox(height: 4),
+                  SwitchListTile(
+                    key: const Key('income-track-remainder'),
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    title: Text(
+                      l10n.incomePartialTrack(
+                        Money(
+                          minor: owedMinor - parsedMinor()!,
+                          currencyCode: pending.source.currencyCode,
+                        ).format(),
+                      ),
+                    ),
+                    subtitle: Text(l10n.incomePartialTrackHelp),
+                    value: trackRemainder,
+                    onChanged: (value) =>
+                        setDialogState(() => trackRemainder = value),
+                  ),
+                ],
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const FinanceSuitIcon(
@@ -194,15 +227,23 @@ Future<bool> acceptPendingIncome(
     currencyCode: pending.source.currencyCode,
   )!;
   final notes = notesController.text.trim();
-  final result = await ref
-      .read(financeRepositoryProvider)
-      .acceptIncomeOccurrence(
-        occurrenceId: pending.occurrence.id,
-        actualAmountMinor: amount.minor,
-        receivedOn: receivedOn,
-        notes: notes.isEmpty ? null : notes,
-        salaryPeriodId: salaryPeriod?.id,
-      );
+  final repository = ref.read(financeRepositoryProvider);
+  final result = amount.minor < owedMinor && trackRemainder
+      ? await repository.acceptIncomeOccurrencePartial(
+          occurrenceId: pending.occurrence.id,
+          receivedAmountMinor: amount.minor,
+          expectedTotalMinor: owedMinor,
+          receivedOn: receivedOn,
+          notes: notes.isEmpty ? null : notes,
+          salaryPeriodId: salaryPeriod?.id,
+        )
+      : await repository.acceptIncomeOccurrence(
+          occurrenceId: pending.occurrence.id,
+          actualAmountMinor: amount.minor,
+          receivedOn: receivedOn,
+          notes: notes.isEmpty ? null : notes,
+          salaryPeriodId: salaryPeriod?.id,
+        );
   if (!context.mounted) return false;
   return result.when(
     ok: (_) {

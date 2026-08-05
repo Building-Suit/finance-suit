@@ -223,6 +223,21 @@ begin
     v_missing := array_append(v_missing, 'delete_transaction_category');
   end if;
   if to_regprocedure(
+    'app_finance.accept_income_occurrence_partial(uuid,bigint,bigint,date,text,uuid)'
+  ) is null then
+    v_missing := array_append(
+      v_missing, 'accept_income_occurrence_partial');
+  end if;
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'app_finance'
+      and table_name = 'income_occurrences'
+      and column_name = 'remainder_of_occurrence_id'
+  ) then
+    v_missing := array_append(
+      v_missing, 'income_occurrences.remainder_of_occurrence_id');
+  end if;
+  if to_regprocedure(
     'app_finance.reverse_facility_payment(uuid)'
   ) is null then
     v_missing := array_append(v_missing, 'reverse_facility_payment');

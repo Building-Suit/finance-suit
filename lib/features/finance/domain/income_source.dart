@@ -152,6 +152,7 @@ class IncomeOccurrence {
     this.salaryPeriodId,
     this.snoozedUntil,
     this.notes,
+    this.remainderOfOccurrenceId,
   });
 
   factory IncomeOccurrence.fromJson(Map<String, dynamic> json) =>
@@ -174,6 +175,7 @@ class IncomeOccurrence {
           _ => null,
         },
         notes: json['notes'] as String?,
+        remainderOfOccurrenceId: json['remainder_of_occurrence_id'] as String?,
       );
 
   final String id;
@@ -187,6 +189,13 @@ class IncomeOccurrence {
   final String? salaryPeriodId;
   final DateTime? snoozedUntil;
   final String? notes;
+
+  /// Set when this row tracks the unpaid part of a partially accepted
+  /// occurrence: accepting it books the late money plainly, without a
+  /// second salary period or split pass.
+  final String? remainderOfOccurrenceId;
+
+  bool get isRemainder => remainderOfOccurrenceId != null;
 }
 
 @immutable

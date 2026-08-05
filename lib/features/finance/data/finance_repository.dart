@@ -357,6 +357,32 @@ class FinanceRepository {
     });
   }
 
+  /// Accepts the part of an expected income that actually arrived and
+  /// spawns a linked pending remainder for the shortfall, so the missing
+  /// money stays visible until it is received or written off.
+  Future<Result<String>> acceptIncomeOccurrencePartial({
+    required String occurrenceId,
+    required int receivedAmountMinor,
+    required int expectedTotalMinor,
+    required PlainDate receivedOn,
+    String? notes,
+    String? salaryPeriodId,
+  }) {
+    return guard(() async {
+      return _db.rpc<String>(
+        'accept_income_occurrence_partial',
+        params: {
+          'p_occurrence_id': occurrenceId,
+          'p_received_amount_minor': receivedAmountMinor,
+          'p_expected_total_minor': expectedTotalMinor,
+          'p_received_on': receivedOn.toIso(),
+          'p_notes': notes,
+          'p_salary_period_id': salaryPeriodId,
+        },
+      );
+    });
+  }
+
   Future<Result<void>> skipIncomeOccurrence(String occurrenceId) {
     return guard(() async {
       await _db.rpc<void>(

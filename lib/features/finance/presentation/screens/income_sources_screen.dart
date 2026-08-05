@@ -237,7 +237,11 @@ class IncomeSourcesScreen extends ConsumerWidget {
   ) {
     final l10n = AppLocalizations.of(context);
     final warning = context.suitColors.warning;
-    final estimate = pending.source.kind == IncomeSourceKind.salary
+    // A remainder's amount is exactly the tracked shortfall; the salary
+    // estimate belongs to the parent occurrence only.
+    final estimate =
+        pending.source.kind == IncomeSourceKind.salary &&
+            !pending.occurrence.isRemainder
         ? ref.watch(
             pendingSalaryEstimateProvider((
               occurrenceId: pending.occurrence.id,
@@ -249,6 +253,9 @@ class IncomeSourcesScreen extends ConsumerWidget {
     final amountMinor =
         salaryEstimate?.totalMinor ?? pending.occurrence.expectedAmountMinor;
     final textTheme = Theme.of(context).textTheme;
+    final title = pending.occurrence.isRemainder
+        ? l10n.incomeRemainderTitle(pending.source.name)
+        : pending.source.name;
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: Padding(
@@ -263,7 +270,7 @@ class IncomeSourcesScreen extends ConsumerWidget {
               runSpacing: 4,
               children: [
                 Text(
-                  pending.source.name,
+                  title,
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),

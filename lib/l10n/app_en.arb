@@ -1250,5 +1250,23 @@
   "recurringSkipTitle": "Skip this payment?",
   "recurringSkipHelp": "Skipping records nothing for this date. The next occurrence still arrives on schedule.",
   "recurringDeleteConfirmTitle": "Delete this rule?",
-  "recurringDeleteConfirmBody": "Upcoming reminders disappear. Payments already recorded stay in your history."
+  "recurringDeleteConfirmBody": "Upcoming reminders disappear. Payments already recorded stay in your history.",
+  "incomeRemainderTitle": "{name} — remaining",
+  "@incomeRemainderTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "incomePartialTrack": "Keep the remaining {amount} pending",
+  "@incomePartialTrack": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "incomePartialTrackHelp": "The shortfall stays on your pending list until you receive it or skip it. Turning this off records only what you entered.",
+  "errInvalidPartial": "For a partial acceptance the amount received must be less than the amount owed."
 }

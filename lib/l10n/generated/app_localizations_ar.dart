@@ -2706,4 +2706,22 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get recurringDeleteConfirmBody =>
       'تختفي التذكيرات القادمة، وتبقى المدفوعات المسجلة في السجل.';
+
+  @override
+  String incomeRemainderTitle(String name) {
+    return '$name — المتبقي';
+  }
+
+  @override
+  String incomePartialTrack(String amount) {
+    return 'إبقاء المتبقي $amount معلقًا';
+  }
+
+  @override
+  String get incomePartialTrackHelp =>
+      'يبقى المبلغ الناقص في قائمة المعلقات حتى تستلمه أو تتخطاه. إيقاف هذا الخيار يسجل ما أدخلته فقط.';
+
+  @override
+  String get errInvalidPartial =>
+      'في القبول الجزئي يجب أن يكون المبلغ المستلم أقل من المبلغ المستحق.';
 }
