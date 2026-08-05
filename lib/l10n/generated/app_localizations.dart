@@ -5045,6 +5045,12 @@ abstract class AppLocalizations {
   /// **'The shortfall stays on your pending list until you receive it or skip it. Turning this off records only what you entered.'**
   String get incomePartialTrackHelp;
 
+  /// No description provided for @incomePartialExtraFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing money is taken off your extra-day, overtime, and holiday pay first, so nothing moves to the extra-work account until it arrives. Anything the extra work cannot cover comes off the base salary, and your splits run on what you received.'**
+  String get incomePartialExtraFirst;
+
   /// No description provided for @errInvalidPartial.
   ///
   /// In en, this message translates to:

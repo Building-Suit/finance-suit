@@ -2737,6 +2737,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The shortfall stays on your pending list until you receive it or skip it. Turning this off records only what you entered.';
 
   @override
+  String get incomePartialExtraFirst =>
+      'Missing money is taken off your extra-day, overtime, and holiday pay first, so nothing moves to the extra-work account until it arrives. Anything the extra work cannot cover comes off the base salary, and your splits run on what you received.';
+
+  @override
   String get errInvalidPartial =>
       'For a partial acceptance the amount received must be less than the amount owed.';
 }
