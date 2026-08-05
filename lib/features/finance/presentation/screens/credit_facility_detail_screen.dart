@@ -215,7 +215,7 @@ class CreditFacilityDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final facilities = ref.watch(creditFacilitiesProvider);
+    final facilities = ref.watch(allCreditFacilitiesProvider);
     final facility = facilities.value
         ?.where((f) => f.accountId == accountId)
         .firstOrNull;
@@ -236,7 +236,7 @@ class CreditFacilityDetailScreen extends ConsumerWidget {
         title: title,
         child: AsyncView<List<CreditFacilitySummary>>(
           value: facilities,
-          onRetry: () => ref.invalidate(creditFacilitiesProvider),
+          onRetry: () => ref.invalidate(allCreditFacilitiesProvider),
           data: (all) {
             final summary = all
                 .where((f) => f.accountId == accountId)
@@ -244,7 +244,7 @@ class CreditFacilityDetailScreen extends ConsumerWidget {
             if (summary == null) {
               return ErrorRetryView(
                 failure: const NotFoundFailure(),
-                onRetry: () => ref.invalidate(creditFacilitiesProvider),
+                onRetry: () => ref.invalidate(allCreditFacilitiesProvider),
               );
             }
             return _FacilityDetailBody(

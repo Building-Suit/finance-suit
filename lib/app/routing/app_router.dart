@@ -16,6 +16,7 @@ import 'package:work_tracker/features/dashboard/presentation/screens/home_screen
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
+import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/domain/transaction_macro.dart';
 import 'package:work_tracker/features/finance/presentation/screens/account_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/categories_screen.dart';
@@ -29,6 +30,8 @@ import 'package:work_tracker/features/finance/presentation/screens/installment_p
 import 'package:work_tracker/features/finance/presentation/screens/macro_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/macros_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/money_screen.dart';
+import 'package:work_tracker/features/finance/presentation/screens/recurring_rule_form_screen.dart';
+import 'package:work_tracker/features/finance/presentation/screens/recurring_rules_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/transaction_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/transfer_form_screen.dart';
 import 'package:work_tracker/features/history/presentation/screens/history_screen.dart';
@@ -405,6 +408,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'edit',
                 builder: (context, state) => IncomeSourceFormScreen(
                   existing: state.extra! as IncomeSource,
+                ),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: 'recurring',
+            builder: (context, state) => const RecurringRulesScreen(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                builder: (context, state) => const RecurringRuleFormScreen(),
+              ),
+              GoRoute(
+                path: 'edit',
+                builder: (context, state) => RecurringRuleFormScreen(
+                  existing: state.extra! as RecurringRule,
                 ),
               ),
             ],

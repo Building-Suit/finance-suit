@@ -2572,4 +2572,138 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get valFeePercent => 'أدخل نسبة بين 0.01 و1,000.';
+
+  @override
+  String get errCategoryInUse =>
+      'لا يزال هذا التصنيف مستخدمًا في سجلات أو له تصنيفات فرعية. أرشِفه بدلًا من ذلك أو أزل ما يستخدمه أولًا.';
+
+  @override
+  String get errAlreadyDecided => 'تم التعامل مع هذا العنصر بالفعل.';
+
+  @override
+  String get catDeleteConfirmTitle => 'حذف هذا التصنيف؟';
+
+  @override
+  String get catDeleteConfirmBody =>
+      'الحذف ممكن فقط عندما لا يستخدمه أي سجل. ما هو مستخدم يُؤرشف بدلًا من ذلك.';
+
+  @override
+  String get recurringCenterTitle => 'المدفوعات المتكررة';
+
+  @override
+  String get recurringCenterSubtitle =>
+      'أتمتة الإيجار والاشتراكات والتحويلات الشهرية للمدخرات.';
+
+  @override
+  String get recurringPendingTitle => 'مدفوعات في انتظارك';
+
+  @override
+  String recurringPendingCount(int count) {
+    return '$count مدفوعات منتظرة';
+  }
+
+  @override
+  String get recurringRulesTitle => 'القواعد';
+
+  @override
+  String get recurringAddRule => 'إضافة دفعة متكررة';
+
+  @override
+  String get recurringEditRule => 'تعديل الدفعة المتكررة';
+
+  @override
+  String get recurringEmptyTitle =>
+      'لا مدفوعات متكررة بعد. أتمت الإيجار أو الاشتراكات أو تحويلًا شهريًا للمدخرات.';
+
+  @override
+  String get recurringKindLabel => 'ما الذي يتكرر';
+
+  @override
+  String get recurringKindExpense => 'مصروف';
+
+  @override
+  String get recurringKindTransfer => 'تحويل بين الحسابات';
+
+  @override
+  String get recurringNameLabel => 'الاسم';
+
+  @override
+  String get recurringAmountLabel => 'المبلغ';
+
+  @override
+  String get recurringPayFrom => 'الدفع من';
+
+  @override
+  String get recurringCardSourceHint =>
+      'مدفوعات البطاقة تُسجَّل على كشف حساب البطاقة الشهري، لا على نقدك.';
+
+  @override
+  String get recurringFrequencyLabel => 'التكرار';
+
+  @override
+  String get recurringFrequencyWeekly => 'أسبوعيًا';
+
+  @override
+  String get recurringFrequencyMonthly => 'شهريًا';
+
+  @override
+  String get recurringFrequencyQuarterly => 'ربع سنوي';
+
+  @override
+  String get recurringFrequencyAnnually => 'سنويًا';
+
+  @override
+  String get recurringWeekdayLabel => 'في يوم';
+
+  @override
+  String get recurringDayOfMonthLabel => 'في يوم من الشهر';
+
+  @override
+  String get recurringDayOfMonthHelp =>
+      'الأيام 1–28 لتكون موجودة في كل الشهور.';
+
+  @override
+  String recurringScheduleOnDay(String frequency, int day) {
+    return '$frequency · يوم $day';
+  }
+
+  @override
+  String get recurringPaused => 'موقوفة';
+
+  @override
+  String get recurringPause => 'إيقاف مؤقت';
+
+  @override
+  String get recurringResume => 'استئناف';
+
+  @override
+  String get recurringPayNow => 'تسجيل الدفعة';
+
+  @override
+  String get recurringPaidOn => 'تاريخ الدفع';
+
+  @override
+  String get recurringAcceptTitle => 'تسجيل هذه الدفعة؟';
+
+  @override
+  String recurringAcceptHelp(String name) {
+    return 'أكد المبلغ والتاريخ لـ\"$name\"؛ يُسجَّل القيد تمامًا كالإدخال اليدوي.';
+  }
+
+  @override
+  String get recurringAcceptedMessage => 'تم تسجيل الدفعة.';
+
+  @override
+  String get recurringSkipTitle => 'تخطي هذه الدفعة؟';
+
+  @override
+  String get recurringSkipHelp =>
+      'التخطي لا يسجل شيئًا لهذا التاريخ، والدفعة التالية تصل في موعدها.';
+
+  @override
+  String get recurringDeleteConfirmTitle => 'حذف هذه القاعدة؟';
+
+  @override
+  String get recurringDeleteConfirmBody =>
+      'تختفي التذكيرات القادمة، وتبقى المدفوعات المسجلة في السجل.';
 }

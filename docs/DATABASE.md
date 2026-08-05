@@ -81,6 +81,20 @@ ledger rows are blocked by triggers and only the facility RPCs
 `pay_credit_facility`, `reverse_facility_payment`,
 `cancel_installment_plan`) mutate them.
 
+Recurring automation covers every entry kind, not only income:
+`recurring_rules` (expense from cash or a credit card, or transfer;
+weekly/monthly/quarterly/annual schedules) materialize into
+`recurring_occurrences` on read via `materialize_recurring_occurrences`,
+idempotent per `(rule_id, scheduled_on)`. Nothing posts silently:
+`accept_recurring_occurrence` books the entry through the same paths as
+manual ones (plain expense, `charge_credit_card`, or `create_transfer`),
+and `skip_recurring_occurrence` / `snooze_recurring_occurrence` mirror
+the income decision flow. Categories are hard-deletable through
+`delete_transaction_category` only while nothing references them
+(transactions, subcategories, plans, fee rules, held amounts, macro
+items, income sources, recurring rules); anything in use archives
+instead.
+
 Facility lifecycle: `facility_status` (`active`/`frozen`/`closed`) gates
 new purchases only; archiving the account hides it from pickers while any
 remaining debt stays visible and payable, and `delete_credit_facility`

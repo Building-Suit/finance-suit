@@ -1186,5 +1186,69 @@
       }
     }
   },
-  "valFeePercent": "Enter a percent between 0.01 and 1,000."
+  "valFeePercent": "Enter a percent between 0.01 and 1,000.",
+  "errCategoryInUse": "This category still labels records or has subcategories. Archive it instead, or remove those first.",
+  "errAlreadyDecided": "This entry was already handled.",
+  "catDeleteConfirmTitle": "Delete this category?",
+  "catDeleteConfirmBody": "Deletion only works while nothing uses the category. Anything in use should be archived instead.",
+  "recurringCenterTitle": "Recurring payments",
+  "recurringCenterSubtitle": "Automate rent, subscriptions, and monthly savings transfers.",
+  "recurringPendingTitle": "Payments waiting for you",
+  "recurringPendingCount": "{count} payments waiting",
+  "@recurringPendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recurringRulesTitle": "Rules",
+  "recurringAddRule": "Add recurring payment",
+  "recurringEditRule": "Edit recurring payment",
+  "recurringEmptyTitle": "No recurring payments yet. Automate rent, subscriptions, or a monthly transfer to savings.",
+  "recurringKindLabel": "What repeats",
+  "recurringKindExpense": "Expense",
+  "recurringKindTransfer": "Transfer between accounts",
+  "recurringNameLabel": "Name",
+  "recurringAmountLabel": "Amount",
+  "recurringPayFrom": "Pay from",
+  "recurringCardSourceHint": "Card payments land on the card's monthly statement, not your cash.",
+  "recurringFrequencyLabel": "Repeats",
+  "recurringFrequencyWeekly": "Weekly",
+  "recurringFrequencyMonthly": "Monthly",
+  "recurringFrequencyQuarterly": "Quarterly",
+  "recurringFrequencyAnnually": "Annually",
+  "recurringWeekdayLabel": "On weekday",
+  "recurringDayOfMonthLabel": "On day of month",
+  "recurringDayOfMonthHelp": "Days 1–28, so every month has the date.",
+  "recurringScheduleOnDay": "{frequency} · day {day}",
+  "@recurringScheduleOnDay": {
+    "placeholders": {
+      "frequency": {
+        "type": "String"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "recurringPaused": "Paused",
+  "recurringPause": "Pause",
+  "recurringResume": "Resume",
+  "recurringPayNow": "Record payment",
+  "recurringPaidOn": "Paid on",
+  "recurringAcceptTitle": "Record this payment?",
+  "recurringAcceptHelp": "Confirm the amount and date for \"{name}\"; the entry is booked exactly like a manual one.",
+  "@recurringAcceptHelp": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "recurringAcceptedMessage": "Payment recorded.",
+  "recurringSkipTitle": "Skip this payment?",
+  "recurringSkipHelp": "Skipping records nothing for this date. The next occurrence still arrives on schedule.",
+  "recurringDeleteConfirmTitle": "Delete this rule?",
+  "recurringDeleteConfirmBody": "Upcoming reminders disappear. Payments already recorded stay in your history."
 }

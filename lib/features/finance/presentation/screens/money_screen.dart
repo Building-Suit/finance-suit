@@ -140,7 +140,7 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
 
   Widget _accountsTab(AppLocalizations l10n) {
     final accounts = ref.watch(allAccountBalancesProvider);
-    final facilities = ref.watch(creditFacilitiesProvider);
+    final facilities = ref.watch(allCreditFacilitiesProvider);
     return AsyncView<List<AccountBalance>>(
       value: accounts,
       onRetry: () => ref.invalidate(allAccountBalancesProvider),
@@ -150,8 +150,12 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
         final assets = all.assetAccounts;
         final active = assets.where((a) => !a.isArchived).toList();
         final archived = assets.where((a) => a.isArchived).toList();
-        final facilityList =
+        final allFacilities =
             facilities.value ?? const <CreditFacilitySummary>[];
+        final facilityList = allFacilities.where((f) => !f.isArchived).toList();
+        final archivedFacilities = allFacilities
+            .where((f) => f.isArchived)
+            .toList();
         if (all.isEmpty) {
           return EmptyStateView(
             icon: FinanceSuitIcons.accountBalanceWallet,
@@ -224,19 +228,29 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
                     ),
                   ),
               ],
-              if (archived.isNotEmpty)
+              if (archived.isNotEmpty || archivedFacilities.isNotEmpty)
                 SwitchListTile(
                   title: Text(l10n.moneyShowArchived),
                   value: _showArchived,
                   onChanged: (v) => setState(() => _showArchived = v),
                 ),
-              if (_showArchived)
+              if (_showArchived) ...[
                 for (final account in archived)
                   _AccountTile(
                     account: account,
                     l10n: l10n,
                     onAction: (action) => _accountAction(account, action),
                   ),
+                // Archived cards stay reachable: their debt is still real
+                // and payable, they just cannot fund new purchases.
+                for (final facility in archivedFacilities)
+                  FacilityTile(
+                    facility: facility,
+                    onTap: () => context.push(
+                      '${AppRoutes.money}/facilities/${facility.accountId}',
+                    ),
+                  ),
+              ],
               const SizedBox(height: 88),
             ],
           ),

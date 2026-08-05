@@ -11,6 +11,7 @@ import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
+import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 import 'package:work_tracker/features/finance/domain/transaction_macro.dart';
 
@@ -922,6 +923,207 @@ class FinanceRepository {
     return guard(() async {
       final count = await _db.rpc<int>('apply_credit_card_fees');
       return count;
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // Recurring rules (expense / transfer automation)
+  // ---------------------------------------------------------------------
+
+  Future<Result<List<RecurringRule>>> fetchRecurringRules() {
+    return guard(() async {
+      final rows = await _db
+          .from('recurring_rules')
+          .select()
+          .eq('user_id', _userId);
+      final rules = rows.map(RecurringRule.fromJson).toList();
+      rules.sort((left, right) {
+        if (left.isActive != right.isActive) return left.isActive ? -1 : 1;
+        return left.name.toLowerCase().compareTo(right.name.toLowerCase());
+      });
+      return rules;
+    });
+  }
+
+  Future<Result<String>> saveRecurringRule({
+    required String name,
+    required RecurringRuleKind kind,
+    required int amountMinor,
+    required RecurringFrequency frequency,
+    required int paymentDay,
+    required PlainDate startDate,
+    required int promptDaysBefore,
+    required String sourceAccountId,
+    String? destinationAccountId,
+    String? categoryId,
+    String? notes,
+    String? ruleId,
+    bool isActive = true,
+  }) {
+    return guard(() async {
+      final id = await _db.rpc<String>(
+        'save_recurring_rule',
+        params: {
+          'p_name': name,
+          'p_rule_kind': kind.dbValue,
+          'p_amount_minor': amountMinor,
+          'p_frequency': frequency.dbValue,
+          'p_payment_day': paymentDay,
+          'p_start_date': startDate.toIso(),
+          'p_prompt_days_before': promptDaysBefore,
+          'p_source_account_id': sourceAccountId,
+          'p_destination_account_id': destinationAccountId,
+          'p_category_id': categoryId,
+          'p_notes': notes,
+          'p_rule_id': ruleId,
+          'p_is_active': isActive,
+        },
+      );
+      return id;
+    });
+  }
+
+  Future<Result<void>> setRecurringRuleActive(
+    String id, {
+    required bool active,
+  }) {
+    return guard(() async {
+      await _db
+          .from('recurring_rules')
+          .update({'is_active': active})
+          .eq('id', id)
+          .eq('user_id', _userId);
+    });
+  }
+
+  /// Deleting a rule removes its pending schedule (cascade); accepted
+  /// occurrences and their booked transactions stay in history.
+  Future<Result<void>> deleteRecurringRule(String id) {
+    return guard(() async {
+      await _db
+          .from('recurring_rules')
+          .delete()
+          .eq('id', id)
+          .eq('user_id', _userId);
+    });
+  }
+
+  /// Generate-on-read pending outflows: fills the schedule a month out,
+  /// then returns the earliest actionable occurrence per rule inside its
+  /// reminder window.
+  Future<Result<List<PendingRecurring>>> fetchPendingRecurring(
+    PlainDate today,
+  ) {
+    return guard(() async {
+      await _db.rpc<int>(
+        'materialize_recurring_occurrences',
+        params: {'p_through_date': today.addDays(31).toIso()},
+      );
+      final ruleRows = await _db
+          .from('recurring_rules')
+          .select()
+          .eq('user_id', _userId)
+          .eq('is_active', true);
+      final rules = ruleRows.map(RecurringRule.fromJson).toList();
+      final byId = {for (final rule in rules) rule.id: rule};
+      final occurrenceRows = await _db
+          .from('recurring_occurrences')
+          .select()
+          .eq('user_id', _userId)
+          .eq('status', IncomeOccurrenceStatus.pending.dbValue)
+          .or(
+            'snoozed_until.is.null,snoozed_until.lte.${DateTime.now().toUtc().toIso8601String()}',
+          )
+          .order('scheduled_on', ascending: true);
+      final actionable = occurrenceRows
+          .map(RecurringOccurrence.fromJson)
+          .where((occurrence) {
+            final rule = byId[occurrence.ruleId];
+            return rule != null &&
+                occurrence.scheduledOn <= today.addDays(rule.promptDaysBefore);
+          })
+          .map(
+            (occurrence) => PendingRecurring(
+              occurrence: occurrence,
+              rule: byId[occurrence.ruleId]!,
+            ),
+          )
+          .toList();
+      final earliestByRule = <String, PendingRecurring>{};
+      for (final item in actionable) {
+        earliestByRule.putIfAbsent(item.rule.id, () => item);
+      }
+      final grouped = earliestByRule.values.toList();
+      grouped.sort((left, right) {
+        final leftDue = left.occurrence.scheduledOn <= today;
+        final rightDue = right.occurrence.scheduledOn <= today;
+        if (leftDue != rightDue) return leftDue ? -1 : 1;
+        final date = left.occurrence.scheduledOn.compareTo(
+          right.occurrence.scheduledOn,
+        );
+        if (date != 0) return date;
+        final name = left.rule.name.toLowerCase().compareTo(
+          right.rule.name.toLowerCase(),
+        );
+        if (name != 0) return name;
+        return left.occurrence.id.compareTo(right.occurrence.id);
+      });
+      return grouped;
+    });
+  }
+
+  Future<Result<String>> acceptRecurringOccurrence({
+    required String occurrenceId,
+    required int actualAmountMinor,
+    required PlainDate paidOn,
+    String? notes,
+  }) {
+    return guard(() async {
+      final id = await _db.rpc<String>(
+        'accept_recurring_occurrence',
+        params: {
+          'p_occurrence_id': occurrenceId,
+          'p_actual_amount_minor': actualAmountMinor,
+          'p_paid_on': paidOn.toIso(),
+          'p_notes': notes,
+        },
+      );
+      return id;
+    });
+  }
+
+  Future<Result<void>> skipRecurringOccurrence(String occurrenceId) {
+    return guard(() async {
+      await _db.rpc<void>(
+        'skip_recurring_occurrence',
+        params: {'p_occurrence_id': occurrenceId},
+      );
+    });
+  }
+
+  Future<Result<void>> snoozeRecurringOccurrence({
+    required String occurrenceId,
+    required DateTime snoozedUntil,
+  }) {
+    return guard(() async {
+      await _db.rpc<void>(
+        'snooze_recurring_occurrence',
+        params: {
+          'p_occurrence_id': occurrenceId,
+          'p_snoozed_until': snoozedUntil.toUtc().toIso8601String(),
+        },
+      );
+    });
+  }
+
+  /// Hard-deletes a category; the server refuses with `category_in_use`
+  /// while anything still references it.
+  Future<Result<void>> deleteCategory(String id) {
+    return guard(() async {
+      await _db.rpc<void>(
+        'delete_transaction_category',
+        params: {'p_category_id': id},
+      );
     });
   }
 }
