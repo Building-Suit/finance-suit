@@ -82,15 +82,25 @@ ledger rows are blocked by triggers and only the facility RPCs
 `cancel_installment_plan`) mutate them.
 
 Partial income acceptance: when less money arrives than was owed,
-`accept_income_occurrence_partial` books the received part exactly like a
-normal acceptance (salary period, splits, and extra-work routing all run
-on what arrived) and spawns a linked pending *remainder occurrence*
+`accept_income_occurrence_partial` books the received part like a normal
+acceptance (salary period and splits run on what arrived) and spawns a
+linked pending *remainder occurrence*
 (`income_occurrences.remainder_of_occurrence_id`) for the shortfall.
-The remainder keeps showing as pending income until it is accepted —
-which books one plain income transaction with no second period or split
-pass — or skipped to write it off. The schedule uniqueness key applies
-only to materialized rows, so remainders never collide with the monthly
-schedule.
+The remainder keeps showing as pending income until it is accepted or
+skipped to write it off. The schedule uniqueness key applies only to
+materialized rows, so remainders never collide with the monthly schedule.
+
+A salary shortfall is charged to the extra-work pay first.
+`accept_income_occurrence` compares what arrived with the finalized
+period snapshot (`total_minor`): the missing amount is subtracted from
+the period's extra-day, overtime, and holiday pay before anything routes
+to `extra_work_destination_account_id`, and only what the extra work
+cannot absorb comes off the base salary — the percentage splits still run
+on everything received. Accepting the remainder carries the extra-work
+pay that was withheld (the chain of remainders is walked to see what it
+already routed) and re-applies percentage rules to what is left, while
+fixed splits stay once per payment. A partial acceptance plus its
+remainder therefore land exactly where one full payment would have.
 
 Recurring automation covers every entry kind, not only income:
 `recurring_rules` (expense from cash or a credit card, or transfer;

@@ -105,7 +105,13 @@ Future<bool> acceptPendingIncome(
     context: context,
     builder: (dialogContext) => StatefulBuilder(
       builder: (dialogContext, setDialogState) => AlertDialog(
-        title: Text(l10n.incomeAcceptTitle(pending.source.name)),
+        title: Text(
+          l10n.incomeAcceptTitle(
+            isRemainder
+                ? l10n.incomeRemainderTitle(pending.source.name)
+                : pending.source.name,
+          ),
+        ),
         content: Form(
           key: formKey,
           child: SingleChildScrollView(
@@ -157,6 +163,16 @@ Future<bool> acceptPendingIncome(
                     onChanged: (value) =>
                         setDialogState(() => trackRemainder = value),
                   ),
+                  // Salary shortfalls come out of the extra-work pay before
+                  // they touch the base salary, so say so where the money is
+                  // being entered.
+                  if (pending.source.kind == IncomeSourceKind.salary) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.incomePartialExtraFirst,
+                      style: Theme.of(dialogContext).textTheme.bodySmall,
+                    ),
+                  ],
                 ],
                 ListTile(
                   contentPadding: EdgeInsets.zero,
