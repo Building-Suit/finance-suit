@@ -17,6 +17,7 @@ import 'package:work_tracker/core/widgets/protected_money.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
+import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/finance_widgets.dart';
 import 'package:work_tracker/features/history/domain/history_models.dart';
@@ -140,6 +141,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ..invalidate(cashFlowSummaryProvider)
       ..invalidate(salarySettingsProvider);
     ref.invalidate(pendingIncomeProvider);
+    ref.invalidate(pendingRecurringProvider);
   }
 
   String _rangeLabel(AppLocalizations l10n, DateRangePreset preset) {
@@ -217,6 +219,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       today: PlainDate.today(),
                       onOpen: () =>
                           context.push('${AppRoutes.settings}/income-sources'),
+                    ),
+            ),
+            compactSection(
+              ref.watch(pendingRecurringProvider),
+              loading: const SizedBox.shrink(),
+              data: (items) => items.isEmpty
+                  ? const SizedBox.shrink()
+                  : _PendingRecurringSection(
+                      items: items,
+                      today: PlainDate.today(),
+                      onOpen: () =>
+                          context.push('${AppRoutes.settings}/recurring'),
                     ),
             ),
             compactSection(
@@ -439,6 +453,100 @@ class _InstallmentDuesSection extends StatelessWidget {
                   FinanceSuitIcons.chevronRight,
                   color: tone.icon,
                 ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Compact summary of recurring expenses/transfers waiting for a decision;
+/// tapping opens the recurring automation center.
+class _PendingRecurringSection extends StatelessWidget {
+  const _PendingRecurringSection({
+    required this.items,
+    required this.today,
+    required this.onOpen,
+  });
+
+  final List<PendingRecurring> items;
+  final PlainDate today;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final warning = context.suitColors.warning;
+    final first = items.first;
+    final amount = first.expectedAmount.format();
+    return Card(
+      color: warning.background,
+      clipBehavior: Clip.antiAlias,
+      child: Semantics(
+        button: true,
+        label: l10n.recurringPendingTitle,
+        child: InkWell(
+          key: const Key('home-pending-recurring-summary'),
+          onTap: onOpen,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                FinanceSuitIcon(
+                  FinanceSuitIcons.eventRepeat,
+                  color: warning.icon,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        l10n.recurringPendingTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: warning.text,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      if (items.length == 1)
+                        ProtectedMoneyText(
+                          '${first.rule.name} · $amount',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        )
+                      else
+                        Text(
+                          '${l10n.recurringPendingCount(items.length)} · '
+                          '${first.rule.name}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      Text(
+                        first.isDueOn(today)
+                            ? l10n.incomeDue(
+                                first.occurrence.scheduledOn.toIso(),
+                              )
+                            : l10n.incomeUpcoming(
+                                first.occurrence.scheduledOn.toIso(),
+                              ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: context.suitColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
               ],
             ),
           ),

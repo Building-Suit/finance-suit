@@ -107,6 +107,33 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
     result.when(ok: (_) => _invalidate(), err: _showFailure);
   }
 
+  Future<void> _deleteCategory(TransactionCategory category) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.catDeleteConfirmTitle),
+        content: Text(l10n.catDeleteConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.commonDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    final result = await ref
+        .read(financeRepositoryProvider)
+        .deleteCategory(category.id);
+    if (!mounted) return;
+    result.when(ok: (_) => _invalidate(), err: _showFailure);
+  }
+
   void _addCategory(CategoryKind kind, {String? parentId}) {
     final query = <String, String>{'kind': kind.dbValue};
     if (parentId case final id?) query['parent'] = id;
@@ -128,6 +155,8 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
           _renameCategory(category);
         } else if (action == 'archive') {
           _toggleArchived(category);
+        } else if (action == 'delete') {
+          _deleteCategory(category);
         }
       },
       itemBuilder: (context) => [
@@ -140,6 +169,9 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
             category.isArchived ? l10n.moneyUnarchive : l10n.moneyArchive,
           ),
         ),
+        // Deletion only succeeds while nothing references the category;
+        // the server answers with a clear message otherwise.
+        PopupMenuItem(value: 'delete', child: Text(l10n.commonDelete)),
       ],
     );
   }

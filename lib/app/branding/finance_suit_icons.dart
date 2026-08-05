@@ -160,6 +160,7 @@ abstract final class FinanceSuitIcons {
     HugeIconsStrokeRounded.receiptText,
   );
   static const refresh = FinanceSuitGlyph(HugeIconsStrokeRounded.refresh);
+  static const eventRepeat = FinanceSuitGlyph(HugeIconsStrokeRounded.repeat);
   static const removeCircle = FinanceSuitGlyph(
     HugeIconsStrokeRounded.minusSignCircle,
   );

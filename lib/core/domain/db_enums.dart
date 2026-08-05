@@ -307,6 +307,31 @@ enum HeldAmountDirection {
       values.firstWhere((e) => e.dbValue == value);
 }
 
+/// What a recurring rule books when accepted.
+enum RecurringRuleKind {
+  expense('expense'),
+  transfer('transfer');
+
+  const RecurringRuleKind(this.dbValue);
+  final String dbValue;
+
+  static RecurringRuleKind fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+enum RecurringFrequency {
+  weekly('weekly'),
+  monthly('monthly'),
+  quarterly('quarterly'),
+  annually('annually');
+
+  const RecurringFrequency(this.dbValue);
+  final String dbValue;
+
+  static RecurringFrequency fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
 enum IncomeSourceKind {
   salary('salary'),
   allowance('allowance'),
