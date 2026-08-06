@@ -620,21 +620,18 @@ class _PendingIncomeSection extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      if (items.length == 1)
-                        ProtectedMoneyText(
-                          '$firstName · $amount',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        )
-                      else
-                        Text(
-                          '${l10n.incomePendingCount(items.length)} · '
-                          '$firstName',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
+                      // The amount belongs to the item shown, not to the
+                      // whole list, so it stays visible when several are
+                      // waiting — a tracked remainder is the first of them.
+                      ProtectedMoneyText(
+                        items.length == 1
+                            ? '$firstName · $amount'
+                            : '${l10n.incomePendingCount(items.length)} · '
+                                  '$firstName · $amount',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                       Text(
                         first.isDueOn(today)
                             ? l10n.incomeDue(

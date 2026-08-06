@@ -207,3 +207,44 @@ class PendingIncome {
 
   bool isDueOn(PlainDate today) => occurrence.scheduledOn <= today;
 }
+
+/// Reduces every pending occurrence to the list worth prompting about.
+///
+/// A source is collapsed to its earliest scheduled occurrence so a paused
+/// month does not stack up months of cards. Remainders are exempt: they are
+/// money owed from a payment that already happened, so one must never be
+/// hidden behind the next scheduled salary — which is exactly what happens
+/// when a partial acceptance lands on the day the next month is scheduled.
+List<PendingIncome> collapsePendingIncome(
+  List<PendingIncome> items,
+  PlainDate today,
+) {
+  final collapsed = <String, PendingIncome>{};
+  for (final item in items) {
+    final key = item.occurrence.isRemainder
+        ? 'remainder:${item.occurrence.id}'
+        : 'schedule:${item.source.id}';
+    collapsed.putIfAbsent(key, () => item);
+  }
+  final grouped = collapsed.values.toList();
+  grouped.sort((left, right) {
+    final leftDue = left.occurrence.scheduledOn <= today;
+    final rightDue = right.occurrence.scheduledOn <= today;
+    if (leftDue != rightDue) return leftDue ? -1 : 1;
+    final date = left.occurrence.scheduledOn.compareTo(
+      right.occurrence.scheduledOn,
+    );
+    if (date != 0) return date;
+    // Older money first: a remainder came from a payment that predates the
+    // occurrence it shares a date with.
+    if (left.occurrence.isRemainder != right.occurrence.isRemainder) {
+      return left.occurrence.isRemainder ? -1 : 1;
+    }
+    final name = left.source.name.toLowerCase().compareTo(
+      right.source.name.toLowerCase(),
+    );
+    if (name != 0) return name;
+    return left.occurrence.id.compareTo(right.occurrence.id);
+  });
+  return grouped;
+}
