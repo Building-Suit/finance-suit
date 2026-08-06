@@ -179,6 +179,25 @@ begin
     v_missing := array_append(v_missing, 'apply_credit_card_fees');
   end if;
   if to_regprocedure(
+    'app_finance.charge_liability_account(uuid,text,uuid,date,bigint,text,uuid)'
+  ) is null then
+    v_missing := array_append(v_missing, 'charge_liability_account');
+  end if;
+  if to_regprocedure(
+    'app_finance.update_expense_transaction(uuid,uuid,date,bigint,uuid,text,text,text)'
+  ) is null then
+    v_missing := array_append(v_missing, 'update_expense_transaction');
+  end if;
+  if to_regprocedure(
+    'app_finance.delete_ledger_transaction(uuid)'
+  ) is null then
+    v_missing := array_append(v_missing, 'delete_ledger_transaction');
+  end if;
+  if to_regclass('app_finance.facility_activity_items') is null then
+    v_missing := array_append(
+      v_missing, 'app_finance.facility_activity_items');
+  end if;
+  if to_regprocedure(
     'app_finance.pay_credit_facility(uuid,uuid,bigint,date,jsonb,text,uuid)'
   ) is null then
     v_missing := array_append(v_missing, 'pay_credit_facility');
