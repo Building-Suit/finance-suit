@@ -8,6 +8,7 @@ import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
+import 'package:work_tracker/features/finance/domain/facility_activity.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
@@ -462,23 +463,40 @@ class FinanceRepository {
     });
   }
 
+  /// Edits one ordinary transaction through the canonical role-aware RPC.
+  ///
+  /// The server owns the whole move: it locks the row and both accounts,
+  /// validates eligibility, currency, and credit limits, applies the change
+  /// once, and rebuilds the statement linkage. Writing the table directly
+  /// would be rejected by the facility guard rails as soon as either side is
+  /// a credit card or BNPL account.
   Future<Result<void>> updateTransaction(String id, TransactionDraft draft) {
     return guard(() async {
-      await _db
-          .from('financial_transactions')
-          .update(draft.toJson())
-          .eq('id', id)
-          .eq('user_id', _userId);
+      await _db.rpc<String>(
+        'update_expense_transaction',
+        params: {
+          'p_transaction_id': id,
+          'p_account_id': draft.sourceAccountId ?? draft.destinationAccountId,
+          'p_occurred_on': draft.occurredOn.toIso(),
+          'p_amount_minor': draft.amountMinor,
+          'p_category_id': draft.categoryId,
+          'p_counterparty': draft.counterparty,
+          'p_title': draft.title,
+          'p_notes': draft.notes,
+        },
+      );
     });
   }
 
+  /// Deletes one ordinary transaction on an asset or liability account. The
+  /// RPC refuses installment, fee, repayment, and settled-statement rows so
+  /// specialized history can never be dropped by the generic editor.
   Future<Result<void>> deleteTransaction(String id) {
     return guard(() async {
-      await _db
-          .from('financial_transactions')
-          .delete()
-          .eq('id', id)
-          .eq('user_id', _userId);
+      await _db.rpc<void>(
+        'delete_ledger_transaction',
+        params: {'p_transaction_id': id},
+      );
     });
   }
 
@@ -811,6 +829,57 @@ class FinanceRepository {
         },
       );
       return id;
+    });
+  }
+
+  /// One ordinary expense charged to a credit card or a BNPL facility: a
+  /// single liability-backed expense that raises outstanding once and, on a
+  /// credit card, joins the statement cycle of its business date. BNPL never
+  /// gains an installment plan this way.
+  Future<Result<String>> chargeLiabilityAccount({
+    required String accountId,
+    required String title,
+    required String categoryId,
+    required PlainDate occurredOn,
+    required int amountMinor,
+    String? notes,
+    String? chargeId,
+  }) {
+    return guard(() async {
+      final id = await _db.rpc<String>(
+        'charge_liability_account',
+        params: {
+          'p_account_id': accountId,
+          'p_title': title,
+          'p_category_id': categoryId,
+          'p_occurred_on': occurredOn.toIso(),
+          'p_amount_minor': amountMinor,
+          'p_notes': notes,
+          'p_charge_id': chargeId,
+        },
+      );
+      return id;
+    });
+  }
+
+  /// Classified ledger activity of one facility, newest first. The server
+  /// decides what each row is, so the client can route it to the correct
+  /// editor without guessing.
+  Future<Result<List<FacilityActivityItem>>> fetchFacilityActivity(
+    String accountId, {
+    int limit = 30,
+  }) {
+    return guard(() async {
+      final rows = await _db
+          .from('facility_activity_items')
+          .select()
+          .eq('user_id', _userId)
+          .eq('account_id', accountId)
+          .order('occurred_on', ascending: false)
+          .order('sort_at', ascending: false)
+          .order('transaction_id', ascending: false)
+          .limit(limit);
+      return rows.map(FacilityActivityItem.fromJson).toList();
     });
   }
 

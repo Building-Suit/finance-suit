@@ -67,7 +67,13 @@ void main() {
         overrides: [
           currentUserIdProvider.overrideWithValue('user-1'),
           accountBalancesProvider.overrideWith((ref) async => const [wallet]),
+          allAccountBalancesProvider.overrideWith(
+            (ref) async => const [wallet],
+          ),
           creditFacilitiesProvider.overrideWith(
+            (ref) async => const [unconfiguredCard],
+          ),
+          allCreditFacilitiesProvider.overrideWith(
             (ref) async => const [unconfiguredCard],
           ),
           categoriesProvider.overrideWith(

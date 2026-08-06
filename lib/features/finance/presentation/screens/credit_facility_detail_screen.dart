@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
+import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
@@ -21,7 +22,7 @@ import 'package:work_tracker/core/widgets/protected_money.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
-import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
+import 'package:work_tracker/features/finance/domain/facility_activity.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/finance_widgets.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
@@ -174,10 +175,45 @@ class CreditFacilityDetailScreen extends ConsumerWidget {
     );
   }
 
+  /// Opens the canonical editor for one Related activity row. Which editor
+  /// that is comes from [resolveFacilityActivityAction], the single
+  /// capability decision, so no row can offer an action it cannot perform.
+  Future<void> _openActivity(
+    BuildContext context,
+    WidgetRef ref,
+    FacilityActivityItem item,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    switch (resolveFacilityActivityAction(item)) {
+      case FacilityActivityAction.editTransaction:
+        // Pushing keeps this facility detail underneath, so a successful
+        // save returns straight back to it with refreshed totals.
+        await context.push(
+          '${AppRoutes.money}/tx/edit',
+          extra: item.toTransaction(),
+        );
+        if (context.mounted) invalidateFinanceData(ref);
+      case FacilityActivityAction.editPlan:
+        if (item.planId == null) return;
+        await context.push(
+          '${AppRoutes.money}/facilities/purchase?planId=${item.planId}',
+        );
+        if (context.mounted) invalidateFinanceData(ref);
+      case FacilityActivityAction.reversePayment:
+        await _reversePayment(context, ref, item);
+      case FacilityActivityAction.explainSettled:
+        AppToast.warning(context, l10n.facilityActivitySettled);
+      case FacilityActivityAction.explainFee:
+        AppToast.warning(context, l10n.facilityActivityFeeLocked);
+      case FacilityActivityAction.explainSystem:
+        AppToast.warning(context, l10n.facilityActivitySystemRecord);
+    }
+  }
+
   Future<void> _reversePayment(
     BuildContext context,
     WidgetRef ref,
-    FinancialTransaction payment,
+    FacilityActivityItem payment,
   ) async {
     final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
@@ -200,7 +236,7 @@ class CreditFacilityDetailScreen extends ConsumerWidget {
     if (confirmed != true || !context.mounted) return;
     final result = await ref
         .read(financeRepositoryProvider)
-        .reverseFacilityPayment(payment.id);
+        .reverseFacilityPayment(payment.transactionId);
     if (!context.mounted) return;
     result.when(
       ok: (_) {
@@ -254,7 +290,7 @@ class CreditFacilityDetailScreen extends ConsumerWidget {
                   context.push('/money/facilities/purchase?planId=${plan.id}'),
               onRestructurePlan: (plan) => _restructurePlan(context, ref, plan),
               onShowRevisions: (plan) => _showRevisions(context, ref, plan),
-              onReversePayment: (tx) => _reversePayment(context, ref, tx),
+              onOpenActivity: (item) => _openActivity(context, ref, item),
               onAddFeeRule: () => _editFeeRule(context, ref, summary),
               onEditFeeRule: (rule) =>
                   _editFeeRule(context, ref, summary, existing: rule),
@@ -275,7 +311,7 @@ class _FacilityDetailBody extends ConsumerWidget {
     required this.onEditPlan,
     required this.onRestructurePlan,
     required this.onShowRevisions,
-    required this.onReversePayment,
+    required this.onOpenActivity,
     required this.onAddFeeRule,
     required this.onEditFeeRule,
     required this.onToggleFeeRule,
@@ -287,7 +323,7 @@ class _FacilityDetailBody extends ConsumerWidget {
   final ValueChanged<InstallmentPlan> onEditPlan;
   final ValueChanged<InstallmentPlan> onRestructurePlan;
   final ValueChanged<InstallmentPlan> onShowRevisions;
-  final ValueChanged<FinancialTransaction> onReversePayment;
+  final ValueChanged<FacilityActivityItem> onOpenActivity;
   final VoidCallback onAddFeeRule;
   final ValueChanged<CardFeeRule> onEditFeeRule;
   final ValueChanged<CardFeeRule> onToggleFeeRule;
@@ -298,14 +334,10 @@ class _FacilityDetailBody extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final plansAsync = ref.watch(installmentPlansProvider(summary.accountId));
     final duesAsync = ref.watch(installmentDuesProvider(summary.accountId));
-    final transactions = ref.watch(recentTransactionsProvider).value;
-    final related = (transactions ?? const <FinancialTransaction>[])
-        .where(
-          (t) =>
-              t.sourceAccountId == summary.accountId ||
-              t.destinationAccountId == summary.accountId,
-        )
-        .toList();
+    final activityAsync = ref.watch(
+      facilityActivityProvider(summary.accountId),
+    );
+    final related = activityAsync.value ?? const <FacilityActivityItem>[];
     final today = PlainDate.today();
     return RefreshIndicator(
       onRefresh: () async => invalidateFinanceData(ref),
@@ -522,15 +554,10 @@ class _FacilityDetailBody extends ConsumerWidget {
             Card(
               child: Column(
                 children: [
-                  for (final tx in related.take(10))
+                  for (final item in related.take(10))
                     _RelatedActivityTile(
-                      transaction: tx,
-                      facilityAccountId: summary.accountId,
-                      onReverse:
-                          tx.isTransfer &&
-                              tx.destinationAccountId == summary.accountId
-                          ? () => onReversePayment(tx)
-                          : null,
+                      item: item,
+                      onAction: () => onOpenActivity(item),
                     ),
                 ],
               ),
@@ -895,59 +922,72 @@ class _PlanCard extends StatelessWidget {
   }
 }
 
+/// One Related activity row. Both the label and the offered action come from
+/// the server-side classification, so an ordinary expense always exposes
+/// Edit transaction while installment, fee, and repayment rows keep their
+/// own specialized flows.
 class _RelatedActivityTile extends StatelessWidget {
-  const _RelatedActivityTile({
-    required this.transaction,
-    required this.facilityAccountId,
-    this.onReverse,
-  });
+  const _RelatedActivityTile({required this.item, required this.onAction});
 
-  final FinancialTransaction transaction;
-  final String facilityAccountId;
-  final VoidCallback? onReverse;
+  final FacilityActivityItem item;
+  final VoidCallback onAction;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final isRepayment =
-        transaction.isTransfer &&
-        transaction.destinationAccountId == facilityAccountId;
-    final isReversal =
-        transaction.isTransfer &&
-        transaction.sourceAccountId == facilityAccountId;
-    final label = isRepayment
-        ? l10n.facilityRepaymentLabel
-        : isReversal
-        ? l10n.facilityReversalLabel
-        : l10n.facilityPurchaseLabel;
+    final action = resolveFacilityActivityAction(item);
+    final label = switch (item.kind) {
+      FacilityActivityKind.facilityRepayment => l10n.facilityRepaymentLabel,
+      FacilityActivityKind.repaymentReversal => l10n.facilityReversalLabel,
+      FacilityActivityKind.installmentPurchase =>
+        l10n.facilityActivityInstallment,
+      FacilityActivityKind.installmentDownPayment =>
+        l10n.facilityActivityDownPayment,
+      FacilityActivityKind.feeCharge => l10n.facilityActivityFee,
+      FacilityActivityKind.ordinaryExpense ||
+      FacilityActivityKind.other => l10n.facilityPurchaseLabel,
+    };
+    final actionLabel = switch (action) {
+      FacilityActivityAction.editTransaction => l10n.txEditTitle,
+      FacilityActivityAction.editPlan => l10n.planEditAction,
+      FacilityActivityAction.reversePayment => l10n.paymentReverse,
+      _ => l10n.facilityActivityWhyLocked,
+    };
+    final icon = switch (item.kind) {
+      FacilityActivityKind.facilityRepayment ||
+      FacilityActivityKind.repaymentReversal => FinanceSuitIcons.payments,
+      FacilityActivityKind.feeCharge => FinanceSuitIcons.receiptLong,
+      _ => FinanceSuitIcons.shoppingCart,
+    };
     return ListTile(
       dense: true,
-      leading: FinanceSuitIcon(
-        isRepayment || isReversal
-            ? FinanceSuitIcons.payments
-            : FinanceSuitIcons.shoppingCart,
-      ),
+      leading: FinanceSuitIcon(icon),
       title: Text(
-        transaction.title ?? label,
+        item.title ?? label,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      subtitle: Text('${transaction.occurredOn.toIso()} · $label'),
+      subtitle: Text('${item.occurredOn.toIso()} · $label'),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           AppMoneyText(
-            money: transaction.amount,
+            money: item.amount,
             style: Theme.of(context).textTheme.titleSmall,
             sign: AppMoneySign.never,
           ),
-          if (onReverse != null)
-            IconButton(
-              key: Key('payment-reverse-${transaction.id}'),
-              tooltip: l10n.paymentReverse,
-              onPressed: onReverse,
-              icon: const FinanceSuitIcon(FinanceSuitIcons.undo),
-            ),
+          PopupMenuButton<VoidCallback>(
+            key: Key('activity-actions-${item.transactionId}'),
+            tooltip: l10n.planActionsTooltip,
+            onSelected: (selected) => selected(),
+            itemBuilder: (menuContext) => [
+              PopupMenuItem(
+                key: Key('activity-action-${item.transactionId}'),
+                value: onAction,
+                child: Text(actionLabel),
+              ),
+            ],
+          ),
         ],
       ),
     );

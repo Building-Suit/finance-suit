@@ -790,6 +790,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get txEditTitle => 'تعديل المعاملة';
 
   @override
+  String get txAccountUnavailable => 'غير متاح';
+
+  @override
   String get txAccount => 'الحساب';
 
   @override
@@ -1921,6 +1924,29 @@ class AppLocalizationsAr extends AppLocalizations {
   String get facilityPurchaseLabel => 'شراء بالائتمان';
 
   @override
+  String get facilityActivityInstallment => 'شراء بالتقسيط';
+
+  @override
+  String get facilityActivityDownPayment => 'مقدم التقسيط';
+
+  @override
+  String get facilityActivityFee => 'رسوم البطاقة';
+
+  @override
+  String get facilityActivityWhyLocked => 'لماذا لا يمكن التعديل؟';
+
+  @override
+  String get facilityActivitySettled =>
+      'هذه العملية ضمن كشف تم سداده. اعكس الدفعة أولًا لتصحيحها.';
+
+  @override
+  String get facilityActivityFeeLocked =>
+      'أُنشئت هذه الرسوم من قاعدة رسوم البطاقة. عدّل القاعدة بدلًا منها.';
+
+  @override
+  String get facilityActivitySystemRecord => 'هذا سجل نظامي ولا يمكن تعديله.';
+
+  @override
   String get facilityEmptyTitle => 'لا توجد بطاقات ائتمان أو حسابات تقسيط بعد';
 
   @override
@@ -2412,6 +2438,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get errCardNotConfigured => 'حدّد يوم إغلاق كشف البطاقة أولًا';
+
+  @override
+  String get errPlanControlled => 'هذا الشراء ضمن خطة تقسيط؛ عدّله من الخطة';
+
+  @override
+  String get errFeeChargeLocked =>
+      'هذه الرسوم من قاعدة رسوم البطاقة؛ عدّل القاعدة بدلًا منها';
+
+  @override
+  String get errStatementSettled =>
+      'تم سداد هذا الكشف بالفعل؛ اعكس الدفعة قبل التصحيح';
+
+  @override
+  String get errInvalidKind => 'يتم تعديل هذا السجل من مساره الخاص';
 
   @override
   String get errInvalidPaidInstallments =>
