@@ -90,6 +90,13 @@ The remainder keeps showing as pending income until it is accepted or
 skipped to write it off. The schedule uniqueness key applies only to
 materialized rows, so remainders never collide with the monthly schedule.
 
+Salaries accepted before partial acceptance existed recorded only what
+arrived, so the shortfall left no trace. A one-time
+`app_private.backfill_untracked_salary_shortfalls` gives those
+acceptances the remainder they would get today — idempotent, salary
+sources only, and bounded to the last 62 days so old history is never
+reopened.
+
 A salary shortfall is charged to the extra-work pay first.
 `accept_income_occurrence` compares what arrived with the finalized
 period snapshot (`total_minor`): the missing amount is subtracted from
