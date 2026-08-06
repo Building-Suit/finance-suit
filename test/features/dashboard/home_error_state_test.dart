@@ -83,7 +83,7 @@ void main() {
             pendingIncomeProvider.overrideWith(
               (ref) async => const <PendingIncome>[],
             ),
-            cashFlowSummaryProvider.overrideWith(
+            homeCashFlowSummaryProvider.overrideWith(
               (ref, range) async => const [
                 CashFlowSummary(
                   currencyCode: 'EGP',
@@ -174,7 +174,7 @@ void main() {
           pendingSalaryEstimateProvider.overrideWith(
             (ref, key) async => salaryEstimate,
           ),
-          cashFlowSummaryProvider.overrideWith(
+          homeCashFlowSummaryProvider.overrideWith(
             (ref, range) async => const [
               CashFlowSummary(
                 currencyCode: 'EGP',

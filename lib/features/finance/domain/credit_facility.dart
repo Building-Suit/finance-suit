@@ -35,6 +35,7 @@ class CreditFacilitySummary {
     this.lastFourDigits,
     this.nextDueOn,
     this.nextDueAmountMinor,
+    this.upcomingDueMinor = 0,
     this.notes,
   });
 
@@ -75,6 +76,7 @@ class CreditFacilitySummary {
           ? null
           : PlainDate.parse(json['next_due_on'] as String),
       nextDueAmountMinor: (json['next_due_amount_minor'] as num?)?.toInt(),
+      upcomingDueMinor: (json['upcoming_due_minor'] as num?)?.toInt() ?? 0,
       notes: json['notes'] as String?,
     );
   }
@@ -104,7 +106,14 @@ class CreditFacilitySummary {
   final String? lastFourDigits;
   final PlainDate? nextDueOn;
   final int? nextDueAmountMinor;
+
+  /// Everything unpaid falling due between today and one month out —
+  /// installments and statements together, not just the earliest one.
+  final int upcomingDueMinor;
   final String? notes;
+
+  Money get upcomingDue =>
+      Money(minor: upcomingDueMinor, currencyCode: currencyCode);
 
   Money get outstanding =>
       Money(minor: outstandingMinor, currencyCode: currencyCode);

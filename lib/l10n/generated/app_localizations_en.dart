@@ -2105,6 +2105,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'The payment is larger than the amount owed';
 
   @override
+  String get homeCardsTitle => 'Cards';
+
+  @override
+  String homeCardOwed(String amount) {
+    return '$amount owed';
+  }
+
+  @override
+  String homeCardDueBy(String amount, String date) {
+    return '$amount due by $date';
+  }
+
+  @override
+  String get homeCardNothingDue => 'Nothing due this month';
+
+  @override
   String get homeDuesTitle => 'Installments';
 
   @override

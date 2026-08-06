@@ -987,6 +987,27 @@
   "paymentReverseConfirmTitle": "Reverse this payment?",
   "paymentReverseConfirmBody": "The money returns to the source account and the covered installments reopen.",
   "valPaymentAboveOutstanding": "The payment is larger than the amount owed",
+  "homeCardsTitle": "Cards",
+  "homeCardOwed": "{amount} owed",
+  "@homeCardOwed": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "homeCardDueBy": "{amount} due by {date}",
+  "@homeCardDueBy": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "homeCardNothingDue": "Nothing due this month",
   "homeDuesTitle": "Installments",
   "homeDueNow": "{amount} due now",
   "@homeDueNow": {

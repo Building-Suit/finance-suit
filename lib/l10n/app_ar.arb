@@ -987,6 +987,27 @@
   "paymentReverseConfirmTitle": "عكس هذه الدفعة؟",
   "paymentReverseConfirmBody": "سيعود المبلغ إلى حساب المصدر وتُفتح الأقساط المغطاة من جديد.",
   "valPaymentAboveOutstanding": "الدفعة أكبر من المبلغ المستحق",
+  "homeCardsTitle": "البطاقات",
+  "homeCardOwed": "مستحق عليك {amount}",
+  "@homeCardOwed": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "homeCardDueBy": "{amount} مستحقة بحلول {date}",
+  "@homeCardDueBy": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "homeCardNothingDue": "لا مستحقات هذا الشهر",
   "homeDuesTitle": "الأقساط",
   "homeDueNow": "{amount} مستحق الآن",
   "@homeDueNow": {

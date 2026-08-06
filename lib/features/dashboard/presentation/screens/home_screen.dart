@@ -139,6 +139,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ..invalidate(currentEstimateProvider)
       ..invalidate(historyPageProvider)
       ..invalidate(cashFlowSummaryProvider)
+      ..invalidate(homeCashFlowSummaryProvider)
       ..invalidate(salarySettingsProvider);
     ref.invalidate(pendingIncomeProvider);
     ref.invalidate(pendingRecurringProvider);
@@ -162,7 +163,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final l10n = AppLocalizations.of(context);
     final accountsAsync = ref.watch(accountBalancesProvider);
     final allAccountsAsync = ref.watch(allAccountBalancesProvider);
-    final summaryAsync = ref.watch(cashFlowSummaryProvider(_range.range));
+    final summaryAsync = ref.watch(homeCashFlowSummaryProvider(_range.range));
     final salarySettingsAsync = ref.watch(salarySettingsProvider);
     final salaryEnabled = salarySettingsAsync.value?.salaryEnabled == true;
     final estimateAsync = salaryEnabled
@@ -237,25 +238,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ref.watch(creditFacilitiesProvider),
               loading: const SizedBox.shrink(),
               data: (facilities) {
-                final today = PlainDate.today();
-                final relevant = facilities
-                    .where(
-                      (f) =>
-                          f.dueNowMinor > 0 ||
-                          (f.nextDueOn != null &&
-                              f.nextDueOn!.differenceInDays(today) <=
-                                  f.reminderLeadDays),
-                    )
-                    .toList();
-                if (relevant.isEmpty) return const SizedBox.shrink();
-                return _InstallmentDuesSection(
-                  facilities: relevant,
-                  onOpen: () => context.push(
-                    relevant.length == 1
-                        ? '${AppRoutes.money}/facilities/'
-                              '${relevant.first.accountId}'
-                        : AppRoutes.money,
-                  ),
+                final cards = facilities
+                    .where((f) => !f.isArchived)
+                    .toList(growable: false);
+                if (cards.isEmpty) return const SizedBox.shrink();
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _SectionHeader(
+                      title: l10n.homeCardsTitle,
+                      actionLabel: l10n.commonSeeAll,
+                      onAction: () => context.push(AppRoutes.money),
+                    ),
+                    _CreditCardCarousel(facilities: cards),
+                  ],
                 );
               },
             ),
@@ -361,104 +357,142 @@ class _HomeDataStatusCard extends StatelessWidget {
   }
 }
 
-/// Compact reminder for upcoming, due, and overdue installment payments
-/// across every credit facility. One card, never one card per due.
-class _InstallmentDuesSection extends StatelessWidget {
-  const _InstallmentDuesSection({
-    required this.facilities,
-    required this.onOpen,
-  });
+/// The user's credit cards and BNPL facilities as a swipeable row of
+/// card-shaped tiles: limit and available credit up front, what is owed in
+/// small red text, and everything falling due over the next month — summed
+/// across statements and installments, not just the earliest single due.
+class _CreditCardCarousel extends StatelessWidget {
+  const _CreditCardCarousel({required this.facilities});
 
   final List<CreditFacilitySummary> facilities;
-  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 168,
+      child: ListView.separated(
+        key: const Key('home-credit-card-carousel'),
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.zero,
+        itemCount: facilities.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 10),
+        itemBuilder: (context, index) =>
+            _CreditCardTile(facility: facilities[index]),
+      ),
+    );
+  }
+}
+
+class _CreditCardTile extends StatelessWidget {
+  const _CreditCardTile({required this.facility});
+
+  final CreditFacilitySummary facility;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final hasOverdue = facilities.any((f) => f.hasOverdue);
-    final tone = hasOverdue
-        ? context.suitColors.error
-        : context.suitColors.warning;
-    final currency = facilities.first.currencyCode;
-    var dueNowMinor = 0;
-    var overdueMinor = 0;
-    for (final f in facilities.where((f) => f.currencyCode == currency)) {
-      dueNowMinor += f.dueNowMinor;
-      overdueMinor += f.overdueMinor;
-    }
-    final nextDue = facilities
-        .map((f) => f.nextDueOn)
-        .whereType<PlainDate>()
-        .fold<PlainDate?>(
-          null,
-          (min, d) => min == null || d.isBefore(min) ? d : min,
-        );
-    final line = dueNowMinor > 0
-        ? l10n.homeDueNow(
-            Money(minor: dueNowMinor, currencyCode: currency).format(),
-          )
-        : nextDue != null
-        ? l10n.homeNextDue(nextDue.toIso())
-        : '';
-    return Card(
-      color: tone.background,
-      clipBehavior: Clip.antiAlias,
-      child: Semantics(
-        button: true,
-        label: l10n.homeDuesTitle,
+    final colors = context.suitColors;
+    final textTheme = Theme.of(context).textTheme;
+    final width = MediaQuery.sizeOf(context).width;
+    final owed = facility.outstandingMinor > 0;
+    final dueTone = facility.hasOverdue ? colors.error : colors.warning;
+    return SizedBox(
+      width: (width * 0.78).clamp(260.0, 340.0),
+      child: Card(
+        margin: EdgeInsets.zero,
+        color: colors.brandSurface,
+        clipBehavior: Clip.antiAlias,
         child: InkWell(
-          key: const Key('home-installment-dues-summary'),
-          onTap: onOpen,
+          key: Key('home-card-${facility.accountId}'),
+          onTap: () => context.push(
+            '${AppRoutes.money}/facilities/${facility.accountId}',
+          ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            child: Row(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                FinanceSuitIcon(FinanceSuitIcons.creditCard, color: tone.icon),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        l10n.homeDuesTitle,
+                Row(
+                  children: [
+                    FinanceSuitIcon(
+                      FinanceSuitIcons.creditCard,
+                      color: colors.onBrandSurface,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        facility.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: tone.text,
+                        style: textTheme.titleSmall?.copyWith(
+                          color: colors.onBrandSurface,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      if (line.isNotEmpty)
-                        ProtectedMoneyText(
-                          line,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    if (facility.lastFourDigits != null)
+                      Text(
+                        '•••• ${facility.lastFourDigits}',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: colors.onBrandSurface,
                         ),
-                      if (overdueMinor > 0)
-                        ProtectedMoneyText(
-                          l10n.homeOverdue(
-                            Money(
-                              minor: overdueMinor,
-                              currencyCode: currency,
-                            ).format(),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall?.copyWith(color: tone.text),
-                        ),
-                    ],
+                      ),
+                  ],
+                ),
+                const Spacer(),
+                Text(
+                  l10n.facilityAvailable,
+                  style: textTheme.labelSmall?.copyWith(
+                    color: colors.onBrandSurface,
                   ),
                 ),
-                const SizedBox(width: 8),
-                FinanceSuitIcon(
-                  FinanceSuitIcons.chevronRight,
-                  color: tone.icon,
+                ProtectedMoneyText(
+                  '${facility.availableCredit.format()} / '
+                  '${facility.creditLimit.format()}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  interactive: false,
+                  style: textTheme.titleMedium?.copyWith(
+                    color: colors.onBrandSurface,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
+                if (owed)
+                  ProtectedMoneyText(
+                    l10n.homeCardOwed(facility.outstanding.format()),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    interactive: false,
+                    style: textTheme.labelSmall?.copyWith(
+                      color: colors.error.text,
+                    ),
+                  ),
+                const Spacer(),
+                if (facility.upcomingDueMinor > 0)
+                  ProtectedMoneyText(
+                    facility.nextDueOn == null
+                        ? facility.upcomingDue.format()
+                        : l10n.homeCardDueBy(
+                            facility.upcomingDue.format(),
+                            facility.nextDueOn!.toIso(),
+                          ),
+                    key: Key('home-card-due-${facility.accountId}'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    interactive: false,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: dueTone.text,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  )
+                else
+                  Text(
+                    l10n.homeCardNothingDue,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colors.onBrandSurface,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -758,12 +792,15 @@ class _BalanceSection extends StatelessWidget {
         message: l10n.moneyNoAccounts,
       );
     }
+    // Credit cards and BNPL facilities are borrowed money, not the user's
+    // own: they get their own section and never move the total balance.
+    final assets = accounts.assetAccounts;
     final totals = <String, int>{};
-    for (final account in accounts) {
+    for (final account in assets) {
       totals[account.currencyCode] =
           (totals[account.currencyCode] ?? 0) + account.balanceMinor;
     }
-    final visibleAccounts = accounts.take(4).toList();
+    final visibleAccounts = assets.take(4).toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -809,12 +846,15 @@ class _TotalBalanceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.suitColors;
     final l10n = AppLocalizations.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    // One line: icon, label, amount. A second currency, if any, follows on
+    // its own line rather than stretching the first one.
     return Card(
       color: colors.brandSurface,
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               children: [
@@ -826,20 +866,35 @@ class _TotalBalanceCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     l10n.moneyTotalBalance,
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.labelMedium?.copyWith(
                       color: colors.onBrandSurface,
                     ),
                   ),
                 ),
+                const SizedBox(width: 8),
+                if (totals.isNotEmpty)
+                  AppMoneyText(
+                    money: totals.first,
+                    color: colors.onBrandSurface,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
               ],
             ),
-            const SizedBox(height: 8),
-            for (final total in totals)
-              AppMoneyText(
-                money: total,
-                color: colors.onBrandSurface,
-                style: Theme.of(context).textTheme.titleMedium,
+            for (final total in totals.skip(1)) ...[
+              const SizedBox(height: 4),
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: AppMoneyText(
+                  money: total,
+                  color: colors.onBrandSurface,
+                  style: textTheme.titleSmall,
+                ),
               ),
+            ],
           ],
         ),
       ),
@@ -1056,23 +1111,32 @@ class _MetricCard extends StatelessWidget {
     final labelColor = colors.textPrimary;
     final amountColor = tone?.text;
     final iconColor = tone?.icon;
+    // Icon and label share the top line so the cell only needs room for two
+    // rows instead of three.
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            FinanceSuitIcon(icon, color: iconColor),
-            const Spacer(),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(
-                context,
-              ).textTheme.labelMedium?.copyWith(color: labelColor),
+            Row(
+              children: [
+                FinanceSuitIcon(icon, color: iconColor, size: 18),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.labelMedium?.copyWith(color: labelColor),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             AppMoneyText(
               money: money,
               sign: sign,
