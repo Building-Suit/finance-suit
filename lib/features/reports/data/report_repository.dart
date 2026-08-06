@@ -13,11 +13,21 @@ class ReportRepository {
 
   SupabaseQuerySchema get _db => _client.schema(AppSchemas.reports);
 
-  Future<Result<List<CashFlowSummary>>> fetchCashFlowSummary(DateRange range) {
+  /// [excludeHidden] leaves accounts the user hid from Home out of every
+  /// figure, so the Home summary counts only what it shows. Reports keep
+  /// the complete picture.
+  Future<Result<List<CashFlowSummary>>> fetchCashFlowSummary(
+    DateRange range, {
+    bool excludeHidden = false,
+  }) {
     return guard(() async {
       final rows = await _db.rpc<List<dynamic>>(
-        'cash_flow_summary_v2',
-        params: {'p_start': range.start.toIso(), 'p_end': range.end.toIso()},
+        'cash_flow_summary_v3',
+        params: {
+          'p_start': range.start.toIso(),
+          'p_end': range.end.toIso(),
+          'p_exclude_hidden': excludeHidden,
+        },
       );
       return rows
           .map((row) => CashFlowSummary.fromJson(row as Map<String, dynamic>))

@@ -3923,6 +3923,30 @@ abstract class AppLocalizations {
   /// **'The payment is larger than the amount owed'**
   String get valPaymentAboveOutstanding;
 
+  /// No description provided for @homeCardsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cards'**
+  String get homeCardsTitle;
+
+  /// No description provided for @homeCardOwed.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} owed'**
+  String homeCardOwed(String amount);
+
+  /// No description provided for @homeCardDueBy.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} due by {date}'**
+  String homeCardDueBy(String amount, String date);
+
+  /// No description provided for @homeCardNothingDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing due this month'**
+  String get homeCardNothingDue;
+
   /// No description provided for @homeDuesTitle.
   ///
   /// In en, this message translates to:
