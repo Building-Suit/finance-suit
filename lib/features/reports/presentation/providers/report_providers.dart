@@ -31,6 +31,21 @@ final cashFlowSummaryProvider =
       );
     });
 
+/// Home's copy of the cash flow: accounts hidden from Home are left out of
+/// the totals as well as the balance list, so the section adds up to what
+/// the screen actually shows.
+final homeCashFlowSummaryProvider =
+    FutureProvider.family<List<CashFlowSummary>, DateRange>((ref, range) async {
+      ref.watch(currentUserIdProvider);
+      final result = await ref
+          .watch(reportRepositoryProvider)
+          .fetchCashFlowSummary(range, excludeHidden: true);
+      return result.when(
+        ok: (summary) => summary,
+        err: (failure) => throw failure,
+      );
+    });
+
 final financeSeriesProvider =
     FutureProvider.family<List<FinanceSeriesPoint>, ReportSeriesKey>((
       ref,

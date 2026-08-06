@@ -112,7 +112,15 @@ remainder therefore land exactly where one full payment would have.
 Accounts carry a `hide_from_home` flag (exposed through
 `account_balances`): the Home tab's balance summary skips hidden accounts
 while everything else — the Money tab, pickers, transfers, and reports —
-keeps treating them normally.
+keeps treating them normally. Home also asks
+`app_reports.cash_flow_summary_v3(start, end, exclude_hidden => true)` so
+its cash-flow figures cover exactly the accounts it lists; Reports call
+the same function without the flag and keep counting everything.
+
+`credit_facility_summaries.upcoming_due_minor` sums every unpaid
+installment and statement falling due between today and one month out, so
+a card can state what it will actually ask for rather than only its
+earliest single due.
 
 Recurring automation covers every entry kind, not only income:
 `recurring_rules` (expense from cash or a credit card, or transfer;

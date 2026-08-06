@@ -2094,6 +2094,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get valPaymentAboveOutstanding => 'الدفعة أكبر من المبلغ المستحق';
 
   @override
+  String get homeCardsTitle => 'البطاقات';
+
+  @override
+  String homeCardOwed(String amount) {
+    return 'مستحق عليك $amount';
+  }
+
+  @override
+  String homeCardDueBy(String amount, String date) {
+    return '$amount مستحقة بحلول $date';
+  }
+
+  @override
+  String get homeCardNothingDue => 'لا مستحقات هذا الشهر';
+
+  @override
   String get homeDuesTitle => 'الأقساط';
 
   @override

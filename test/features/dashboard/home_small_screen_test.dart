@@ -38,7 +38,7 @@ void main() {
           pendingIncomeProvider.overrideWith(
             (ref) async => const <PendingIncome>[],
           ),
-          cashFlowSummaryProvider.overrideWith(
+          homeCashFlowSummaryProvider.overrideWith(
             (ref, range) async => const [
               CashFlowSummary(
                 currencyCode: 'EGP',
