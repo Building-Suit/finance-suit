@@ -3635,6 +3635,12 @@ abstract class AppLocalizations {
   /// **'{paid} of {total} paid'**
   String planPaidOfTotal(String paid, String total);
 
+  /// No description provided for @planBankCostPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank interest & fees: {paid} of {total}'**
+  String planBankCostPaid(String paid, String total);
+
   /// No description provided for @planCancel.
   ///
   /// In en, this message translates to:

@@ -922,6 +922,17 @@
       }
     }
   },
+  "planBankCostPaid": "Bank interest & fees: {paid} of {total}",
+  "@planBankCostPaid": {
+    "placeholders": {
+      "paid": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "planCancel": "Cancel plan",
   "planCancelConfirmTitle": "Cancel this plan?",
   "planCancelConfirmBody": "The financed purchase will be removed and its schedule cancelled. This is only possible before any payment.",

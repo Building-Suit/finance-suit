@@ -128,6 +128,13 @@ the income decision flow. Categories are hard-deletable through
 items, income sources, recurring rules); anything in use archives
 instead.
 
+Plan progress is displayed bank-style: every payment splits pro rata into
+the item's principal share (a fully paid installment credits exactly
+`financed_principal / count`) and the bank's interest-and-fees share,
+which is shown on its own line and never counts toward the item. The
+ledger is unchanged — `total_payable` is genuinely owed — this is purely
+how progress is attributed.
+
 Facility lifecycle: `facility_status` (`active`/`frozen`/`closed`) gates
 new purchases only; archiving the account hides it from pickers while any
 remaining debt stays visible and payable, and `delete_credit_facility`

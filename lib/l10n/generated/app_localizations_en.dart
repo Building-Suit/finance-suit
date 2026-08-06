@@ -1950,6 +1950,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String planBankCostPaid(String paid, String total) {
+    return 'Bank interest & fees: $paid of $total';
+  }
+
+  @override
   String get planCancel => 'Cancel plan';
 
   @override
