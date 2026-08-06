@@ -109,6 +109,11 @@ already routed) and re-applies percentage rules to what is left, while
 fixed splits stay once per payment. A partial acceptance plus its
 remainder therefore land exactly where one full payment would have.
 
+Accounts carry a `hide_from_home` flag (exposed through
+`account_balances`): the Home tab's balance summary skips hidden accounts
+while everything else — the Money tab, pickers, transfers, and reports —
+keeps treating them normally.
+
 Recurring automation covers every entry kind, not only income:
 `recurring_rules` (expense from cash or a credit card, or transfer;
 weekly/monthly/quarterly/annual schedules) materialize into

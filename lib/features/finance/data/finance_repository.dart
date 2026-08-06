@@ -65,6 +65,7 @@ class FinanceRepository {
     required String currencyCode,
     required int openingBalanceMinor,
     required bool allowNegativeBalance,
+    bool hideFromHome = false,
     String? notes,
   }) {
     return guard(() async {
@@ -75,6 +76,7 @@ class FinanceRepository {
         'currency_code': currencyCode,
         'opening_balance_minor': openingBalanceMinor,
         'allow_negative_balance': allowNegativeBalance,
+        'hide_from_home': hideFromHome,
         'notes': notes,
       });
     });
@@ -86,6 +88,7 @@ class FinanceRepository {
     required AccountType accountType,
     required int openingBalanceMinor,
     required bool allowNegativeBalance,
+    bool hideFromHome = false,
     String? notes,
   }) {
     return guard(() async {
@@ -96,9 +99,25 @@ class FinanceRepository {
             'account_type': accountType.dbValue,
             'opening_balance_minor': openingBalanceMinor,
             'allow_negative_balance': allowNegativeBalance,
+            'hide_from_home': hideFromHome,
             'notes': notes,
           })
           .eq('id', id)
+          .eq('user_id', _userId);
+    });
+  }
+
+  /// Home-tab visibility for accounts saved through the facility RPC,
+  /// which owns every other facility field.
+  Future<Result<void>> setHideFromHome(
+    String accountId, {
+    required bool hidden,
+  }) {
+    return guard(() async {
+      await _db
+          .from('accounts')
+          .update({'hide_from_home': hidden})
+          .eq('id', accountId)
           .eq('user_id', _userId);
     });
   }
