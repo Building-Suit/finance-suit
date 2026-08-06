@@ -6,6 +6,7 @@ import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
+import 'package:work_tracker/features/finance/domain/facility_activity.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
@@ -161,6 +162,16 @@ final installmentDuesProvider = FutureProvider.family
       return result.when(ok: (d) => d, err: (failure) => throw failure);
     });
 
+/// Classified Related-activity rows of one facility, newest first.
+final facilityActivityProvider = FutureProvider.family
+    .autoDispose<List<FacilityActivityItem>, String>((ref, accountId) async {
+      ref.watch(currentUserIdProvider);
+      final result = await ref
+          .watch(financeRepositoryProvider)
+          .fetchFacilityActivity(accountId);
+      return result.when(ok: (items) => items, err: (failure) => throw failure);
+    });
+
 /// Statement cycles of one credit card, newest first.
 final statementSummariesProvider = FutureProvider.family
     .autoDispose<List<CardStatementSummary>, String>((ref, accountId) async {
@@ -215,6 +226,7 @@ void invalidateFinanceData(WidgetRef ref) {
   ref.invalidate(installmentPlansProvider);
   ref.invalidate(installmentDuesProvider);
   ref.invalidate(statementSummariesProvider);
+  ref.invalidate(facilityActivityProvider);
   ref.invalidate(planRevisionsProvider);
   ref.invalidate(feeRulesProvider);
 }

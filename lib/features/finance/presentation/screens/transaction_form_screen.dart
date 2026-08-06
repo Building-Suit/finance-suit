@@ -18,7 +18,7 @@ import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
-import 'package:work_tracker/features/finance/domain/credit_facility.dart';
+import 'package:work_tracker/features/finance/domain/expense_account_options.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
@@ -117,13 +117,29 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     }
   }
 
-  /// The active credit card selected as the expense source, if any.
-  CreditFacilitySummary? get _selectedCard =>
-      (ref.read(creditFacilitiesProvider).value ?? const [])
-          .where((f) => f.accountId == _accountId)
-          .firstOrNull;
+  /// The canonical eligibility list for the Account field. Expenses may be
+  /// funded by assets and by both kinds of liability facility; every other
+  /// kind keeps its own asset-only rule.
+  List<ExpenseAccountOption> _accountOptions() {
+    if (_kind != TransactionKind.expense) return const [];
+    return expenseSourceAccounts(
+      accounts: ref.read(allAccountBalancesProvider).value ?? const [],
+      facilities: ref.read(allCreditFacilitiesProvider).value ?? const [],
+      currencyCode: _currencyCode,
+      currentAccountId: widget.existing == null
+          ? null
+          : widget.existing!.sourceAccountId ??
+                widget.existing!.destinationAccountId,
+    );
+  }
+
+  /// The liability facility selected as the expense source, if any.
+  ExpenseAccountOption? get _selectedLiability => _accountOptions()
+      .where((option) => option.isLiability && option.accountId == _accountId)
+      .firstOrNull;
 
   Future<void> _save() async {
+    if (_busy) return;
     setState(() => _failure = null);
     if (!_formKey.currentState!.validate()) return;
     final amount = Money.tryParse(
@@ -134,23 +150,14 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     final title = _titleController.text.trim();
     final notes = _notesController.text.trim();
 
-    // Spending from a credit card books a statement charge, not a cash
-    // expense; everything else keeps the ordinary transaction path.
-    final card = !_isEdit && _kind == TransactionKind.expense
-        ? _selectedCard
-        : null;
-    if (card != null) {
+    // A new expense on a credit card or BNPL facility is a liability-backed
+    // charge, not a cash expense; editing an existing one goes through the
+    // canonical role-aware RPC below, which handles every account role.
+    final facility = _isEdit ? null : _selectedLiability;
+    if (facility != null) {
       // Fail with the same coded messages the server would raise, so the
-      // banner and the save error always agree on what the card is missing.
-      if (!card.canFundPurchases) {
-        setState(
-          () => _failure = const ValidationFailure(
-            'facility_not_active: this card cannot fund new purchases',
-          ),
-        );
-        return;
-      }
-      if (card.statementDay == null) {
+      // banner and the save error always agree on what is missing.
+      if (facility.block == ExpenseAccountBlock.cardNotConfigured) {
         setState(
           () => _failure = const ValidationFailure(
             'card_not_configured: set a statement closing day first',
@@ -169,9 +176,9 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
       setState(() => _busy = true);
       final chargeResult = await ref
           .read(financeRepositoryProvider)
-          .chargeCreditCard(
-            accountId: card.accountId,
-            title: title.isEmpty ? card.name : title,
+          .chargeLiabilityAccount(
+            accountId: facility.accountId,
+            title: title.isEmpty ? facility.name : title,
             categoryId: _categoryId!,
             occurredOn: _date,
             amountMinor: amount.minor,
@@ -257,40 +264,130 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     );
   }
 
+  /// Renders the eligible accounts as two labelled groups — cash and bank
+  /// first, credit and installments after — matching the Money tab. The
+  /// group headers are disabled entries, so they can never be selected.
+  List<DropdownMenuItem<String>> _groupedAccountItems(
+    AppLocalizations l10n,
+    List<ExpenseAccountOption> options,
+  ) {
+    final items = <DropdownMenuItem<String>>[];
+    for (final group in ExpenseAccountGroup.values) {
+      final inGroup = options.where((o) => o.group == group).toList();
+      if (inGroup.isEmpty) continue;
+      if (options.any((o) => o.group != group)) {
+        items.add(
+          DropdownMenuItem(
+            value: 'group:${group.name}',
+            enabled: false,
+            child: Text(
+              group == ExpenseAccountGroup.cash
+                  ? l10n.moneyAssetsSection
+                  : l10n.moneyLiabilitiesSection,
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
+          ),
+        );
+      }
+      for (final option in inGroup) {
+        items.add(
+          DropdownMenuItem(
+            value: option.accountId,
+            child: Text(_accountOptionLabel(l10n, option)),
+          ),
+        );
+      }
+    }
+    return items;
+  }
+
+  String _accountOptionLabel(
+    AppLocalizations l10n,
+    ExpenseAccountOption option,
+  ) {
+    final parts = <String>[option.name];
+    if (option.isLiability) {
+      parts.add(accountTypeLabel(l10n, option.accountType));
+    }
+    // An archived, frozen, or closed account survives in the list only as
+    // the account this very transaction already uses; say so plainly.
+    if (option.isCurrent && option.isLiability) {
+      final facility = (ref.read(allCreditFacilitiesProvider).value ?? const [])
+          .where((f) => f.accountId == option.accountId)
+          .firstOrNull;
+      if (facility != null && !facility.canFundPurchases) {
+        parts.add(l10n.txAccountUnavailable);
+      }
+    } else if (option.isCurrent) {
+      final account = (ref.read(allAccountBalancesProvider).value ?? const [])
+          .where((a) => a.accountId == option.accountId)
+          .firstOrNull;
+      if (account != null && account.isArchived) {
+        parts.add(l10n.txAccountUnavailable);
+      }
+    }
+    return parts.join(' · ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final accounts = ref.watch(accountBalancesProvider);
-    // Ordinary transactions move the user's own cash; liability facilities
-    // are charged only through the installment purchase flow.
     final categories = ref.watch(categoriesProvider(_categoryKind));
-    final accountList = (accounts.value ?? <AccountBalance>[]).assetAccounts;
-    // New expenses can also be charged on a credit card; the charge lands on
-    // the card's statement cycle instead of moving cash. Cards that cannot
-    // charge yet stay listed — hiding them read as "the feature does not
-    // exist", so instead the form says what the card is missing.
-    final cards = !_isEdit && _kind == TransactionKind.expense
-        ? (ref.watch(creditFacilitiesProvider).value ?? const [])
-              .where((f) => f.accountType == AccountType.creditCard)
-              .toList()
-        : const <CreditFacilitySummary>[];
-    final selectedCard = cards
-        .where((f) => f.accountId == _accountId)
+    // Income, allowances, and every non-expense kind move the user's own
+    // cash only. Expenses use the shared eligibility list, so Add Expense
+    // and Edit Expense can never drift apart.
+    final accounts = ref.watch(allAccountBalancesProvider);
+    final facilities = ref.watch(allCreditFacilitiesProvider);
+    final assetOnly = _kind != TransactionKind.expense;
+    final accountList = assetOnly
+        ? (accounts.value ?? <AccountBalance>[])
+              .where((a) => !a.isArchived || a.accountId == _accountId)
+              .assetAccounts
+        : const <AccountBalance>[];
+    // Cards that cannot charge yet stay listed — hiding them read as "the
+    // feature does not exist", so instead the form says what is missing.
+    final options = assetOnly
+        ? const <ExpenseAccountOption>[]
+        : expenseSourceAccounts(
+            accounts: accounts.value ?? const [],
+            facilities: facilities.value ?? const [],
+            currencyCode: _currencyCode,
+            currentAccountId: widget.existing == null
+                ? null
+                : widget.existing!.sourceAccountId ??
+                      widget.existing!.destinationAccountId,
+          );
+    final selected = options
+        .where((option) => option.accountId == _accountId)
         .firstOrNull;
-    final cardBlockReason = selectedCard == null
-        ? null
-        : !selectedCard.canFundPurchases
-        ? l10n.errFacilityNotActive
-        : selectedCard.statementDay == null
+    // The account a historical charge already sits on is never blocked; a
+    // newly chosen one says what it is still missing.
+    final blockReason =
+        selected?.block == ExpenseAccountBlock.cardNotConfigured &&
+            !selected!.isCurrent
         ? l10n.errCardNotConfigured
         : null;
-    if (_accountId == null && accountList.isNotEmpty) {
-      // Preselect the default account (or the first one) on new transactions.
-      _accountId =
-          (accountList.where((a) => a.isDefault).firstOrNull ??
-                  accountList.first)
-              .accountId;
+    if (_accountId == null) {
+      // Preselect the default account (or the first one) on new
+      // transactions; an edit already carries its own account.
+      if (assetOnly && accountList.isNotEmpty) {
+        _accountId =
+            (accountList.where((a) => a.isDefault).firstOrNull ??
+                    accountList.first)
+                .accountId;
+      } else if (!assetOnly && options.isNotEmpty) {
+        final defaultAsset = (accounts.value ?? const <AccountBalance>[])
+            .where((a) => a.isDefault && !a.isLiability)
+            .firstOrNull;
+        _accountId =
+            options
+                .where((o) => o.accountId == defaultAsset?.accountId)
+                .firstOrNull
+                ?.accountId ??
+            options.first.accountId;
+      }
     }
+    final groupedItems = _groupedAccountItems(l10n, options);
 
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(
@@ -372,26 +469,24 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                     labelText: _isIncome ? l10n.txToAccount : l10n.txAccount,
                   ),
                   items: [
-                    for (final account in accountList)
-                      DropdownMenuItem(
-                        value: account.accountId,
-                        child: Text(account.name),
-                      ),
-                    for (final card in cards)
-                      DropdownMenuItem(
-                        value: card.accountId,
-                        child: Text('${card.name} · ${l10n.accTypeCreditCard}'),
-                      ),
+                    if (assetOnly)
+                      for (final account in accountList)
+                        DropdownMenuItem(
+                          value: account.accountId,
+                          child: Text(account.name),
+                        )
+                    else
+                      ...groupedItems,
                   ],
                   onChanged: (v) => setState(() => _accountId = v),
                   validator: (v) => v == null
                       ? validationMessage(context, ValidationError.required)
                       : null,
                 ),
-                if (cardBlockReason != null) ...[
+                if (blockReason != null) ...[
                   const SizedBox(height: 8),
                   Text(
-                    cardBlockReason,
+                    blockReason,
                     key: const Key('card-charge-blocked'),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.error,
@@ -401,8 +496,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                     alignment: AlignmentDirectional.centerStart,
                     child: TextButton(
                       onPressed: () => context.push(
-                        '${AppRoutes.money}/accounts/'
-                        '${selectedCard!.accountId}',
+                        '${AppRoutes.money}/accounts/${selected!.accountId}',
                       ),
                       child: Text(l10n.txCardOpenSettings),
                     ),
