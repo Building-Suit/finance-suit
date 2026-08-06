@@ -109,6 +109,11 @@ already routed) and re-applies percentage rules to what is left, while
 fixed splits stay once per payment. A partial acceptance plus its
 remainder therefore land exactly where one full payment would have.
 
+Accounts carry a `hide_from_home` flag (exposed through
+`account_balances`): the Home tab's balance summary skips hidden accounts
+while everything else — the Money tab, pickers, transfers, and reports —
+keeps treating them normally.
+
 Recurring automation covers every entry kind, not only income:
 `recurring_rules` (expense from cash or a credit card, or transfer;
 weekly/monthly/quarterly/annual schedules) materialize into
@@ -122,6 +127,13 @@ the income decision flow. Categories are hard-deletable through
 (transactions, subcategories, plans, fee rules, held amounts, macro
 items, income sources, recurring rules); anything in use archives
 instead.
+
+Plan progress is displayed bank-style: every payment splits pro rata into
+the item's principal share (a fully paid installment credits exactly
+`financed_principal / count`) and the bank's interest-and-fees share,
+which is shown on its own line and never counts toward the item. The
+ledger is unchanged — `total_payable` is genuinely owed — this is purely
+how progress is attributed.
 
 Facility lifecycle: `facility_status` (`active`/`frozen`/`closed`) gates
 new purchases only; archiving the account hides it from pickers while any

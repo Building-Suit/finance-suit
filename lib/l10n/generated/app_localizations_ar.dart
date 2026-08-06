@@ -486,6 +486,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accAllowNegative => 'السماح بالرصيد السالب';
 
   @override
+  String get accHideFromHome => 'إخفاء من تبويب الرئيسية';
+
+  @override
+  String get accHideFromHomeHelp =>
+      'يبقى الحساب متاحًا في كل مكان آخر — تبويب الأموال والقوائم والتقارير.';
+
+  @override
+  String get txCardOpenSettings => 'فتح إعدادات البطاقة';
+
+  @override
   String get setAppearance => 'المظهر';
 
   @override
@@ -1928,6 +1938,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String planPaidOfTotal(String paid, String total) {
     return 'تم سداد $paid من $total';
+  }
+
+  @override
+  String planBankCostPaid(String paid, String total) {
+    return 'فوائد ورسوم البنك: $paid من $total';
   }
 
   @override

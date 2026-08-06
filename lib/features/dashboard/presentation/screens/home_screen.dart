@@ -263,7 +263,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             compactSection(
               accountsAsync,
               loading: const _SectionLoader(),
-              data: (accounts) => _BalanceSection(accounts: accounts),
+              // Home is a summary, not an inventory: accounts the user opted
+              // out of stay fully usable in Money, pickers, and reports.
+              data: (accounts) => _BalanceSection(
+                accounts: accounts
+                    .where((account) => !account.hideFromHome)
+                    .toList(),
+              ),
             ),
             _SectionHeader(title: l10n.homeCashFlow),
             _RangeChips(

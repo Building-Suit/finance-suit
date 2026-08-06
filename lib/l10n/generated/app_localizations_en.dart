@@ -487,6 +487,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accAllowNegative => 'Allow negative balance';
 
   @override
+  String get accHideFromHome => 'Hide from the Home tab';
+
+  @override
+  String get accHideFromHomeHelp =>
+      'The account stays available everywhere else — Money tab, pickers, and reports.';
+
+  @override
+  String get txCardOpenSettings => 'Open card settings';
+
+  @override
   String get setAppearance => 'Appearance';
 
   @override
@@ -1937,6 +1947,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String planPaidOfTotal(String paid, String total) {
     return '$paid of $total paid';
+  }
+
+  @override
+  String planBankCostPaid(String paid, String total) {
+    return 'Bank interest & fees: $paid of $total';
   }
 
   @override

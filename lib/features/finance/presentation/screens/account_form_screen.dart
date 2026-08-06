@@ -54,6 +54,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
 
   AccountType _accountType = AccountType.current;
   bool _allowNegative = false;
+  bool _hideFromHome = false;
   int _reminderLeadDays = 3;
   FacilityStatus _facilityStatus = FacilityStatus.active;
   MinPaymentMethod _minPaymentMethod = MinPaymentMethod.full;
@@ -128,6 +129,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
     setState(() {
       _accountType = account.accountType;
       _allowNegative = account.allowNegativeBalance;
+      _hideFromHome = account.hideFromHome;
       _loaded = true;
     });
   }
@@ -188,7 +190,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
       )!;
       final statementDay = _statementDayController.text.trim();
       final lastFour = _lastFourController.text.trim();
-      result = await repo.saveCreditFacility(
+      final facilityResult = await repo.saveCreditFacility(
         CreditFacilityDraft(
           name: _nameController.text.trim(),
           accountType: _accountType,
@@ -223,6 +225,12 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
               : null,
         ),
       );
+      // Home visibility rides along after the facility RPC, which owns
+      // every other facility field.
+      final accountId = facilityResult.valueOrNull;
+      result = accountId == null
+          ? facilityResult
+          : await repo.setHideFromHome(accountId, hidden: _hideFromHome);
     } else {
       final opening = Money.tryParse(
         _balanceController.text,
@@ -235,6 +243,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
               accountType: _accountType,
               openingBalanceMinor: opening.minor,
               allowNegativeBalance: _allowNegative,
+              hideFromHome: _hideFromHome,
               notes: notes.isEmpty ? null : notes,
             )
           : await repo.createAccount(
@@ -243,6 +252,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
               currencyCode: _currencyCode,
               openingBalanceMinor: opening.minor,
               allowNegativeBalance: _allowNegative,
+              hideFromHome: _hideFromHome,
               notes: notes.isEmpty ? null : notes,
             );
     }
@@ -594,6 +604,14 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                           onChanged: (v) => setState(() => _allowNegative = v),
                         ),
                       ],
+                      SwitchListTile(
+                        key: const Key('account-hide-from-home'),
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(l10n.accHideFromHome),
+                        subtitle: Text(l10n.accHideFromHomeHelp),
+                        value: _hideFromHome,
+                        onChanged: (v) => setState(() => _hideFromHome = v),
+                      ),
                       const SizedBox(height: 8),
                       AppTextFormField(
                         controller: _notesController,

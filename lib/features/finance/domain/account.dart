@@ -14,6 +14,7 @@ class Account {
     required this.isDefault,
     required this.allowNegativeBalance,
     required this.isArchived,
+    this.hideFromHome = false,
     this.notes,
   });
 
@@ -26,6 +27,7 @@ class Account {
     isDefault: json['is_default'] as bool,
     allowNegativeBalance: json['allow_negative_balance'] as bool,
     isArchived: json['is_archived'] as bool,
+    hideFromHome: json['hide_from_home'] as bool? ?? false,
     notes: json['notes'] as String?,
   );
 
@@ -37,6 +39,7 @@ class Account {
   final bool isDefault;
   final bool allowNegativeBalance;
   final bool isArchived;
+  final bool hideFromHome;
   final String? notes;
 
   Money get openingBalance =>
@@ -59,6 +62,7 @@ class AccountBalance {
     required this.balanceMinor,
     required this.totalIncomingMinor,
     required this.totalOutgoingMinor,
+    this.hideFromHome = false,
   });
 
   factory AccountBalance.fromJson(Map<String, dynamic> json) => AccountBalance(
@@ -73,6 +77,7 @@ class AccountBalance {
     balanceMinor: (json['balance_minor'] as num).toInt(),
     totalIncomingMinor: (json['total_incoming_minor'] as num).toInt(),
     totalOutgoingMinor: (json['total_outgoing_minor'] as num).toInt(),
+    hideFromHome: json['hide_from_home'] as bool? ?? false,
   );
 
   final String accountId;
@@ -86,6 +91,7 @@ class AccountBalance {
   final int balanceMinor;
   final int totalIncomingMinor;
   final int totalOutgoingMinor;
+  final bool hideFromHome;
 
   Money get balance => Money(minor: balanceMinor, currencyCode: currencyCode);
   Money get totalIncoming =>
