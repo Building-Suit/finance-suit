@@ -237,6 +237,22 @@ begin
     v_missing := array_append(
       v_missing, 'income_occurrences.remainder_of_occurrence_id');
   end if;
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'app_finance'
+      and table_name = 'accounts'
+      and column_name = 'hide_from_home'
+  ) then
+    v_missing := array_append(v_missing, 'accounts.hide_from_home');
+  end if;
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'app_finance'
+      and table_name = 'account_balances'
+      and column_name = 'hide_from_home'
+  ) then
+    v_missing := array_append(v_missing, 'account_balances.hide_from_home');
+  end if;
   if to_regprocedure(
     'app_finance.reverse_facility_payment(uuid)'
   ) is null then

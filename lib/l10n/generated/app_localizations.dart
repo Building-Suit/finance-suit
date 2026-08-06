@@ -1010,6 +1010,24 @@ abstract class AppLocalizations {
   /// **'Allow negative balance'**
   String get accAllowNegative;
 
+  /// No description provided for @accHideFromHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide from the Home tab'**
+  String get accHideFromHome;
+
+  /// No description provided for @accHideFromHomeHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The account stays available everywhere else — Money tab, pickers, and reports.'**
+  String get accHideFromHomeHelp;
+
+  /// No description provided for @txCardOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open card settings'**
+  String get txCardOpenSettings;
+
   /// No description provided for @setAppearance.
   ///
   /// In en, this message translates to:

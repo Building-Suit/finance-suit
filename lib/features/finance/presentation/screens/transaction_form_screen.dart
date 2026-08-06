@@ -140,6 +140,24 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
         ? _selectedCard
         : null;
     if (card != null) {
+      // Fail with the same coded messages the server would raise, so the
+      // banner and the save error always agree on what the card is missing.
+      if (!card.canFundPurchases) {
+        setState(
+          () => _failure = const ValidationFailure(
+            'facility_not_active: this card cannot fund new purchases',
+          ),
+        );
+        return;
+      }
+      if (card.statementDay == null) {
+        setState(
+          () => _failure = const ValidationFailure(
+            'card_not_configured: set a statement closing day first',
+          ),
+        );
+        return;
+      }
       if (_categoryId == null) {
         setState(
           () => _failure = const ValidationFailure(
@@ -247,18 +265,25 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     // are charged only through the installment purchase flow.
     final categories = ref.watch(categoriesProvider(_categoryKind));
     final accountList = (accounts.value ?? <AccountBalance>[]).assetAccounts;
-    // New expenses can also be charged on an active credit card; the charge
-    // lands on the card's statement cycle instead of moving cash.
+    // New expenses can also be charged on a credit card; the charge lands on
+    // the card's statement cycle instead of moving cash. Cards that cannot
+    // charge yet stay listed — hiding them read as "the feature does not
+    // exist", so instead the form says what the card is missing.
     final cards = !_isEdit && _kind == TransactionKind.expense
         ? (ref.watch(creditFacilitiesProvider).value ?? const [])
-              .where(
-                (f) =>
-                    f.accountType == AccountType.creditCard &&
-                    f.canFundPurchases &&
-                    f.statementDay != null,
-              )
+              .where((f) => f.accountType == AccountType.creditCard)
               .toList()
         : const <CreditFacilitySummary>[];
+    final selectedCard = cards
+        .where((f) => f.accountId == _accountId)
+        .firstOrNull;
+    final cardBlockReason = selectedCard == null
+        ? null
+        : !selectedCard.canFundPurchases
+        ? l10n.errFacilityNotActive
+        : selectedCard.statementDay == null
+        ? l10n.errCardNotConfigured
+        : null;
     if (_accountId == null && accountList.isNotEmpty) {
       // Preselect the default account (or the first one) on new transactions.
       _accountId =
@@ -363,6 +388,26 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                       ? validationMessage(context, ValidationError.required)
                       : null,
                 ),
+                if (cardBlockReason != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    cardBlockReason,
+                    key: const Key('card-charge-blocked'),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: TextButton(
+                      onPressed: () => context.push(
+                        '${AppRoutes.money}/accounts/'
+                        '${selectedCard!.accountId}',
+                      ),
+                      child: Text(l10n.txCardOpenSettings),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 16),
                 CategorySelector(
                   categories: categories.value ?? const <TransactionCategory>[],

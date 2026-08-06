@@ -486,6 +486,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accAllowNegative => 'السماح بالرصيد السالب';
 
   @override
+  String get accHideFromHome => 'إخفاء من تبويب الرئيسية';
+
+  @override
+  String get accHideFromHomeHelp =>
+      'يبقى الحساب متاحًا في كل مكان آخر — تبويب الأموال والقوائم والتقارير.';
+
+  @override
+  String get txCardOpenSettings => 'فتح إعدادات البطاقة';
+
+  @override
   String get setAppearance => 'المظهر';
 
   @override
