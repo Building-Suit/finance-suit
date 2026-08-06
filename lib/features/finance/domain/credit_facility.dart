@@ -245,6 +245,34 @@ class InstallmentPlan {
       Money(minor: remainingMinor, currencyCode: currencyCode);
   Money get purchasePrice =>
       Money(minor: purchasePriceMinor, currencyCode: currencyCode);
+
+  /// Bank-style progress: of everything paid so far, only the part that
+  /// pays the item itself. Every payment splits pro rata, so a fully paid
+  /// installment contributes exactly principal / count to the item while
+  /// its interest-and-fees share belongs to the bank, never to the item.
+  int get principalPaidMinor {
+    if (totalPayableMinor <= 0) return 0;
+    final rounded =
+        (paidMinor * financedPrincipalMinor + totalPayableMinor ~/ 2) ~/
+        totalPayableMinor;
+    return rounded.clamp(0, financedPrincipalMinor);
+  }
+
+  /// Interest and fees handed to the bank so far.
+  int get bankCostPaidMinor =>
+      (paidMinor - principalPaidMinor).clamp(0, paidMinor);
+
+  /// Everything the bank charges on top of the item over the full plan.
+  int get bankCostTotalMinor => totalPayableMinor - financedPrincipalMinor;
+
+  Money get principalPaid =>
+      Money(minor: principalPaidMinor, currencyCode: currencyCode);
+  Money get financedPrincipal =>
+      Money(minor: financedPrincipalMinor, currencyCode: currencyCode);
+  Money get bankCostPaid =>
+      Money(minor: bankCostPaidMinor, currencyCode: currencyCode);
+  Money get bankCostTotal =>
+      Money(minor: bankCostTotalMinor, currencyCode: currencyCode);
 }
 
 /// A row from `app_finance.installment_due_statuses`.

@@ -785,9 +785,12 @@ class _PlanCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final progress = plan.totalPayableMinor == 0
+    // Progress tracks the item, bank-style: each installment counts only
+    // its principal share (original amount / count); interest and fees are
+    // the bank's and are reported on their own line.
+    final progress = plan.financedPrincipalMinor == 0
         ? 0.0
-        : plan.paidMinor / plan.totalPayableMinor;
+        : plan.principalPaidMinor / plan.financedPrincipalMinor;
     final hasActions =
         onCancel != null ||
         onEdit != null ||
@@ -850,12 +853,25 @@ class _PlanCard extends StatelessWidget {
             const SizedBox(height: 4),
             ProtectedMoneyText(
               l10n.planPaidOfTotal(
-                plan.paid.format(),
-                plan.totalPayable.format(),
+                plan.principalPaid.format(),
+                plan.financedPrincipal.format(),
               ),
               style: theme.textTheme.bodySmall,
               interactive: false,
             ),
+            if (plan.bankCostTotalMinor > 0) ...[
+              const SizedBox(height: 2),
+              ProtectedMoneyText(
+                l10n.planBankCostPaid(
+                  plan.bankCostPaid.format(),
+                  plan.bankCostTotal.format(),
+                ),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                interactive: false,
+              ),
+            ],
             const SizedBox(height: 8),
             ClipRRect(
               borderRadius: BorderRadius.circular(4),

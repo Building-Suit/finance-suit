@@ -1941,6 +1941,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String planBankCostPaid(String paid, String total) {
+    return 'فوائد ورسوم البنك: $paid من $total';
+  }
+
+  @override
   String get planCancel => 'إلغاء الخطة';
 
   @override

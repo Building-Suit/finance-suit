@@ -912,6 +912,17 @@
   "planStatusCompleted": "مكتملة",
   "planStatusCancelled": "ملغاة",
   "planPaidOfTotal": "تم سداد {paid} من {total}",
+  "planBankCostPaid": "فوائد ورسوم البنك: {paid} من {total}",
+  "@planBankCostPaid": {
+    "placeholders": {
+      "paid": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "@planPaidOfTotal": {
     "placeholders": {
       "paid": {
