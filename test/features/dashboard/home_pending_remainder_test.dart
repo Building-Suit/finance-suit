@@ -71,6 +71,17 @@ void main() {
     warnings: [],
   );
 
+  final augustSalary = PendingIncome(
+    source: salary,
+    occurrence: IncomeOccurrence(
+      id: 'schedule-occurrence',
+      incomeSourceId: 'salary-source',
+      scheduledOn: PlainDate.today(),
+      expectedAmountMinor: 4000000,
+      status: IncomeOccurrenceStatus.pending,
+    ),
+  );
+
   testWidgets('the pending banner shows only the remaining amount', (
     tester,
   ) async {
@@ -122,6 +133,63 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining(owedInFull.format()), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a same-day salary never hides the remaining amount', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          currentUserIdProvider.overrideWithValue('user-1'),
+          accountBalancesProvider.overrideWith(
+            (ref) async => const <AccountBalance>[],
+          ),
+          allAccountBalancesProvider.overrideWith(
+            (ref) async => const <AccountBalance>[],
+          ),
+          pendingIncomeProvider.overrideWith(
+            (ref) async => collapsePendingIncome([
+              augustSalary,
+              remainder,
+            ], PlainDate.today()),
+          ),
+          pendingRecurringProvider.overrideWith(
+            (ref) async => const <PendingRecurring>[],
+          ),
+          pendingSalaryEstimateProvider.overrideWith(
+            (ref, key) async => fullEstimate,
+          ),
+          cashFlowSummaryProvider.overrideWith(
+            (ref, range) async => const <CashFlowSummary>[],
+          ),
+          salarySettingsProvider.overrideWith(
+            (ref) => Completer<SalarySettings>().future,
+          ),
+          historyPageProvider.overrideWith(
+            (ref, query) async => const HistoryPage(items: [], hasMore: false),
+          ),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.light(),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const HomeScreen(),
+        ),
+      ),
+    );
+    for (var i = 0; i < 12; i++) {
+      await tester.pump(const Duration(milliseconds: 60));
+    }
+
+    const remaining = Money(minor: 400000, currencyCode: 'EGP');
+    expect(
+      find.textContaining('Salary — remaining · ${remaining.format()}'),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 }

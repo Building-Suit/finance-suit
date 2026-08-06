@@ -253,26 +253,7 @@ class FinanceRepository {
             ),
           )
           .toList();
-      final earliestBySource = <String, PendingIncome>{};
-      for (final item in actionable) {
-        earliestBySource.putIfAbsent(item.source.id, () => item);
-      }
-      final grouped = earliestBySource.values.toList();
-      grouped.sort((left, right) {
-        final leftDue = left.occurrence.scheduledOn <= today;
-        final rightDue = right.occurrence.scheduledOn <= today;
-        if (leftDue != rightDue) return leftDue ? -1 : 1;
-        final date = left.occurrence.scheduledOn.compareTo(
-          right.occurrence.scheduledOn,
-        );
-        if (date != 0) return date;
-        final name = left.source.name.toLowerCase().compareTo(
-          right.source.name.toLowerCase(),
-        );
-        if (name != 0) return name;
-        return left.occurrence.id.compareTo(right.occurrence.id);
-      });
-      return grouped;
+      return collapsePendingIncome(actionable, today);
     });
   }
 
