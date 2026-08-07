@@ -56,6 +56,7 @@ String planPricingMethodLabel(AppLocalizations l10n, PlanPricingMethod m) {
     PlanPricingMethod.monthlyAmount => l10n.pricingMethodMonthlyAmount,
     PlanPricingMethod.totalPayable => l10n.pricingMethodTotalPayable,
     PlanPricingMethod.interestRate => l10n.pricingMethodInterestRate,
+    PlanPricingMethod.cardTenorDefault => l10n.pricingMethodCardTenorDefault,
   };
 }
 
@@ -106,6 +107,11 @@ String cardFeeTypeLabel(AppLocalizations l10n, CardFeeType type) {
     CardFeeType.stampTax => l10n.feeTypeStampTax,
     CardFeeType.foreignTransaction => l10n.feeTypeForeignTransaction,
     CardFeeType.cashAdvance => l10n.feeTypeCashAdvance,
+    CardFeeType.internationalCashAdvance =>
+      l10n.feeTypeInternationalCashAdvance,
+    CardFeeType.walletFee => l10n.feeTypeWalletFee,
+    CardFeeType.statementFee => l10n.feeTypeStatementFee,
+    CardFeeType.earlySettlement => l10n.feeTypeEarlySettlement,
     CardFeeType.latePayment => l10n.feeTypeLatePayment,
     CardFeeType.overLimit => l10n.feeTypeOverLimit,
     CardFeeType.installmentConversion => l10n.feeTypeInstallmentConversion,
@@ -119,6 +125,7 @@ String feeFrequencyLabel(AppLocalizations l10n, FeeFrequency frequency) {
     FeeFrequency.monthly => l10n.feeFrequencyMonthly,
     FeeFrequency.quarterly => l10n.feeFrequencyQuarterly,
     FeeFrequency.annually => l10n.feeFrequencyAnnually,
+    FeeFrequency.perTransaction => l10n.feeFrequencyPerTransaction,
   };
 }
 
@@ -127,6 +134,19 @@ String feePercentBasisLabel(AppLocalizations l10n, FeePercentBasis basis) {
     FeePercentBasis.statementBalance => l10n.feeBasisStatementBalance,
     FeePercentBasis.outstandingBalance => l10n.feeBasisOutstandingBalance,
     FeePercentBasis.creditLimit => l10n.feeBasisCreditLimit,
+    FeePercentBasis.transactionAmount => l10n.feeBasisTransactionAmount,
+    FeePercentBasis.highestStatementDueLookback =>
+      l10n.feeBasisHighestStatementDueLookback,
+    FeePercentBasis.remainingPrincipal => l10n.feeBasisRemainingPrincipal,
+    FeePercentBasis.remainingOutstanding => l10n.feeBasisRemainingOutstanding,
+  };
+}
+
+String cardRuleStateLabel(AppLocalizations l10n, CardRuleState state) {
+  return switch (state) {
+    CardRuleState.configured => l10n.ruleStateConfigured,
+    CardRuleState.unknown => l10n.ruleStateUnknown,
+    CardRuleState.disabled => l10n.ruleStateDisabled,
   };
 }
 

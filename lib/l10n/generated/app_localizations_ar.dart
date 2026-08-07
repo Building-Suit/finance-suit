@@ -2044,6 +2044,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get purchaseFinancingMode => 'طريقة إدخال التمويل';
 
   @override
+  String get purchaseCardTenorDefaultHint =>
+      'سيُستخدم معدل البطاقة الافتراضي لعدد الأشهر هذا تلقائيًا.';
+
+  @override
   String get purchaseFinancingModeFees => 'إدخال رسوم التمويل';
 
   @override
@@ -2282,6 +2286,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pricingMethodInterestRate => 'أعرف معدل الفائدة';
+
+  @override
+  String get pricingMethodCardTenorDefault =>
+      'استخدام المعدل الافتراضي للبطاقة لهذه المدة';
 
   @override
   String get purchaseEditTitle => 'تعديل خطة التقسيط';
@@ -2563,6 +2571,26 @@ class AppLocalizationsAr extends AppLocalizations {
   String get feeRuleType => 'نوع الرسم';
 
   @override
+  String get feeRuleState => 'الحالة';
+
+  @override
+  String get ruleStateConfigured => 'مُفعّلة';
+
+  @override
+  String get ruleStateUnknown => 'غير معروفة بعد';
+
+  @override
+  String get ruleStateDisabled => 'غير مُطبّقة';
+
+  @override
+  String get feeRuleUnknownHint =>
+      'لن يتم تحصيل هذا الرسم حتى تعرف قيمته. سينبّهك Finance Suit عند أي معاملة تتأثر به حتى تستطيع إدخال القيمة لاحقًا.';
+
+  @override
+  String get feeRuleEditRateHint =>
+      'لتغيير القيمة، احذف هذا الرسم وأضفه من جديد بالقيمة وتاريخ البدء الجديدين.';
+
+  @override
   String get feeTypeAnnualMembership => 'عضوية سنوية';
 
   @override
@@ -2578,7 +2606,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get feeTypeForeignTransaction => 'معاملات أجنبية';
 
   @override
-  String get feeTypeCashAdvance => 'سحب نقدي';
+  String get feeTypeCashAdvance => 'سحب نقدي محلي';
+
+  @override
+  String get feeTypeInternationalCashAdvance => 'سحب نقدي دولي';
+
+  @override
+  String get feeTypeWalletFee => 'رسوم شحن المحفظة';
+
+  @override
+  String get feeTypeStatementFee => 'رسوم كشف الحساب / الرسائل';
+
+  @override
+  String get feeTypeEarlySettlement => 'رسوم السداد المبكر';
 
   @override
   String get feeTypeLatePayment => 'تأخير سداد';
@@ -2611,6 +2651,30 @@ class AppLocalizationsAr extends AppLocalizations {
   String get feeBasisCreditLimit => 'الحد الائتماني';
 
   @override
+  String get feeBasisTransactionAmount => 'قيمة العملية';
+
+  @override
+  String get feeBasisHighestStatementDueLookback => 'أعلى كشف حساب سابق';
+
+  @override
+  String get feeBasisRemainingPrincipal => 'المبلغ الأساسي المتبقي';
+
+  @override
+  String get feeBasisRemainingOutstanding => 'إجمالي المبلغ المتبقي';
+
+  @override
+  String get feeRuleMinimum => 'الحد الأدنى للمبلغ (اختياري)';
+
+  @override
+  String get feeRuleMaximum => 'الحد الأقصى للمبلغ (اختياري)';
+
+  @override
+  String get feeRuleLookbackCycles => 'عدد كشوف الحساب السابقة';
+
+  @override
+  String get valFeeLookback => 'أدخل رقمًا من 1 إلى 24';
+
+  @override
   String get feeRuleFixedAmount => 'قيمة الرسم';
 
   @override
@@ -2627,6 +2691,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get feeFrequencyAnnually => 'سنويًا';
+
+  @override
+  String get feeFrequencyPerTransaction => 'لكل عملية';
 
   @override
   String get feeRuleStartsOn => 'تاريخ أول خصم';

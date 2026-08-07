@@ -1055,24 +1055,102 @@ class FinanceRepository {
     });
   }
 
-  /// Creates a fee rule, or replaces the editable fields of [ruleId].
-  /// Rules are plain owner rows; only the generated charges are locked.
-  Future<Result<void>> saveFeeRule(CardFeeRuleDraft draft, {String? ruleId}) {
+  /// Creates a fee rule (and its first version), or replaces the identity
+  /// fields of [ruleId]. Changing a rate on an existing rule goes through
+  /// [createFeeRuleVersion] instead, so it is always dated rather than
+  /// rewriting what already generated.
+  Future<Result<String>> saveFeeRule(CardFeeRuleDraft draft, {String? ruleId}) {
     return guard(() async {
-      if (ruleId == null) {
-        await _db.from('credit_card_fee_rules').insert(draft.toJson(_userId));
-      } else {
-        // A schedule edit restarts the rule from its new start date.
-        final patch = draft.toJson(_userId)
-          ..remove('user_id')
-          ..remove('account_id')
-          ..['next_charge_on'] = null;
-        await _db
-            .from('credit_card_fee_rules')
-            .update(patch)
-            .eq('id', ruleId)
-            .eq('user_id', _userId);
-      }
+      final id = await _db.rpc<String>(
+        'save_credit_card_fee_rule',
+        params: draft.toRpcParams(ruleId: ruleId),
+      );
+      return id;
+    });
+  }
+
+  /// Schedules a rate change effective from [effectiveFrom] (today or a
+  /// future date); the previously effective version keeps its own history.
+  Future<Result<String>> createFeeRuleVersion({
+    required String ruleId,
+    required PlainDate effectiveFrom,
+    required CardRuleCalculationType calculationType,
+    int? fixedAmountMinor,
+    int? percentBasisPoints,
+    FeePercentBasis? percentBasis,
+    int? minimumMinor,
+    int? maximumMinor,
+    int? lookbackCycles,
+    FeeFrequency frequency = FeeFrequency.annually,
+    ForeignApplyWhen? applyWhen,
+    int? toleranceMinor,
+    int? toleranceBasisPoints,
+    String? notes,
+  }) {
+    return guard(() async {
+      final id = await _db.rpc<String>(
+        'create_fee_rule_version',
+        params: {
+          'p_rule_id': ruleId,
+          'p_effective_from': effectiveFrom.toIso(),
+          'p_calculation_type': calculationType.dbValue,
+          'p_fixed_amount_minor': fixedAmountMinor,
+          'p_percent_basis_points': percentBasisPoints,
+          'p_percent_basis': percentBasis?.dbValue,
+          'p_minimum_minor': minimumMinor,
+          'p_maximum_minor': maximumMinor,
+          'p_lookback_cycles': lookbackCycles,
+          'p_frequency': frequency.dbValue,
+          'p_apply_when': applyWhen?.dbValue,
+          'p_tolerance_minor': toleranceMinor,
+          'p_tolerance_basis_points': toleranceBasisPoints,
+          'p_notes': notes,
+        },
+      );
+      return id;
+    });
+  }
+
+  /// Cancels a rate change that has not taken effect yet.
+  Future<Result<void>> cancelFeeRuleVersion(String versionId) {
+    return guard(() async {
+      await _db.rpc<void>(
+        'cancel_fee_rule_version',
+        params: {'p_version_id': versionId},
+      );
+    });
+  }
+
+  /// Reconciles one generated charge to the bank's actual amount.
+  /// [updateRuleGoingForward] schedules a matching future rate change on a
+  /// fixed-amount rule instead of leaving this a one-off correction.
+  Future<Result<void>> reconcileFeeCharge({
+    required String chargeId,
+    required int actualAmountMinor,
+    bool updateRuleGoingForward = false,
+    PlainDate? newVersionEffectiveFrom,
+    String? notes,
+  }) {
+    return guard(() async {
+      await _db.rpc<void>(
+        'reconcile_fee_charge',
+        params: {
+          'p_charge_id': chargeId,
+          'p_actual_amount_minor': actualAmountMinor,
+          'p_update_rule_going_forward': updateRuleGoingForward,
+          'p_new_version_effective_from': newVersionEffectiveFrom?.toIso(),
+          'p_notes': notes,
+        },
+      );
+    });
+  }
+
+  /// Generates any due late-payment or over-limit penalty charges; safe to
+  /// call on every facility refresh alongside [applyCreditCardFees].
+  Future<Result<int>> applyStatementPenaltyFees() {
+    return guard(() async {
+      final count = await _db.rpc<int>('apply_statement_penalty_fees');
+      return count;
     });
   }
 

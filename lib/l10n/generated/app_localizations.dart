@@ -3827,6 +3827,12 @@ abstract class AppLocalizations {
   /// **'Financing input'**
   String get purchaseFinancingMode;
 
+  /// No description provided for @purchaseCardTenorDefaultHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The card\'s own rate for this number of months will be used automatically.'**
+  String get purchaseCardTenorDefaultHint;
+
   /// No description provided for @purchaseFinancingModeFees.
   ///
   /// In en, this message translates to:
@@ -4252,6 +4258,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'I know the interest rate'**
   String get pricingMethodInterestRate;
+
+  /// No description provided for @pricingMethodCardTenorDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the card\'s default rate for this term'**
+  String get pricingMethodCardTenorDefault;
 
   /// No description provided for @purchaseEditTitle.
   ///
@@ -4751,6 +4763,42 @@ abstract class AppLocalizations {
   /// **'Fee type'**
   String get feeRuleType;
 
+  /// No description provided for @feeRuleState.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get feeRuleState;
+
+  /// No description provided for @ruleStateConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Configured'**
+  String get ruleStateConfigured;
+
+  /// No description provided for @ruleStateUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'I don\'t know yet'**
+  String get ruleStateUnknown;
+
+  /// No description provided for @ruleStateDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Not charged'**
+  String get ruleStateDisabled;
+
+  /// No description provided for @feeRuleUnknownHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This fee won\'t be charged until you know the rate. Finance Suit will flag any transaction it affects so you can fill it in later.'**
+  String get feeRuleUnknownHint;
+
+  /// No description provided for @feeRuleEditRateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To change the rate, delete this fee and add it again with the new rate and start date.'**
+  String get feeRuleEditRateHint;
+
   /// No description provided for @feeTypeAnnualMembership.
   ///
   /// In en, this message translates to:
@@ -4786,6 +4834,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cash advance'**
   String get feeTypeCashAdvance;
+
+  /// No description provided for @feeTypeInternationalCashAdvance.
+  ///
+  /// In en, this message translates to:
+  /// **'International cash advance'**
+  String get feeTypeInternationalCashAdvance;
+
+  /// No description provided for @feeTypeWalletFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet load fee'**
+  String get feeTypeWalletFee;
+
+  /// No description provided for @feeTypeStatementFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Statement / SMS fee'**
+  String get feeTypeStatementFee;
+
+  /// No description provided for @feeTypeEarlySettlement.
+  ///
+  /// In en, this message translates to:
+  /// **'Early settlement fee'**
+  String get feeTypeEarlySettlement;
 
   /// No description provided for @feeTypeLatePayment.
   ///
@@ -4847,6 +4919,54 @@ abstract class AppLocalizations {
   /// **'Credit limit'**
   String get feeBasisCreditLimit;
 
+  /// No description provided for @feeBasisTransactionAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction amount'**
+  String get feeBasisTransactionAmount;
+
+  /// No description provided for @feeBasisHighestStatementDueLookback.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest of recent statements'**
+  String get feeBasisHighestStatementDueLookback;
+
+  /// No description provided for @feeBasisRemainingPrincipal.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining principal'**
+  String get feeBasisRemainingPrincipal;
+
+  /// No description provided for @feeBasisRemainingOutstanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining amount owed'**
+  String get feeBasisRemainingOutstanding;
+
+  /// No description provided for @feeRuleMinimum.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum amount (optional)'**
+  String get feeRuleMinimum;
+
+  /// No description provided for @feeRuleMaximum.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum amount (optional)'**
+  String get feeRuleMaximum;
+
+  /// No description provided for @feeRuleLookbackCycles.
+  ///
+  /// In en, this message translates to:
+  /// **'Look back this many statements'**
+  String get feeRuleLookbackCycles;
+
+  /// No description provided for @valFeeLookback.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number from 1 to 24'**
+  String get valFeeLookback;
+
   /// No description provided for @feeRuleFixedAmount.
   ///
   /// In en, this message translates to:
@@ -4882,6 +5002,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Annually'**
   String get feeFrequencyAnnually;
+
+  /// No description provided for @feeFrequencyPerTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Per transaction'**
+  String get feeFrequencyPerTransaction;
 
   /// No description provided for @feeRuleStartsOn.
   ///

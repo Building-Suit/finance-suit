@@ -135,6 +135,10 @@ class _InstallmentPurchaseScreenState
               : plan.totalPayableMinor ~/ plan.installmentCount,
         );
       case PlanPricingMethod.interestRate:
+      case PlanPricingMethod.cardTenorDefault:
+        // Both snapshot their resolved rate the same way at creation; the
+        // card's tenor table itself may have since changed, so show what
+        // this plan actually locked in, not today's table value.
         _rateController.text = (plan.interestRateBasisPoints / 100)
             .toStringAsFixed(2);
     }
@@ -747,6 +751,10 @@ class _InstallmentPurchaseScreenState
                           }),
                         ),
                       ],
+                    ),
+                    PlanPricingMethod.cardTenorDefault => Text(
+                      l10n.purchaseCardTenorDefaultHint,
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
                   },
                   const SizedBox(height: 16),

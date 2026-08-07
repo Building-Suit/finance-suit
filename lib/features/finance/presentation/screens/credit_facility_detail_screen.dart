@@ -1412,20 +1412,37 @@ class _FeeRuleDialog extends ConsumerStatefulWidget {
   ConsumerState<_FeeRuleDialog> createState() => _FeeRuleDialogState();
 }
 
+// Percent bases that make sense for a recurring schedule rule (this dialog
+// only creates schedule-triggered rules); transaction-amount and
+// remaining-principal/outstanding bases belong to per-transaction and
+// early-settlement rules configured elsewhere.
+const _scheduleFeePercentBases = [
+  FeePercentBasis.statementBalance,
+  FeePercentBasis.outstandingBalance,
+  FeePercentBasis.creditLimit,
+  FeePercentBasis.highestStatementDueLookback,
+];
+
 class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _amountController;
   late final TextEditingController _percentController;
+  late final TextEditingController _minimumController;
+  late final TextEditingController _maximumController;
+  late final TextEditingController _lookbackController;
 
   late CardFeeType _feeType;
   late FeeFrequency _frequency;
   late FeePercentBasis _percentBasis;
   late bool _isPercent;
   late PlainDate _startsOn;
+  late CardRuleState _state;
   String? _categoryId;
   AppFailure? _failure;
   bool _busy = false;
+
+  bool get _isEdit => widget.existing != null;
 
   @override
   void initState() {
@@ -1442,11 +1459,15 @@ class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
           ? ''
           : existing!.percentValue!.toStringAsFixed(2),
     );
+    _minimumController = TextEditingController();
+    _maximumController = TextEditingController();
+    _lookbackController = TextEditingController();
     _feeType = existing?.feeType ?? CardFeeType.annualMembership;
     _frequency = existing?.frequency ?? FeeFrequency.annually;
     _percentBasis = existing?.percentBasis ?? FeePercentBasis.creditLimit;
     _isPercent = existing?.isPercent ?? false;
     _startsOn = existing?.startsOn ?? PlainDate.today();
+    _state = existing?.state ?? CardRuleState.configured;
     _categoryId = existing?.categoryId;
   }
 
@@ -1455,6 +1476,9 @@ class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
     _nameController.dispose();
     _amountController.dispose();
     _percentController.dispose();
+    _minimumController.dispose();
+    _maximumController.dispose();
+    _lookbackController.dispose();
     super.dispose();
   }
 
@@ -1476,10 +1500,26 @@ class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
     return basisPoints < 1 || basisPoints > 100000 ? null : basisPoints;
   }
 
+  int? _optionalMinorAmount(TextEditingController controller) {
+    final text = controller.text.trim();
+    if (text.isEmpty) return null;
+    return Money.tryParse(
+      text,
+      currencyCode: widget.summary.currencyCode,
+    )?.minor;
+  }
+
+  int? get _lookbackCycles => int.tryParse(_lookbackController.text.trim());
+
   Future<void> _submit() async {
     setState(() => _failure = null);
     if (!_formKey.currentState!.validate() || _categoryId == null) return;
     final currency = widget.summary.currencyCode;
+    final calculationType = _state != CardRuleState.configured
+        ? CardRuleCalculationType.manual
+        : _isPercent
+        ? CardRuleCalculationType.percentage
+        : CardRuleCalculationType.fixed;
     final draft = CardFeeRuleDraft(
       accountId: widget.summary.accountId,
       name: _nameController.text.trim(),
@@ -1487,14 +1527,31 @@ class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
       frequency: _frequency,
       startsOn: _startsOn,
       categoryId: _categoryId!,
-      fixedAmountMinor: _isPercent
-          ? null
-          : Money.tryParse(
+      state: _state,
+      calculationType: calculationType,
+      fixedAmountMinor: calculationType == CardRuleCalculationType.fixed
+          ? Money.tryParse(
               _amountController.text,
               currencyCode: currency,
-            )!.minor,
-      percentBasisPoints: _isPercent ? _percentBasisPoints : null,
-      percentBasis: _isPercent ? _percentBasis : null,
+            )!.minor
+          : null,
+      percentBasisPoints: calculationType == CardRuleCalculationType.percentage
+          ? _percentBasisPoints
+          : null,
+      percentBasis: calculationType == CardRuleCalculationType.percentage
+          ? _percentBasis
+          : null,
+      minimumMinor: calculationType == CardRuleCalculationType.percentage
+          ? _optionalMinorAmount(_minimumController)
+          : null,
+      maximumMinor: calculationType == CardRuleCalculationType.percentage
+          ? _optionalMinorAmount(_maximumController)
+          : null,
+      lookbackCycles:
+          calculationType == CardRuleCalculationType.percentage &&
+              _percentBasis == FeePercentBasis.highestStatementDueLookback
+          ? _lookbackCycles
+          : null,
     );
     setState(() => _busy = true);
     final result = await ref
@@ -1517,6 +1574,8 @@ class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
     if (_categoryId == null && categories.isNotEmpty) {
       _categoryId = categories.first.id;
     }
+    final showCalculationFields =
+        !_isEdit && _state == CardRuleState.configured;
     // A fee books an expense, so it needs a category to book it under. If
     // the user has none active yet, there is nothing this required field
     // could ever validly hold — offer the way out instead of a permanent
@@ -1542,106 +1601,195 @@ class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
                 },
               ),
               const SizedBox(height: 12),
-              AppSelectionField<CardFeeType>(
-                key: ValueKey('fee-rule-type-$_feeType'),
-                initialValue: _feeType,
-                decoration: InputDecoration(labelText: l10n.feeRuleType),
-                items: [
-                  for (final type in CardFeeType.values)
-                    DropdownMenuItem(
-                      value: type,
-                      child: Text(cardFeeTypeLabel(l10n, type)),
-                    ),
-                ],
-                onChanged: (v) => setState(
-                  () => _feeType = v ?? CardFeeType.annualMembership,
-                ),
-              ),
-              const SizedBox(height: 12),
-              SwitchListTile(
-                key: const Key('fee-rule-percent-toggle'),
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-                title: Text(l10n.feeRulePercentToggle),
-                value: _isPercent,
-                onChanged: _busy ? null : (v) => setState(() => _isPercent = v),
-              ),
-              if (_isPercent) ...[
-                AppTextFormField(
-                  key: const Key('fee-rule-percent'),
-                  controller: _percentController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: l10n.feeRulePercentLabel,
-                    suffixText: '%',
-                  ),
-                  validator: (v) =>
-                      _percentBasisPoints == null ? l10n.valFeePercent : null,
-                ),
-                const SizedBox(height: 12),
-                AppSelectionField<FeePercentBasis>(
-                  key: ValueKey('fee-rule-basis-$_percentBasis'),
-                  initialValue: _percentBasis,
-                  decoration: InputDecoration(
-                    labelText: l10n.feeRulePercentBasis,
-                  ),
+              if (!_isEdit) ...[
+                AppSelectionField<CardFeeType>(
+                  key: ValueKey('fee-rule-type-$_feeType'),
+                  initialValue: _feeType,
+                  decoration: InputDecoration(labelText: l10n.feeRuleType),
                   items: [
-                    for (final basis in FeePercentBasis.values)
+                    for (final type in CardFeeType.values)
                       DropdownMenuItem(
-                        value: basis,
-                        child: Text(feePercentBasisLabel(l10n, basis)),
+                        value: type,
+                        child: Text(cardFeeTypeLabel(l10n, type)),
                       ),
                   ],
                   onChanged: (v) => setState(
-                    () => _percentBasis = v ?? FeePercentBasis.creditLimit,
+                    () => _feeType = v ?? CardFeeType.annualMembership,
                   ),
                 ),
-              ] else
-                AppTextFormField(
-                  key: const Key('fee-rule-amount'),
-                  controller: _amountController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  inputFormatters: moneyInputFormatters(),
-                  decoration: InputDecoration(
-                    labelText: l10n.feeRuleFixedAmount,
-                    suffixText: currency,
-                  ),
-                  validator: (v) {
-                    final e = Validators.positiveAmount(
-                      v,
-                      currencyCode: currency,
-                    );
-                    return e == null ? null : validationMessage(context, e);
-                  },
-                ),
-              const SizedBox(height: 12),
-              AppSelectionField<FeeFrequency>(
-                key: ValueKey('fee-rule-frequency-$_frequency'),
-                initialValue: _frequency,
-                decoration: InputDecoration(labelText: l10n.feeRuleFrequency),
+                const SizedBox(height: 12),
+              ],
+              AppSelectionField<CardRuleState>(
+                key: ValueKey('fee-rule-state-$_state'),
+                initialValue: _state,
+                decoration: InputDecoration(labelText: l10n.feeRuleState),
                 items: [
-                  for (final frequency in FeeFrequency.values)
-                    DropdownMenuItem(
-                      value: frequency,
-                      child: Text(feeFrequencyLabel(l10n, frequency)),
-                    ),
+                  for (final state in CardRuleState.values)
+                    // Editing can only mark a rule Unknown or Disabled, or
+                    // keep it Configured if it already has a real rate —
+                    // giving an unknown rule its first rate happens through
+                    // "Add a rule", not by flipping this dropdown.
+                    if (!_isEdit ||
+                        state != CardRuleState.configured ||
+                        widget.existing?.fixedAmountMinor != null ||
+                        widget.existing?.percentBasisPoints != null)
+                      DropdownMenuItem(
+                        value: state,
+                        child: Text(cardRuleStateLabel(l10n, state)),
+                      ),
                 ],
                 onChanged: (v) =>
-                    setState(() => _frequency = v ?? FeeFrequency.annually),
+                    setState(() => _state = v ?? CardRuleState.configured),
               ),
-              const SizedBox(height: 4),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-                title: Text(l10n.feeRuleStartsOn),
-                subtitle: Text(_startsOn.toIso()),
-                trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
-                onTap: _busy ? null : _pickDate,
-              ),
+              if (_state == CardRuleState.unknown) ...[
+                const SizedBox(height: 4),
+                Text(
+                  l10n.feeRuleUnknownHint,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+              const SizedBox(height: 12),
+              if (showCalculationFields) ...[
+                SwitchListTile(
+                  key: const Key('fee-rule-percent-toggle'),
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  title: Text(l10n.feeRulePercentToggle),
+                  value: _isPercent,
+                  onChanged: _busy
+                      ? null
+                      : (v) => setState(() => _isPercent = v),
+                ),
+                if (_isPercent) ...[
+                  AppTextFormField(
+                    key: const Key('fee-rule-percent'),
+                    controller: _percentController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: InputDecoration(
+                      labelText: l10n.feeRulePercentLabel,
+                      suffixText: '%',
+                    ),
+                    validator: (v) =>
+                        _percentBasisPoints == null ? l10n.valFeePercent : null,
+                  ),
+                  const SizedBox(height: 12),
+                  AppSelectionField<FeePercentBasis>(
+                    key: ValueKey('fee-rule-basis-$_percentBasis'),
+                    initialValue: _percentBasis,
+                    decoration: InputDecoration(
+                      labelText: l10n.feeRulePercentBasis,
+                    ),
+                    items: [
+                      for (final basis in _scheduleFeePercentBases)
+                        DropdownMenuItem(
+                          value: basis,
+                          child: Text(feePercentBasisLabel(l10n, basis)),
+                        ),
+                    ],
+                    onChanged: (v) => setState(
+                      () => _percentBasis = v ?? FeePercentBasis.creditLimit,
+                    ),
+                  ),
+                  if (_percentBasis ==
+                      FeePercentBasis.highestStatementDueLookback) ...[
+                    const SizedBox(height: 12),
+                    AppTextFormField(
+                      key: const Key('fee-rule-lookback'),
+                      controller: _lookbackController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: l10n.feeRuleLookbackCycles,
+                      ),
+                      validator: (v) {
+                        final cycles = _lookbackCycles;
+                        return cycles == null || cycles < 1 || cycles > 24
+                            ? l10n.valFeeLookback
+                            : null;
+                      },
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AppTextFormField(
+                          key: const Key('fee-rule-minimum'),
+                          controller: _minimumController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          inputFormatters: moneyInputFormatters(),
+                          decoration: InputDecoration(
+                            labelText: l10n.feeRuleMinimum,
+                            suffixText: currency,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: AppTextFormField(
+                          key: const Key('fee-rule-maximum'),
+                          controller: _maximumController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          inputFormatters: moneyInputFormatters(),
+                          decoration: InputDecoration(
+                            labelText: l10n.feeRuleMaximum,
+                            suffixText: currency,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ] else
+                  AppTextFormField(
+                    key: const Key('fee-rule-amount'),
+                    controller: _amountController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: moneyInputFormatters(),
+                    decoration: InputDecoration(
+                      labelText: l10n.feeRuleFixedAmount,
+                      suffixText: currency,
+                    ),
+                    validator: (v) {
+                      final e = Validators.positiveAmount(
+                        v,
+                        currencyCode: currency,
+                      );
+                      return e == null ? null : validationMessage(context, e);
+                    },
+                  ),
+                const SizedBox(height: 12),
+                AppSelectionField<FeeFrequency>(
+                  key: ValueKey('fee-rule-frequency-$_frequency'),
+                  initialValue: _frequency,
+                  decoration: InputDecoration(labelText: l10n.feeRuleFrequency),
+                  items: [
+                    for (final frequency in FeeFrequency.values)
+                      if (frequency != FeeFrequency.perTransaction)
+                        DropdownMenuItem(
+                          value: frequency,
+                          child: Text(feeFrequencyLabel(l10n, frequency)),
+                        ),
+                  ],
+                  onChanged: (v) =>
+                      setState(() => _frequency = v ?? FeeFrequency.annually),
+                ),
+                const SizedBox(height: 4),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  title: Text(l10n.feeRuleStartsOn),
+                  subtitle: Text(_startsOn.toIso()),
+                  trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
+                  onTap: _busy ? null : _pickDate,
+                ),
+              ],
               if (needsCategory)
                 _NoExpenseCategoriesNotice(
                   key: const Key('fee-rule-no-categories'),
@@ -1666,6 +1814,13 @@ class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
                       ? validationMessage(context, ValidationError.required)
                       : null,
                 ),
+              if (_isEdit) ...[
+                const SizedBox(height: 8),
+                Text(
+                  l10n.feeRuleEditRateHint,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
               if (_failure != null) ...[
                 const SizedBox(height: 8),
                 Text(

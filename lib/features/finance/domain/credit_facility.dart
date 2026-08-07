@@ -724,6 +724,10 @@ class InstallmentPlanRevision {
         feesMinor: fees,
         totalMinor: principalMinor + fees,
       );
+    case PlanPricingMethod.cardTenorDefault:
+      // The resolved rate lives in the card's tenor table server-side;
+      // there is nothing to preview locally until it is fetched.
+      return null;
   }
 }
 
