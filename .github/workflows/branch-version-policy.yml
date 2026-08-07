@@ -67,7 +67,17 @@ jobs:
               ;;
           esac
 
-          if [[ ! "${PR_TITLE}" =~ ^(feat|fix|perf|refactor|docs|test|ci|build|chore)(\([a-z0-9_-]+\))?(!)?:\ .+ ]]; then
+          # Only feature/fix PRs into dev need a Conventional Commit title:
+          # that title is what a human reads as the change summary, and
+          # squashing it in becomes the commit message release tooling later
+          # scans. Promotion PRs (dev->stg, stg->main) carry no new commits
+          # of their own — GitHub fills their title from the merge summary,
+          # which never matches this pattern — and version impact for them
+          # is already computed from the underlying commits by
+          # check_release_version.sh below, not from this title. Enforcing
+          # the same regex there just fails every promotion PR by
+          # construction, requiring a manual retitle each time.
+          if [[ "${BASE_BRANCH}" == "dev" ]] && [[ ! "${PR_TITLE}" =~ ^(feat|fix|perf|refactor|docs|test|ci|build|chore)(\([a-z0-9_-]+\))?(!)?:\ .+ ]]; then
             echo "Use a Conventional Commit PR title so version impact is explicit." >&2
             echo "Example: feat(finance): add recurring income" >&2
             exit 1
