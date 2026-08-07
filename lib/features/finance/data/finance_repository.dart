@@ -7,6 +7,7 @@ import 'package:work_tracker/core/result/result.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
+import 'package:work_tracker/features/finance/domain/card_research.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/facility_activity.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
@@ -768,6 +769,22 @@ class FinanceRepository {
       );
       return id;
     });
+  }
+
+  /// Researches a Credit Card or BNPL product's public terms server-side
+  /// (never calling any AI provider directly from Flutter) and returns a
+  /// normalized DTO the caller maps onto the existing Add Account form. The
+  /// AI never writes to Supabase — this call is read-only research.
+  Future<Result<CardResearchResult>> researchCardProduct(
+    CardResearchRequest request,
+  ) {
+    return guard(() async {
+      final response = await _client.functions.invoke(
+        'ai-card-research',
+        body: request.toJson(),
+      );
+      return CardResearchResult.fromJson(response.data as Map<String, dynamic>);
+    }, timeout: const Duration(seconds: 60));
   }
 
   /// One plan by id, for the edit form.
