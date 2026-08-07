@@ -107,15 +107,27 @@ class CreditFacilityDetailScreen extends ConsumerWidget {
     CreditFacilitySummary summary, {
     CardFeeRule? existing,
   }) async {
-    final submitted = await showDialog<bool>(
+    final result = await showDialog<_FeeRuleDialogResult>(
       context: context,
       builder: (dialogContext) =>
-          _FeeRuleDialog(summary: summary, existing: existing, ref: ref),
+          _FeeRuleDialog(summary: summary, existing: existing),
     );
-    if (submitted == true && context.mounted) {
-      ref.invalidate(feeRulesProvider(summary.accountId));
-      invalidateFinanceData(ref);
-      AppToast.success(context, AppLocalizations.of(context).setSaved);
+    if (!context.mounted) return;
+    switch (result) {
+      case _FeeRuleDialogResult.saved:
+        ref.invalidate(feeRulesProvider(summary.accountId));
+        invalidateFinanceData(ref);
+        AppToast.success(context, AppLocalizations.of(context).setSaved);
+      case _FeeRuleDialogResult.addCategory:
+        // A fee is booked as an expense and has nowhere to go without an
+        // expense category, so send the user to create one and pick this
+        // dialog back up right where they left off instead of dead-ending
+        // on a required field with nothing to select.
+        await context.push('${AppRoutes.money}/categories/new?kind=expense');
+        if (!context.mounted) return;
+        await _editFeeRule(context, ref, summary, existing: existing);
+      case null:
+        break;
     }
   }
 
@@ -1375,24 +1387,32 @@ class _FeeRuleTile extends StatelessWidget {
   }
 }
 
+/// What the fee-rule dialog closed with: a saved rule, a detour to create
+/// the expense category it has nowhere to go without, or (null) a cancel.
+enum _FeeRuleDialogResult { saved, addCategory }
+
 /// Creates or edits one recurring card fee rule. Fixed-amount fees take an
 /// exact amount; percent fees take a rate and the balance it applies to.
-class _FeeRuleDialog extends StatefulWidget {
-  const _FeeRuleDialog({
-    required this.summary,
-    required this.ref,
-    this.existing,
-  });
+///
+/// Owns its own [ref] rather than taking one from the parent screen: this
+/// dialog is shown via [showDialog], which mounts it outside the parent's
+/// widget subtree (a separate Overlay entry), so a provider watched through
+/// a borrowed ref never rebuilds this dialog when it resolves — the dialog
+/// stays stuck on whatever it read on its very first frame. Categories load
+/// asynchronously, so that first frame is reliably empty; a category
+/// created for real would never appear until something else happened to
+/// call setState.
+class _FeeRuleDialog extends ConsumerStatefulWidget {
+  const _FeeRuleDialog({required this.summary, this.existing});
 
   final CreditFacilitySummary summary;
   final CardFeeRule? existing;
-  final WidgetRef ref;
 
   @override
-  State<_FeeRuleDialog> createState() => _FeeRuleDialogState();
+  ConsumerState<_FeeRuleDialog> createState() => _FeeRuleDialogState();
 }
 
-class _FeeRuleDialogState extends State<_FeeRuleDialog> {
+class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _amountController;
@@ -1477,13 +1497,13 @@ class _FeeRuleDialogState extends State<_FeeRuleDialog> {
       percentBasis: _isPercent ? _percentBasis : null,
     );
     setState(() => _busy = true);
-    final result = await widget.ref
+    final result = await ref
         .read(financeRepositoryProvider)
         .saveFeeRule(draft, ruleId: widget.existing?.id);
     if (!mounted) return;
     setState(() => _busy = false);
     result.when(
-      ok: (_) => Navigator.of(context).pop(true),
+      ok: (_) => Navigator.of(context).pop(_FeeRuleDialogResult.saved),
       err: (failure) => setState(() => _failure = failure),
     );
   }
@@ -1493,11 +1513,15 @@ class _FeeRuleDialogState extends State<_FeeRuleDialog> {
     final l10n = AppLocalizations.of(context);
     final currency = widget.summary.currencyCode;
     final categories =
-        widget.ref.watch(categoriesProvider(CategoryKind.expense)).value ??
-        const [];
+        ref.watch(categoriesProvider(CategoryKind.expense)).value ?? const [];
     if (_categoryId == null && categories.isNotEmpty) {
       _categoryId = categories.first.id;
     }
+    // A fee books an expense, so it needs a category to book it under. If
+    // the user has none active yet, there is nothing this required field
+    // could ever validly hold — offer the way out instead of a permanent
+    // "this field is required".
+    final needsCategory = categories.isEmpty && _categoryId == null;
     return AlertDialog(
       title: Text(widget.existing == null ? l10n.feeRuleAdd : l10n.feeRuleEdit),
       content: Form(
@@ -1618,22 +1642,30 @@ class _FeeRuleDialogState extends State<_FeeRuleDialog> {
                 trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
                 onTap: _busy ? null : _pickDate,
               ),
-              AppSelectionField<String>(
-                key: ValueKey('fee-rule-category-$_categoryId'),
-                initialValue: _categoryId,
-                decoration: InputDecoration(labelText: l10n.txCategory),
-                items: [
-                  for (final category in categories)
-                    DropdownMenuItem(
-                      value: category.id,
-                      child: Text(category.name),
-                    ),
-                ],
-                onChanged: (v) => setState(() => _categoryId = v),
-                validator: (v) => v == null
-                    ? validationMessage(context, ValidationError.required)
-                    : null,
-              ),
+              if (needsCategory)
+                _NoExpenseCategoriesNotice(
+                  key: const Key('fee-rule-no-categories'),
+                  onAddCategory: () => Navigator.of(
+                    context,
+                  ).pop(_FeeRuleDialogResult.addCategory),
+                )
+              else
+                AppSelectionField<String>(
+                  key: ValueKey('fee-rule-category-$_categoryId'),
+                  initialValue: _categoryId,
+                  decoration: InputDecoration(labelText: l10n.txCategory),
+                  items: [
+                    for (final category in categories)
+                      DropdownMenuItem(
+                        value: category.id,
+                        child: Text(category.name),
+                      ),
+                  ],
+                  onChanged: (v) => setState(() => _categoryId = v),
+                  validator: (v) => v == null
+                      ? validationMessage(context, ValidationError.required)
+                      : null,
+                ),
               if (_failure != null) ...[
                 const SizedBox(height: 8),
                 Text(
@@ -1649,15 +1681,74 @@ class _FeeRuleDialogState extends State<_FeeRuleDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: _busy ? null : () => Navigator.of(context).pop(false),
+          onPressed: _busy ? null : () => Navigator.of(context).pop(),
           child: Text(l10n.commonCancel),
         ),
         FilledButton(
           key: const Key('fee-rule-submit'),
-          onPressed: _busy ? null : _submit,
+          onPressed: _busy || needsCategory ? null : _submit,
           child: Text(l10n.commonSave),
         ),
       ],
+    );
+  }
+}
+
+/// Shown in place of the category field when the user has no active expense
+/// category to book a fee under. Routes to creating one instead of leaving a
+/// required field with nothing it could ever validly hold.
+class _NoExpenseCategoriesNotice extends StatelessWidget {
+  const _NoExpenseCategoriesNotice({super.key, required this.onAddCategory});
+
+  final VoidCallback onAddCategory;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final tone = context.suitColors.warning;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: tone.background,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: tone.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              FinanceSuitIcon(FinanceSuitIcons.warning, color: tone.icon),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.feeRuleNoCategoriesTitle,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(color: tone.text),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l10n.feeRuleNoCategoriesBody,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: tone.text),
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: OutlinedButton.icon(
+              key: const Key('fee-rule-add-category'),
+              onPressed: onAddCategory,
+              icon: const FinanceSuitIcon(FinanceSuitIcons.addCircle),
+              label: Text(l10n.feeRuleAddCategoryAction),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

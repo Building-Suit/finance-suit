@@ -1235,6 +1235,9 @@
   "feeRuleDeleteConfirmTitle": "Delete this fee?",
   "feeRuleDeleteConfirmBody": "Future charges stop. Fees already charged stay in your history.",
   "feeRulesEmpty": "No fees configured for this card yet. Add the annual membership or insurance fee so it books itself.",
+  "feeRuleNoCategoriesTitle": "You need an expense category first",
+  "feeRuleNoCategoriesBody": "Fees are booked as expenses, so pick or create a category before saving this one.",
+  "feeRuleAddCategoryAction": "Add expense category",
   "feeRulePercentOfBasis": "{percent}% of {basis}",
   "@feeRulePercentOfBasis": {
     "placeholders": {
