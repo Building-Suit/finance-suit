@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
+import 'package:work_tracker/app/theme/facility_palette.dart';
 import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
@@ -165,6 +166,9 @@ class FacilityTile extends StatelessWidget {
         : facility.utilizationFraction >= 0.9
         ? colors.warning
         : colors.info;
+    // The row keeps the neutral surface so its figures stay readable; the
+    // user's colour identifies the card through the leading swatch.
+    final swatch = FacilitySwatches.parse(facility.colorHex);
     return Card(
       key: Key('facility-tile-${facility.accountId}'),
       margin: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 4),
@@ -178,10 +182,25 @@ class FacilityTile extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  FinanceSuitIcon(
-                    accountTypeIcon(facility.accountType),
-                    color: tone.icon,
-                  ),
+                  if (swatch == null)
+                    FinanceSuitIcon(
+                      accountTypeIcon(facility.accountType),
+                      color: tone.icon,
+                    )
+                  else
+                    Container(
+                      key: Key('facility-swatch-${facility.accountId}'),
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: swatch,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: FinanceSuitIcon(
+                        accountTypeIcon(facility.accountType),
+                        color: onFacilitySwatch(swatch),
+                        size: 18,
+                      ),
+                    ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(

@@ -141,9 +141,22 @@ begin
     raise exception 'Legacy create_installment_plan overload remains';
   end if;
   if to_regprocedure(
-    'app_finance.save_credit_facility(text,app_finance.account_type,text,bigint,smallint,smallint,text,smallint,text,uuid,app_finance.facility_status,app_finance.min_payment_method,bigint,integer)'
+    'app_finance.save_credit_facility(text,app_finance.account_type,text,bigint,smallint,smallint,text,smallint,text,uuid,app_finance.facility_status,app_finance.min_payment_method,bigint,integer,text)'
   ) is null then
     v_missing := array_append(v_missing, 'save_credit_facility');
+  end if;
+  if to_regprocedure(
+    'app_finance.save_credit_facility(text,app_finance.account_type,text,bigint,smallint,smallint,text,smallint,text,uuid,app_finance.facility_status,app_finance.min_payment_method,bigint,integer)'
+  ) is not null then
+    raise exception 'Legacy colourless save_credit_facility overload remains';
+  end if;
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'app_finance'
+      and table_name = 'credit_facility_settings'
+      and column_name = 'color_hex'
+  ) then
+    v_missing := array_append(v_missing, 'credit_facility_settings.color_hex');
   end if;
   if to_regprocedure(
     'app_finance.save_credit_facility(text,app_finance.account_type,text,bigint,bigint,smallint,smallint,text,smallint,text,uuid)'

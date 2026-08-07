@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
+import 'package:work_tracker/app/theme/facility_palette.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
@@ -55,7 +56,7 @@ void main() {
     totalIncomingMinor: 0,
     totalOutgoingMinor: 300000,
   );
-  final card = CreditFacilitySummary(
+  CreditFacilitySummary buildCard({String? colorHex}) => CreditFacilitySummary(
     accountId: 'card-1',
     name: 'Everyday Card',
     accountType: AccountType.creditCard,
@@ -76,9 +77,14 @@ void main() {
     nextDueOn: PlainDate.today().addDays(6),
     nextDueAmountMinor: 100000,
     upcomingDueMinor: 250000,
+    colorHex: colorHex,
   );
+  final card = buildCard();
 
-  Future<void> pumpHome(WidgetTester tester) async {
+  Future<void> pumpHome(
+    WidgetTester tester, {
+    CreditFacilitySummary? facility,
+  }) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(
@@ -91,7 +97,9 @@ void main() {
           allAccountBalancesProvider.overrideWith(
             (ref) async => const [wallet, cardAccount],
           ),
-          creditFacilitiesProvider.overrideWith((ref) async => [card]),
+          creditFacilitiesProvider.overrideWith(
+            (ref) async => [facility ?? card],
+          ),
           pendingIncomeProvider.overrideWith(
             (ref) async => const <PendingIncome>[],
           ),
@@ -155,6 +163,54 @@ void main() {
     expect(find.textContaining(owed.format()), findsOneWidget);
     expect(find.textContaining(upcoming.format()), findsOneWidget);
     expect(find.textContaining(earliestOnly.format()), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('cards sit between the balance and the cash flow', (
+    tester,
+  ) async {
+    await pumpHome(tester);
+
+    // Home reads money-I-have, then money-I-owe, then how it moved.
+    final balance = tester.getTopLeft(find.text('Balance')).dy;
+    final cards = tester.getTopLeft(find.text('Cards')).dy;
+    final cashFlow = tester.getTopLeft(find.text('Cash flow')).dy;
+
+    expect(balance, lessThan(cards));
+    expect(cards, lessThan(cashFlow));
+    expect(tester.takeException(), isNull);
+  });
+
+  Color homeCardColor(WidgetTester tester) => tester
+      .widget<Card>(
+        find
+            .ancestor(
+              of: find.byKey(const Key('home-card-card-1')),
+              matching: find.byType(Card),
+            )
+            .first,
+      )
+      .color!;
+
+  testWidgets('a card wears the colour the user picked for it', (tester) async {
+    // A swatch distinct from the brand surface, so "unchanged" cannot pass
+    // by coincidence.
+    final chosen = FacilitySwatches.values[5];
+    await pumpHome(
+      tester,
+      facility: buildCard(colorHex: FacilitySwatches.hexOf(chosen)),
+    );
+
+    expect(homeCardColor(tester), chosen);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a card without a colour keeps the brand surface', (
+    tester,
+  ) async {
+    await pumpHome(tester);
+
+    expect(homeCardColor(tester), isNot(FacilitySwatches.values[5]));
     expect(tester.takeException(), isNull);
   });
 }

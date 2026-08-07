@@ -801,6 +801,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get txAccount => 'Account';
 
   @override
+  String get txMoreFilters => 'More filters';
+
+  @override
+  String get txClearFilters => 'Clear filters';
+
+  @override
+  String get txFilterNoMatches => 'No transactions match these filters.';
+
+  @override
   String get txFromAccount => 'From account';
 
   @override
@@ -1844,6 +1853,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accTypeBnpl => 'BNPL / Finance Company';
+
+  @override
+  String get accColorLabel => 'Card colour';
+
+  @override
+  String get accColorDefault => 'Default';
+
+  @override
+  String accColorSwatch(int index) {
+    return 'Colour $index';
+  }
 
   @override
   String get accOpeningOwed => 'Opening amount owed';
