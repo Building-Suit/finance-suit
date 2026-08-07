@@ -1530,8 +1530,10 @@ class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
       state: _state,
       calculationType: calculationType,
       fixedAmountMinor: calculationType == CardRuleCalculationType.fixed
-          ? Money.tryParse(_amountController.text, currencyCode: currency)!
-                .minor
+          ? Money.tryParse(
+              _amountController.text,
+              currencyCode: currency,
+            )!.minor
           : null,
       percentBasisPoints: calculationType == CardRuleCalculationType.percentage
           ? _percentBasisPoints
@@ -1636,9 +1638,8 @@ class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
                         child: Text(cardRuleStateLabel(l10n, state)),
                       ),
                 ],
-                onChanged: (v) => setState(
-                  () => _state = v ?? CardRuleState.configured,
-                ),
+                onChanged: (v) =>
+                    setState(() => _state = v ?? CardRuleState.configured),
               ),
               if (_state == CardRuleState.unknown) ...[
                 const SizedBox(height: 4),
@@ -1670,9 +1671,8 @@ class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
                       labelText: l10n.feeRulePercentLabel,
                       suffixText: '%',
                     ),
-                    validator: (v) => _percentBasisPoints == null
-                        ? l10n.valFeePercent
-                        : null,
+                    validator: (v) =>
+                        _percentBasisPoints == null ? l10n.valFeePercent : null,
                   ),
                   const SizedBox(height: 12),
                   AppSelectionField<FeePercentBasis>(
@@ -1768,9 +1768,7 @@ class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
                 AppSelectionField<FeeFrequency>(
                   key: ValueKey('fee-rule-frequency-$_frequency'),
                   initialValue: _frequency,
-                  decoration: InputDecoration(
-                    labelText: l10n.feeRuleFrequency,
-                  ),
+                  decoration: InputDecoration(labelText: l10n.feeRuleFrequency),
                   items: [
                     for (final frequency in FeeFrequency.values)
                       if (frequency != FeeFrequency.perTransaction)

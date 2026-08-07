@@ -3830,7 +3830,7 @@ abstract class AppLocalizations {
   /// No description provided for @purchaseCardTenorDefaultHint.
   ///
   /// In en, this message translates to:
-  /// **'The card's own rate for this number of months will be used automatically.'**
+  /// **'The card\'s own rate for this number of months will be used automatically.'**
   String get purchaseCardTenorDefaultHint;
 
   /// No description provided for @purchaseFinancingModeFees.
@@ -4262,7 +4262,7 @@ abstract class AppLocalizations {
   /// No description provided for @pricingMethodCardTenorDefault.
   ///
   /// In en, this message translates to:
-  /// **'Use the card's default rate for this term'**
+  /// **'Use the card\'s default rate for this term'**
   String get pricingMethodCardTenorDefault;
 
   /// No description provided for @purchaseEditTitle.
@@ -4778,7 +4778,7 @@ abstract class AppLocalizations {
   /// No description provided for @ruleStateUnknown.
   ///
   /// In en, this message translates to:
-  /// **'I don't know yet'**
+  /// **'I don\'t know yet'**
   String get ruleStateUnknown;
 
   /// No description provided for @ruleStateDisabled.
@@ -4790,7 +4790,7 @@ abstract class AppLocalizations {
   /// No description provided for @feeRuleUnknownHint.
   ///
   /// In en, this message translates to:
-  /// **'This fee won't be charged until you know the rate. Finance Suit will flag any transaction it affects so you can fill it in later.'**
+  /// **'This fee won\'t be charged until you know the rate. Finance Suit will flag any transaction it affects so you can fill it in later.'**
   String get feeRuleUnknownHint;
 
   /// No description provided for @feeRuleEditRateHint.

@@ -56,6 +56,7 @@ String planPricingMethodLabel(AppLocalizations l10n, PlanPricingMethod m) {
     PlanPricingMethod.monthlyAmount => l10n.pricingMethodMonthlyAmount,
     PlanPricingMethod.totalPayable => l10n.pricingMethodTotalPayable,
     PlanPricingMethod.interestRate => l10n.pricingMethodInterestRate,
+    PlanPricingMethod.cardTenorDefault => l10n.pricingMethodCardTenorDefault,
   };
 }
 
