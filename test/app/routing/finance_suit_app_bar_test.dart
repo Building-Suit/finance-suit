@@ -7,8 +7,8 @@ import 'package:work_tracker/app/branding/finance_suit_mark.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
-import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
+import 'package:work_tracker/features/finance/domain/transaction_query.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/screens/money_screen.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
@@ -143,8 +143,9 @@ void main() {
             allAccountBalancesProvider.overrideWith(
               (ref) async => const <AccountBalance>[],
             ),
-            recentTransactionsProvider.overrideWith(
-              (ref) async => const <FinancialTransaction>[],
+            transactionsPageProvider.overrideWith(
+              (ref, query) async =>
+                  const TransactionPage(items: [], hasMore: false),
             ),
             heldAmountsProvider.overrideWith(
               (ref) async => const <HeldAmount>[],
@@ -185,8 +186,9 @@ void main() {
           allAccountBalancesProvider.overrideWith(
             (ref) async => const <AccountBalance>[],
           ),
-          recentTransactionsProvider.overrideWith(
-            (ref) async => const <FinancialTransaction>[],
+          transactionsPageProvider.overrideWith(
+            (ref, query) async =>
+                const TransactionPage(items: [], hasMore: false),
           ),
           heldAmountsProvider.overrideWith((ref) async => const <HeldAmount>[]),
         ],

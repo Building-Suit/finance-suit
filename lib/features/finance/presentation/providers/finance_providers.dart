@@ -7,12 +7,12 @@ import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/facility_activity.dart';
-import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 import 'package:work_tracker/features/finance/domain/transaction_macro.dart';
+import 'package:work_tracker/features/finance/domain/transaction_query.dart';
 import 'package:work_tracker/features/salary/domain/salary_estimate.dart';
 import 'package:work_tracker/features/salary/presentation/providers/salary_providers.dart';
 import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
@@ -65,16 +65,20 @@ final allCategoriesProvider = FutureProvider<List<TransactionCategory>>((
   return result.when(ok: (c) => c, err: (f) => throw f);
 });
 
-/// Latest transactions for the Money tab list.
-final recentTransactionsProvider = FutureProvider<List<FinancialTransaction>>((
-  ref,
-) async {
-  ref.watch(currentUserIdProvider);
-  final result = await ref
-      .watch(financeRepositoryProvider)
-      .fetchRecentTransactions();
-  return result.when(ok: (t) => t, err: (f) => throw f);
-});
+/// The first page of the Money tab's transaction list for one filter set.
+///
+/// Later pages are fetched imperatively through the repository as the user
+/// scrolls; keeping page one in a provider means every invalidation — an
+/// edit, a realtime event, a pull to refresh — rebuilds the list from the
+/// top without the screen having to subscribe to anything else.
+final transactionsPageProvider = FutureProvider.family
+    .autoDispose<TransactionPage, TransactionQuery>((ref, query) async {
+      ref.watch(currentUserIdProvider);
+      final result = await ref
+          .watch(financeRepositoryProvider)
+          .fetchTransactions(query);
+      return result.when(ok: (page) => page, err: (failure) => throw failure);
+    });
 
 /// Saved macros with their items, for the macros screen and the add sheet.
 final macrosProvider = FutureProvider<List<TransactionMacro>>((ref) async {
@@ -136,7 +140,7 @@ final creditFacilitiesProvider = FutureProvider<List<CreditFacilitySummary>>((
   final facilities = result.when(ok: (f) => f, err: (failure) => throw failure);
   if ((applied.valueOrNull ?? 0) > 0) {
     // Newly booked fees changed balances and statements elsewhere too.
-    ref.invalidate(recentTransactionsProvider);
+    ref.invalidate(transactionsPageProvider);
     ref.invalidate(statementSummariesProvider);
   }
   return facilities;
@@ -218,7 +222,7 @@ final planRevisionsProvider = FutureProvider.family
 void invalidateFinanceData(WidgetRef ref) {
   ref.invalidate(accountBalancesProvider);
   ref.invalidate(allAccountBalancesProvider);
-  ref.invalidate(recentTransactionsProvider);
+  ref.invalidate(transactionsPageProvider);
   ref.invalidate(heldAmountsProvider);
   ref.invalidate(pendingIncomeProvider);
   ref.invalidate(creditFacilitiesProvider);

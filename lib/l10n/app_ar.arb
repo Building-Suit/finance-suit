@@ -284,6 +284,9 @@
   "txEditTitle": "تعديل المعاملة",
   "txAccountUnavailable": "غير متاح",
   "txAccount": "الحساب",
+  "txMoreFilters": "مرشحات إضافية",
+  "txClearFilters": "مسح المرشحات",
+  "txFilterNoMatches": "لا توجد معاملات مطابقة لهذه المرشحات.",
   "txFromAccount": "من حساب",
   "txToAccount": "إلى حساب",
   "txCategory": "الفئة",
@@ -872,6 +875,16 @@
   "heldSettleHelp": "سيتم تسجيل المعاملة بهذا التاريخ.",
   "accTypeCreditCard": "بطاقة ائتمان",
   "accTypeBnpl": "شركة تقسيط / اشترِ الآن وادفع لاحقًا",
+  "accColorLabel": "لون البطاقة",
+  "accColorDefault": "افتراضي",
+  "accColorSwatch": "لون {index}",
+  "@accColorSwatch": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "accOpeningOwed": "المبلغ المستحق الافتتاحي",
   "accOpeningOwedHelp": "دين مستخدم على هذه البطاقة أو الجهة قبل أن تبدأ تتبعه في Finance Suit.",
   "facilityCreditLimit": "الحد الائتماني",

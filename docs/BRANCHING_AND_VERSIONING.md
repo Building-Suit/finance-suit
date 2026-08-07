@@ -17,8 +17,13 @@ feature/fix branch -> dev -> stg -> main
 
 ## Version rule
 
-Pull-request titles use Conventional Commit types. The highest unreleased
-impact since `main` determines the next version:
+Feature/fix pull requests into `dev` use Conventional Commit titles; each is
+squash-merged, so that title becomes the one commit release tooling scans.
+Promotion pull requests (`dev` -> `stg`, `stg` -> `main`) merge with history
+preserved rather than squashed, carry no commit of their own, and are not
+title-checked — the version impact already comes from the underlying
+commits already in `dev`. The highest unreleased impact since `main`
+determines the next version:
 
 | Change                                 | Version impact |
 | -------------------------------------- | -------------- |

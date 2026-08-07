@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
+import 'package:work_tracker/app/theme/facility_palette.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
@@ -58,6 +59,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
   int _reminderLeadDays = 3;
   FacilityStatus _facilityStatus = FacilityStatus.active;
   MinPaymentMethod _minPaymentMethod = MinPaymentMethod.full;
+  String? _colorHex;
   AppFailure? _failure;
   bool _busy = false;
   bool _loaded = false;
@@ -116,6 +118,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
       _reminderLeadDays = facility.reminderLeadDays;
       _facilityStatus = facility.facilityStatus;
       _minPaymentMethod = facility.minPaymentMethod;
+      _colorHex = facility.colorHex;
       if (facility.minPaymentFixedMinor != null) {
         _minFixedController.text = formatMinorForInput(
           facility.minPaymentFixedMinor!,
@@ -223,6 +226,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
               _accountType == AccountType.creditCard && _minPaymentUsesPercent
               ? _minPaymentBasisPoints
               : null,
+          colorHex: _colorHex,
         ),
       );
       // Home visibility rides along after the facility RPC, which owns
@@ -439,6 +443,12 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                                 ? null
                                 : validationMessage(context, e);
                           },
+                        ),
+                        const SizedBox(height: 16),
+                        _ColorPicker(
+                          selected: _colorHex,
+                          onChanged: (value) =>
+                              setState(() => _colorHex = value),
                         ),
                         if (_accountType == AccountType.creditCard) ...[
                           const SizedBox(height: 16),
@@ -675,6 +685,100 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                   ),
                 ),
               ),
+      ),
+    );
+  }
+}
+
+/// Picks the colour of a physical card. A fixed swatch set rather than a
+/// free colour wheel: each option is dark enough for white text, so the card
+/// tiles stay readable whatever the user chooses.
+class _ColorPicker extends StatelessWidget {
+  const _ColorPicker({required this.selected, required this.onChanged});
+
+  final String? selected;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.accColorLabel, style: theme.textTheme.labelLarge),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            _Swatch(
+              key: const Key('facility-color-default'),
+              color: theme.colorScheme.surfaceContainerHighest,
+              semanticLabel: l10n.accColorDefault,
+              selected: selected == null,
+              checkColor: theme.colorScheme.onSurface,
+              onTap: () => onChanged(null),
+            ),
+            for (final (index, color) in FacilitySwatches.values.indexed)
+              _Swatch(
+                key: Key('facility-color-${FacilitySwatches.hexOf(color)}'),
+                color: color,
+                semanticLabel: l10n.accColorSwatch(index + 1),
+                selected:
+                    selected?.toUpperCase() == FacilitySwatches.hexOf(color),
+                checkColor: FacilitySwatches.foregroundOn(color),
+                onTap: () => onChanged(FacilitySwatches.hexOf(color)),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _Swatch extends StatelessWidget {
+  const _Swatch({
+    super.key,
+    required this.color,
+    required this.semanticLabel,
+    required this.selected,
+    required this.checkColor,
+    required this.onTap,
+  });
+
+  final Color color;
+  final String semanticLabel;
+  final bool selected;
+  final Color checkColor;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: semanticLabel,
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: selected
+                  ? Theme.of(context).colorScheme.onSurface
+                  : Theme.of(context).colorScheme.outlineVariant,
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: selected
+              ? Icon(Icons.check, size: 20, color: checkColor)
+              : null,
+        ),
       ),
     );
   }

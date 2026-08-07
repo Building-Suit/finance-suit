@@ -8,10 +8,10 @@ import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
-import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
+import 'package:work_tracker/features/finance/domain/transaction_query.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/screens/account_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/credit_facility_detail_screen.dart';
@@ -171,8 +171,8 @@ List<dynamic> _baseOverrides({
     installmentDuesProvider.overrideWith(
       (ref, accountId) async => [_overdueDue, _upcomingDue],
     ),
-    recentTransactionsProvider.overrideWith(
-      (ref) async => const <FinancialTransaction>[],
+    transactionsPageProvider.overrideWith(
+      (ref, query) async => const TransactionPage(items: [], hasMore: false),
     ),
     heldAmountsProvider.overrideWith((ref) async => const <HeldAmount>[]),
     categoriesProvider.overrideWith(

@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
+import 'package:work_tracker/app/theme/facility_palette.dart';
 import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/date_time/date_range.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
@@ -234,6 +235,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           context.push('${AppRoutes.settings}/recurring'),
                     ),
             ),
+            _SectionHeader(title: l10n.homeBalance),
+            compactSection(
+              accountsAsync,
+              loading: const _SectionLoader(),
+              // Home is a summary, not an inventory: accounts the user opted
+              // out of stay fully usable in Money, pickers, and reports.
+              data: (accounts) => _BalanceSection(
+                accounts: accounts
+                    .where((account) => !account.hideFromHome)
+                    .toList(),
+              ),
+            ),
             compactSection(
               ref.watch(creditFacilitiesProvider),
               loading: const SizedBox.shrink(),
@@ -254,18 +267,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ],
                 );
               },
-            ),
-            _SectionHeader(title: l10n.homeBalance),
-            compactSection(
-              accountsAsync,
-              loading: const _SectionLoader(),
-              // Home is a summary, not an inventory: accounts the user opted
-              // out of stay fully usable in Money, pickers, and reports.
-              data: (accounts) => _BalanceSection(
-                accounts: accounts
-                    .where((account) => !account.hideFromHome)
-                    .toList(),
-              ),
             ),
             _SectionHeader(title: l10n.homeCashFlow),
             _RangeChips(
@@ -395,12 +396,15 @@ class _CreditCardTile extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final width = MediaQuery.sizeOf(context).width;
     final owed = facility.outstandingMinor > 0;
+    // A user-chosen colour replaces the brand surface; its foreground is
+    // derived from the colour itself, so figures stay legible on any card.
+    final palette = facilityPalette(context, facility.colorHex);
     final dueTone = facility.hasOverdue ? colors.error : colors.warning;
     return SizedBox(
       width: (width * 0.78).clamp(260.0, 340.0),
       child: Card(
         margin: EdgeInsets.zero,
-        color: colors.brandSurface,
+        color: palette.surface,
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           key: Key('home-card-${facility.accountId}'),
@@ -416,7 +420,7 @@ class _CreditCardTile extends StatelessWidget {
                   children: [
                     FinanceSuitIcon(
                       FinanceSuitIcons.creditCard,
-                      color: colors.onBrandSurface,
+                      color: palette.onSurface,
                       size: 20,
                     ),
                     const SizedBox(width: 8),
@@ -426,7 +430,7 @@ class _CreditCardTile extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: textTheme.titleSmall?.copyWith(
-                          color: colors.onBrandSurface,
+                          color: palette.onSurface,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -435,7 +439,7 @@ class _CreditCardTile extends StatelessWidget {
                       Text(
                         '•••• ${facility.lastFourDigits}',
                         style: textTheme.labelSmall?.copyWith(
-                          color: colors.onBrandSurface,
+                          color: palette.onSurface,
                         ),
                       ),
                   ],
@@ -444,7 +448,7 @@ class _CreditCardTile extends StatelessWidget {
                 Text(
                   l10n.facilityAvailable,
                   style: textTheme.labelSmall?.copyWith(
-                    color: colors.onBrandSurface,
+                    color: palette.onSurface,
                   ),
                 ),
                 ProtectedMoneyText(
@@ -454,7 +458,7 @@ class _CreditCardTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   interactive: false,
                   style: textTheme.titleMedium?.copyWith(
-                    color: colors.onBrandSurface,
+                    color: palette.onSurface,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -465,7 +469,11 @@ class _CreditCardTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     interactive: false,
                     style: textTheme.labelSmall?.copyWith(
-                      color: colors.error.text,
+                      // On a coloured card the semantic error red may not
+                      // read; the muted foreground always does.
+                      color: palette.isCustom
+                          ? palette.onSurfaceMuted
+                          : colors.error.text,
                     ),
                   ),
                 const Spacer(),
@@ -482,7 +490,9 @@ class _CreditCardTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     interactive: false,
                     style: textTheme.bodySmall?.copyWith(
-                      color: dueTone.text,
+                      color: palette.isCustom
+                          ? palette.onSurface
+                          : dueTone.text,
                       fontWeight: FontWeight.w600,
                     ),
                   )
@@ -490,7 +500,7 @@ class _CreditCardTile extends StatelessWidget {
                   Text(
                     l10n.homeCardNothingDue,
                     style: textTheme.bodySmall?.copyWith(
-                      color: colors.onBrandSurface,
+                      color: palette.onSurface,
                     ),
                   ),
               ],

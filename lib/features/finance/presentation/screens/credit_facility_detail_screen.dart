@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
+import 'package:work_tracker/app/theme/facility_palette.dart';
 import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
@@ -585,6 +586,9 @@ class _FacilitySummaryCard extends StatelessWidget {
         : utilization >= 0.9
         ? colors.warning
         : colors.info;
+    // The header wears the card's own colour; the figures below it keep the
+    // neutral surface so amounts and statuses stay maximally readable.
+    final swatch = FacilitySwatches.parse(summary.colorHex);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -593,10 +597,25 @@ class _FacilitySummaryCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                FinanceSuitIcon(
-                  accountTypeIcon(summary.accountType),
-                  color: tone.icon,
-                ),
+                if (swatch == null)
+                  FinanceSuitIcon(
+                    accountTypeIcon(summary.accountType),
+                    color: tone.icon,
+                  )
+                else
+                  Container(
+                    key: const Key('facility-detail-swatch'),
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: swatch,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: FinanceSuitIcon(
+                      accountTypeIcon(summary.accountType),
+                      color: onFacilitySwatch(swatch),
+                      size: 18,
+                    ),
+                  ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(

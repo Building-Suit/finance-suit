@@ -796,6 +796,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get txAccount => 'الحساب';
 
   @override
+  String get txMoreFilters => 'مرشحات إضافية';
+
+  @override
+  String get txClearFilters => 'مسح المرشحات';
+
+  @override
+  String get txFilterNoMatches => 'لا توجد معاملات مطابقة لهذه المرشحات.';
+
+  @override
   String get txFromAccount => 'من حساب';
 
   @override
@@ -1835,6 +1844,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get accTypeBnpl => 'شركة تقسيط / اشترِ الآن وادفع لاحقًا';
+
+  @override
+  String get accColorLabel => 'لون البطاقة';
+
+  @override
+  String get accColorDefault => 'افتراضي';
+
+  @override
+  String accColorSwatch(int index) {
+    return 'لون $index';
+  }
 
   @override
   String get accOpeningOwed => 'المبلغ المستحق الافتتاحي';

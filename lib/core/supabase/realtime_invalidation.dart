@@ -25,7 +25,7 @@ final realtimeInvalidationProvider = Provider<void>((ref) {
       ref
         ..invalidate(accountBalancesProvider)
         ..invalidate(allAccountBalancesProvider)
-        ..invalidate(recentTransactionsProvider)
+        ..invalidate(transactionsPageProvider)
         ..invalidate(macrosProvider)
         ..invalidate(heldAmountsProvider)
         ..invalidate(creditFacilitiesProvider)

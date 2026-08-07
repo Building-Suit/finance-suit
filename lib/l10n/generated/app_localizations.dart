@@ -1574,6 +1574,24 @@ abstract class AppLocalizations {
   /// **'Account'**
   String get txAccount;
 
+  /// No description provided for @txMoreFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'More filters'**
+  String get txMoreFilters;
+
+  /// No description provided for @txClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get txClearFilters;
+
+  /// No description provided for @txFilterNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions match these filters.'**
+  String get txFilterNoMatches;
+
   /// No description provided for @txFromAccount.
   ///
   /// In en, this message translates to:
@@ -3436,6 +3454,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'BNPL / Finance Company'**
   String get accTypeBnpl;
+
+  /// No description provided for @accColorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Card colour'**
+  String get accColorLabel;
+
+  /// No description provided for @accColorDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get accColorDefault;
+
+  /// No description provided for @accColorSwatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Colour {index}'**
+  String accColorSwatch(int index);
 
   /// No description provided for @accOpeningOwed.
   ///
