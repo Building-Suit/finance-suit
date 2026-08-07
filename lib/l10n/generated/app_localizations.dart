@@ -5057,6 +5057,24 @@ abstract class AppLocalizations {
   /// **'No fees configured for this card yet. Add the annual membership or insurance fee so it books itself.'**
   String get feeRulesEmpty;
 
+  /// No description provided for @feeRuleNoCategoriesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You need an expense category first'**
+  String get feeRuleNoCategoriesTitle;
+
+  /// No description provided for @feeRuleNoCategoriesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Fees are booked as expenses, so pick or create a category before saving this one.'**
+  String get feeRuleNoCategoriesBody;
+
+  /// No description provided for @feeRuleAddCategoryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add expense category'**
+  String get feeRuleAddCategoryAction;
+
   /// No description provided for @feeRulePercentOfBasis.
   ///
   /// In en, this message translates to:

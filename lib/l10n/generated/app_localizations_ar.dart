@@ -2724,6 +2724,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد رسوم مضبوطة لهذه البطاقة بعد. أضف رسم العضوية السنوية أو التأمين ليُسجَّل تلقائيًا.';
 
   @override
+  String get feeRuleNoCategoriesTitle => 'تحتاج إلى فئة مصروفات أولًا';
+
+  @override
+  String get feeRuleNoCategoriesBody =>
+      'تُسجَّل الرسوم كمصروفات، لذا اختر فئة أو أنشئ واحدة قبل حفظ هذا الرسم.';
+
+  @override
+  String get feeRuleAddCategoryAction => 'إضافة فئة مصروفات';
+
+  @override
   String feeRulePercentOfBasis(String percent, String basis) {
     return '$percent% من $basis';
   }

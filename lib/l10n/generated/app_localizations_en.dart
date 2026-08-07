@@ -2742,6 +2742,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'No fees configured for this card yet. Add the annual membership or insurance fee so it books itself.';
 
   @override
+  String get feeRuleNoCategoriesTitle => 'You need an expense category first';
+
+  @override
+  String get feeRuleNoCategoriesBody =>
+      'Fees are booked as expenses, so pick or create a category before saving this one.';
+
+  @override
+  String get feeRuleAddCategoryAction => 'Add expense category';
+
+  @override
   String feeRulePercentOfBasis(String percent, String basis) {
     return '$percent% of $basis';
   }
