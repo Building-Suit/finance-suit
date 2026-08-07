@@ -15,11 +15,11 @@ import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
-import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 import 'package:work_tracker/features/finance/domain/transaction_macro.dart';
+import 'package:work_tracker/features/finance/domain/transaction_query.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/history/data/history_repository.dart';
 import 'package:work_tracker/features/history/domain/history_models.dart';
@@ -87,8 +87,8 @@ void main() {
       allAccountBalancesProvider.overrideWith(
         (ref) async => const <AccountBalance>[],
       ),
-      recentTransactionsProvider.overrideWith(
-        (ref) async => const <FinancialTransaction>[],
+      transactionsPageProvider.overrideWith(
+        (ref, query) async => const TransactionPage(items: [], hasMore: false),
       ),
       heldAmountsProvider.overrideWith((ref) async => const <HeldAmount>[]),
       creditFacilitiesProvider.overrideWith(

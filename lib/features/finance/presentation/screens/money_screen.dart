@@ -20,6 +20,7 @@ import 'package:work_tracker/features/finance/domain/financial_transaction.dart'
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/finance_widgets.dart';
+import 'package:work_tracker/features/finance/presentation/widgets/transactions_section.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 class MoneyScreen extends ConsumerStatefulWidget {
@@ -260,38 +261,7 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
   }
 
   Widget _transactionsTab(AppLocalizations l10n) {
-    final transactions = ref.watch(recentTransactionsProvider);
-    final accounts = ref.watch(allAccountBalancesProvider);
-    final accountNames = {
-      for (final a in accounts.value ?? <AccountBalance>[]) a.accountId: a.name,
-    };
-    return AsyncView<List<FinancialTransaction>>(
-      value: transactions,
-      onRetry: () => ref.invalidate(recentTransactionsProvider),
-      data: (list) {
-        if (list.isEmpty) {
-          return EmptyStateView(
-            icon: FinanceSuitIcons.receiptLong,
-            message: l10n.moneyNoTransactions,
-          );
-        }
-        return RefreshIndicator(
-          onRefresh: () async => invalidateFinanceData(ref),
-          child: ListView.builder(
-            itemCount: list.length + 1,
-            itemBuilder: (context, index) {
-              if (index == list.length) return const SizedBox(height: 88);
-              final tx = list[index];
-              return TransactionTile(
-                transaction: tx,
-                accountNames: accountNames,
-                onTap: () => _onTransactionTap(tx),
-              );
-            },
-          ),
-        );
-      },
-    );
+    return TransactionsSection(onOpenTransaction: _onTransactionTap);
   }
 
   Future<void> _heldAction(HeldAmount held, String action) async {

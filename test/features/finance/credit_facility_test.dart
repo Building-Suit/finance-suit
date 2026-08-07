@@ -210,6 +210,7 @@ void main() {
       'p_min_payment_method': 'percent',
       'p_min_payment_fixed_minor': null,
       'p_min_payment_basis_points': 500,
+      'p_color_hex': null,
     });
 
     const planDraft = InstallmentPlanDraft(

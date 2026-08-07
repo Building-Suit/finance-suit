@@ -15,6 +15,7 @@ import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 import 'package:work_tracker/features/finance/domain/transaction_macro.dart';
+import 'package:work_tracker/features/finance/domain/transaction_query.dart';
 
 class FinanceRepository {
   FinanceRepository(this._client);
@@ -453,6 +454,91 @@ class FinanceRepository {
       return rows.map(FinancialTransaction.fromJson).toList();
     });
   }
+
+  /// One filtered page of transactions, newest first.
+  ///
+  /// Paging is keyset, not offset: the cursor is the (business date,
+  /// sort_at, id) triple the list is ordered by and the index covers, so
+  /// scrolling never skips or repeats a row when transactions are added or
+  /// removed mid-scroll.
+  Future<Result<TransactionPage>> fetchTransactions(TransactionQuery input) {
+    return guard(() async {
+      final limit = input.limit.clamp(10, 100);
+      var request = _db
+          .from('financial_transactions')
+          .select()
+          .eq('user_id', _userId);
+
+      final range = input.range;
+      if (range != null) {
+        request = request
+            .gte('occurred_on', range.start.toIso())
+            .lte('occurred_on', range.end.toIso());
+      }
+      final kinds = input.kind.kinds;
+      if (kinds.isNotEmpty) {
+        request = request.inFilter(
+          'transaction_kind',
+          kinds.map((kind) => kind.dbValue).toList(),
+        );
+      }
+      final accountId = input.accountId;
+      if (accountId != null) {
+        request = request.or(
+          'source_account_id.eq.$accountId,'
+          'destination_account_id.eq.$accountId',
+        );
+      }
+      final categoryId = input.categoryId;
+      if (categoryId != null) {
+        request = request.eq('category_id', categoryId);
+      }
+      final minAmountMinor = input.minAmountMinor;
+      if (minAmountMinor != null) {
+        request = request.gte('amount_minor', minAmountMinor);
+      }
+      final maxAmountMinor = input.maxAmountMinor;
+      if (maxAmountMinor != null) {
+        request = request.lte('amount_minor', maxAmountMinor);
+      }
+      final keyword = input.keyword?.trim();
+      if (keyword != null && keyword.isNotEmpty) {
+        final term = '%${_filterText(keyword)}%';
+        request = request.or(
+          'title.ilike.$term,notes.ilike.$term,counterparty.ilike.$term',
+        );
+      }
+      final cursor = input.cursor;
+      if (cursor != null) {
+        final date = cursor.occurredOn.toIso();
+        final sortAt = cursor.sortAt.toUtc().toIso8601String();
+        request = request.or(
+          'occurred_on.lt.$date,'
+          'and(occurred_on.eq.$date,sort_at.lt.$sortAt),'
+          'and(occurred_on.eq.$date,sort_at.eq.$sortAt,id.lt.${cursor.id})',
+        );
+      }
+
+      // One row beyond the page tells the caller whether more exist without
+      // a second count query.
+      final rows = await request
+          .order('occurred_on', ascending: false)
+          .order('sort_at', ascending: false)
+          .order('id', ascending: false)
+          .limit(limit + 1);
+      final items = rows
+          .take(limit)
+          .map(FinancialTransaction.fromJson)
+          .toList();
+      return TransactionPage(items: items, hasMore: rows.length > limit);
+    });
+  }
+
+  /// PostgREST reads `or=(...)` as a comma-separated list and `ilike` treats
+  /// `%`/`_` as wildcards, so user text is neutralized before it is spliced
+  /// into a filter expression.
+  String _filterText(String value) =>
+      value.replaceAll('%', r'\%').replaceAll('_', r'\_').replaceAll(',', ' ');
 
   Future<Result<void>> createTransaction(TransactionDraft draft) {
     return guard(() async {

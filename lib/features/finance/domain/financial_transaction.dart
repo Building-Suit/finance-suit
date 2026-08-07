@@ -19,6 +19,7 @@ class FinancialTransaction {
     this.title,
     this.notes,
     this.salaryPeriodId,
+    this.sortAt,
   });
 
   factory FinancialTransaction.fromJson(Map<String, dynamic> json) =>
@@ -35,6 +36,9 @@ class FinancialTransaction {
         title: json['title'] as String?,
         notes: json['notes'] as String?,
         salaryPeriodId: json['salary_period_id'] as String?,
+        sortAt: json['sort_at'] == null
+            ? null
+            : DateTime.parse(json['sort_at'] as String),
       );
 
   final String id;
@@ -49,6 +53,10 @@ class FinancialTransaction {
   final String? title;
   final String? notes;
   final String? salaryPeriodId;
+
+  /// Presentation ordering key: macro-generated rows share a transaction
+  /// timestamp but keep their authored order here. Also the paging cursor.
+  final DateTime? sortAt;
 
   Money get amount => Money(minor: amountMinor, currencyCode: currencyCode);
 

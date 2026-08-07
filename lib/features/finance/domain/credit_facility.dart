@@ -36,6 +36,7 @@ class CreditFacilitySummary {
     this.nextDueOn,
     this.nextDueAmountMinor,
     this.upcomingDueMinor = 0,
+    this.colorHex,
     this.notes,
   });
 
@@ -77,6 +78,7 @@ class CreditFacilitySummary {
           : PlainDate.parse(json['next_due_on'] as String),
       nextDueAmountMinor: (json['next_due_amount_minor'] as num?)?.toInt(),
       upcomingDueMinor: (json['upcoming_due_minor'] as num?)?.toInt() ?? 0,
+      colorHex: json['color_hex'] as String?,
       notes: json['notes'] as String?,
     );
   }
@@ -110,6 +112,10 @@ class CreditFacilitySummary {
   /// Everything unpaid falling due between today and one month out —
   /// installments and statements together, not just the earliest one.
   final int upcomingDueMinor;
+
+  /// The colour the user picked to match their physical card, `#RRGGBB`.
+  /// Display only: no figure on this summary depends on it.
+  final String? colorHex;
   final String? notes;
 
   Money get upcomingDue =>
@@ -377,6 +383,7 @@ class CreditFacilityDraft {
     this.minPaymentMethod = MinPaymentMethod.full,
     this.minPaymentFixedMinor,
     this.minPaymentBasisPoints,
+    this.colorHex,
   });
 
   final String name;
@@ -393,6 +400,7 @@ class CreditFacilityDraft {
   final MinPaymentMethod minPaymentMethod;
   final int? minPaymentFixedMinor;
   final int? minPaymentBasisPoints;
+  final String? colorHex;
 
   Map<String, dynamic> toJson() => {
     'p_name': name,
@@ -409,6 +417,7 @@ class CreditFacilityDraft {
     'p_min_payment_method': minPaymentMethod.dbValue,
     'p_min_payment_fixed_minor': minPaymentFixedMinor,
     'p_min_payment_basis_points': minPaymentBasisPoints,
+    'p_color_hex': colorHex,
   };
 }
 

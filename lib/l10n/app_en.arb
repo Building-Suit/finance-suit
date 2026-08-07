@@ -284,6 +284,9 @@
   "txEditTitle": "Edit transaction",
   "txAccountUnavailable": "unavailable",
   "txAccount": "Account",
+  "txMoreFilters": "More filters",
+  "txClearFilters": "Clear filters",
+  "txFilterNoMatches": "No transactions match these filters.",
   "txFromAccount": "From account",
   "txToAccount": "To account",
   "txCategory": "Category",
@@ -872,6 +875,16 @@
   "heldSettleHelp": "The transaction will be recorded on this date.",
   "accTypeCreditCard": "Credit Card",
   "accTypeBnpl": "BNPL / Finance Company",
+  "accColorLabel": "Card colour",
+  "accColorDefault": "Default",
+  "accColorSwatch": "Colour {index}",
+  "@accColorSwatch": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "accOpeningOwed": "Opening amount owed",
   "accOpeningOwedHelp": "Debt already used on this facility before you started tracking it in Finance Suit.",
   "facilityCreditLimit": "Credit limit",
