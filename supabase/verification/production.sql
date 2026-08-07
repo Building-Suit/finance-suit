@@ -218,6 +218,31 @@ begin
   ) is null then
     v_missing := array_append(v_missing, 'reconcile_fee_charge');
   end if;
+  if to_regprocedure(
+    'app_finance.highest_daily_balance_minor(uuid,date,integer)'
+  ) is null then
+    v_missing := array_append(v_missing, 'highest_daily_balance_minor');
+  end if;
+  if not exists (
+    select 1 from pg_enum e
+    join pg_type t on t.oid = e.enumtypid
+    where t.typnamespace = 'app_finance'::regnamespace
+      and t.typname = 'foreign_apply_when'
+      and e.enumlabel = 'foreign_merchant_home_currency'
+  ) then
+    v_missing := array_append(
+      v_missing, 'foreign_apply_when.foreign_merchant_home_currency');
+  end if;
+  if not exists (
+    select 1 from pg_enum e
+    join pg_type t on t.oid = e.enumtypid
+    where t.typnamespace = 'app_finance'::regnamespace
+      and t.typname = 'fee_percent_basis'
+      and e.enumlabel = 'highest_daily_balance_lookback'
+  ) then
+    v_missing := array_append(
+      v_missing, 'fee_percent_basis.highest_daily_balance_lookback');
+  end if;
   if to_regprocedure('app_finance.apply_credit_card_fees(date)') is null then
     v_missing := array_append(v_missing, 'apply_credit_card_fees');
   end if;

@@ -892,6 +892,10 @@ class FinanceRepository {
 
   /// One ordinary credit-card purchase: a single expense assigned to the
   /// statement cycle of its business date. Never touches cash accounts.
+  ///
+  /// The foreign flags describe the purchase, not the fee: the server
+  /// decides whether a markup applies from the card's configured
+  /// foreign-transaction rule and books it atomically with the charge.
   Future<Result<String>> chargeCreditCard({
     required String accountId,
     required String title,
@@ -900,6 +904,12 @@ class FinanceRepository {
     required int amountMinor,
     String? notes,
     String? chargeId,
+    CardTransactionSubtype subtype = CardTransactionSubtype.purchase,
+    bool isForeignCurrency = false,
+    bool isForeignMerchant = false,
+    int? originalAmountMinor,
+    String? originalCurrencyCode,
+    double? exchangeRate,
   }) {
     return guard(() async {
       final id = await _db.rpc<String>(
@@ -912,6 +922,12 @@ class FinanceRepository {
           'p_amount_minor': amountMinor,
           'p_notes': notes,
           'p_charge_id': chargeId,
+          'p_transaction_subtype': subtype.dbValue,
+          'p_is_foreign_currency': isForeignCurrency,
+          'p_is_foreign_merchant': isForeignMerchant,
+          'p_original_amount_minor': originalAmountMinor,
+          'p_original_currency_code': originalCurrencyCode,
+          'p_exchange_rate': exchangeRate,
         },
       );
       return id;

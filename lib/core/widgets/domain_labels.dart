@@ -137,8 +137,21 @@ String feePercentBasisLabel(AppLocalizations l10n, FeePercentBasis basis) {
     FeePercentBasis.transactionAmount => l10n.feeBasisTransactionAmount,
     FeePercentBasis.highestStatementDueLookback =>
       l10n.feeBasisHighestStatementDueLookback,
+    FeePercentBasis.highestDailyBalanceLookback =>
+      l10n.feeBasisHighestDailyBalance,
     FeePercentBasis.remainingPrincipal => l10n.feeBasisRemainingPrincipal,
     FeePercentBasis.remainingOutstanding => l10n.feeBasisRemainingOutstanding,
+  };
+}
+
+String foreignApplyWhenLabel(AppLocalizations l10n, ForeignApplyWhen when) {
+  return switch (when) {
+    ForeignApplyWhen.currencyDiffers => l10n.applyWhenCurrencyDiffers,
+    ForeignApplyWhen.merchantOutsideHome => l10n.applyWhenMerchantOutsideHome,
+    ForeignApplyWhen.either => l10n.applyWhenEither,
+    ForeignApplyWhen.both => l10n.applyWhenBoth,
+    ForeignApplyWhen.foreignMerchantHomeCurrency =>
+      l10n.applyWhenForeignMerchantHomeCurrency,
   };
 }
 

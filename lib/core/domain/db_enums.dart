@@ -213,6 +213,7 @@ enum FeePercentBasis {
   creditLimit('credit_limit'),
   transactionAmount('transaction_amount'),
   highestStatementDueLookback('highest_statement_due_lookback'),
+  highestDailyBalanceLookback('highest_daily_balance_lookback'),
   remainingPrincipal('remaining_principal'),
   remainingOutstanding('remaining_outstanding');
 
@@ -276,7 +277,12 @@ enum ForeignApplyWhen {
   currencyDiffers('currency_differs'),
   merchantOutsideHome('merchant_outside_home'),
   either('either'),
-  both('both');
+  both('both'),
+
+  /// A foreign merchant billing in the card's own currency — the only case
+  /// some banks (CIB among them) add a separate markup line for; a purchase
+  /// billed in a foreign currency carries the markup inside the rate.
+  foreignMerchantHomeCurrency('foreign_merchant_home_currency');
 
   const ForeignApplyWhen(this.dbValue);
   final String dbValue;

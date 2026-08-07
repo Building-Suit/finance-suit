@@ -53,7 +53,8 @@ filed under; the category drives reporting only, never the amount.
 | --- | --- | --- | --- | --- | --- |
 | Annual fee | Annual membership | Annually | Fixed **300.00** | **2026-08-01** | Configured |
 | Insurance fee — Solidarity | Insurance | Monthly | Fixed **25.00** | **2026-07-01** | Configured |
-| Stamp duty | Stamp tax | Quarterly | Fixed **13.12** | **2026-07-01** | Configured |
+| Stamp duty | Stamp tax | Quarterly | Percent **0.05%** of *Highest balance in recent months*, look back **3** | **2026-07-01** | Configured |
+| Foreign exchange fee | Foreign transaction | *(per transaction, automatic)* | Percent **3.00%** of *Transaction amount*, applies when *Foreign merchant billed in card currency* | **2026-07-01** | Configured |
 
 That is the whole of what you asked for: from here the app posts 25.00 on the
 1st of every month, 13.12 every 1 Jan/Apr/Jul/Oct, and 300.00 every 1 August,
@@ -68,13 +69,12 @@ Two things to know about the generator:
 - It is driven by `starts_on`, so back-dating is how you recover history. Do not
   back-date further than the day you want the first charge to exist.
 
-**Stamp duty is the one amount I would not trust yet.** One observation cannot
-pin a formula: 13.12 implies a basis of 26,240 at 0.05% per quarter, which is
-*above* your 25,800 limit, so the basis is not the credit limit and most likely
-tracks the highest balance in the quarter. Fixed 13.12 is right for now; when
-you have the Apr–Jun and Oct statements, either confirm it or switch the rule to
-percentage on *highest statement due (lookback 3)* and let reconciliation prove
-the rate.
+**Stamp duty** uses CIB's published formula: 0.05% of the highest debit
+balance in the last three months, charged quarterly. The *Highest balance in
+recent months* basis computes exactly that peak from your ledger, so the app
+reproduces 13.12 only once the transaction history covering the Apr–Jun peak
+(26,240) exists in the app. For quarters the app didn't witness, reconcile
+the generated charge against the statement figure.
 
 ### Rules to create as "unknown", not zero
 
@@ -87,18 +87,20 @@ Late payment · Over limit · Cash advance (domestic) · Cash advance
 
 An unknown rule never charges anything and never generates a transaction.
 
-### The one fee config cannot generate: the 3% foreign exchange fee
+### The 3% foreign exchange fee
 
 Your three FX fees (5.10, 29.99, 1.91) are exactly **3.00%** of the EGP-billed
-amount. The engine supports this — a `foreign_transaction` trigger, percentage
-of `transaction_amount` — but the fee editor never sets a trigger kind and the
-basis picker omits `transaction_amount`, so a rule you create today would be a
-`schedule` rule with a basis of zero: it would charge nothing forever.
+amount, and only for foreign merchants billing in EGP — Google Play (billed
+USD 25.00) got no fee because the markup rides inside the exchange rate.
 
-Until that is exposed, foreign-exchange fees have to be entered as ordinary
-charges (one per foreign purchase). This is the single gap between your goal and
-what config can currently reach, and it is a UI-only fix — the backend already
-does the work, including deciding *when* "foreign" applies.
+Create the rule from the table above (choosing the *Foreign transaction* fee
+type makes it a per-transaction rule automatically), then when entering a
+card purchase pick its **Merchant & currency**:
+
+- *Local merchant* — no fee (default).
+- *Foreign merchant, billed in card currency* — Netflix, OpenAI, Badoo,
+  Cloudflare: the 3% fee posts automatically with the charge.
+- *Foreign currency purchase* — Google Play: no fee, correctly.
 
 ---
 
@@ -161,10 +163,13 @@ Config generates fees. It cannot invent purchases — those are yours to enter,
 and they are what makes the balance match:
 
 - **Jul cycle**: Netflix 170.00 (12-07), OpenAI 999.99 (13-07), Google Badoo
-  63.99 (15-07), Google Play 1,301.66 (16-07), plus the three FX fees 5.10,
-  29.99, 1.91 on 12/13/15-07 — until §2's FX gap is closed.
-- **Aug cycle so far**: PAYMOB SigmaComputer 840.00 (02-08), WE-Mobile 783.87
-  (03-08), Cloudflare 536.75 (04-08).
+  63.99 (15-07) — each as *Foreign merchant, billed in card currency*, which
+  generates the 5.10 / 29.99 / 1.91 FX fees automatically — and Google Play
+  1,301.66 (16-07) as *Foreign currency purchase* (no fee).
+- **Aug cycle so far**: PAYMOB SigmaComputer 840.00 (02-08) and WE-Mobile
+  783.87 (03-08) as local merchants; Cloudflare 536.75 (04-08) as *Foreign
+  merchant, billed in card currency* — its 3% fee (16.10) will post with it
+  and should appear on your next statement.
 - **The 14-07 payment of 4,125.07**, as a facility payment against the June
   statement, if you model the June cycle at all.
 
@@ -189,28 +194,25 @@ foreign merchants who bill you *in EGP* attract the 3% line.
 | Plan B monthly | 1,049.94 | 1,049.94 | ✅ |
 | Plan B outstanding | 14,699.16 | 14,699.24 | ≈ (0.08, §3) |
 | Generated fees | 300 / 25 / 13.12 on the right dates | same | ✅ |
+| Foreign exchange fee | 3% generated per EGP-billed foreign purchase | same | ✅ |
 | **Minimum due 25-08** | **130.53** | **1,732.34** | ❌ installments excluded |
 | **Plan A outstanding** | **4,966.83** | **4,398.69** | ❌ unearned interest |
 | **Card outstanding** | **24,762.37** | **24,304.27** | ❌ +458.10 |
 | **Available credit** | **1,037.63** | **1,495.73** | ❌ −458.10 |
-| Foreign exchange fee | not generated | 3% per EGP-billed foreign purchase | ❌ |
 | Monthly EPP interest line | absent | 109.96 posted to balance | ❌ not modelled |
 
-The four ❌ rows are not configuration mistakes — no combination of settings
-fixes them. Each needs a small, contained code change:
+The ❌ rows are not configuration mistakes — no combination of settings fixes
+them. Each needs a contained code change:
 
 1. `statement_day` / `default_due_day` range 1–28 → 1–31 with clamping (the
    clamp helper already exists). Makes the cycle correct instead of coincidental.
 2. A minimum-payment shape *installments in full + X% of the rest*. Turns
    130.53 into 1,732.34 — the one wrong number that can actually cost you a
    late-payment penalty.
-3. Trigger kind + apply-when + `transaction_amount` basis in the fee editor, and
-   the foreign flags passed through from the charge form. Makes the 3% FX fee
-   generate itself, which is the last piece of "no manual fee entry".
-4. Real amortisation for reducing-balance plans (per-installment principal and
+3. Real amortisation for reducing-balance plans (per-installment principal and
    interest, outstanding = present value of remaining dues, monthly interest
    posted as a balance line). Fixes Plan A's outstanding, the card balance,
    available credit, utilisation, and early settlement together.
 
-Items 1–3 are small. Item 4 is the real engineering, and it is the only one that
-makes *outstanding* and *available credit* agree with the bank.
+Items 1–2 are small. Item 3 is the real engineering, and it is the only one
+that makes *outstanding* and *available credit* agree with the bank.

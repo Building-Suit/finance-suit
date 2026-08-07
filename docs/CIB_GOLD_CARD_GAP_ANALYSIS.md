@@ -256,6 +256,15 @@ reconciliation self-checking (§1.1 is exactly the check that cannot be run).
 
 ### 4.6 Backend features with no client reach
 
+> **Update (2026-08-07):** the FX row of this table is closed — the fee
+> editor now derives trigger kind from the fee type (with `apply_when`,
+> including a new *foreign merchant billed in home currency* condition, and
+> the `transaction_amount` basis), and card charges carry a merchant &
+> currency choice through `charge_credit_card`. A `highest daily balance`
+> basis was also added, so quarterly stamp duty computes CIB's real base.
+> Tenor rates, early settlement, and cash-advance/wallet subtypes remain
+> unwired below.
+
 | Feature | Backend | Repository | UI |
 | --- | --- | --- | --- |
 | Foreign / cash-advance / wallet charges | ✅ `charge_credit_card` params | ❌ `chargeCreditCard` sends 7 of 13 params | ❌ |
