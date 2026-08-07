@@ -80,6 +80,18 @@ final transactionsPageProvider = FutureProvider.family
       return result.when(ok: (page) => page, err: (failure) => throw failure);
     });
 
+/// Exact match count for one draft filter set, powering the filter sheet's
+/// live "Apply (N)" preview. Keyed on the query like [transactionsPageProvider]
+/// so the same draft never issues the count request twice.
+final transactionsCountProvider = FutureProvider.family
+    .autoDispose<int, TransactionQuery>((ref, query) async {
+      ref.watch(currentUserIdProvider);
+      final result = await ref
+          .watch(financeRepositoryProvider)
+          .fetchTransactionCount(query);
+      return result.when(ok: (count) => count, err: (failure) => throw failure);
+    });
+
 /// Saved macros with their items, for the macros screen and the add sheet.
 final macrosProvider = FutureProvider<List<TransactionMacro>>((ref) async {
   ref.watch(currentUserIdProvider);

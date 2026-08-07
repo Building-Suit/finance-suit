@@ -462,53 +462,64 @@ class FinanceRepository {
   /// sort_at, id) triple the list is ordered by and the index covers, so
   /// scrolling never skips or repeats a row when transactions are added or
   /// removed mid-scroll.
+  /// Applies every non-cursor [TransactionQuery] filter to [request]. Shared
+  /// between the paged row fetch and the plain count so the two can never
+  /// drift into counting a different set of rows than the list shows.
+  PostgrestFilterBuilder<T> _filterTransactions<T>(
+    PostgrestFilterBuilder<T> request,
+    TransactionQuery input,
+  ) {
+    request = request.eq('user_id', _userId);
+    final range = input.range;
+    if (range != null) {
+      request = request
+          .gte('occurred_on', range.start.toIso())
+          .lte('occurred_on', range.end.toIso());
+    }
+    final kinds = input.kind.kinds;
+    if (kinds.isNotEmpty) {
+      request = request.inFilter(
+        'transaction_kind',
+        kinds.map((kind) => kind.dbValue).toList(),
+      );
+    }
+    final accountId = input.accountId;
+    if (accountId != null) {
+      request = request.or(
+        'source_account_id.eq.$accountId,'
+        'destination_account_id.eq.$accountId',
+      );
+    }
+    final categoryId = input.categoryId;
+    if (categoryId != null) {
+      request = request.eq('category_id', categoryId);
+    }
+    final minAmountMinor = input.minAmountMinor;
+    if (minAmountMinor != null) {
+      request = request.gte('amount_minor', minAmountMinor);
+    }
+    final maxAmountMinor = input.maxAmountMinor;
+    if (maxAmountMinor != null) {
+      request = request.lte('amount_minor', maxAmountMinor);
+    }
+    final keyword = input.keyword?.trim();
+    if (keyword != null && keyword.isNotEmpty) {
+      final term = '%${_filterText(keyword)}%';
+      request = request.or(
+        'title.ilike.$term,notes.ilike.$term,counterparty.ilike.$term',
+      );
+    }
+    return request;
+  }
+
   Future<Result<TransactionPage>> fetchTransactions(TransactionQuery input) {
     return guard(() async {
       final limit = input.limit.clamp(10, 100);
-      var request = _db
-          .from('financial_transactions')
-          .select()
-          .eq('user_id', _userId);
+      var request = _filterTransactions(
+        _db.from('financial_transactions').select(),
+        input,
+      );
 
-      final range = input.range;
-      if (range != null) {
-        request = request
-            .gte('occurred_on', range.start.toIso())
-            .lte('occurred_on', range.end.toIso());
-      }
-      final kinds = input.kind.kinds;
-      if (kinds.isNotEmpty) {
-        request = request.inFilter(
-          'transaction_kind',
-          kinds.map((kind) => kind.dbValue).toList(),
-        );
-      }
-      final accountId = input.accountId;
-      if (accountId != null) {
-        request = request.or(
-          'source_account_id.eq.$accountId,'
-          'destination_account_id.eq.$accountId',
-        );
-      }
-      final categoryId = input.categoryId;
-      if (categoryId != null) {
-        request = request.eq('category_id', categoryId);
-      }
-      final minAmountMinor = input.minAmountMinor;
-      if (minAmountMinor != null) {
-        request = request.gte('amount_minor', minAmountMinor);
-      }
-      final maxAmountMinor = input.maxAmountMinor;
-      if (maxAmountMinor != null) {
-        request = request.lte('amount_minor', maxAmountMinor);
-      }
-      final keyword = input.keyword?.trim();
-      if (keyword != null && keyword.isNotEmpty) {
-        final term = '%${_filterText(keyword)}%';
-        request = request.or(
-          'title.ilike.$term,notes.ilike.$term,counterparty.ilike.$term',
-        );
-      }
       final cursor = input.cursor;
       if (cursor != null) {
         final date = cursor.occurredOn.toIso();
@@ -532,6 +543,20 @@ class FinanceRepository {
           .map(FinancialTransaction.fromJson)
           .toList();
       return TransactionPage(items: items, hasMore: rows.length > limit);
+    });
+  }
+
+  /// Exact row count for [input], ignoring its cursor and page size — the
+  /// same filter set the eventual list query would use. Backs the filter
+  /// sheet's live "Apply (N)" preview: a `HEAD` request with
+  /// `Prefer: count=exact`, so it never transfers row data.
+  Future<Result<int>> fetchTransactionCount(TransactionQuery input) {
+    return guard(() async {
+      final request = _filterTransactions(
+        _db.from('financial_transactions').count(CountOption.exact),
+        input,
+      );
+      return await request;
     });
   }
 
