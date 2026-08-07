@@ -18,8 +18,10 @@ import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
+import 'package:work_tracker/features/finance/domain/card_research.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
+import 'package:work_tracker/features/finance/presentation/widgets/ai_card_research_sheet.dart';
 import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
@@ -65,6 +67,14 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
   bool _loaded = false;
   Account? _existing;
   CreditFacilitySummary? _existingFacility;
+
+  // --- AI autofill state (task: AI research -> autofill -> auto-create) ---
+  AiAutofillPhase _aiPhase = AiAutofillPhase.idle;
+  String? _aiRequestId;
+  AccountType? _aiRequestAccountType;
+  int _aiRequestCounter = 0;
+  bool _autofillBatchInProgress = false;
+  final Map<String, FieldOrigin> _fieldOrigin = {};
 
   bool get _isEdit => widget.accountId != null;
   bool get _isLiability => _accountType.isLiability;
@@ -272,6 +282,206 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
     );
   }
 
+  // ---------------------------------------------------------------------
+  // AI autofill: research -> map onto these same fields -> reuse _save().
+  //
+  // Event flow: researching -> (needsDisambiguation)? -> applyingAutofill
+  // -> autofillApplied -> validating -> readyToAutoSubmit -> submitting.
+  // readyToAutoSubmit is consumed exactly once per successful research
+  // result; later manual edits never re-arm it (task spec section 54).
+  // ---------------------------------------------------------------------
+
+  String _nextAiRequestId() =>
+      '${DateTime.now().microsecondsSinceEpoch}-${_aiRequestCounter++}';
+
+  /// Marks a field as user-edited so a later AI run never silently
+  /// overwrites it. No-ops while an autofill batch is writing the same
+  /// controllers, since `TextEditingController` listeners fire for
+  /// programmatic changes too.
+  void _markFieldManual(String field) {
+    if (_autofillBatchInProgress) return;
+    _fieldOrigin[field] = FieldOrigin.manual;
+  }
+
+  Future<void> _openAiResearch() async {
+    if (_aiPhase == AiAutofillPhase.researching) return;
+    final input = await showAiCardResearchSheet(
+      context,
+      accountType: _accountType,
+      currencyCode: _currencyCode,
+    );
+    if (input == null || !mounted) return;
+    await _runAiResearch(input);
+  }
+
+  Future<void> _runAiResearch(
+    AiCardResearchSheetInput input, {
+    String? selectedProductId,
+  }) async {
+    final requestId = _nextAiRequestId();
+    final requestAccountType = _accountType;
+    setState(() {
+      _aiRequestId = requestId;
+      _aiRequestAccountType = requestAccountType;
+      _aiPhase = AiAutofillPhase.researching;
+    });
+
+    final repo = ref.read(financeRepositoryProvider);
+    final result = await repo.researchCardProduct(
+      CardResearchRequest(
+        requestId: requestId,
+        accountType: requestAccountType,
+        issuerName: input.issuerName,
+        countryCode: input.countryCode,
+        productName: input.productName,
+        officialWebsite: input.officialWebsite,
+        tier: input.tier,
+        network: input.network,
+        currencyCode: input.currencyCode,
+        activationDate: input.activationDate,
+        knownCreditLimitMinor: input.knownCreditLimitMinor,
+        knownStatementDay: input.knownStatementDay,
+        knownDueDay: input.knownDueDay,
+        bnplTypicalTenorMonths: input.bnplTypicalTenorMonths,
+        userNotes: input.userNotes,
+        selectedProductId: selectedProductId,
+      ),
+    );
+
+    // Stale-response guard: the form may have closed, started a new
+    // request, or switched account type while this one was in flight.
+    if (!mounted ||
+        _aiRequestId != requestId ||
+        _aiRequestAccountType != _accountType) {
+      return;
+    }
+
+    final l10n = AppLocalizations.of(context);
+    final research = result.valueOrNull;
+    if (research == null) {
+      setState(() => _aiPhase = AiAutofillPhase.failed);
+      AppToast.error(context, l10n.aiResearchUnableToFind);
+      return;
+    }
+
+    switch (research.status) {
+      case ResearchStatus.resolved:
+        _applyAutofill(research);
+      case ResearchStatus.ambiguous:
+        setState(() => _aiPhase = AiAutofillPhase.needsDisambiguation);
+        final chosenId = await showProductDisambiguationDialog(
+          context,
+          research.candidates,
+        );
+        if (!mounted || _aiRequestId != requestId) return;
+        if (chosenId == null) {
+          setState(() => _aiPhase = AiAutofillPhase.idle);
+          return;
+        }
+        await _runAiResearch(input, selectedProductId: chosenId);
+      case ResearchStatus.insufficientInformation:
+      case ResearchStatus.error:
+        setState(() => _aiPhase = AiAutofillPhase.failed);
+        AppToast.error(context, l10n.aiResearchUnableToFind);
+    }
+  }
+
+  /// Applies eligible researched fields onto the real form controllers as
+  /// one batch (task spec section 25-26): manually-edited fields are never
+  /// overwritten, and only verified/user-provided values are eligible —
+  /// probable/conflicting/unknown values are left exactly as they were.
+  void _applyAutofill(CardResearchResult result) {
+    setState(() {
+      _autofillBatchInProgress = true;
+      _aiPhase = AiAutofillPhase.applyingAutofill;
+
+      if (_fieldOrigin['name'] != FieldOrigin.manual &&
+          _nameController.text.trim().isEmpty &&
+          result.suggestedName.isAutofillEligible) {
+        _nameController.text = result.suggestedName.value!;
+        _fieldOrigin['name'] = FieldOrigin.ai;
+      }
+      if (_fieldOrigin['creditLimit'] != FieldOrigin.manual &&
+          result.creditLimitMinor.isAutofillEligible) {
+        _creditLimitController.text = formatMinorForInput(
+          result.creditLimitMinor.value!,
+        );
+        _fieldOrigin['creditLimit'] = FieldOrigin.ai;
+      }
+      if (_fieldOrigin['dueDay'] != FieldOrigin.manual &&
+          result.defaultDueDay.isAutofillEligible) {
+        _dueDayController.text = '${result.defaultDueDay.value}';
+        _fieldOrigin['dueDay'] = FieldOrigin.ai;
+      }
+      if (_accountType == AccountType.creditCard) {
+        if (_fieldOrigin['statementDay'] != FieldOrigin.manual &&
+            result.statementDay.isAutofillEligible) {
+          _statementDayController.text = '${result.statementDay.value}';
+          _fieldOrigin['statementDay'] = FieldOrigin.ai;
+        }
+        if (_fieldOrigin['minPaymentMethod'] != FieldOrigin.manual &&
+            result.minPaymentMethod.isAutofillEligible) {
+          _minPaymentMethod = result.minPaymentMethod.value!;
+          _fieldOrigin['minPaymentMethod'] = FieldOrigin.ai;
+        }
+        if (_fieldOrigin['minPaymentFixed'] != FieldOrigin.manual &&
+            _minPaymentUsesFixed &&
+            result.minPaymentFixedMinor.isAutofillEligible) {
+          _minFixedController.text = formatMinorForInput(
+            result.minPaymentFixedMinor.value!,
+          );
+          _fieldOrigin['minPaymentFixed'] = FieldOrigin.ai;
+        }
+        if (_fieldOrigin['minPaymentPercent'] != FieldOrigin.manual &&
+            _minPaymentUsesPercent &&
+            result.minPaymentBasisPoints.isAutofillEligible) {
+          _minPercentController.text =
+              (result.minPaymentBasisPoints.value! / 100).toStringAsFixed(2);
+          _fieldOrigin['minPaymentPercent'] = FieldOrigin.ai;
+        }
+      }
+
+      _autofillBatchInProgress = false;
+      _aiPhase = AiAutofillPhase.autofillApplied;
+    });
+
+    _afterAutofillApplied();
+  }
+
+  /// Runs the exact existing form validation after the batch settles, then
+  /// either arms the one-shot auto-submit or leaves the user on the
+  /// (partially filled) form with the normal validation errors visible.
+  void _afterAutofillApplied() {
+    setState(() => _aiPhase = AiAutofillPhase.validating);
+    final requestId = _aiRequestId;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _aiRequestId != requestId) return;
+      final valid = _formKey.currentState?.validate() ?? false;
+      if (!valid) {
+        setState(() => _aiPhase = AiAutofillPhase.incomplete);
+        AppToast.warning(
+          context,
+          AppLocalizations.of(context).aiResearchIncompleteMessage,
+        );
+        return;
+      }
+      setState(() => _aiPhase = AiAutofillPhase.readyToAutoSubmit);
+      _autoSubmitOnce();
+    });
+  }
+
+  /// Invokes the exact same `_save()` the manual Create button uses — no
+  /// duplicated submit logic and no simulated tap (task spec section 27-28).
+  Future<void> _autoSubmitOnce() async {
+    if (_aiPhase != AiAutofillPhase.readyToAutoSubmit || _busy) return;
+    setState(() => _aiPhase = AiAutofillPhase.submitting);
+    await _save();
+    if (!mounted) return;
+    if (_failure != null) {
+      setState(() => _aiPhase = AiAutofillPhase.failed);
+    }
+  }
+
   Future<void> _setArchived(bool archived) async {
     setState(() {
       _failure = null;
@@ -355,9 +565,11 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       AppTextFormField(
+                        key: const Key('account-name'),
                         controller: _nameController,
                         textCapitalization: TextCapitalization.words,
                         decoration: InputDecoration(labelText: l10n.accName),
+                        onChanged: (_) => _markFieldManual('name'),
                         validator: (v) {
                           final e = Validators.requiredText(v, maxLength: 80);
                           return e == null
@@ -405,6 +617,13 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                         ),
                       ],
                       if (_isLiability) ...[
+                        if (!_isEdit) ...[
+                          const SizedBox(height: 16),
+                          _AiAutofillEntryPoint(
+                            phase: _aiPhase,
+                            onPressed: _openAiResearch,
+                          ),
+                        ],
                         const SizedBox(height: 16),
                         AppTextFormField(
                           key: const Key('facility-credit-limit'),
@@ -417,6 +636,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                             labelText: l10n.facilityCreditLimit,
                             suffixText: _currencyCode,
                           ),
+                          onChanged: (_) => _markFieldManual('creditLimit'),
                           validator: (v) {
                             final e = Validators.positiveAmount(
                               v,
@@ -435,6 +655,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                           decoration: InputDecoration(
                             labelText: l10n.facilityDefaultDueDay,
                           ),
+                          onChanged: (_) => _markFieldManual('dueDay'),
                           validator: (v) {
                             final e = Validators.dayOfMonth(
                               int.tryParse(v?.trim() ?? ''),
@@ -461,6 +682,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                                   '${l10n.facilityStatementDay} '
                                   '(${l10n.commonOptional})',
                             ),
+                            onChanged: (_) => _markFieldManual('statementDay'),
                             validator: _optionalDayError,
                           ),
                           const SizedBox(height: 16),
@@ -503,10 +725,10 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                                   ),
                                 ),
                             ],
-                            onChanged: (v) => setState(
-                              () => _minPaymentMethod =
-                                  v ?? MinPaymentMethod.full,
-                            ),
+                            onChanged: (v) => setState(() {
+                              _minPaymentMethod = v ?? MinPaymentMethod.full;
+                              _markFieldManual('minPaymentMethod');
+                            }),
                           ),
                           if (_minPaymentUsesFixed) ...[
                             const SizedBox(height: 16),
@@ -522,6 +744,8 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                                 labelText: l10n.minPaymentFixedAmount,
                                 suffixText: _currencyCode,
                               ),
+                              onChanged: (_) =>
+                                  _markFieldManual('minPaymentFixed'),
                               validator: (v) {
                                 final e = Validators.positiveAmount(
                                   v,
@@ -546,6 +770,8 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                                 labelText: l10n.minPaymentPercentAmount,
                                 suffixText: '%',
                               ),
+                              onChanged: (_) =>
+                                  _markFieldManual('minPaymentPercent'),
                               validator: (v) => _minPaymentBasisPoints == null
                                   ? l10n.valMinPaymentPercent
                                   : null,
@@ -779,6 +1005,80 @@ class _Swatch extends StatelessWidget {
               ? Icon(Icons.check, size: 20, color: checkColor)
               : null,
         ),
+      ),
+    );
+  }
+}
+
+/// The "Let AI help do it" secondary action (task spec section 2): opens
+/// the identification sheet and shows a small deterministic status line
+/// while research/autofill is in flight. Manual fields stay fully usable
+/// the whole time — this never disables the rest of the form.
+class _AiAutofillEntryPoint extends StatelessWidget {
+  const _AiAutofillEntryPoint({required this.phase, required this.onPressed});
+
+  final AiAutofillPhase phase;
+  final VoidCallback onPressed;
+
+  bool get _busy =>
+      phase == AiAutofillPhase.researching ||
+      phase == AiAutofillPhase.applyingAutofill ||
+      phase == AiAutofillPhase.validating ||
+      phase == AiAutofillPhase.needsDisambiguation;
+
+  String? _statusText(AppLocalizations l10n) => switch (phase) {
+    AiAutofillPhase.researching => l10n.aiResearchStatusFinding,
+    AiAutofillPhase.applyingAutofill ||
+    AiAutofillPhase.validating => l10n.aiResearchStatusFilling,
+    _ => null,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final status = _statusText(l10n);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          OutlinedButton.icon(
+            key: const Key('ai-autofill-button'),
+            onPressed: _busy ? null : onPressed,
+            icon: const Icon(Icons.auto_awesome_outlined),
+            label: Text(l10n.aiAutofillButtonLabel),
+          ),
+          const SizedBox(height: 8),
+          Text(l10n.aiAutofillHelperText, style: theme.textTheme.bodySmall),
+          const SizedBox(height: 4),
+          Text(
+            l10n.aiAutofillCautionText,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+          if (status != null) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(status, key: const Key('ai-autofill-status')),
+                ),
+              ],
+            ),
+          ],
+        ],
       ),
     );
   }
