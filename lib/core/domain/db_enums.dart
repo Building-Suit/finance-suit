@@ -123,7 +123,8 @@ enum PlanPricingMethod {
   manualFees('manual_fees'),
   monthlyAmount('monthly_amount'),
   totalPayable('total_payable'),
-  interestRate('interest_rate');
+  interestRate('interest_rate'),
+  cardTenorDefault('card_tenor_default');
 
   const PlanPricingMethod(this.dbValue);
   final String dbValue;
@@ -175,6 +176,10 @@ enum CardFeeType {
   stampTax('stamp_tax'),
   foreignTransaction('foreign_transaction'),
   cashAdvance('cash_advance'),
+  internationalCashAdvance('international_cash_advance'),
+  walletFee('wallet_fee'),
+  statementFee('statement_fee'),
+  earlySettlement('early_settlement'),
   latePayment('late_payment'),
   overLimit('over_limit'),
   installmentConversion('installment_conversion'),
@@ -191,7 +196,8 @@ enum FeeFrequency {
   once('once'),
   monthly('monthly'),
   quarterly('quarterly'),
-  annually('annually');
+  annually('annually'),
+  perTransaction('per_transaction');
 
   const FeeFrequency(this.dbValue);
   final String dbValue;
@@ -204,12 +210,109 @@ enum FeeFrequency {
 enum FeePercentBasis {
   statementBalance('statement_balance'),
   outstandingBalance('outstanding_balance'),
-  creditLimit('credit_limit');
+  creditLimit('credit_limit'),
+  transactionAmount('transaction_amount'),
+  highestStatementDueLookback('highest_statement_due_lookback'),
+  remainingPrincipal('remaining_principal'),
+  remainingOutstanding('remaining_outstanding');
 
   const FeePercentBasis(this.dbValue);
   final String dbValue;
 
   static FeePercentBasis fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+/// Whether a card rule has a real calculation, is intentionally off, or is
+/// waiting on a rate the user has not supplied yet. Distinct states so
+/// "unknown" never silently behaves like zero.
+enum CardRuleState {
+  configured('configured'),
+  unknown('unknown'),
+  disabled('disabled');
+
+  const CardRuleState(this.dbValue);
+  final String dbValue;
+
+  static CardRuleState fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+/// The shape of one rule version's calculation.
+enum CardRuleCalculationType {
+  fixed('fixed'),
+  percentage('percentage'),
+  fixedPlusPercentage('fixed_plus_percentage'),
+  manual('manual');
+
+  const CardRuleCalculationType(this.dbValue);
+  final String dbValue;
+
+  static CardRuleCalculationType fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+/// What materializes a rule's charges.
+enum CardRuleTrigger {
+  schedule('schedule'),
+  foreignTransaction('foreign_transaction'),
+  domesticCashAdvance('domestic_cash_advance'),
+  internationalCashAdvance('international_cash_advance'),
+  walletTransaction('wallet_transaction'),
+  latePaymentMissedMinimum('late_payment_missed_minimum'),
+  overLimitEvent('over_limit_event'),
+  earlySettlement('early_settlement'),
+  manual('manual');
+
+  const CardRuleTrigger(this.dbValue);
+  final String dbValue;
+
+  static CardRuleTrigger fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+/// When a foreign-markup rule applies to a purchase.
+enum ForeignApplyWhen {
+  currencyDiffers('currency_differs'),
+  merchantOutsideHome('merchant_outside_home'),
+  either('either'),
+  both('both');
+
+  const ForeignApplyWhen(this.dbValue);
+  final String dbValue;
+
+  static ForeignApplyWhen fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+/// Expected-versus-actual reconciliation state of one generated charge.
+enum ChargeReconciliationStatus {
+  expected('expected'),
+  confirmed('confirmed'),
+  adjusted('adjusted'),
+  waived('waived'),
+  reversed('reversed'),
+  missing('missing');
+
+  const ChargeReconciliationStatus(this.dbValue);
+  final String dbValue;
+
+  static ChargeReconciliationStatus fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+/// What kind of card transaction a charge represents; cash advances and
+/// wallet loads are never treated like an ordinary purchase.
+enum CardTransactionSubtype {
+  purchase('purchase'),
+  domesticCashAdvance('domestic_cash_advance'),
+  internationalCashAdvance('international_cash_advance'),
+  walletLoad('wallet_load');
+
+  const CardTransactionSubtype(this.dbValue);
+  final String dbValue;
+
+  static CardTransactionSubtype fromDb(String value) =>
       values.firstWhere((e) => e.dbValue == value);
 }
 
