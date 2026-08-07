@@ -2896,4 +2896,120 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get errInvalidPartial =>
       'في القبول الجزئي يجب أن يكون المبلغ المستلم أقل من المبلغ المستحق.';
+
+  @override
+  String get aiAutofillButtonLabel => 'دع الذكاء الاصطناعي يساعدك';
+
+  @override
+  String get aiAutofillHelperText =>
+      'أخبرنا بالبطاقة أو المنتج المالي الذي تملكه، وسيبحث Finance Suit عن رسومه وإعداداته العامة ويملأ هذا النموذج نيابةً عنك.';
+
+  @override
+  String get aiAutofillCautionText =>
+      'قد تتغيّر شروط البنك. يعتمد Finance Suit فقط على المعلومات التي يمكنه التحقق منها من مصادر عامة.';
+
+  @override
+  String get aiResearchStatusFinding => 'جارٍ البحث عن منتجك…';
+
+  @override
+  String get aiResearchStatusFilling => 'جارٍ تعبئة إعدادات بطاقتك…';
+
+  @override
+  String get aiResearchSheetTitleCard => 'ابحث عن بطاقتك';
+
+  @override
+  String get aiResearchSheetTitleBnpl => 'ابحث عن حسابك';
+
+  @override
+  String get aiResearchIssuer => 'البنك / الشركة';
+
+  @override
+  String get aiResearchIssuerHint =>
+      'مثال: CIB، NBE، QNB، بنك مصر، ValU، Contact، سهولة';
+
+  @override
+  String get aiResearchCountry => 'الدولة';
+
+  @override
+  String get aiResearchCountryRequired => 'الدولة مطلوبة';
+
+  @override
+  String get aiResearchWebsite => 'موقع البنك أو الشركة، إن كنت تعرفه';
+
+  @override
+  String get aiResearchInvalidWebsite => 'أدخل عنوان موقع إلكتروني صحيحًا';
+
+  @override
+  String get aiResearchProductCard => 'اسم البطاقة / المنتج';
+
+  @override
+  String get aiResearchProductBnpl => 'اسم المنتج / البرنامج';
+
+  @override
+  String get aiResearchTier => 'الفئة / النوع';
+
+  @override
+  String get aiResearchNetwork => 'الشبكة';
+
+  @override
+  String get aiResearchNetworkOther => 'أخرى';
+
+  @override
+  String get aiResearchNetworkUnknown => 'لا أعرف';
+
+  @override
+  String get aiResearchCurrency => 'العملة، إن كانت معروفة';
+
+  @override
+  String get aiResearchInvalidCurrency => 'أدخل رمز عملة مكوّنًا من 3 أحرف';
+
+  @override
+  String get aiResearchActivationDate =>
+      'تاريخ الإصدار / التفعيل، إن كان معروفًا';
+
+  @override
+  String get aiResearchInvalidDate => 'أدخل التاريخ بصيغة YYYY-MM-DD';
+
+  @override
+  String get aiResearchCreditLimit => 'الحد الائتماني، إن كان معروفًا';
+
+  @override
+  String get aiResearchFinanceLimit => 'حد التمويل، إن كان معروفًا';
+
+  @override
+  String get aiResearchStatementDay => 'يوم إصدار كشف الحساب، إن كان معروفًا';
+
+  @override
+  String get aiResearchDueDay => 'يوم الاستحقاق، إن كان معروفًا';
+
+  @override
+  String get aiResearchTenor => 'مدة التقسيط المعتادة (بالأشهر)';
+
+  @override
+  String get aiResearchNotes => 'هل هناك أي شيء آخر يجب أن نعرفه؟';
+
+  @override
+  String get aiResearchNotesHelp =>
+      'مثال: \"بطاقتي هي بلاتينيوم ماستركارد العادية\" أو \"تاريخ استحقاقي هو يوم 17\".';
+
+  @override
+  String get aiResearchSensitiveWarning =>
+      'لا تُدخل رقم بطاقتك الكامل أو رمز CVV أو الرقم السري أو كلمة المرور أو رمز التحقق OTP.';
+
+  @override
+  String get aiResearchSubmitCard => 'ابحث واملأ بطاقتي';
+
+  @override
+  String get aiResearchSubmitBnpl => 'ابحث واملأ حسابي';
+
+  @override
+  String get aiResearchDisambiguationTitle => 'أي منتج لديك؟';
+
+  @override
+  String get aiResearchUnableToFind =>
+      'لم نتمكن من العثور على معلومات موثوقة كافية. يمكنك متابعة تعبئة النموذج يدويًا.';
+
+  @override
+  String get aiResearchIncompleteMessage =>
+      'قمنا بتعبئة ما استطعنا تعبئته. أكمل الحقول المميزة للمتابعة.';
 }
