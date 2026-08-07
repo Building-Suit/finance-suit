@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
@@ -38,9 +40,6 @@ class _TransactionsSectionState extends ConsumerState<TransactionsSection> {
   static const _pageSize = 30;
 
   final _scrollController = ScrollController();
-  final _keywordController = TextEditingController();
-  final _minController = TextEditingController();
-  final _maxController = TextEditingController();
 
   /// Null preset means every date — the list opens complete and a range is
   /// an explicit narrowing, never a default that quietly hides rows.
@@ -73,14 +72,14 @@ class _TransactionsSectionState extends ConsumerState<TransactionsSection> {
     _scrollController
       ..removeListener(_onScroll)
       ..dispose();
-    _keywordController.dispose();
-    _minController.dispose();
-    _maxController.dispose();
     super.dispose();
   }
 
+  DateRange? get _range =>
+      _preset == null ? null : rangeForPreset(_preset!, PlainDate.today());
+
   TransactionQuery get _query => TransactionQuery(
-    range: _preset == null ? null : rangeForPreset(_preset!, PlainDate.today()),
+    range: _range,
     kind: _kind,
     accountId: _accountId,
     categoryId: _categoryId,
@@ -89,6 +88,16 @@ class _TransactionsSectionState extends ConsumerState<TransactionsSection> {
     maxAmountMinor: _maxAmountMinor,
     limit: _pageSize,
   );
+
+  /// Whether any filter besides the date range is active, so the trigger
+  /// button can show the user it is hiding something.
+  bool get _hasDrawerFilters =>
+      _kind != TransactionFilterKind.all ||
+      _accountId != null ||
+      _categoryId != null ||
+      (_keyword?.trim().isNotEmpty ?? false) ||
+      _minAmountMinor != null ||
+      _maxAmountMinor != null;
 
   /// Any filter change invalidates the accumulated tail.
   void _resetPaging() {
@@ -158,39 +167,6 @@ class _TransactionsSectionState extends ConsumerState<TransactionsSection> {
     }
   }
 
-  int? _amountMinor(String input, String currencyCode) {
-    final text = input.trim();
-    if (text.isEmpty) return null;
-    return Money.tryParse(text, currencyCode: currencyCode)?.minor;
-  }
-
-  void _applyAdvanced(String currencyCode) {
-    setState(() {
-      _keyword = _keywordController.text.trim().isEmpty
-          ? null
-          : _keywordController.text.trim();
-      _minAmountMinor = _amountMinor(_minController.text, currencyCode);
-      _maxAmountMinor = _amountMinor(_maxController.text, currencyCode);
-    });
-    _resetPaging();
-  }
-
-  void _clearFilters() {
-    _keywordController.clear();
-    _minController.clear();
-    _maxController.clear();
-    setState(() {
-      _preset = null;
-      _kind = TransactionFilterKind.all;
-      _accountId = null;
-      _categoryId = null;
-      _keyword = null;
-      _minAmountMinor = null;
-      _maxAmountMinor = null;
-    });
-    _resetPaging();
-  }
-
   String _rangeLabel(AppLocalizations l10n, DateRangePreset? preset) =>
       switch (preset) {
         null => l10n.commonAll,
@@ -204,24 +180,6 @@ class _TransactionsSectionState extends ConsumerState<TransactionsSection> {
         DateRangePreset.custom => l10n.historyCustomRange,
       };
 
-  String _kindLabel(AppLocalizations l10n, TransactionFilterKind kind) =>
-      switch (kind) {
-        TransactionFilterKind.all => l10n.commonAll,
-        TransactionFilterKind.expense => transactionKindLabel(
-          l10n,
-          TransactionKind.expense,
-        ),
-        TransactionFilterKind.allowanceGiven => transactionKindLabel(
-          l10n,
-          TransactionKind.allowanceGiven,
-        ),
-        TransactionFilterKind.income => l10n.reportIncome,
-        TransactionFilterKind.transfer => transactionKindLabel(
-          l10n,
-          TransactionKind.transfer,
-        ),
-      };
-
   static const _rangePresets = <DateRangePreset?>[
     null,
     DateRangePreset.today,
@@ -233,6 +191,36 @@ class _TransactionsSectionState extends ConsumerState<TransactionsSection> {
     DateRangePreset.currentYear,
   ];
 
+  Future<void> _openFilterSheet() async {
+    final draft = await showModalBottomSheet<_FilterDraft>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (sheetContext) => _FilterSheet(
+        baseRange: _range,
+        initial: _FilterDraft(
+          kind: _kind,
+          accountId: _accountId,
+          categoryId: _categoryId,
+          keyword: _keyword,
+          minAmountMinor: _minAmountMinor,
+          maxAmountMinor: _maxAmountMinor,
+        ),
+      ),
+    );
+    if (draft == null || !mounted) return;
+    setState(() {
+      _kind = draft.kind;
+      _accountId = draft.accountId;
+      _categoryId = draft.categoryId;
+      _keyword = draft.keyword;
+      _minAmountMinor = draft.minAmountMinor;
+      _maxAmountMinor = draft.maxAmountMinor;
+    });
+    _resetPaging();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -240,12 +228,9 @@ class _TransactionsSectionState extends ConsumerState<TransactionsSection> {
     final firstPageAsync = ref.watch(transactionsPageProvider(query));
     final accounts =
         ref.watch(allAccountBalancesProvider).value ?? const <AccountBalance>[];
-    final categories =
-        ref.watch(allCategoriesProvider).value ?? const <TransactionCategory>[];
     final accountNames = {
       for (final account in accounts) account.accountId: account.name,
     };
-    final currencyCode = accounts.firstOrNull?.currencyCode ?? 'EGP';
 
     // A reloaded first page — an edit, a realtime event, a refresh — is a
     // different instance, so whatever was scrolled in behind it is stale.
@@ -260,37 +245,39 @@ class _TransactionsSectionState extends ConsumerState<TransactionsSection> {
 
     return Column(
       children: [
-        _FilterBar(
-          presets: _rangePresets,
-          selectedPreset: _preset,
-          presetLabel: (preset) => _rangeLabel(l10n, preset),
-          onPresetSelected: (preset) {
-            setState(() => _preset = preset);
-            _resetPaging();
-          },
-          selectedKind: _kind,
-          kindLabel: (kind) => _kindLabel(l10n, kind),
-          onKindSelected: (kind) {
-            setState(() => _kind = kind);
-            _resetPaging();
-          },
-          accounts: accounts,
-          categories: categories,
-          accountId: _accountId,
-          categoryId: _categoryId,
-          keywordController: _keywordController,
-          minController: _minController,
-          maxController: _maxController,
-          onAccountChanged: (value) {
-            setState(() => _accountId = value);
-            _resetPaging();
-          },
-          onCategoryChanged: (value) {
-            setState(() => _categoryId = value);
-            _resetPaging();
-          },
-          onApply: () => _applyAdvanced(currencyCode),
-          onClear: query.hasActiveFilters ? _clearFilters : null,
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (final preset in _rangePresets)
+                        Padding(
+                          padding: const EdgeInsetsDirectional.only(end: 8),
+                          child: ChoiceChip(
+                            key: Key('tx-range-${preset?.name ?? 'all'}'),
+                            label: Text(_rangeLabel(l10n, preset)),
+                            selected: _preset == preset,
+                            onSelected: (_) {
+                              setState(() => _preset = preset);
+                              _resetPaging();
+                            },
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              _FilterButton(
+                active: _hasDrawerFilters,
+                onPressed: _openFilterSheet,
+              ),
+            ],
+          ),
         ),
         Expanded(
           child: AsyncView<TransactionPage>(
@@ -342,6 +329,38 @@ class _TransactionsSectionState extends ConsumerState<TransactionsSection> {
   }
 }
 
+/// The button that opens the filter sheet. Filled once a non-date filter is
+/// active, so the user can tell at a glance the list is narrowed.
+class _FilterButton extends StatelessWidget {
+  const _FilterButton({required this.active, required this.onPressed});
+
+  final bool active;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final icon = FinanceSuitIcon(
+      FinanceSuitIcons.tune,
+      color: active ? Theme.of(context).colorScheme.onPrimary : null,
+    );
+    if (active) {
+      return FilledButton.icon(
+        key: const Key('tx-open-filters'),
+        onPressed: onPressed,
+        icon: icon,
+        label: Text(l10n.txFilters),
+      );
+    }
+    return OutlinedButton.icon(
+      key: const Key('tx-open-filters'),
+      onPressed: onPressed,
+      icon: icon,
+      label: Text(l10n.txFilters),
+    );
+  }
+}
+
 /// Bottom of the list: the endless-scroll spinner, a retry when a page
 /// failed, or just the space the floating add button needs.
 class _ListFooter extends StatelessWidget {
@@ -385,98 +404,220 @@ class _ListFooter extends StatelessWidget {
   }
 }
 
-class _FilterBar extends StatelessWidget {
-  const _FilterBar({
-    required this.presets,
-    required this.selectedPreset,
-    required this.presetLabel,
-    required this.onPresetSelected,
-    required this.selectedKind,
-    required this.kindLabel,
-    required this.onKindSelected,
-    required this.accounts,
-    required this.categories,
+/// The committed set of non-date filters, passed into and out of
+/// [_FilterSheet] as one unit so the parent applies them atomically.
+@immutable
+class _FilterDraft {
+  const _FilterDraft({
+    required this.kind,
     required this.accountId,
     required this.categoryId,
-    required this.keywordController,
-    required this.minController,
-    required this.maxController,
-    required this.onAccountChanged,
-    required this.onCategoryChanged,
-    required this.onApply,
-    required this.onClear,
+    required this.keyword,
+    required this.minAmountMinor,
+    required this.maxAmountMinor,
   });
 
-  final List<DateRangePreset?> presets;
-  final DateRangePreset? selectedPreset;
-  final String Function(DateRangePreset? preset) presetLabel;
-  final void Function(DateRangePreset? preset) onPresetSelected;
-  final TransactionFilterKind selectedKind;
-  final String Function(TransactionFilterKind kind) kindLabel;
-  final void Function(TransactionFilterKind kind) onKindSelected;
-  final List<AccountBalance> accounts;
-  final List<TransactionCategory> categories;
+  final TransactionFilterKind kind;
   final String? accountId;
   final String? categoryId;
-  final TextEditingController keywordController;
-  final TextEditingController minController;
-  final TextEditingController maxController;
-  final void Function(String? value) onAccountChanged;
-  final void Function(String? value) onCategoryChanged;
-  final VoidCallback onApply;
-  final VoidCallback? onClear;
+  final String? keyword;
+  final int? minAmountMinor;
+  final int? maxAmountMinor;
+
+  bool get isEmpty =>
+      kind == TransactionFilterKind.all &&
+      accountId == null &&
+      categoryId == null &&
+      (keyword?.trim().isEmpty ?? true) &&
+      minAmountMinor == null &&
+      maxAmountMinor == null;
+}
+
+/// The filter drawer: every non-date filter, plus a live match count on the
+/// Apply button that updates as each field changes, before anything is
+/// actually committed to the list behind it.
+class _FilterSheet extends ConsumerStatefulWidget {
+  const _FilterSheet({required this.baseRange, required this.initial});
+
+  /// The date range already active outside the sheet — held fixed here so
+  /// the live count previews the total Apply would actually produce.
+  final DateRange? baseRange;
+  final _FilterDraft initial;
+
+  @override
+  ConsumerState<_FilterSheet> createState() => _FilterSheetState();
+}
+
+class _FilterSheetState extends ConsumerState<_FilterSheet> {
+  late final _keywordController = TextEditingController(
+    text: widget.initial.keyword ?? '',
+  );
+  late final _minController = TextEditingController(
+    text: widget.initial.minAmountMinor == null
+        ? ''
+        : formatMinorForInput(widget.initial.minAmountMinor!),
+  );
+  late final _maxController = TextEditingController(
+    text: widget.initial.maxAmountMinor == null
+        ? ''
+        : formatMinorForInput(widget.initial.maxAmountMinor!),
+  );
+
+  late TransactionFilterKind _kind = widget.initial.kind;
+  late String? _accountId = widget.initial.accountId;
+  late String? _categoryId = widget.initial.categoryId;
+
+  /// The text fields' committed values, debounced so the count preview
+  /// settles after the user pauses rather than firing on every keystroke.
+  /// [_draft] — what Apply and Clear actually act on — always reads the
+  /// controllers directly instead, so a tap right after typing can never
+  /// apply a value one debounce cycle stale.
+  late String? _debouncedKeyword = widget.initial.keyword;
+  late int? _debouncedMinAmountMinor = widget.initial.minAmountMinor;
+  late int? _debouncedMaxAmountMinor = widget.initial.maxAmountMinor;
+
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _keywordController.dispose();
+    _minController.dispose();
+    _maxController.dispose();
+    super.dispose();
+  }
+
+  String get _currencyCode =>
+      (ref.read(allAccountBalancesProvider).value ?? const <AccountBalance>[])
+          .firstOrNull
+          ?.currencyCode ??
+      'EGP';
+
+  int? _amountMinor(String input) {
+    final text = input.trim();
+    if (text.isEmpty) return null;
+    return Money.tryParse(text, currencyCode: _currencyCode)?.minor;
+  }
+
+  /// Debounces free-text input so the count preview settles after the user
+  /// pauses, rather than issuing a request on every keystroke.
+  void _onTextChanged() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 350), () {
+      if (!mounted) return;
+      setState(() {
+        _debouncedKeyword = _keywordController.text.trim().isEmpty
+            ? null
+            : _keywordController.text.trim();
+        _debouncedMinAmountMinor = _amountMinor(_minController.text);
+        _debouncedMaxAmountMinor = _amountMinor(_maxController.text);
+      });
+    });
+  }
+
+  /// What Apply and Clear act on: the chip selections plus whatever is
+  /// currently typed, read straight from the controllers so it is never
+  /// behind the debounce that only paces the count preview below.
+  _FilterDraft get _draft => _FilterDraft(
+    kind: _kind,
+    accountId: _accountId,
+    categoryId: _categoryId,
+    keyword: _keywordController.text.trim().isEmpty
+        ? null
+        : _keywordController.text.trim(),
+    minAmountMinor: _amountMinor(_minController.text),
+    maxAmountMinor: _amountMinor(_maxController.text),
+  );
+
+  TransactionQuery get _previewQuery => TransactionQuery(
+    range: widget.baseRange,
+    kind: _kind,
+    accountId: _accountId,
+    categoryId: _categoryId,
+    keyword: _debouncedKeyword,
+    minAmountMinor: _debouncedMinAmountMinor,
+    maxAmountMinor: _debouncedMaxAmountMinor,
+    // The preview only ever needs the count, but the query is also the
+    // provider's cache key — reusing the list's own page size keeps this
+    // request identical to (and cached alongside) an unfiltered first page.
+    limit: 30,
+  );
+
+  void _clear() {
+    _debounce?.cancel();
+    _keywordController.clear();
+    _minController.clear();
+    _maxController.clear();
+    setState(() {
+      _kind = TransactionFilterKind.all;
+      _accountId = null;
+      _categoryId = null;
+      _debouncedKeyword = null;
+      _debouncedMinAmountMinor = null;
+      _debouncedMaxAmountMinor = null;
+    });
+  }
+
+  String _kindLabel(AppLocalizations l10n, TransactionFilterKind kind) =>
+      switch (kind) {
+        TransactionFilterKind.all => l10n.commonAll,
+        TransactionFilterKind.expense => transactionKindLabel(
+          l10n,
+          TransactionKind.expense,
+        ),
+        TransactionFilterKind.allowanceGiven => transactionKindLabel(
+          l10n,
+          TransactionKind.allowanceGiven,
+        ),
+        TransactionFilterKind.income => l10n.reportIncome,
+        TransactionFilterKind.transfer => transactionKindLabel(
+          l10n,
+          TransactionKind.transfer,
+        ),
+      };
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final accounts =
+        ref.watch(allAccountBalancesProvider).value ?? const <AccountBalance>[];
+    final categories =
+        ref.watch(allCategoriesProvider).value ?? const <TransactionCategory>[];
+    final countAsync = ref.watch(transactionsCountProvider(_previewQuery));
+    final media = MediaQuery.of(context);
+
     return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                for (final preset in presets)
-                  Padding(
-                    padding: const EdgeInsetsDirectional.only(end: 8),
-                    child: ChoiceChip(
-                      key: Key('tx-range-${preset?.name ?? 'all'}'),
-                      label: Text(presetLabel(preset)),
-                      selected: selectedPreset == preset,
-                      onSelected: (_) => onPresetSelected(preset),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                for (final kind in TransactionFilterKind.values)
-                  Padding(
-                    padding: const EdgeInsetsDirectional.only(end: 8),
-                    child: FilterChip(
-                      key: Key('tx-kind-${kind.name}'),
-                      label: Text(kindLabel(kind)),
-                      selected: selectedKind == kind,
-                      onSelected: (_) => onKindSelected(kind),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          ExpansionTile(
-            key: const Key('tx-advanced-filters'),
-            tilePadding: EdgeInsets.zero,
-            title: Text(l10n.txMoreFilters),
+      padding: EdgeInsets.only(bottom: media.viewInsets.bottom),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: media.size.height * 0.85),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Text(
+                l10n.txFilters,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final kind in TransactionFilterKind.values)
+                    FilterChip(
+                      key: Key('tx-kind-${kind.name}'),
+                      label: Text(_kindLabel(l10n, kind)),
+                      selected: _kind == kind,
+                      onSelected: (_) => setState(() => _kind = kind),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
               AppSelectionField<String?>(
-                key: ValueKey('tx-filter-account-$accountId'),
-                initialValue: accountId,
+                key: ValueKey('tx-filter-account-$_accountId'),
+                initialValue: _accountId,
                 decoration: InputDecoration(labelText: l10n.txAccount),
                 items: [
                   DropdownMenuItem(value: null, child: Text(l10n.commonAll)),
@@ -486,12 +627,12 @@ class _FilterBar extends StatelessWidget {
                       child: Text(account.name),
                     ),
                 ],
-                onChanged: onAccountChanged,
+                onChanged: (value) => setState(() => _accountId = value),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               AppSelectionField<String?>(
-                key: ValueKey('tx-filter-category-$categoryId'),
-                initialValue: categoryId,
+                key: ValueKey('tx-filter-category-$_categoryId'),
+                initialValue: _categoryId,
                 decoration: InputDecoration(labelText: l10n.txCategory),
                 items: [
                   DropdownMenuItem(value: null, child: Text(l10n.commonAll)),
@@ -501,26 +642,26 @@ class _FilterBar extends StatelessWidget {
                       child: Text(category.name),
                     ),
                 ],
-                onChanged: onCategoryChanged,
+                onChanged: (value) => setState(() => _categoryId = value),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               TextField(
                 key: const Key('tx-filter-keyword'),
-                controller: keywordController,
+                controller: _keywordController,
                 decoration: InputDecoration(
                   labelText: l10n.txTitleField,
                   prefixIcon: const FinanceSuitIcon(FinanceSuitIcons.search),
                 ),
                 textInputAction: TextInputAction.search,
-                onSubmitted: (_) => onApply(),
+                onChanged: (_) => _onTextChanged(),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
                     child: TextField(
                       key: const Key('tx-filter-min'),
-                      controller: minController,
+                      controller: _minController,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
@@ -528,13 +669,14 @@ class _FilterBar extends StatelessWidget {
                       decoration: InputDecoration(
                         labelText: '${l10n.commonAmount} min',
                       ),
+                      onChanged: (_) => _onTextChanged(),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
                       key: const Key('tx-filter-max'),
-                      controller: maxController,
+                      controller: _maxController,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
@@ -542,33 +684,46 @@ class _FilterBar extends StatelessWidget {
                       decoration: InputDecoration(
                         labelText: '${l10n.commonAmount} max',
                       ),
+                      onChanged: (_) => _onTextChanged(),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Wrap(
-                alignment: WrapAlignment.end,
-                spacing: 8,
-                runSpacing: 8,
+              const SizedBox(height: 20),
+              Row(
                 children: [
-                  if (onClear != null)
-                    TextButton(
+                  Expanded(
+                    child: OutlinedButton(
                       key: const Key('tx-filter-clear'),
-                      onPressed: onClear,
+                      onPressed: _draft.isEmpty ? null : _clear,
                       child: Text(l10n.txClearFilters),
                     ),
-                  FilledButton.icon(
-                    key: const Key('tx-filter-apply'),
-                    onPressed: onApply,
-                    icon: const FinanceSuitIcon(FinanceSuitIcons.check),
-                    label: Text(l10n.commonApply),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: FilledButton(
+                      key: const Key('tx-filter-apply'),
+                      onPressed: () =>
+                          Navigator.of(context).pop<_FilterDraft>(_draft),
+                      child: countAsync.when(
+                        data: (count) => Text(l10n.txApplyWithCount(count)),
+                        loading: () => SizedBox.square(
+                          dimension: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
+                        ),
+                        error: (_, _) => Text(l10n.commonApply),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

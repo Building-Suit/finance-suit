@@ -284,9 +284,17 @@
   "txEditTitle": "Edit transaction",
   "txAccountUnavailable": "unavailable",
   "txAccount": "Account",
-  "txMoreFilters": "More filters",
   "txClearFilters": "Clear filters",
   "txFilterNoMatches": "No transactions match these filters.",
+  "txFilters": "Filters",
+  "txApplyWithCount": "Apply ({count})",
+  "@txApplyWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "txFromAccount": "From account",
   "txToAccount": "To account",
   "txCategory": "Category",

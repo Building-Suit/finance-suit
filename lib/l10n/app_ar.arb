@@ -284,9 +284,17 @@
   "txEditTitle": "تعديل المعاملة",
   "txAccountUnavailable": "غير متاح",
   "txAccount": "الحساب",
-  "txMoreFilters": "مرشحات إضافية",
   "txClearFilters": "مسح المرشحات",
   "txFilterNoMatches": "لا توجد معاملات مطابقة لهذه المرشحات.",
+  "txFilters": "المرشحات",
+  "txApplyWithCount": "تطبيق ({count})",
+  "@txApplyWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "txFromAccount": "من حساب",
   "txToAccount": "إلى حساب",
   "txCategory": "الفئة",

@@ -796,13 +796,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get txAccount => 'الحساب';
 
   @override
-  String get txMoreFilters => 'مرشحات إضافية';
-
-  @override
   String get txClearFilters => 'مسح المرشحات';
 
   @override
   String get txFilterNoMatches => 'لا توجد معاملات مطابقة لهذه المرشحات.';
+
+  @override
+  String get txFilters => 'المرشحات';
+
+  @override
+  String txApplyWithCount(int count) {
+    return 'تطبيق ($count)';
+  }
 
   @override
   String get txFromAccount => 'من حساب';

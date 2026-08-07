@@ -801,13 +801,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get txAccount => 'Account';
 
   @override
-  String get txMoreFilters => 'More filters';
-
-  @override
   String get txClearFilters => 'Clear filters';
 
   @override
   String get txFilterNoMatches => 'No transactions match these filters.';
+
+  @override
+  String get txFilters => 'Filters';
+
+  @override
+  String txApplyWithCount(int count) {
+    return 'Apply ($count)';
+  }
 
   @override
   String get txFromAccount => 'From account';
