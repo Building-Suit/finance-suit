@@ -118,3 +118,9 @@ jobs:
           --project-ref "${SUPABASE_PROJECT_REF}"
           --no-verify-jwt
           --use-api
+
+      - name: Deploy ai-card-research Edge Function
+        run: >-
+          npx --yes supabase@${SUPABASE_CLI_VERSION} functions deploy ai-card-research
+          --project-ref "${SUPABASE_PROJECT_REF}"
+          --use-api

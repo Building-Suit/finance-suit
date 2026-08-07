@@ -5356,6 +5356,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'For a partial acceptance the amount received must be less than the amount owed.'**
   String get errInvalidPartial;
+
+  /// No description provided for @aiAutofillButtonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Let AI help do it'**
+  String get aiAutofillButtonLabel;
+
+  /// No description provided for @aiAutofillHelperText.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us which card or finance product you have. Finance Suit can research its public fees and settings and fill this form for you.'**
+  String get aiAutofillHelperText;
+
+  /// No description provided for @aiAutofillCautionText.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank terms can change. Finance Suit only uses information it can verify from public sources.'**
+  String get aiAutofillCautionText;
+
+  /// No description provided for @aiResearchStatusFinding.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding your product…'**
+  String get aiResearchStatusFinding;
+
+  /// No description provided for @aiResearchStatusFilling.
+  ///
+  /// In en, this message translates to:
+  /// **'Filling your card settings…'**
+  String get aiResearchStatusFilling;
+
+  /// No description provided for @aiResearchSheetTitleCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Find your card'**
+  String get aiResearchSheetTitleCard;
+
+  /// No description provided for @aiResearchSheetTitleBnpl.
+  ///
+  /// In en, this message translates to:
+  /// **'Find your account'**
+  String get aiResearchSheetTitleBnpl;
+
+  /// No description provided for @aiResearchIssuer.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank / Company'**
+  String get aiResearchIssuer;
+
+  /// No description provided for @aiResearchIssuerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. CIB, NBE, QNB, Banque Misr, ValU, Contact, Souhoola'**
+  String get aiResearchIssuerHint;
+
+  /// No description provided for @aiResearchCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get aiResearchCountry;
+
+  /// No description provided for @aiResearchCountryRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Country is required'**
+  String get aiResearchCountryRequired;
+
+  /// No description provided for @aiResearchWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank/company website, if you know it'**
+  String get aiResearchWebsite;
+
+  /// No description provided for @aiResearchInvalidWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid website address'**
+  String get aiResearchInvalidWebsite;
+
+  /// No description provided for @aiResearchProductCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Card / product name'**
+  String get aiResearchProductCard;
+
+  /// No description provided for @aiResearchProductBnpl.
+  ///
+  /// In en, this message translates to:
+  /// **'Product / program name'**
+  String get aiResearchProductBnpl;
+
+  /// No description provided for @aiResearchTier.
+  ///
+  /// In en, this message translates to:
+  /// **'Tier / variant'**
+  String get aiResearchTier;
+
+  /// No description provided for @aiResearchNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Network'**
+  String get aiResearchNetwork;
+
+  /// No description provided for @aiResearchNetworkOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get aiResearchNetworkOther;
+
+  /// No description provided for @aiResearchNetworkUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'I don\'t know'**
+  String get aiResearchNetworkUnknown;
+
+  /// No description provided for @aiResearchCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency, if known'**
+  String get aiResearchCurrency;
+
+  /// No description provided for @aiResearchInvalidCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a 3-letter currency code'**
+  String get aiResearchInvalidCurrency;
+
+  /// No description provided for @aiResearchActivationDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue / activation date, if known'**
+  String get aiResearchActivationDate;
+
+  /// No description provided for @aiResearchInvalidDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a date as YYYY-MM-DD'**
+  String get aiResearchInvalidDate;
+
+  /// No description provided for @aiResearchCreditLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit limit, if known'**
+  String get aiResearchCreditLimit;
+
+  /// No description provided for @aiResearchFinanceLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Finance limit, if known'**
+  String get aiResearchFinanceLimit;
+
+  /// No description provided for @aiResearchStatementDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Statement closing day, if known'**
+  String get aiResearchStatementDay;
+
+  /// No description provided for @aiResearchDueDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Due day, if known'**
+  String get aiResearchDueDay;
+
+  /// No description provided for @aiResearchTenor.
+  ///
+  /// In en, this message translates to:
+  /// **'Typical installment term (months)'**
+  String get aiResearchTenor;
+
+  /// No description provided for @aiResearchNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything else we should know?'**
+  String get aiResearchNotes;
+
+  /// No description provided for @aiResearchNotesHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'For example: \"My card is the normal Platinum Mastercard\" or \"My due date is the 17th.\"'**
+  String get aiResearchNotesHelp;
+
+  /// No description provided for @aiResearchSensitiveWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Do not enter your full card number, CVV, PIN, password, or OTP.'**
+  String get aiResearchSensitiveWarning;
+
+  /// No description provided for @aiResearchSubmitCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Find and fill my card'**
+  String get aiResearchSubmitCard;
+
+  /// No description provided for @aiResearchSubmitBnpl.
+  ///
+  /// In en, this message translates to:
+  /// **'Find and fill my account'**
+  String get aiResearchSubmitBnpl;
+
+  /// No description provided for @aiResearchDisambiguationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Which one do you have?'**
+  String get aiResearchDisambiguationTitle;
+
+  /// No description provided for @aiResearchUnableToFind.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t find enough reliable information. You can continue filling the form manually.'**
+  String get aiResearchUnableToFind;
+
+  /// No description provided for @aiResearchIncompleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'We filled what we could. Complete the highlighted fields to continue.'**
+  String get aiResearchIncompleteMessage;
 }
 
 class _AppLocalizationsDelegate

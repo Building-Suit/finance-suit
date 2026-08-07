@@ -184,14 +184,15 @@ begin
     v_missing := array_append(v_missing, 'set_credit_facility_status');
   end if;
   if to_regprocedure(
-    'app_finance.charge_credit_card(uuid,text,uuid,date,bigint,text,uuid,app_finance.card_transaction_subtype,boolean,boolean,bigint,text,numeric)'
+    'app_finance.charge_credit_card(uuid,text,uuid,date,bigint,text,uuid,'
+    'app_finance.card_transaction_subtype,boolean,boolean,bigint,text,numeric)'
   ) is null then
     v_missing := array_append(v_missing, 'charge_credit_card');
   end if;
   if to_regprocedure(
     'app_finance.charge_credit_card(uuid,text,uuid,date,bigint,text,uuid)'
   ) is not null then
-    raise exception 'Legacy purchase-only charge_credit_card overload remains';
+    raise exception 'Legacy 7-arg charge_credit_card overload remains';
   end if;
   if to_regprocedure(
     'app_finance.save_credit_card_fee_rule(uuid,text,app_finance.card_fee_type,uuid,app_finance.card_rule_state,app_finance.card_rule_trigger,date,app_finance.card_rule_calculation_type,bigint,integer,app_finance.fee_percent_basis,bigint,bigint,integer,app_finance.fee_frequency,app_finance.foreign_apply_when,bigint,integer,text,integer,text,uuid)'

@@ -2914,4 +2914,119 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errInvalidPartial =>
       'For a partial acceptance the amount received must be less than the amount owed.';
+
+  @override
+  String get aiAutofillButtonLabel => 'Let AI help do it';
+
+  @override
+  String get aiAutofillHelperText =>
+      'Tell us which card or finance product you have. Finance Suit can research its public fees and settings and fill this form for you.';
+
+  @override
+  String get aiAutofillCautionText =>
+      'Bank terms can change. Finance Suit only uses information it can verify from public sources.';
+
+  @override
+  String get aiResearchStatusFinding => 'Finding your product…';
+
+  @override
+  String get aiResearchStatusFilling => 'Filling your card settings…';
+
+  @override
+  String get aiResearchSheetTitleCard => 'Find your card';
+
+  @override
+  String get aiResearchSheetTitleBnpl => 'Find your account';
+
+  @override
+  String get aiResearchIssuer => 'Bank / Company';
+
+  @override
+  String get aiResearchIssuerHint =>
+      'e.g. CIB, NBE, QNB, Banque Misr, ValU, Contact, Souhoola';
+
+  @override
+  String get aiResearchCountry => 'Country';
+
+  @override
+  String get aiResearchCountryRequired => 'Country is required';
+
+  @override
+  String get aiResearchWebsite => 'Bank/company website, if you know it';
+
+  @override
+  String get aiResearchInvalidWebsite => 'Enter a valid website address';
+
+  @override
+  String get aiResearchProductCard => 'Card / product name';
+
+  @override
+  String get aiResearchProductBnpl => 'Product / program name';
+
+  @override
+  String get aiResearchTier => 'Tier / variant';
+
+  @override
+  String get aiResearchNetwork => 'Network';
+
+  @override
+  String get aiResearchNetworkOther => 'Other';
+
+  @override
+  String get aiResearchNetworkUnknown => 'I don\'t know';
+
+  @override
+  String get aiResearchCurrency => 'Currency, if known';
+
+  @override
+  String get aiResearchInvalidCurrency => 'Enter a 3-letter currency code';
+
+  @override
+  String get aiResearchActivationDate => 'Issue / activation date, if known';
+
+  @override
+  String get aiResearchInvalidDate => 'Enter a date as YYYY-MM-DD';
+
+  @override
+  String get aiResearchCreditLimit => 'Credit limit, if known';
+
+  @override
+  String get aiResearchFinanceLimit => 'Finance limit, if known';
+
+  @override
+  String get aiResearchStatementDay => 'Statement closing day, if known';
+
+  @override
+  String get aiResearchDueDay => 'Due day, if known';
+
+  @override
+  String get aiResearchTenor => 'Typical installment term (months)';
+
+  @override
+  String get aiResearchNotes => 'Anything else we should know?';
+
+  @override
+  String get aiResearchNotesHelp =>
+      'For example: \"My card is the normal Platinum Mastercard\" or \"My due date is the 17th.\"';
+
+  @override
+  String get aiResearchSensitiveWarning =>
+      'Do not enter your full card number, CVV, PIN, password, or OTP.';
+
+  @override
+  String get aiResearchSubmitCard => 'Find and fill my card';
+
+  @override
+  String get aiResearchSubmitBnpl => 'Find and fill my account';
+
+  @override
+  String get aiResearchDisambiguationTitle => 'Which one do you have?';
+
+  @override
+  String get aiResearchUnableToFind =>
+      'We couldn\'t find enough reliable information. You can continue filling the form manually.';
+
+  @override
+  String get aiResearchIncompleteMessage =>
+      'We filled what we could. Complete the highlighted fields to continue.';
 }
