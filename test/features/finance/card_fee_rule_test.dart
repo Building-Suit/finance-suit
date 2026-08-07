@@ -15,6 +15,10 @@ void main() {
         'starts_on': '2026-05-01',
         'category_id': 'cat-1',
         'is_active': true,
+        'state': 'configured',
+        'trigger_kind': 'schedule',
+        'mutual_exclusion_group': null,
+        'priority': 100,
         'fixed_amount_minor': 20000,
         'percent_basis_points': null,
         'percent_basis': null,
@@ -26,6 +30,10 @@ void main() {
       expect(rule.percentValue, isNull);
       expect(rule.nextChargeOn, PlainDate.parse('2027-05-01'));
       expect(rule.frequency, FeeFrequency.annually);
+      expect(rule.state, CardRuleState.configured);
+      expect(rule.triggerKind, CardRuleTrigger.schedule);
+      expect(rule.mutualExclusionGroup, isNull);
+      expect(rule.priority, 100);
     });
 
     test('parses a percent rule and exposes a display rate', () {
@@ -38,6 +46,10 @@ void main() {
         'starts_on': '2026-05-01',
         'category_id': 'cat-1',
         'is_active': false,
+        'state': 'disabled',
+        'trigger_kind': 'schedule',
+        'mutual_exclusion_group': 'protection',
+        'priority': 10,
         'fixed_amount_minor': null,
         'percent_basis_points': 150,
         'percent_basis': 'outstanding_balance',
@@ -48,9 +60,38 @@ void main() {
       expect(rule.percentValue, 1.5);
       expect(rule.percentBasis, FeePercentBasis.outstandingBalance);
       expect(rule.fixedAmount('EGP'), isNull);
+      expect(rule.state, CardRuleState.disabled);
+      expect(rule.mutualExclusionGroup, 'protection');
+      expect(rule.priority, 10);
     });
 
-    test('drafts serialize exactly one amount shape', () {
+    test('parses an unknown-state rule with no calculation', () {
+      final rule = CardFeeRule.fromJson(const {
+        'id': 'rule-3',
+        'account_id': 'facility-1',
+        'name': 'Foreign Markup',
+        'fee_type': 'foreign_transaction',
+        'frequency': 'per_transaction',
+        'starts_on': '2026-05-01',
+        'category_id': 'cat-1',
+        'is_active': false,
+        'state': 'unknown',
+        'trigger_kind': 'foreign_transaction',
+        'mutual_exclusion_group': null,
+        'priority': 100,
+        'fixed_amount_minor': null,
+        'percent_basis_points': null,
+        'percent_basis': null,
+        'next_charge_on': null,
+        'notes': null,
+      });
+      expect(rule.state, CardRuleState.unknown);
+      expect(rule.isActive, isFalse);
+      expect(rule.fixedAmount('EGP'), isNull);
+      expect(rule.percentValue, isNull);
+    });
+
+    test('drafts build the save_credit_card_fee_rule RPC params', () {
       final fixed = CardFeeRuleDraft(
         accountId: 'facility-1',
         name: 'Annual Membership',
@@ -58,15 +99,42 @@ void main() {
         frequency: FeeFrequency.annually,
         startsOn: PlainDate.parse('2026-05-01'),
         categoryId: 'cat-1',
+        state: CardRuleState.configured,
+        calculationType: CardRuleCalculationType.fixed,
         fixedAmountMinor: 20000,
       );
-      final json = fixed.toJson('user-1');
-      expect(json['fixed_amount_minor'], 20000);
-      expect(json['percent_basis_points'], isNull);
-      expect(json['percent_basis'], isNull);
-      expect(json['user_id'], 'user-1');
-      expect(json['starts_on'], '2026-05-01');
+      final params = fixed.toRpcParams();
+      expect(params['p_fixed_amount_minor'], 20000);
+      expect(params['p_percent_basis_points'], isNull);
+      expect(params['p_percent_basis'], isNull);
+      expect(params['p_state'], 'configured');
+      expect(params['p_calculation_type'], 'fixed');
+      expect(params['p_starts_on'], '2026-05-01');
+      expect(params['p_rule_id'], isNull);
 
+      final editing = fixed.toRpcParams(ruleId: 'rule-1');
+      expect(editing['p_rule_id'], 'rule-1');
+    });
+
+    test('an unknown-state draft carries no calculation', () {
+      final unknown = CardFeeRuleDraft(
+        accountId: 'facility-1',
+        name: 'Foreign Markup',
+        feeType: CardFeeType.foreignTransaction,
+        frequency: FeeFrequency.perTransaction,
+        startsOn: PlainDate.parse('2026-05-01'),
+        categoryId: 'cat-1',
+        state: CardRuleState.unknown,
+        triggerKind: CardRuleTrigger.foreignTransaction,
+      );
+      final params = unknown.toRpcParams();
+      expect(params['p_state'], 'unknown');
+      expect(params['p_calculation_type'], 'manual');
+      expect(params['p_fixed_amount_minor'], isNull);
+      expect(params['p_percent_basis_points'], isNull);
+    });
+
+    test('a configured draft requires a real calculation', () {
       expect(
         () => CardFeeRuleDraft(
           accountId: 'facility-1',
@@ -75,11 +143,33 @@ void main() {
           frequency: FeeFrequency.once,
           startsOn: PlainDate.parse('2026-05-01'),
           categoryId: 'cat-1',
-          fixedAmountMinor: 1000,
-          percentBasisPoints: 100,
+          state: CardRuleState.configured,
         ),
         throwsAssertionError,
       );
+    });
+
+    test('a percentage draft carries minimum, maximum, and lookback', () {
+      final draft = CardFeeRuleDraft(
+        accountId: 'facility-1',
+        name: 'Quarterly Stamp Duty',
+        feeType: CardFeeType.stampTax,
+        frequency: FeeFrequency.quarterly,
+        startsOn: PlainDate.parse('2026-05-01'),
+        categoryId: 'cat-1',
+        state: CardRuleState.configured,
+        calculationType: CardRuleCalculationType.percentage,
+        percentBasisPoints: 5,
+        percentBasis: FeePercentBasis.highestStatementDueLookback,
+        minimumMinor: 100,
+        maximumMinor: 5000,
+        lookbackCycles: 3,
+      );
+      final params = draft.toRpcParams();
+      expect(params['p_percent_basis'], 'highest_statement_due_lookback');
+      expect(params['p_minimum_minor'], 100);
+      expect(params['p_maximum_minor'], 5000);
+      expect(params['p_lookback_cycles'], 3);
     });
   });
 }

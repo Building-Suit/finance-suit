@@ -2054,6 +2054,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get purchaseFinancingMode => 'Financing input';
 
   @override
+  String get purchaseCardTenorDefaultHint =>
+      'The card\'s own rate for this number of months will be used automatically.';
+
+  @override
   String get purchaseFinancingModeFees => 'Enter financing fees';
 
   @override
@@ -2297,6 +2301,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pricingMethodInterestRate => 'I know the interest rate';
+
+  @override
+  String get pricingMethodCardTenorDefault =>
+      'Use the card\'s default rate for this term';
 
   @override
   String get purchaseEditTitle => 'Edit installment plan';
@@ -2580,6 +2588,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feeRuleType => 'Fee type';
 
   @override
+  String get feeRuleState => 'Status';
+
+  @override
+  String get ruleStateConfigured => 'Configured';
+
+  @override
+  String get ruleStateUnknown => 'I don\'t know yet';
+
+  @override
+  String get ruleStateDisabled => 'Not charged';
+
+  @override
+  String get feeRuleUnknownHint =>
+      'This fee won\'t be charged until you know the rate. Finance Suit will flag any transaction it affects so you can fill it in later.';
+
+  @override
+  String get feeRuleEditRateHint =>
+      'To change the rate, delete this fee and add it again with the new rate and start date.';
+
+  @override
   String get feeTypeAnnualMembership => 'Annual membership';
 
   @override
@@ -2596,6 +2624,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feeTypeCashAdvance => 'Cash advance';
+
+  @override
+  String get feeTypeInternationalCashAdvance => 'International cash advance';
+
+  @override
+  String get feeTypeWalletFee => 'Wallet load fee';
+
+  @override
+  String get feeTypeStatementFee => 'Statement / SMS fee';
+
+  @override
+  String get feeTypeEarlySettlement => 'Early settlement fee';
 
   @override
   String get feeTypeLatePayment => 'Late payment';
@@ -2628,6 +2668,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feeBasisCreditLimit => 'Credit limit';
 
   @override
+  String get feeBasisTransactionAmount => 'Transaction amount';
+
+  @override
+  String get feeBasisHighestStatementDueLookback =>
+      'Highest of recent statements';
+
+  @override
+  String get feeBasisRemainingPrincipal => 'Remaining principal';
+
+  @override
+  String get feeBasisRemainingOutstanding => 'Remaining amount owed';
+
+  @override
+  String get feeRuleMinimum => 'Minimum amount (optional)';
+
+  @override
+  String get feeRuleMaximum => 'Maximum amount (optional)';
+
+  @override
+  String get feeRuleLookbackCycles => 'Look back this many statements';
+
+  @override
+  String get valFeeLookback => 'Enter a number from 1 to 24';
+
+  @override
   String get feeRuleFixedAmount => 'Fee amount';
 
   @override
@@ -2644,6 +2709,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feeFrequencyAnnually => 'Annually';
+
+  @override
+  String get feeFrequencyPerTransaction => 'Per transaction';
 
   @override
   String get feeRuleStartsOn => 'First charge date';
