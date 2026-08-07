@@ -1235,6 +1235,9 @@
   "feeRuleDeleteConfirmTitle": "حذف هذا الرسم؟",
   "feeRuleDeleteConfirmBody": "ستتوقف الخصومات المستقبلية، وتبقى الرسوم المسجلة سابقًا في السجل.",
   "feeRulesEmpty": "لا توجد رسوم مضبوطة لهذه البطاقة بعد. أضف رسم العضوية السنوية أو التأمين ليُسجَّل تلقائيًا.",
+  "feeRuleNoCategoriesTitle": "تحتاج إلى فئة مصروفات أولًا",
+  "feeRuleNoCategoriesBody": "تُسجَّل الرسوم كمصروفات، لذا اختر فئة أو أنشئ واحدة قبل حفظ هذا الرسم.",
+  "feeRuleAddCategoryAction": "إضافة فئة مصروفات",
   "feeRulePercentOfBasis": "{percent}% من {basis}",
   "@feeRulePercentOfBasis": {
     "placeholders": {
