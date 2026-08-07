@@ -1574,12 +1574,6 @@ abstract class AppLocalizations {
   /// **'Account'**
   String get txAccount;
 
-  /// No description provided for @txMoreFilters.
-  ///
-  /// In en, this message translates to:
-  /// **'More filters'**
-  String get txMoreFilters;
-
   /// No description provided for @txClearFilters.
   ///
   /// In en, this message translates to:
@@ -1591,6 +1585,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No transactions match these filters.'**
   String get txFilterNoMatches;
+
+  /// No description provided for @txFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get txFilters;
+
+  /// No description provided for @txApplyWithCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply ({count})'**
+  String txApplyWithCount(int count);
 
   /// No description provided for @txFromAccount.
   ///

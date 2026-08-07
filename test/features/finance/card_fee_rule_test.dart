@@ -171,5 +171,85 @@ void main() {
       expect(params['p_maximum_minor'], 5000);
       expect(params['p_lookback_cycles'], 3);
     });
+
+    test('a foreign-transaction draft carries its trigger and condition', () {
+      final draft = CardFeeRuleDraft(
+        accountId: 'facility-1',
+        name: 'Foreign Exchange Fee',
+        feeType: CardFeeType.foreignTransaction,
+        frequency: FeeFrequency.perTransaction,
+        startsOn: PlainDate.parse('2026-06-01'),
+        categoryId: 'cat-1',
+        state: CardRuleState.configured,
+        triggerKind: CardRuleTrigger.foreignTransaction,
+        calculationType: CardRuleCalculationType.percentage,
+        percentBasisPoints: 300,
+        percentBasis: FeePercentBasis.transactionAmount,
+        applyWhen: ForeignApplyWhen.foreignMerchantHomeCurrency,
+      );
+      final params = draft.toRpcParams();
+      expect(params['p_trigger_kind'], 'foreign_transaction');
+      expect(params['p_frequency'], 'per_transaction');
+      expect(params['p_percent_basis'], 'transaction_amount');
+      expect(params['p_apply_when'], 'foreign_merchant_home_currency');
+    });
+
+    test('a schedule draft carries no apply-when condition', () {
+      final draft = CardFeeRuleDraft(
+        accountId: 'facility-1',
+        name: 'Stamp Duty',
+        feeType: CardFeeType.stampTax,
+        frequency: FeeFrequency.quarterly,
+        startsOn: PlainDate.parse('2026-07-01'),
+        categoryId: 'cat-1',
+        state: CardRuleState.configured,
+        calculationType: CardRuleCalculationType.percentage,
+        percentBasisPoints: 5,
+        percentBasis: FeePercentBasis.highestDailyBalanceLookback,
+        lookbackCycles: 3,
+      );
+      final params = draft.toRpcParams();
+      expect(params['p_apply_when'], isNull);
+      expect(params['p_percent_basis'], 'highest_daily_balance_lookback');
+    });
+
+    test('fee types map to the trigger that materializes them', () {
+      expect(
+        cardFeeTypeTrigger(CardFeeType.foreignTransaction),
+        CardRuleTrigger.foreignTransaction,
+      );
+      expect(
+        cardFeeTypeTrigger(CardFeeType.cashAdvance),
+        CardRuleTrigger.domesticCashAdvance,
+      );
+      expect(
+        cardFeeTypeTrigger(CardFeeType.internationalCashAdvance),
+        CardRuleTrigger.internationalCashAdvance,
+      );
+      expect(
+        cardFeeTypeTrigger(CardFeeType.walletFee),
+        CardRuleTrigger.walletTransaction,
+      );
+      expect(
+        cardFeeTypeTrigger(CardFeeType.latePayment),
+        CardRuleTrigger.latePaymentMissedMinimum,
+      );
+      expect(
+        cardFeeTypeTrigger(CardFeeType.overLimit),
+        CardRuleTrigger.overLimitEvent,
+      );
+      expect(
+        cardFeeTypeTrigger(CardFeeType.earlySettlement),
+        CardRuleTrigger.earlySettlement,
+      );
+      expect(
+        cardFeeTypeTrigger(CardFeeType.annualMembership),
+        CardRuleTrigger.schedule,
+      );
+      expect(
+        cardFeeTypeTrigger(CardFeeType.stampTax),
+        CardRuleTrigger.schedule,
+      );
+    });
   });
 }

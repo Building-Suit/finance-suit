@@ -94,6 +94,22 @@ class CardFeeRule {
       percentBasisPoints == null ? null : percentBasisPoints! / 100;
 }
 
+/// The materializer a fee of this type belongs to. Derived from the fee
+/// type at creation so a "Foreign transaction fee" becomes a
+/// per-transaction trigger rule by construction — never a mis-filed
+/// schedule rule silently charging against a zero basis.
+CardRuleTrigger cardFeeTypeTrigger(CardFeeType type) => switch (type) {
+  CardFeeType.foreignTransaction => CardRuleTrigger.foreignTransaction,
+  CardFeeType.cashAdvance => CardRuleTrigger.domesticCashAdvance,
+  CardFeeType.internationalCashAdvance =>
+    CardRuleTrigger.internationalCashAdvance,
+  CardFeeType.walletFee => CardRuleTrigger.walletTransaction,
+  CardFeeType.latePayment => CardRuleTrigger.latePaymentMissedMinimum,
+  CardFeeType.overLimit => CardRuleTrigger.overLimitEvent,
+  CardFeeType.earlySettlement => CardRuleTrigger.earlySettlement,
+  _ => CardRuleTrigger.schedule,
+};
+
 /// Create/edit payload for a fee rule, sent to `save_credit_card_fee_rule`.
 /// Creating a rule also creates its first version there; editing an
 /// existing rule through this draft only ever touches identity fields
@@ -118,6 +134,7 @@ class CardFeeRuleDraft {
     this.minimumMinor,
     this.maximumMinor,
     this.lookbackCycles,
+    this.applyWhen,
     this.mutualExclusionGroup,
     this.priority = 100,
     this.notes,
@@ -142,6 +159,10 @@ class CardFeeRuleDraft {
   final int? minimumMinor;
   final int? maximumMinor;
   final int? lookbackCycles;
+
+  /// Condition for a [CardRuleTrigger.foreignTransaction] rule; null on
+  /// every other trigger.
+  final ForeignApplyWhen? applyWhen;
   final String? mutualExclusionGroup;
   final int priority;
   final String? notes;
@@ -164,6 +185,7 @@ class CardFeeRuleDraft {
     'p_maximum_minor': maximumMinor,
     'p_lookback_cycles': lookbackCycles,
     'p_frequency': frequency.dbValue,
+    'p_apply_when': applyWhen?.dbValue,
     'p_mutual_exclusion_group': mutualExclusionGroup,
     'p_priority': priority,
     'p_notes': notes,

@@ -194,6 +194,56 @@ begin
   ) is not null then
     raise exception 'Legacy 7-arg charge_credit_card overload remains';
   end if;
+  if to_regprocedure(
+    'app_finance.save_credit_card_fee_rule(uuid,text,app_finance.card_fee_type,uuid,app_finance.card_rule_state,app_finance.card_rule_trigger,date,app_finance.card_rule_calculation_type,bigint,integer,app_finance.fee_percent_basis,bigint,bigint,integer,app_finance.fee_frequency,app_finance.foreign_apply_when,bigint,integer,text,integer,text,uuid)'
+  ) is null then
+    v_missing := array_append(v_missing, 'save_credit_card_fee_rule');
+  end if;
+  if to_regprocedure(
+    'app_finance.create_fee_rule_version(uuid,date,app_finance.card_rule_calculation_type,bigint,integer,app_finance.fee_percent_basis,bigint,bigint,integer,app_finance.fee_frequency,app_finance.foreign_apply_when,bigint,integer,text)'
+  ) is null then
+    v_missing := array_append(v_missing, 'create_fee_rule_version');
+  end if;
+  if to_regprocedure(
+    'app_finance.cancel_fee_rule_version(uuid)'
+  ) is null then
+    v_missing := array_append(v_missing, 'cancel_fee_rule_version');
+  end if;
+  if to_regprocedure(
+    'app_finance.apply_statement_penalty_fees(date)'
+  ) is null then
+    v_missing := array_append(v_missing, 'apply_statement_penalty_fees');
+  end if;
+  if to_regprocedure(
+    'app_finance.reconcile_fee_charge(uuid,bigint,boolean,date,text)'
+  ) is null then
+    v_missing := array_append(v_missing, 'reconcile_fee_charge');
+  end if;
+  if to_regprocedure(
+    'app_finance.highest_daily_balance_minor(uuid,date,integer)'
+  ) is null then
+    v_missing := array_append(v_missing, 'highest_daily_balance_minor');
+  end if;
+  if not exists (
+    select 1 from pg_enum e
+    join pg_type t on t.oid = e.enumtypid
+    where t.typnamespace = 'app_finance'::regnamespace
+      and t.typname = 'foreign_apply_when'
+      and e.enumlabel = 'foreign_merchant_home_currency'
+  ) then
+    v_missing := array_append(
+      v_missing, 'foreign_apply_when.foreign_merchant_home_currency');
+  end if;
+  if not exists (
+    select 1 from pg_enum e
+    join pg_type t on t.oid = e.enumtypid
+    where t.typnamespace = 'app_finance'::regnamespace
+      and t.typname = 'fee_percent_basis'
+      and e.enumlabel = 'highest_daily_balance_lookback'
+  ) then
+    v_missing := array_append(
+      v_missing, 'fee_percent_basis.highest_daily_balance_lookback');
+  end if;
   if to_regprocedure('app_finance.apply_credit_card_fees(date)') is null then
     v_missing := array_append(v_missing, 'apply_credit_card_fees');
   end if;

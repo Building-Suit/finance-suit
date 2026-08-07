@@ -1416,11 +1416,42 @@ class _FeeRuleDialog extends ConsumerStatefulWidget {
 // only creates schedule-triggered rules); transaction-amount and
 // remaining-principal/outstanding bases belong to per-transaction and
 // early-settlement rules configured elsewhere.
-const _scheduleFeePercentBases = [
-  FeePercentBasis.statementBalance,
-  FeePercentBasis.outstandingBalance,
-  FeePercentBasis.creditLimit,
+/// The percent bases that make sense for one trigger kind, mirroring what
+/// the server-side materializer of that trigger actually reads.
+List<FeePercentBasis> _feePercentBasesFor(CardRuleTrigger trigger) =>
+    switch (trigger) {
+      CardRuleTrigger.schedule => const [
+        FeePercentBasis.statementBalance,
+        FeePercentBasis.outstandingBalance,
+        FeePercentBasis.creditLimit,
+        FeePercentBasis.highestStatementDueLookback,
+        FeePercentBasis.highestDailyBalanceLookback,
+      ],
+      CardRuleTrigger.foreignTransaction ||
+      CardRuleTrigger.domesticCashAdvance ||
+      CardRuleTrigger.internationalCashAdvance ||
+      CardRuleTrigger.walletTransaction => const [
+        FeePercentBasis.transactionAmount,
+      ],
+      CardRuleTrigger.latePaymentMissedMinimum => const [
+        FeePercentBasis.statementBalance,
+        FeePercentBasis.outstandingBalance,
+        FeePercentBasis.creditLimit,
+      ],
+      CardRuleTrigger.overLimitEvent => const [
+        FeePercentBasis.outstandingBalance,
+        FeePercentBasis.creditLimit,
+      ],
+      CardRuleTrigger.earlySettlement => const [
+        FeePercentBasis.remainingPrincipal,
+        FeePercentBasis.remainingOutstanding,
+      ],
+      CardRuleTrigger.manual => const [FeePercentBasis.outstandingBalance],
+    };
+
+const _lookbackBases = [
   FeePercentBasis.highestStatementDueLookback,
+  FeePercentBasis.highestDailyBalanceLookback,
 ];
 
 class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
@@ -1435,6 +1466,7 @@ class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
   late CardFeeType _feeType;
   late FeeFrequency _frequency;
   late FeePercentBasis _percentBasis;
+  late ForeignApplyWhen _applyWhen;
   late bool _isPercent;
   late PlainDate _startsOn;
   late CardRuleState _state;
@@ -1443,6 +1475,11 @@ class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
   bool _busy = false;
 
   bool get _isEdit => widget.existing != null;
+
+  /// A rule's trigger follows its fee type; edits keep the stored one
+  /// (identity edits never move a rule between materializers).
+  CardRuleTrigger get _trigger =>
+      widget.existing?.triggerKind ?? cardFeeTypeTrigger(_feeType);
 
   @override
   void initState() {
@@ -1465,6 +1502,7 @@ class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
     _feeType = existing?.feeType ?? CardFeeType.annualMembership;
     _frequency = existing?.frequency ?? FeeFrequency.annually;
     _percentBasis = existing?.percentBasis ?? FeePercentBasis.creditLimit;
+    _applyWhen = ForeignApplyWhen.either;
     _isPercent = existing?.isPercent ?? false;
     _startsOn = existing?.startsOn ?? PlainDate.today();
     _state = existing?.state ?? CardRuleState.configured;
@@ -1520,14 +1558,25 @@ class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
         : _isPercent
         ? CardRuleCalculationType.percentage
         : CardRuleCalculationType.fixed;
+    final trigger = _trigger;
     final draft = CardFeeRuleDraft(
       accountId: widget.summary.accountId,
       name: _nameController.text.trim(),
       feeType: _feeType,
-      frequency: _frequency,
+      // Event- and transaction-triggered rules have no schedule of their
+      // own: the trigger decides when they charge.
+      frequency: trigger == CardRuleTrigger.schedule
+          ? _frequency
+          : FeeFrequency.perTransaction,
       startsOn: _startsOn,
       categoryId: _categoryId!,
       state: _state,
+      triggerKind: trigger,
+      applyWhen:
+          trigger == CardRuleTrigger.foreignTransaction &&
+              _state == CardRuleState.configured
+          ? _applyWhen
+          : null,
       calculationType: calculationType,
       fixedAmountMinor: calculationType == CardRuleCalculationType.fixed
           ? Money.tryParse(
@@ -1549,7 +1598,7 @@ class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
           : null,
       lookbackCycles:
           calculationType == CardRuleCalculationType.percentage &&
-              _percentBasis == FeePercentBasis.highestStatementDueLookback
+              _lookbackBases.contains(_percentBasis)
           ? _lookbackCycles
           : null,
     );
@@ -1613,10 +1662,24 @@ class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
                         child: Text(cardFeeTypeLabel(l10n, type)),
                       ),
                   ],
-                  onChanged: (v) => setState(
-                    () => _feeType = v ?? CardFeeType.annualMembership,
-                  ),
+                  onChanged: (v) => setState(() {
+                    _feeType = v ?? CardFeeType.annualMembership;
+                    // Keep the basis inside what the new trigger's
+                    // materializer can actually compute.
+                    final bases = _feePercentBasesFor(_trigger);
+                    if (!bases.contains(_percentBasis)) {
+                      _percentBasis = bases.first;
+                    }
+                  }),
                 ),
+                if (_trigger != CardRuleTrigger.schedule) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.feeRuleTriggerHint,
+                    key: const Key('fee-rule-trigger-hint'),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
                 const SizedBox(height: 12),
               ],
               AppSelectionField<CardRuleState>(
@@ -1650,6 +1713,26 @@ class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
               ],
               const SizedBox(height: 12),
               if (showCalculationFields) ...[
+                if (_trigger == CardRuleTrigger.foreignTransaction) ...[
+                  AppSelectionField<ForeignApplyWhen>(
+                    key: ValueKey('fee-rule-apply-when-$_applyWhen'),
+                    initialValue: _applyWhen,
+                    decoration: InputDecoration(
+                      labelText: l10n.feeRuleApplyWhen,
+                    ),
+                    items: [
+                      for (final condition in ForeignApplyWhen.values)
+                        DropdownMenuItem(
+                          value: condition,
+                          child: Text(foreignApplyWhenLabel(l10n, condition)),
+                        ),
+                    ],
+                    onChanged: (v) => setState(
+                      () => _applyWhen = v ?? ForeignApplyWhen.either,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 SwitchListTile(
                   key: const Key('fee-rule-percent-toggle'),
                   contentPadding: EdgeInsets.zero,
@@ -1682,25 +1765,29 @@ class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
                       labelText: l10n.feeRulePercentBasis,
                     ),
                     items: [
-                      for (final basis in _scheduleFeePercentBases)
+                      for (final basis in _feePercentBasesFor(_trigger))
                         DropdownMenuItem(
                           value: basis,
                           child: Text(feePercentBasisLabel(l10n, basis)),
                         ),
                     ],
                     onChanged: (v) => setState(
-                      () => _percentBasis = v ?? FeePercentBasis.creditLimit,
+                      () => _percentBasis =
+                          v ?? _feePercentBasesFor(_trigger).first,
                     ),
                   ),
-                  if (_percentBasis ==
-                      FeePercentBasis.highestStatementDueLookback) ...[
+                  if (_lookbackBases.contains(_percentBasis)) ...[
                     const SizedBox(height: 12),
                     AppTextFormField(
                       key: const Key('fee-rule-lookback'),
                       controller: _lookbackController,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
-                        labelText: l10n.feeRuleLookbackCycles,
+                        labelText:
+                            _percentBasis ==
+                                FeePercentBasis.highestDailyBalanceLookback
+                            ? l10n.feeRuleLookbackMonths
+                            : l10n.feeRuleLookbackCycles,
                       ),
                       validator: (v) {
                         final cycles = _lookbackCycles;
@@ -1765,21 +1852,24 @@ class _FeeRuleDialogState extends ConsumerState<_FeeRuleDialog> {
                     },
                   ),
                 const SizedBox(height: 12),
-                AppSelectionField<FeeFrequency>(
-                  key: ValueKey('fee-rule-frequency-$_frequency'),
-                  initialValue: _frequency,
-                  decoration: InputDecoration(labelText: l10n.feeRuleFrequency),
-                  items: [
-                    for (final frequency in FeeFrequency.values)
-                      if (frequency != FeeFrequency.perTransaction)
-                        DropdownMenuItem(
-                          value: frequency,
-                          child: Text(feeFrequencyLabel(l10n, frequency)),
-                        ),
-                  ],
-                  onChanged: (v) =>
-                      setState(() => _frequency = v ?? FeeFrequency.annually),
-                ),
+                if (_trigger == CardRuleTrigger.schedule)
+                  AppSelectionField<FeeFrequency>(
+                    key: ValueKey('fee-rule-frequency-$_frequency'),
+                    initialValue: _frequency,
+                    decoration: InputDecoration(
+                      labelText: l10n.feeRuleFrequency,
+                    ),
+                    items: [
+                      for (final frequency in FeeFrequency.values)
+                        if (frequency != FeeFrequency.perTransaction)
+                          DropdownMenuItem(
+                            value: frequency,
+                            child: Text(feeFrequencyLabel(l10n, frequency)),
+                          ),
+                    ],
+                    onChanged: (v) =>
+                        setState(() => _frequency = v ?? FeeFrequency.annually),
+                  ),
                 const SizedBox(height: 4),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
