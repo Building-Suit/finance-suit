@@ -50,6 +50,21 @@ class NotificationPreferences {
   );
 }
 
+@immutable
+class NotificationTestDelivery {
+  const NotificationTestDelivery({
+    required this.outboxId,
+    required this.sent,
+    required this.failed,
+    required this.suppressed,
+  });
+
+  final String outboxId;
+  final int sent;
+  final int failed;
+  final int suppressed;
+}
+
 /// Push device registration and notification preferences in `app_core`.
 class NotificationsRepository {
   NotificationsRepository(this._client);
@@ -111,6 +126,28 @@ class NotificationsRepository {
           .eq('is_enabled', true)
           .maybeSingle();
       return row != null;
+    });
+  }
+
+  /// Sends one real push through the production outbox + Edge Function path.
+  /// This is intentionally a delivery diagnostic and does not create finance
+  /// obligations or transactions.
+  Future<Result<NotificationTestDelivery>> sendDeveloperTestNotification() {
+    return guard(() async {
+      final outboxId = await _db.rpc<String>(
+        'enqueue_developer_test_notification',
+      );
+      final response = await _client.functions.invoke(
+        'notification-worker',
+        body: {'developer_test_outbox_id': outboxId},
+      );
+      final data = response.data as Map<String, dynamic>;
+      return NotificationTestDelivery(
+        outboxId: outboxId,
+        sent: data['sent'] as int? ?? 0,
+        failed: data['failed'] as int? ?? 0,
+        suppressed: data['suppressed'] as int? ?? 0,
+      );
     });
   }
 
