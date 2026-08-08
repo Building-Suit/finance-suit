@@ -232,6 +232,18 @@ otp_expiry = 3600
 [functions.delete-account]
 verify_jwt = false
 
+# These functions verify caller identity or provider signatures inside the
+# function body. Keeping gateway JWT verification off also lets browser CORS
+# preflight requests reach the handlers cleanly.
+[functions.commercial-admin]
+verify_jwt = false
+
+[functions.google-play-billing]
+verify_jwt = false
+
+[functions.google-play-rtdn]
+verify_jwt = false
+
 # Use a production-ready SMTP server
 # [auth.email.smtp]
 # enabled = true

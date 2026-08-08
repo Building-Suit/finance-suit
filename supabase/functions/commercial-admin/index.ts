@@ -1,6 +1,14 @@
 import { createClient } from "npm:@supabase/supabase-js@2.110.7";
 
+const corsHeaders = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-headers": "authorization, x-client-info, apikey, content-type",
+  "access-control-allow-methods": "POST, OPTIONS",
+  "access-control-max-age": "86400",
+};
+
 const jsonHeaders = {
+  ...corsHeaders,
   "content-type": "application/json; charset=utf-8",
   "cache-control": "no-store",
 };
@@ -39,6 +47,9 @@ function assertUuid(value: unknown, code: string): string {
 }
 
 Deno.serve(async (request: Request) => {
+  if (request.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
   if (request.method !== "POST") return json(405, { code: "method_not_allowed" });
   const authorization = request.headers.get("authorization");
   const accessToken = authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
