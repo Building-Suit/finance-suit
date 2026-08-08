@@ -44,10 +44,7 @@ class SubscriptionScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(purchaseSyncProvider);
     final entitlement = ref.watch(effectiveEntitlementProvider);
-    final catalog = ref.watch(commercialCatalogProvider);
-    final products = ref.watch(googlePlayProductsProvider);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final l10n = AppLocalizations.of(context);
 
@@ -84,45 +81,20 @@ class SubscriptionScreen extends ConsumerWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
-                  catalog.when(
-                    data: (commercialCatalog) => products.when(
-                      data: (productResponse) => commercialCatalog.billingReady
-                          ? Column(
-                              children: [
-                                for (final interval in const ['month', 'year'])
-                                  _PriceTile(
-                                    price: commercialCatalog.googlePlayPrice(
-                                      interval,
-                                    ),
-                                    product: _productFor(
-                                      productResponse.productDetails,
-                                      commercialCatalog.googlePlayPrice(
-                                        interval,
-                                      ),
-                                    ),
-                                    locale: locale,
-                                    onBuy: (price, product) =>
-                                        _buy(context, ref, price, product),
-                                  ),
-                              ],
-                            )
-                          : Text(l10n.billingNotReady),
-                      loading: () => const LinearProgressIndicator(),
-                      error: (_, _) => const Text(
-                        'Google Play products are unavailable. Check provider sync.',
-                      ),
-                    ),
-                    loading: () => const LinearProgressIndicator(),
-                    error: (_, _) =>
-                        const Text('Commercial catalog is unavailable.'),
+                  _PurchaseOptions(
+                    locale: locale,
+                    onBuy: (price, product) =>
+                        _buy(context, ref, price, product),
                   ),
                 ],
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: () => _restore(context, ref),
-                  icon: const FinanceSuitIcon(FinanceSuitIcons.refresh),
-                  label: const Text('Restore purchases'),
-                ),
+                if (effective.source != EntitlementSource.openEarlyAccess) ...[
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: () => _restore(context, ref),
+                    icon: const FinanceSuitIcon(FinanceSuitIcons.refresh),
+                    label: const Text('Restore purchases'),
+                  ),
+                ],
                 TextButton.icon(
                   onPressed: () => context.pop(),
                   icon: const FinanceSuitIcon(FinanceSuitIcons.chevronLeft),
@@ -132,6 +104,60 @@ class SubscriptionScreen extends ConsumerWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _PurchaseOptions extends ConsumerWidget {
+  const _PurchaseOptions({required this.locale, required this.onBuy});
+
+  final String locale;
+  final void Function(PlanPrice price, ProductDetails product) onBuy;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final catalog = ref.watch(commercialCatalogProvider);
+    return catalog.when(
+      data: (value) => value.billingReady
+          ? _GooglePlayPurchaseOptions(locale: locale, onBuy: onBuy)
+          : Text(AppLocalizations.of(context).billingNotReady),
+      loading: () => const LinearProgressIndicator(),
+      error: (_, _) => const Text('Commercial catalog is unavailable.'),
+    );
+  }
+}
+
+class _GooglePlayPurchaseOptions extends ConsumerWidget {
+  const _GooglePlayPurchaseOptions({required this.locale, required this.onBuy});
+
+  final String locale;
+  final void Function(PlanPrice price, ProductDetails product) onBuy;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(purchaseSyncProvider);
+    final catalog = ref.watch(commercialCatalogProvider).value;
+    final products = ref.watch(googlePlayProductsProvider);
+    if (catalog == null) return const LinearProgressIndicator();
+    return products.when(
+      data: (response) => Column(
+        children: [
+          for (final interval in const ['month', 'year'])
+            _PriceTile(
+              price: catalog.googlePlayPrice(interval),
+              product: _productFor(
+                response.productDetails,
+                catalog.googlePlayPrice(interval),
+              ),
+              locale: locale,
+              onBuy: onBuy,
+            ),
+        ],
+      ),
+      loading: () => const LinearProgressIndicator(),
+      error: (_, _) => const Text(
+        'Google Play products are unavailable. Check provider sync.',
       ),
     );
   }
