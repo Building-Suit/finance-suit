@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(20);
+select plan(26);
 
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -19,9 +19,19 @@ select ok((select relrowsecurity from pg_class where oid = 'app_commercial.entit
 select ok((select relrowsecurity from pg_class where oid = 'app_commercial.paid_subscriptions'::regclass), 'RLS on paid subscriptions');
 
 select is(
+  (select mode::text from app_commercial.monetization_state where singleton),
+  'open_early_access',
+  'open Early Access is the initial mode'
+);
+
+-- Historical grants remain auditable but no longer determine access in open mode.
+insert into app_commercial.entitlement_grants (user_id, plan_key, source, starts_at, ends_at, reason)
+values ('00000000-0000-0000-0000-0000000000c1', 'pro', 'early_access', now(), now() + interval '90 days', 'historical fixture');
+
+select is(
   (select count(*)::int from app_commercial.entitlement_grants where user_id = '00000000-0000-0000-0000-0000000000c1'),
   1,
-  'new profile trigger grants one initial entitlement'
+  'historical grant is preserved'
 );
 
 select is(
@@ -32,8 +42,8 @@ select is(
 
 select is(
   (select source::text from app_commercial.resolve_effective_entitlement('00000000-0000-0000-0000-0000000000c1')),
-  'early_access',
-  'initial source resolves as early access'
+  'open_early_access',
+  'open mode overrides historical grant source'
 );
 
 update app_commercial.promotional_campaigns
@@ -47,7 +57,7 @@ select is(
     where user_id = '00000000-0000-0000-0000-0000000000c1'
   ),
   90,
-  'changing campaign duration does not shorten existing grant'
+  'changing campaign duration does not rewrite historical grant'
 );
 
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -59,8 +69,8 @@ select is(
     from app_commercial.entitlement_grants
     where user_id = '00000000-0000-0000-0000-0000000000c3'
   ),
-  30,
-  'new grants use changed campaign duration'
+  null,
+  'new users receive effective open access without an unnecessary grant'
 );
 
 delete from app_commercial.entitlement_grants
@@ -80,8 +90,8 @@ values (
 
 select is(
   (select effective_plan::text from app_commercial.resolve_effective_entitlement('00000000-0000-0000-0000-0000000000c2')),
-  'free',
-  'expired grant falls back to free'
+  'pro',
+  'open access overrides expired historical grant'
 );
 
 insert into app_commercial.paid_subscriptions (
@@ -98,6 +108,15 @@ select is(
   (select source::text from app_commercial.resolve_effective_entitlement('00000000-0000-0000-0000-0000000000c2')),
   'paid',
   'active paid subscription wins'
+);
+
+insert into app_commercial.entitlement_grants (user_id, plan_key, source, starts_at, ends_at, reason)
+values ('00000000-0000-0000-0000-0000000000c2', 'pro', 'admin_grant', now(), null, 'permanent fixture');
+
+select is(
+  (select source::text from app_commercial.resolve_effective_entitlement('00000000-0000-0000-0000-0000000000c2')),
+  'admin_grant',
+  'permanent admin grant has deterministic priority'
 );
 
 set local role authenticated;
@@ -148,6 +167,28 @@ select throws_ok(
   '42501',
   null,
   'audit log is append-only to authenticated clients'
+);
+
+reset role;
+select is(
+  (select mode::text from app_commercial.start_monetization_cycle('00000000-0000-0000-0000-0000000000ad', 'Launch approval')),
+  'timed_early_access',
+  'starting a cycle uses the protected server action'
+);
+select is(
+  (select count(*)::int from app_commercial.entitlement_grants where user_id = '00000000-0000-0000-0000-0000000000c3' and source = 'early_access'),
+  1,
+  'starting timed Early Access issues one launch grant'
+);
+select is(
+  (select count(*)::int from app_commercial.entitlement_grants where user_id = '00000000-0000-0000-0000-0000000000c3' and source = 'early_access'),
+  1,
+  'launch grant remains unique before retry'
+);
+select is(
+  (select mode::text from app_commercial.start_monetization_cycle('00000000-0000-0000-0000-0000000000ad', 'Retry approval')),
+  'timed_early_access',
+  'starting a cycle is idempotent on retry'
 );
 
 select * from finish();

@@ -3212,4 +3212,49 @@ class AppLocalizationsAr extends AppLocalizations {
   String planInstallmentCounts(int paid, int current, int future) {
     return '$paid مدفوع · $current حالي · $future مستقبلي';
   }
+
+  @override
+  String get planBilling => 'الخطة والفوترة';
+
+  @override
+  String get proEarlyAccess => 'برو - الوصول المبكر';
+
+  @override
+  String get proIncludedEarlyAccess =>
+      'ميزات برو متاحة حاليًا ضمن الوصول المبكر.';
+
+  @override
+  String get complimentaryAccess => 'وصول مجاني';
+
+  @override
+  String get noExpiration => 'بدون تاريخ انتهاء';
+
+  @override
+  String availableUntil(String date) {
+    return 'متاح حتى: $date';
+  }
+
+  @override
+  String daysRemaining(int days) {
+    return '$days يومًا متبقيًا';
+  }
+
+  @override
+  String get proMonthly => 'برو · شهري';
+
+  @override
+  String get proAnnual => 'برو · سنوي';
+
+  @override
+  String get proComplimentary => 'برو · وصول مجاني';
+
+  @override
+  String get proEarlyAccessSummary => 'برو · الوصول المبكر';
+
+  @override
+  String get freePlan => 'مجاني';
+
+  @override
+  String get billingNotReady =>
+      'الفوترة غير جاهزة بعد. برو متاح ضمن الوصول المبكر.';
 }

@@ -3232,4 +3232,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String planInstallmentCounts(int paid, int current, int future) {
     return '$paid paid · $current current · $future future';
   }
+
+  @override
+  String get planBilling => 'Plan & Billing';
+
+  @override
+  String get proEarlyAccess => 'Pro Early Access';
+
+  @override
+  String get proIncludedEarlyAccess =>
+      'Pro features are currently included during Early Access.';
+
+  @override
+  String get complimentaryAccess => 'Complimentary access';
+
+  @override
+  String get noExpiration => 'No expiration';
+
+  @override
+  String availableUntil(String date) {
+    return 'Available until: $date';
+  }
+
+  @override
+  String daysRemaining(int days) {
+    return '$days days remaining';
+  }
+
+  @override
+  String get proMonthly => 'Pro · Monthly';
+
+  @override
+  String get proAnnual => 'Pro · Annual';
+
+  @override
+  String get proComplimentary => 'Pro · Complimentary';
+
+  @override
+  String get proEarlyAccessSummary => 'Pro · Early Access';
+
+  @override
+  String get freePlan => 'Free';
+
+  @override
+  String get billingNotReady =>
+      'Billing is not ready yet. Pro is included during Early Access.';
 }

@@ -1466,5 +1466,20 @@
       "current": {"type": "int"},
       "future": {"type": "int"}
     }
-  }
+  },
+  "planBilling": "الخطة والفوترة",
+  "proEarlyAccess": "برو - الوصول المبكر",
+  "proIncludedEarlyAccess": "ميزات برو متاحة حاليًا ضمن الوصول المبكر.",
+  "complimentaryAccess": "وصول مجاني",
+  "noExpiration": "بدون تاريخ انتهاء",
+  "availableUntil": "متاح حتى: {date}",
+  "@availableUntil": {"placeholders": {"date": {"type": "String"}}},
+  "daysRemaining": "{days} يومًا متبقيًا",
+  "@daysRemaining": {"placeholders": {"days": {"type": "int"}}},
+  "proMonthly": "برو · شهري",
+  "proAnnual": "برو · سنوي",
+  "proComplimentary": "برو · وصول مجاني",
+  "proEarlyAccessSummary": "برو · الوصول المبكر",
+  "freePlan": "مجاني",
+  "billingNotReady": "الفوترة غير جاهزة بعد. برو متاح ضمن الوصول المبكر."
 }

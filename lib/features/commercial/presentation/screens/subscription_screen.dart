@@ -10,6 +10,7 @@ import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/features/commercial/data/commercial_repository.dart';
 import 'package:work_tracker/features/commercial/domain/commercial_models.dart';
 import 'package:work_tracker/features/commercial/presentation/providers/commercial_providers.dart';
+import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 class SubscriptionScreen extends ConsumerWidget {
   const SubscriptionScreen({super.key});
@@ -48,6 +49,7 @@ class SubscriptionScreen extends ConsumerWidget {
     final catalog = ref.watch(commercialCatalogProvider);
     final products = ref.watch(googlePlayProductsProvider);
     final locale = Localizations.localeOf(context).toLanguageTag();
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(semanticTitle: 'Subscription'),
@@ -70,37 +72,51 @@ class SubscriptionScreen extends ConsumerWidget {
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 16),
-                Text(
-                  'Upgrade options',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                catalog.when(
-                  data: (commercialCatalog) => products.when(
-                    data: (productResponse) => Column(
-                      children: [
-                        for (final interval in const ['month', 'year'])
-                          _PriceTile(
-                            price: commercialCatalog.googlePlayPrice(interval),
-                            product: _productFor(
-                              productResponse.productDetails,
-                              commercialCatalog.googlePlayPrice(interval),
-                            ),
-                            locale: locale,
-                            onBuy: (price, product) =>
-                                _buy(context, ref, price, product),
-                          ),
-                      ],
+                if (effective.source == EntitlementSource.openEarlyAccess)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Text(l10n.proIncludedEarlyAccess),
+                  )
+                else ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    'Upgrade options',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  catalog.when(
+                    data: (commercialCatalog) => products.when(
+                      data: (productResponse) => commercialCatalog.billingReady
+                          ? Column(
+                              children: [
+                                for (final interval in const ['month', 'year'])
+                                  _PriceTile(
+                                    price: commercialCatalog.googlePlayPrice(
+                                      interval,
+                                    ),
+                                    product: _productFor(
+                                      productResponse.productDetails,
+                                      commercialCatalog.googlePlayPrice(
+                                        interval,
+                                      ),
+                                    ),
+                                    locale: locale,
+                                    onBuy: (price, product) =>
+                                        _buy(context, ref, price, product),
+                                  ),
+                              ],
+                            )
+                          : Text(l10n.billingNotReady),
+                      loading: () => const LinearProgressIndicator(),
+                      error: (_, _) => const Text(
+                        'Google Play products are unavailable. Check provider sync.',
+                      ),
                     ),
                     loading: () => const LinearProgressIndicator(),
-                    error: (_, _) => const Text(
-                      'Google Play products are unavailable. Check provider sync.',
-                    ),
+                    error: (_, _) =>
+                        const Text('Commercial catalog is unavailable.'),
                   ),
-                  loading: () => const LinearProgressIndicator(),
-                  error: (_, _) =>
-                      const Text('Commercial catalog is unavailable.'),
-                ),
+                ],
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
                   onPressed: () => _restore(context, ref),
@@ -160,9 +176,19 @@ class _StatusCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text(entitlement.sourceLabel),
-            if (end != null) Text('Ends ${formatter.format(end.toLocal())}'),
-            if (days != null) Text('$days days remaining'),
+            Text(_subtitle(context, entitlement)),
+            if (entitlement.source == EntitlementSource.adminGrant &&
+                end == null)
+              Text(AppLocalizations.of(context).noExpiration),
+            if (end != null)
+              Text(
+                AppLocalizations.of(
+                  context,
+                ).availableUntil(formatter.format(end.toLocal())),
+              ),
+            if (days != null &&
+                entitlement.source != EntitlementSource.openEarlyAccess)
+              Text(AppLocalizations.of(context).daysRemaining(days)),
             if (!entitlement.isPro)
               const Padding(
                 padding: EdgeInsets.only(top: 8),
@@ -174,6 +200,18 @@ class _StatusCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _subtitle(BuildContext context, EffectiveEntitlement entitlement) {
+    final l10n = AppLocalizations.of(context);
+    switch (entitlement.source) {
+      case EntitlementSource.openEarlyAccess:
+        return l10n.proEarlyAccess;
+      case EntitlementSource.adminGrant:
+        return l10n.complimentaryAccess;
+      default:
+        return entitlement.sourceLabel;
+    }
   }
 }
 
