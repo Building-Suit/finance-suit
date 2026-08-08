@@ -215,10 +215,10 @@ limit 10;
 2. Sign in as the target user and tap Allow on Android notification
    permission.
 3. Open Settings -> Notifications and confirm:
-   - System notifications are allowed;
-   - This device registration says Device registered.
+   - Phone notifications says System notifications are allowed;
+   - Alert delivery says Ready on this device.
 4. Confirm one enabled `app_core.push_devices` row with a masked token.
-5. Send the developer test push through the real outbox + worker + FCM path.
+5. Tap Send test notification to exercise the real outbox + worker + FCM path.
 6. Test foreground, background, terminated, and tap behavior.
 7. Create or use a real upcoming card/installment/BNPL due fixture.
 8. Run the worker and verify due-soon/due-today/overdue behavior.

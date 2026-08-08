@@ -258,6 +258,18 @@ function compose(
   const dueOn = String(payload.due_on ?? "");
   const amount = payload.amount_text ? String(payload.amount_text) : null;
 
+  if (type === "developer_test") {
+    return ar
+      ? {
+        title: "اختبار إشعارات Finance Suit",
+        body: "إذا ظهر هذا التنبيه، فإشعارات هذا الهاتف تعمل.",
+      }
+      : {
+        title: "Finance Suit notification test",
+        body: "If you see this, alerts are working on this phone.",
+      };
+  }
+
   if (type === "facility_payment_confirmation") {
     return ar
       ? {
@@ -634,6 +646,8 @@ async function stillEligible(
   finance: SupabaseClient,
   row: ClaimedRow,
 ): Promise<boolean> {
+  if (row.payload_snapshot?.type === "developer_test") return true;
+
   const { data: device } = await core
     .from("push_devices")
     .select("is_enabled")
