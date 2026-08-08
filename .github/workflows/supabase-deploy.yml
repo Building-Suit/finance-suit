@@ -70,7 +70,19 @@ jobs:
           --password "${SUPABASE_DB_PASSWORD}"
 
       - name: Record migration state before deployment
-        run: npx --yes supabase@${SUPABASE_CLI_VERSION} migration list --linked
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if npx --yes supabase@${SUPABASE_CLI_VERSION} migration list --linked; then
+              exit 0
+            fi
+            if [[ "${attempt}" == 3 ]]; then
+              echo "Unable to connect to Postgres after 3 attempts." >&2
+              exit 1
+            fi
+            sleep "$((attempt * 10))"
+          done
 
       - name: Create pre-migration backups
         shell: bash
@@ -107,7 +119,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npx --yes supabase@${SUPABASE_CLI_VERSION} migration list --linked
+          for attempt in 1 2 3; do
+            if npx --yes supabase@${SUPABASE_CLI_VERSION} migration list --linked; then
+              break
+            fi
+            if [[ "${attempt}" == 3 ]]; then
+              echo "Unable to connect to Postgres after 3 attempts." >&2
+              exit 1
+            fi
+            sleep "$((attempt * 10))"
+          done
           npx --yes supabase@${SUPABASE_CLI_VERSION} db push --linked --dry-run
           npx --yes supabase@${SUPABASE_CLI_VERSION} db query --linked \
             --file supabase/verification/production.sql
