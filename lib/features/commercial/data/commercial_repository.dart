@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/result/result.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/commercial/domain/commercial_models.dart';
@@ -30,12 +29,6 @@ class CommercialRepository {
 
   SupabaseQuerySchema get _db => _client.schema(AppSchemas.commercial);
 
-  String get _userId {
-    final id = _client.auth.currentUser?.id;
-    if (id == null) throw const AuthFailure(AuthFailureKind.sessionMissing);
-    return id;
-  }
-
   Future<Result<CommercialCatalog>> fetchCatalog() {
     return guard(() async {
       final data = await _db.rpc<Map<String, dynamic>>(
@@ -49,7 +42,6 @@ class CommercialRepository {
     return guard(() async {
       final rows = await _db.rpc<List<dynamic>>(
         'resolve_effective_entitlement',
-        params: {'p_user_id': _userId},
       );
       if (rows.isEmpty) return EffectiveEntitlement.free();
       return EffectiveEntitlement.fromJson(rows.single as Map<String, dynamic>);
