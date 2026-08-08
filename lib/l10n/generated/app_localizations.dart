@@ -5950,6 +5950,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{paid} paid · {current} current · {future} future'**
   String planInstallmentCounts(int paid, int current, int future);
+
+  /// No description provided for @planBilling.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan & Billing'**
+  String get planBilling;
+
+  /// No description provided for @proEarlyAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro Early Access'**
+  String get proEarlyAccess;
+
+  /// No description provided for @proIncludedEarlyAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro features are currently included during Early Access.'**
+  String get proIncludedEarlyAccess;
+
+  /// No description provided for @complimentaryAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Complimentary access'**
+  String get complimentaryAccess;
+
+  /// No description provided for @noExpiration.
+  ///
+  /// In en, this message translates to:
+  /// **'No expiration'**
+  String get noExpiration;
+
+  /// No description provided for @availableUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Available until: {date}'**
+  String availableUntil(String date);
+
+  /// No description provided for @daysRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days remaining'**
+  String daysRemaining(int days);
+
+  /// No description provided for @proMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro · Monthly'**
+  String get proMonthly;
+
+  /// No description provided for @proAnnual.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro · Annual'**
+  String get proAnnual;
+
+  /// No description provided for @proComplimentary.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro · Complimentary'**
+  String get proComplimentary;
+
+  /// No description provided for @proEarlyAccessSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro · Early Access'**
+  String get proEarlyAccessSummary;
+
+  /// No description provided for @freePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get freePlan;
+
+  /// No description provided for @billingNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Billing is not ready yet. Pro is included during Early Access.'**
+  String get billingNotReady;
 }
 
 class _AppLocalizationsDelegate

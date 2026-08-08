@@ -25,6 +25,9 @@ type AdminBody = {
   planKey?: "pro";
   days?: number;
   endsAt?: string;
+  permanent?: boolean;
+  page?: number;
+  pageSize?: number;
   campaignKey?: string;
   active?: boolean;
   durationDays?: number;
@@ -121,6 +124,7 @@ Deno.serve(async (request: Request) => {
           prices,
           provider,
           config,
+          monetization,
         ] = await Promise.all([
           admin.schema("app_core").from("profiles").select("id", { count: "exact", head: true }),
           admin.schema("app_commercial").from("paid_subscriptions").select("id", { count: "exact", head: true }).in("status", ["active", "in_grace_period", "canceled"]).gt("expires_at", now),
@@ -133,6 +137,7 @@ Deno.serve(async (request: Request) => {
           admin.schema("app_commercial").from("plan_prices").select("*").eq("status", "published"),
           admin.schema("app_commercial").from("provider_configurations").select("*"),
           admin.schema("app_commercial").from("app_config").select("*").eq("status", "published"),
+          admin.schema("app_commercial").from("monetization_state").select("*").eq("singleton", true).single(),
         ]);
         return json(200, {
           overview: {
@@ -149,24 +154,28 @@ Deno.serve(async (request: Request) => {
           prices: prices.data ?? [],
           provider: provider.data ?? [],
           config: config.data ?? [],
+          monetization: monetization.data,
         });
       }
       case "users": {
         const query = String((body as Record<string, unknown>).query ?? "").trim();
-        let profiles = admin.schema("app_core").from("profiles").select("id,display_name,created_at", { count: "exact" }).order("created_at", { ascending: false }).limit(50);
+        const pageSize = Math.min(Math.max(Number(body.pageSize ?? 25), 1), 100);
+        const page = Math.max(Number(body.page ?? 0), 0);
+        let profiles = admin.schema("app_core").from("profiles").select("id,display_name,created_at", { count: "exact" }).order("created_at", { ascending: false }).range(page * pageSize, page * pageSize + pageSize - 1);
         if (query) profiles = profiles.ilike("display_name", `%${query}%`);
         const { data, count, error } = await profiles;
         if (error) throw error;
-        return json(200, { users: data ?? [], count: count ?? 0 });
+        return json(200, { users: data ?? [], count: count ?? 0, page, pageSize });
       }
       case "user_detail": {
         const targetUserId = assertUuid(body.userId, "invalid_user_id");
-        const [profile, entitlement, grants, subscriptions, events] = await Promise.all([
+        const [profile, entitlement, grants, subscriptions, events, auditEvents] = await Promise.all([
           admin.schema("app_core").from("profiles").select("id,display_name,created_at").eq("id", targetUserId).maybeSingle(),
           admin.schema("app_commercial").rpc("resolve_effective_entitlement", { p_user_id: targetUserId }),
           admin.schema("app_commercial").from("entitlement_grants").select("*").eq("user_id", targetUserId).order("created_at", { ascending: false }),
           admin.schema("app_commercial").from("paid_subscriptions").select("id,provider,plan_key,status,expires_at,auto_renewing,last_verified_at,provider_product_id,provider_base_plan_id").eq("user_id", targetUserId).order("created_at", { ascending: false }),
           admin.schema("app_commercial").from("billing_events").select("id,provider,event_type,received_at,processed_at,processing_result").eq("user_id", targetUserId).order("received_at", { ascending: false }).limit(50),
+          admin.schema("app_commercial").from("audit_log").select("id,action,reason,created_at,before_state,after_state").or(`target_id.eq.${targetUserId},actor_user_id.eq.${targetUserId}`).order("created_at", { ascending: false }).limit(50),
         ]);
         return json(200, {
           profile: profile.data,
@@ -174,16 +183,17 @@ Deno.serve(async (request: Request) => {
           grants: grants.data ?? [],
           subscriptions: subscriptions.data ?? [],
           billingEvents: events.data ?? [],
+          auditEvents: auditEvents.data ?? [],
         });
       }
       case "grant_pro": {
         const targetUserId = assertUuid(body.userId, "invalid_user_id");
         const reason = requireReason(body);
         const startsAt = new Date();
-        const endsAt = body.endsAt
+        const endsAt = body.permanent ? null : body.endsAt
           ? new Date(body.endsAt)
           : new Date(Date.now() + (Number(body.days ?? 0) * 86_400_000));
-        if (!Number.isFinite(endsAt.getTime()) || endsAt <= startsAt) {
+        if (endsAt && (!Number.isFinite(endsAt.getTime()) || endsAt <= startsAt)) {
           return json(400, { code: "invalid_expiration" });
         }
         const grant = {
@@ -191,7 +201,7 @@ Deno.serve(async (request: Request) => {
           plan_key: "pro",
           source: "admin_grant",
           starts_at: startsAt.toISOString(),
-          ends_at: endsAt.toISOString(),
+          ends_at: endsAt?.toISOString() ?? null,
           granted_by: actorUserId,
           reason,
         };
@@ -204,6 +214,7 @@ Deno.serve(async (request: Request) => {
         const grantId = assertUuid(body.grantId, "invalid_grant_id");
         const reason = requireReason(body);
         const before = await admin.schema("app_commercial").from("entitlement_grants").select("*").eq("id", grantId).single();
+        if (before.data?.status !== "active") return json(200, { grant: before.data, idempotent: true });
         const { data, error } = await admin.schema("app_commercial").from("entitlement_grants").update({
           status: "ended",
           ends_at: new Date().toISOString(),
@@ -211,6 +222,24 @@ Deno.serve(async (request: Request) => {
         if (error) throw error;
         await audit("end_grant", "entitlement_grant", grantId, before.data, data, reason);
         return json(200, { grant: data });
+      }
+      case "start_monetization_cycle": {
+        const reason = requireReason(body);
+        const { data, error } = await admin.schema("app_commercial").rpc("start_monetization_cycle", {
+          p_actor_user_id: actorUserId, p_reason: reason,
+        });
+        if (error) throw error;
+        return json(200, { monetization: data });
+      }
+      case "audit_log": {
+        const userId = typeof body.userId === "string" ? body.userId : null;
+        let auditQuery = admin.schema("app_commercial").from("audit_log")
+          .select("id,actor_user_id,action,target_type,target_id,reason,before_state,after_state,created_at", { count: "exact" })
+          .order("created_at", { ascending: false }).limit(100);
+        if (userId) auditQuery = auditQuery.or(`actor_user_id.eq.${userId},target_id.eq.${userId}`);
+        const { data, count, error } = await auditQuery;
+        if (error) throw error;
+        return json(200, { events: data ?? [], count: count ?? 0 });
       }
       case "update_campaign": {
         const campaignKey = String(body.campaignKey ?? "");

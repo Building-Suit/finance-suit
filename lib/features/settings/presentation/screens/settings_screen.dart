@@ -18,6 +18,8 @@ import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:work_tracker/features/commercial/domain/commercial_models.dart';
+import 'package:work_tracker/features/commercial/presentation/providers/commercial_providers.dart';
 import 'package:work_tracker/features/settings/data/settings_repository.dart';
 import 'package:work_tracker/features/settings/presentation/providers/app_settings_providers.dart';
 import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
@@ -261,6 +263,7 @@ class SettingsScreen extends ConsumerWidget {
     final profile = ref.watch(profileProvider);
     final privacy = ref.watch(devicePrivacyProvider).value;
     final biometricLogin = ref.watch(biometricLoginProvider).value;
+    final entitlement = ref.watch(effectiveEntitlementProvider).value;
     final securityControlsEnabled =
         privacy != null &&
         biometricLogin != null &&
@@ -397,10 +400,8 @@ class SettingsScreen extends ConsumerWidget {
             ),
             ListTile(
               leading: const FinanceSuitIcon(FinanceSuitIcons.star),
-              title: const Text('Subscription'),
-              subtitle: const Text(
-                'Plan, trial, Early Access, and Pro options',
-              ),
+              title: Text(l10n.planBilling),
+              subtitle: Text(_planSummary(l10n, entitlement)),
               trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
               onTap: () => context.go(AppRoutes.subscription),
             ),
@@ -476,6 +477,17 @@ class SettingsScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  String _planSummary(AppLocalizations l10n, EffectiveEntitlement? value) {
+    if (value == null || !value.isPro) return l10n.freePlan;
+    return switch (value.source) {
+      EntitlementSource.openEarlyAccess => l10n.proEarlyAccessSummary,
+      EntitlementSource.adminGrant => l10n.proComplimentary,
+      EntitlementSource.paid =>
+        value.metadataInterval == 'year' ? l10n.proAnnual : l10n.proMonthly,
+      _ => value.sourceLabel,
+    };
   }
 }
 
