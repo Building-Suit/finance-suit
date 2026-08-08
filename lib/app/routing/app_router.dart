@@ -12,6 +12,7 @@ import 'package:work_tracker/features/auth/presentation/screens/forgot_password_
 import 'package:work_tracker/features/auth/presentation/screens/login_screen.dart';
 import 'package:work_tracker/features/auth/presentation/screens/register_screen.dart';
 import 'package:work_tracker/features/auth/presentation/screens/reset_password_screen.dart';
+import 'package:work_tracker/features/commercial/presentation/screens/subscription_screen.dart';
 import 'package:work_tracker/features/dashboard/presentation/screens/home_screen.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
@@ -70,6 +71,7 @@ abstract final class AppRoutes {
   static const reports = '/reports';
   static const history = '/history';
   static const settings = '/settings';
+  static const subscription = '/settings/subscription';
 }
 
 /// Bridges Riverpod state changes into go_router's refreshListenable.
@@ -392,6 +394,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.settings,
         builder: (context, state) => const SettingsScreen(),
         routes: [
+          GoRoute(
+            path: 'subscription',
+            builder: (context, state) => const SubscriptionScreen(),
+          ),
           GoRoute(
             path: 'salary',
             builder: (context, state) => const SalarySettingsScreen(),
