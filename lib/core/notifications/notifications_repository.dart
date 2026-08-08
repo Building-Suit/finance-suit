@@ -67,34 +67,50 @@ class NotificationsRepository {
   }
 
   /// Registers (or refreshes) this device's FCM token. Idempotent per
-  /// `(user, token)` thanks to the unique constraint.
-  Future<Result<void>> upsertPushDevice({
+  /// token through the security-definer RPC, which atomically transfers a
+  /// physical FCM token to the current authenticated user.
+  Future<Result<String>> registerPushDevice({
     required String fcmToken,
     required String platform,
     String? appVersion,
     String? locale,
+    String timezone = 'Africa/Cairo',
   }) {
     return guard(() async {
-      await _db.from('push_devices').upsert({
-        'user_id': _userId,
-        'fcm_token': fcmToken,
-        'platform': platform,
-        'app_version': appVersion,
-        'locale': locale,
-        'is_enabled': true,
-        'last_seen_at': DateTime.now().toUtc().toIso8601String(),
-      }, onConflict: 'user_id,fcm_token');
+      final deviceId = await _db.rpc<String>(
+        'register_push_device',
+        params: {
+          'p_fcm_token': fcmToken,
+          'p_platform': platform,
+          'p_app_version': appVersion,
+          'p_locale': locale,
+          'p_timezone': timezone,
+        },
+      );
+      return deviceId;
     });
   }
 
   /// Stops deliveries to this device without losing the registration row.
   Future<Result<void>> disablePushDevice(String fcmToken) {
     return guard(() async {
-      await _db
+      await _db.rpc<void>(
+        'disable_push_device',
+        params: {'fcm_token': fcmToken},
+      );
+    });
+  }
+
+  Future<Result<bool>> hasEnabledPushDevice(String fcmToken) {
+    return guard(() async {
+      final row = await _db
           .from('push_devices')
-          .update({'is_enabled': false})
+          .select('id')
           .eq('user_id', _userId)
-          .eq('fcm_token', fcmToken);
+          .eq('fcm_token', fcmToken)
+          .eq('is_enabled', true)
+          .maybeSingle();
+      return row != null;
     });
   }
 
