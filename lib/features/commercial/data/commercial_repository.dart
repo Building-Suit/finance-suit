@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/result/result.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/commercial/domain/commercial_models.dart';
@@ -29,6 +30,20 @@ class CommercialRepository {
 
   SupabaseQuerySchema get _db => _client.schema(AppSchemas.commercial);
 
+  /// The commercial resolver relies on PostgreSQL's auth.uid(), so do not use
+  /// a stale locally persisted access token for this request. A refresh is
+  /// cheap and turns an otherwise opaque PostgREST 401/403 into a usable,
+  /// authenticated request after the app has been backgrounded.
+  Future<void> _refreshAuthenticatedSession() async {
+    if (_client.auth.currentSession == null) {
+      throw const AuthFailure(AuthFailureKind.sessionMissing);
+    }
+    final response = await _client.auth.refreshSession();
+    if (response.session == null) {
+      throw const AuthFailure(AuthFailureKind.sessionMissing);
+    }
+  }
+
   Future<Result<CommercialCatalog>> fetchCatalog() {
     return guard(() async {
       final data = await _db.rpc<Map<String, dynamic>>(
@@ -40,6 +55,7 @@ class CommercialRepository {
 
   Future<Result<EffectiveEntitlement>> fetchEffectiveEntitlement() {
     return guard(() async {
+      await _refreshAuthenticatedSession();
       final rows = await _db.rpc<List<dynamic>>(
         'resolve_effective_entitlement',
       );
