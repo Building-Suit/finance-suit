@@ -2561,6 +2561,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get valMinPaymentPercent => 'أدخل نسبة بين 0.01 و100.';
 
   @override
+  String get fxMarkupLabel => 'رسم تحويل العملة';
+
+  @override
+  String get fxMarkupHelp =>
+      'يُحصَّل كعملية منفصلة كلما تم وضع علامة على عملية شراء بهذه البطاقة كأنها بعملة أجنبية.';
+
+  @override
+  String get valFxMarkupPercent => 'أدخل نسبة بين 0.01 و100.';
+
+  @override
   String get feeRulesSection => 'رسوم البطاقة';
 
   @override
@@ -2662,6 +2672,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get feeBasisHighestStatementDueLookback => 'أعلى كشف حساب سابق';
 
   @override
+  String get feeBasisHighestDailyBalance => 'أعلى رصيد خلال الأشهر الأخيرة';
+
+  @override
   String get feeBasisRemainingPrincipal => 'المبلغ الأساسي المتبقي';
 
   @override
@@ -2677,7 +2690,40 @@ class AppLocalizationsAr extends AppLocalizations {
   String get feeRuleLookbackCycles => 'عدد كشوف الحساب السابقة';
 
   @override
+  String get feeRuleLookbackMonths => 'عدد الأشهر السابقة';
+
+  @override
   String get valFeeLookback => 'أدخل رقمًا من 1 إلى 24';
+
+  @override
+  String get feeRuleTriggerHint =>
+      'يُحصَّل تلقائيًا عند حدوث العملية المطابقة على البطاقة — لا يتبع جدولًا زمنيًا.';
+
+  @override
+  String get feeRuleApplyWhen => 'يُطبَّق عندما';
+
+  @override
+  String get applyWhenCurrencyDiffers => 'الفاتورة بعملة أجنبية';
+
+  @override
+  String get applyWhenMerchantOutsideHome => 'التاجر خارج البلاد';
+
+  @override
+  String get applyWhenEither => 'عملة أجنبية أو تاجر أجنبي';
+
+  @override
+  String get applyWhenBoth => 'عملة أجنبية وتاجر أجنبي معًا';
+
+  @override
+  String get applyWhenForeignMerchantHomeCurrency =>
+      'تاجر أجنبي يحاسب بعملة البطاقة';
+
+  @override
+  String get txIsForeignCurrency => 'بعملة أجنبية؟';
+
+  @override
+  String get txIsForeignCurrencyHelp =>
+      'يضيف رسم تحويل العملة الخاص بالبطاقة كعملية منفصلة.';
 
   @override
   String get feeRuleFixedAmount => 'قيمة الرسم';

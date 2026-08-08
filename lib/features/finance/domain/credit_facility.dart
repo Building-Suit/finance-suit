@@ -37,6 +37,7 @@ class CreditFacilitySummary {
     this.nextDueAmountMinor,
     this.upcomingDueMinor = 0,
     this.colorHex,
+    this.fxMarkupBasisPoints,
     this.notes,
   });
 
@@ -79,6 +80,7 @@ class CreditFacilitySummary {
       nextDueAmountMinor: (json['next_due_amount_minor'] as num?)?.toInt(),
       upcomingDueMinor: (json['upcoming_due_minor'] as num?)?.toInt() ?? 0,
       colorHex: json['color_hex'] as String?,
+      fxMarkupBasisPoints: (json['fx_markup_basis_points'] as num?)?.toInt(),
       notes: json['notes'] as String?,
     );
   }
@@ -116,7 +118,17 @@ class CreditFacilitySummary {
   /// The colour the user picked to match their physical card, `#RRGGBB`.
   /// Display only: no figure on this summary depends on it.
   final String? colorHex;
+
+  /// Flat foreign-exchange markup rate in basis points (300 = 3%), applied
+  /// by `charge_liability_account` when a charge is flagged foreign
+  /// currency. Null means no flat markup is configured — independent of
+  /// the fee-rules engine's own `foreign_transaction` trigger.
+  final int? fxMarkupBasisPoints;
   final String? notes;
+
+  /// [fxMarkupBasisPoints] as a display fraction, e.g. 300 -> 3.0.
+  double? get fxMarkupPercent =>
+      fxMarkupBasisPoints == null ? null : fxMarkupBasisPoints! / 100;
 
   Money get upcomingDue =>
       Money(minor: upcomingDueMinor, currencyCode: currencyCode);
@@ -384,6 +396,7 @@ class CreditFacilityDraft {
     this.minPaymentFixedMinor,
     this.minPaymentBasisPoints,
     this.colorHex,
+    this.fxMarkupBasisPoints,
   });
 
   final String name;
@@ -402,6 +415,10 @@ class CreditFacilityDraft {
   final int? minPaymentBasisPoints;
   final String? colorHex;
 
+  /// Flat foreign-exchange markup rate in basis points; null disables it.
+  /// Meaningful only on a credit card, but harmless to send for BNPL.
+  final int? fxMarkupBasisPoints;
+
   Map<String, dynamic> toJson() => {
     'p_name': name,
     'p_account_type': accountType.dbValue,
@@ -418,6 +435,7 @@ class CreditFacilityDraft {
     'p_min_payment_fixed_minor': minPaymentFixedMinor,
     'p_min_payment_basis_points': minPaymentBasisPoints,
     'p_color_hex': colorHex,
+    'p_fx_markup_basis_points': fxMarkupBasisPoints,
   };
 }
 

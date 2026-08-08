@@ -54,6 +54,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
   final _lastFourController = TextEditingController();
   final _minFixedController = TextEditingController();
   final _minPercentController = TextEditingController();
+  final _fxMarkupController = TextEditingController();
 
   AccountType _accountType = AccountType.current;
   bool _allowNegative = false;
@@ -138,6 +139,9 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
         _minPercentController.text = (facility.minPaymentBasisPoints! / 100)
             .toStringAsFixed(2);
       }
+      if (facility.fxMarkupBasisPoints != null) {
+        _fxMarkupController.text = facility.fxMarkupPercent!.toStringAsFixed(2);
+      }
     }
     setState(() {
       _accountType = account.accountType;
@@ -158,6 +162,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
     _lastFourController.dispose();
     _minFixedController.dispose();
     _minPercentController.dispose();
+    _fxMarkupController.dispose();
     super.dispose();
   }
 
@@ -171,6 +176,18 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
 
   int? get _minPaymentBasisPoints {
     final value = double.tryParse(_minPercentController.text.trim());
+    if (value == null) return null;
+    final basisPoints = (value * 100).round();
+    return basisPoints < 1 || basisPoints > 10000 ? null : basisPoints;
+  }
+
+  /// Optional: blank means no flat FX markup is configured. Unlike minimum
+  /// payment, an invalid non-blank value is a validation error rather than
+  /// a silent null, since the field being wrong should never save as "off".
+  int? get _fxMarkupBasisPoints {
+    final text = _fxMarkupController.text.trim();
+    if (text.isEmpty) return null;
+    final value = double.tryParse(text);
     if (value == null) return null;
     final basisPoints = (value * 100).round();
     return basisPoints < 1 || basisPoints > 10000 ? null : basisPoints;
@@ -237,6 +254,9 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
               ? _minPaymentBasisPoints
               : null,
           colorHex: _colorHex,
+          fxMarkupBasisPoints: _accountType == AccountType.creditCard
+              ? _fxMarkupBasisPoints
+              : null,
         ),
       );
       // Home visibility rides along after the facility RPC, which owns
@@ -777,6 +797,28 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                                   : null,
                             ),
                           ],
+                          const SizedBox(height: 16),
+                          AppTextFormField(
+                            key: const Key('facility-fx-markup'),
+                            controller: _fxMarkupController,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: InputDecoration(
+                              labelText:
+                                  '${l10n.fxMarkupLabel} '
+                                  '(${l10n.commonOptional})',
+                              helperText: l10n.fxMarkupHelp,
+                              helperMaxLines: 3,
+                              suffixText: '%',
+                            ),
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) return null;
+                              return _fxMarkupBasisPoints == null
+                                  ? l10n.valFxMarkupPercent
+                                  : null;
+                            },
+                          ),
                         ],
                         const SizedBox(height: 16),
                         AppSelectionField<int>(

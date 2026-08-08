@@ -4739,6 +4739,24 @@ abstract class AppLocalizations {
   /// **'Enter a percent between 0.01 and 100.'**
   String get valMinPaymentPercent;
 
+  /// No description provided for @fxMarkupLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Foreign exchange markup'**
+  String get fxMarkupLabel;
+
+  /// No description provided for @fxMarkupHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Charged as a second expense whenever a purchase on this card is flagged in foreign currency.'**
+  String get fxMarkupHelp;
+
+  /// No description provided for @valFxMarkupPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a percent between 0.01 and 100.'**
+  String get valFxMarkupPercent;
+
   /// No description provided for @feeRulesSection.
   ///
   /// In en, this message translates to:
@@ -4937,6 +4955,12 @@ abstract class AppLocalizations {
   /// **'Highest of recent statements'**
   String get feeBasisHighestStatementDueLookback;
 
+  /// No description provided for @feeBasisHighestDailyBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest balance in recent months'**
+  String get feeBasisHighestDailyBalance;
+
   /// No description provided for @feeBasisRemainingPrincipal.
   ///
   /// In en, this message translates to:
@@ -4967,11 +4991,71 @@ abstract class AppLocalizations {
   /// **'Look back this many statements'**
   String get feeRuleLookbackCycles;
 
+  /// No description provided for @feeRuleLookbackMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'Look back this many months'**
+  String get feeRuleLookbackMonths;
+
   /// No description provided for @valFeeLookback.
   ///
   /// In en, this message translates to:
   /// **'Enter a number from 1 to 24'**
   String get valFeeLookback;
+
+  /// No description provided for @feeRuleTriggerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Charged automatically when the matching card event happens — no schedule of its own.'**
+  String get feeRuleTriggerHint;
+
+  /// No description provided for @feeRuleApplyWhen.
+  ///
+  /// In en, this message translates to:
+  /// **'Applies when'**
+  String get feeRuleApplyWhen;
+
+  /// No description provided for @applyWhenCurrencyDiffers.
+  ///
+  /// In en, this message translates to:
+  /// **'Billed in a foreign currency'**
+  String get applyWhenCurrencyDiffers;
+
+  /// No description provided for @applyWhenMerchantOutsideHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Merchant outside the country'**
+  String get applyWhenMerchantOutsideHome;
+
+  /// No description provided for @applyWhenEither.
+  ///
+  /// In en, this message translates to:
+  /// **'Foreign currency or foreign merchant'**
+  String get applyWhenEither;
+
+  /// No description provided for @applyWhenBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Foreign currency and foreign merchant'**
+  String get applyWhenBoth;
+
+  /// No description provided for @applyWhenForeignMerchantHomeCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Foreign merchant billed in card currency'**
+  String get applyWhenForeignMerchantHomeCurrency;
+
+  /// No description provided for @txIsForeignCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'In foreign currency?'**
+  String get txIsForeignCurrency;
+
+  /// No description provided for @txIsForeignCurrencyHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Adds the card\'s foreign exchange markup as a second charge.'**
+  String get txIsForeignCurrencyHelp;
 
   /// No description provided for @feeRuleFixedAmount.
   ///

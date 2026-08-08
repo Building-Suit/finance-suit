@@ -27,12 +27,6 @@ import 'package:work_tracker/features/finance/presentation/widgets/category_sele
 import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
-/// Where a credit-card purchase happened, described from the statement's
-/// point of view: the merchant's location and the billing currency decide
-/// whether the card's foreign-transaction fee rule applies. This describes
-/// the purchase only — whether a fee follows is the server's decision.
-enum _CardPurchaseOrigin { domestic, foreignMerchantHomeCurrency, foreign }
-
 /// Create or edit an expense, allowance, or income transaction.
 /// Transfers use [TransferFormScreen]; salary payments come from the
 /// salary period flow and are not editable here.
@@ -58,7 +52,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
   late PlainDate _date = widget.existing?.occurredOn ?? PlainDate.today();
   String? _accountId;
   String? _categoryId;
-  _CardPurchaseOrigin _purchaseOrigin = _CardPurchaseOrigin.domestic;
+  bool _isForeignCurrency = false;
   AppFailure? _failure;
   bool _busy = false;
 
@@ -181,33 +175,22 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
         return;
       }
       setState(() => _busy = true);
-      final repo = ref.read(financeRepositoryProvider);
-      // A foreign purchase goes through the card RPC, which evaluates the
-      // card's foreign-transaction fee rule and books any markup
-      // atomically with the charge. Domestic charges (and BNPL, which has
-      // no per-transaction fees) keep the shared liability path.
-      final isForeignCardCharge =
-          facility.accountType == AccountType.creditCard &&
-          _purchaseOrigin != _CardPurchaseOrigin.domestic;
-      final chargeResult = isForeignCardCharge
-          ? await repo.chargeCreditCard(
-              accountId: facility.accountId,
-              title: title.isEmpty ? facility.name : title,
-              categoryId: _categoryId!,
-              occurredOn: _date,
-              amountMinor: amount.minor,
-              notes: notes.isEmpty ? null : notes,
-              isForeignMerchant: true,
-              isForeignCurrency: _purchaseOrigin == _CardPurchaseOrigin.foreign,
-            )
-          : await repo.chargeLiabilityAccount(
-              accountId: facility.accountId,
-              title: title.isEmpty ? facility.name : title,
-              categoryId: _categoryId!,
-              occurredOn: _date,
-              amountMinor: amount.minor,
-              notes: notes.isEmpty ? null : notes,
-            );
+      // A credit card with a configured FX markup rate adds a second
+      // expense for it atomically when flagged foreign currency; BNPL and
+      // an unconfigured card silently ignore the flag.
+      final chargeResult = await ref
+          .read(financeRepositoryProvider)
+          .chargeLiabilityAccount(
+            accountId: facility.accountId,
+            title: title.isEmpty ? facility.name : title,
+            categoryId: _categoryId!,
+            occurredOn: _date,
+            amountMinor: amount.minor,
+            notes: notes.isEmpty ? null : notes,
+            isForeignCurrency:
+                facility.accountType == AccountType.creditCard &&
+                _isForeignCurrency,
+          );
       if (!mounted) return;
       setState(() => _busy = false);
       chargeResult.when(
@@ -509,32 +492,14 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                 ),
                 if (!_isEdit &&
                     selected?.accountType == AccountType.creditCard) ...[
-                  const SizedBox(height: 16),
-                  AppSelectionField<_CardPurchaseOrigin>(
-                    key: ValueKey('purchase-origin-$_purchaseOrigin'),
-                    initialValue: _purchaseOrigin,
-                    decoration: InputDecoration(
-                      labelText: l10n.txPurchaseOrigin,
-                      helperText: l10n.txPurchaseOriginHelp,
-                      helperMaxLines: 3,
-                    ),
-                    items: [
-                      DropdownMenuItem(
-                        value: _CardPurchaseOrigin.domestic,
-                        child: Text(l10n.txOriginDomestic),
-                      ),
-                      DropdownMenuItem(
-                        value: _CardPurchaseOrigin.foreignMerchantHomeCurrency,
-                        child: Text(l10n.txOriginForeignHomeCurrency),
-                      ),
-                      DropdownMenuItem(
-                        value: _CardPurchaseOrigin.foreign,
-                        child: Text(l10n.txOriginForeignCurrency),
-                      ),
-                    ],
-                    onChanged: (v) => setState(
-                      () => _purchaseOrigin = v ?? _CardPurchaseOrigin.domestic,
-                    ),
+                  const SizedBox(height: 8),
+                  SwitchListTile(
+                    key: const Key('tx-is-foreign-currency'),
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(l10n.txIsForeignCurrency),
+                    subtitle: Text(l10n.txIsForeignCurrencyHelp),
+                    value: _isForeignCurrency,
+                    onChanged: (v) => setState(() => _isForeignCurrency = v),
                   ),
                 ],
                 if (blockReason != null) ...[

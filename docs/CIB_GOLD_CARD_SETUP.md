@@ -24,6 +24,7 @@ Money → Accounts → add credit card.
 | Payment due day | **25** | statement |
 | Last four digits | **6011** | |
 | Minimum payment | **Percent · 5%** | matches the retail half of CIB's rule exactly |
+| Foreign exchange markup | **3.00%** | matches all three FX lines on the statement exactly |
 | Reminder lead days | 3 (or taste) | |
 | Colour | your choice | display only |
 | Status | Active | |
@@ -54,7 +55,6 @@ filed under; the category drives reporting only, never the amount.
 | Annual fee | Annual membership | Annually | Fixed **300.00** | **2026-08-01** | Configured |
 | Insurance fee — Solidarity | Insurance | Monthly | Fixed **25.00** | **2026-07-01** | Configured |
 | Stamp duty | Stamp tax | Quarterly | Percent **0.05%** of *Highest balance in recent months*, look back **3** | **2026-07-01** | Configured |
-| Foreign exchange fee | Foreign transaction | *(per transaction, automatic)* | Percent **3.00%** of *Transaction amount*, applies when *Foreign merchant billed in card currency* | **2026-07-01** | Configured |
 
 That is the whole of what you asked for: from here the app posts 25.00 on the
 1st of every month, 13.12 every 1 Jan/Apr/Jul/Oct, and 300.00 every 1 August,
@@ -87,20 +87,26 @@ Late payment · Over limit · Cash advance (domestic) · Cash advance
 
 An unknown rule never charges anything and never generates a transaction.
 
-### The 3% foreign exchange fee
+### The 3% foreign exchange markup
 
 Your three FX fees (5.10, 29.99, 1.91) are exactly **3.00%** of the EGP-billed
 amount, and only for foreign merchants billing in EGP — Google Play (billed
 USD 25.00) got no fee because the markup rides inside the exchange rate.
 
-Create the rule from the table above (choosing the *Foreign transaction* fee
-type makes it a per-transaction rule automatically), then when entering a
-card purchase pick its **Merchant & currency**:
+This is the card's own **Foreign exchange markup** field from §1 (3.00%) —
+not a Fee Rule. When entering a card purchase, flip **In foreign currency?**
+and the app adds the markup as a second charge automatically:
 
-- *Local merchant* — no fee (default).
-- *Foreign merchant, billed in card currency* — Netflix, OpenAI, Badoo,
-  Cloudflare: the 3% fee posts automatically with the charge.
-- *Foreign currency purchase* — Google Play: no fee, correctly.
+- Netflix (170.00), OpenAI (999.99), Google Badoo (63.99), Cloudflare
+  (536.75) — switch **on**: the 3% markup (5.10 / 29.99 / 1.91 / 16.10)
+  posts alongside the purchase.
+- Google Play (1,301.66, billed USD 25.00) — switch **off**: the bank's
+  markup already rides inside the exchange rate, so a second charge here
+  would double it.
+
+The switch only appears on credit-card purchases and only does anything when
+the card's markup field is set — leaving it on for a BNPL account, or for a
+card with no rate configured, is always a no-op.
 
 ---
 
@@ -163,13 +169,13 @@ Config generates fees. It cannot invent purchases — those are yours to enter,
 and they are what makes the balance match:
 
 - **Jul cycle**: Netflix 170.00 (12-07), OpenAI 999.99 (13-07), Google Badoo
-  63.99 (15-07) — each as *Foreign merchant, billed in card currency*, which
-  generates the 5.10 / 29.99 / 1.91 FX fees automatically — and Google Play
-  1,301.66 (16-07) as *Foreign currency purchase* (no fee).
+  63.99 (15-07) — each with **In foreign currency?** switched **on**, which
+  generates the 5.10 / 29.99 / 1.91 FX markups automatically — and Google Play
+  1,301.66 (16-07) with the switch **off**.
 - **Aug cycle so far**: PAYMOB SigmaComputer 840.00 (02-08) and WE-Mobile
-  783.87 (03-08) as local merchants; Cloudflare 536.75 (04-08) as *Foreign
-  merchant, billed in card currency* — its 3% fee (16.10) will post with it
-  and should appear on your next statement.
+  783.87 (03-08) with the switch off; Cloudflare 536.75 (04-08) with it **on**
+  — its 3% markup (16.10) will post with it and should appear on your next
+  statement.
 - **The 14-07 payment of 4,125.07**, as a facility payment against the June
   statement, if you model the June cycle at all.
 
