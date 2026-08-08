@@ -141,9 +141,14 @@ begin
     raise exception 'Legacy create_installment_plan overload remains';
   end if;
   if to_regprocedure(
-    'app_finance.save_credit_facility(text,app_finance.account_type,text,bigint,smallint,smallint,text,smallint,text,uuid,app_finance.facility_status,app_finance.min_payment_method,bigint,integer,text)'
+    'app_finance.save_credit_facility(text,app_finance.account_type,text,bigint,smallint,smallint,text,smallint,text,uuid,app_finance.facility_status,app_finance.min_payment_method,bigint,integer,text,integer)'
   ) is null then
     v_missing := array_append(v_missing, 'save_credit_facility');
+  end if;
+  if to_regprocedure(
+    'app_finance.save_credit_facility(text,app_finance.account_type,text,bigint,smallint,smallint,text,smallint,text,uuid,app_finance.facility_status,app_finance.min_payment_method,bigint,integer,text)'
+  ) is not null then
+    raise exception 'Legacy fx-markup-less save_credit_facility overload remains';
   end if;
   if to_regprocedure(
     'app_finance.save_credit_facility(text,app_finance.account_type,text,bigint,smallint,smallint,text,smallint,text,uuid,app_finance.facility_status,app_finance.min_payment_method,bigint,integer)'
@@ -157,6 +162,15 @@ begin
       and column_name = 'color_hex'
   ) then
     v_missing := array_append(v_missing, 'credit_facility_settings.color_hex');
+  end if;
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'app_finance'
+      and table_name = 'credit_facility_settings'
+      and column_name = 'fx_markup_basis_points'
+  ) then
+    v_missing := array_append(
+      v_missing, 'credit_facility_settings.fx_markup_basis_points');
   end if;
   if to_regprocedure(
     'app_finance.save_credit_facility(text,app_finance.account_type,text,bigint,bigint,smallint,smallint,text,smallint,text,uuid)'
@@ -248,9 +262,15 @@ begin
     v_missing := array_append(v_missing, 'apply_credit_card_fees');
   end if;
   if to_regprocedure(
-    'app_finance.charge_liability_account(uuid,text,uuid,date,bigint,text,uuid)'
+    'app_finance.charge_liability_account(uuid,text,uuid,date,bigint,text,uuid,boolean)'
   ) is null then
     v_missing := array_append(v_missing, 'charge_liability_account');
+  end if;
+  if to_regprocedure(
+    'app_finance.charge_liability_account(uuid,text,uuid,date,bigint,text,uuid)'
+  ) is not null then
+    raise exception
+      'Legacy fx-switch-less charge_liability_account overload remains';
   end if;
   if to_regprocedure(
     'app_finance.update_expense_transaction(uuid,uuid,date,bigint,uuid,text,text,text)'

@@ -980,6 +980,10 @@ class FinanceRepository {
   /// single liability-backed expense that raises outstanding once and, on a
   /// credit card, joins the statement cycle of its business date. BNPL never
   /// gains an installment plan this way.
+  /// [isForeignCurrency] adds a second expense for the card's flat FX
+  /// markup rate atomically alongside this one. Only a credit card with a
+  /// configured rate ever charges it; on BNPL or an unconfigured card the
+  /// flag is a no-op.
   Future<Result<String>> chargeLiabilityAccount({
     required String accountId,
     required String title,
@@ -988,6 +992,7 @@ class FinanceRepository {
     required int amountMinor,
     String? notes,
     String? chargeId,
+    bool isForeignCurrency = false,
   }) {
     return guard(() async {
       final id = await _db.rpc<String>(
@@ -1000,6 +1005,7 @@ class FinanceRepository {
           'p_amount_minor': amountMinor,
           'p_notes': notes,
           'p_charge_id': chargeId,
+          'p_is_foreign_currency': isForeignCurrency,
         },
       );
       return id;

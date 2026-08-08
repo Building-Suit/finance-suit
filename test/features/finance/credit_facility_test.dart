@@ -83,6 +83,34 @@ void main() {
     expect(summary.hasOverdue, isTrue);
     expect(summary.nextDueOn, const PlainDate(2026, 8, 10));
     expect(summary.nextDueAmount!.minor, 7000);
+    expect(summary.fxMarkupBasisPoints, isNull);
+    expect(summary.fxMarkupPercent, isNull);
+  });
+
+  test('a configured fx markup rate parses to a display percent', () {
+    final summary = CreditFacilitySummary.fromJson(const {
+      'account_id': 'f2',
+      'name': 'CIB Gold',
+      'account_type': 'credit_card',
+      'currency_code': 'EGP',
+      'is_archived': false,
+      'notes': null,
+      'opening_owed_minor': 0,
+      'credit_limit_minor': 2580000,
+      'statement_day': 28,
+      'default_due_day': 25,
+      'last_four_digits': '6011',
+      'reminder_lead_days': 3,
+      'outstanding_minor': 0,
+      'available_credit_minor': 2580000,
+      'utilization_basis_points': 0,
+      'due_now_minor': 0,
+      'overdue_minor': 0,
+      'active_plan_count': 0,
+      'fx_markup_basis_points': 300,
+    });
+    expect(summary.fxMarkupBasisPoints, 300);
+    expect(summary.fxMarkupPercent, 3.0);
   });
 
   test('due status derives from remaining amount and business date', () {
@@ -211,7 +239,18 @@ void main() {
       'p_min_payment_fixed_minor': null,
       'p_min_payment_basis_points': 500,
       'p_color_hex': null,
+      'p_fx_markup_basis_points': null,
     });
+
+    const fxDraft = CreditFacilityDraft(
+      name: 'Gold Card',
+      accountType: AccountType.creditCard,
+      currencyCode: 'EGP',
+      creditLimitMinor: 2580000,
+      defaultDueDay: 25,
+      fxMarkupBasisPoints: 300,
+    );
+    expect(fxDraft.toJson()['p_fx_markup_basis_points'], 300);
 
     const planDraft = InstallmentPlanDraft(
       accountId: 'f1',
