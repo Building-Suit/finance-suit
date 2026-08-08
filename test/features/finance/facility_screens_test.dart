@@ -274,7 +274,25 @@ void main() {
 
       expect(find.byKey(const Key('facility-credit-limit')), findsOneWidget);
       expect(find.byKey(const Key('facility-due-day')), findsOneWidget);
-      expect(find.byKey(const Key('facility-statement-day')), findsOneWidget);
+      expect(
+        find.byKey(const Key('facility-statement-close-mode')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('facility-statement-day')), findsNothing);
+      expect(
+        find.byKey(const Key('facility-installment-due-day')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('facility-grace-period-days')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(
+          const ValueKey('facility-interest-state-CardRuleState.unknown'),
+        ),
+        findsOneWidget,
+      );
       expect(find.byKey(const Key('facility-last-four')), findsOneWidget);
       expect(
         find.byKey(const ValueKey('facility-reminder-days-3')),
@@ -323,6 +341,14 @@ void main() {
 
       expect(find.byKey(const Key('facility-min-fixed')), findsOneWidget);
       expect(find.byKey(const Key('facility-min-percent')), findsOneWidget);
+      expect(
+        find.byKey(const Key('facility-min-include-installments')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('facility-min-include-bank-fees')),
+        findsOneWidget,
+      );
     });
   });
 
@@ -405,6 +431,18 @@ void main() {
         findsNWidgets(2),
       );
       expect(find.byKey(const Key('purchase-over-limit')), findsNothing);
+
+      final importToggle = find.byKey(const Key('purchase-import-toggle'));
+      await tester.ensureVisible(importToggle);
+      await tester.tap(importToggle);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('purchase-import-as-of')), findsOneWidget);
+      expect(find.byKey(const Key('purchase-paid-through')), findsOneWidget);
+      expect(find.byKey(const Key('purchase-current-posted')), findsOneWidget);
+      expect(
+        find.byKey(const Key('purchase-bank-outstanding')),
+        findsOneWidget,
+      );
 
       // Available credit is 2,620.00 — a 5,000.00 purchase must be blocked.
       await tester.enterText(find.byKey(const Key('purchase-price')), '5000');

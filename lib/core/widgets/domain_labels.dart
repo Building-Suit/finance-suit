@@ -112,6 +112,7 @@ String cardFeeTypeLabel(AppLocalizations l10n, CardFeeType type) {
     CardFeeType.walletFee => l10n.feeTypeWalletFee,
     CardFeeType.statementFee => l10n.feeTypeStatementFee,
     CardFeeType.earlySettlement => l10n.feeTypeEarlySettlement,
+    CardFeeType.purchaseInterest => l10n.feeTypePurchaseInterest,
     CardFeeType.latePayment => l10n.feeTypeLatePayment,
     CardFeeType.overLimit => l10n.feeTypeOverLimit,
     CardFeeType.installmentConversion => l10n.feeTypeInstallmentConversion,

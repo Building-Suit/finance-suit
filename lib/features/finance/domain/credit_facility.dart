@@ -29,6 +29,13 @@ class CreditFacilitySummary {
     this.minPaymentMethod = MinPaymentMethod.full,
     this.minPaymentFixedMinor,
     this.minPaymentBasisPoints,
+    this.installmentDueDay,
+    this.gracePeriodDays = 0,
+    this.minPaymentPercentageBasis = MinPaymentPercentageBasis.statementTotal,
+    this.minPaymentIncludeInstallmentDues = false,
+    this.minPaymentIncludeBankFees = true,
+    this.minPaymentIncludeOverdue = false,
+    this.minPaymentFixedFloorMinor,
     this.statementRemainingMinor = 0,
     this.nextStatementDueOn,
     this.statementDay,
@@ -67,6 +74,19 @@ class CreditFacilitySummary {
       minPaymentFixedMinor: (json['min_payment_fixed_minor'] as num?)?.toInt(),
       minPaymentBasisPoints: (json['min_payment_basis_points'] as num?)
           ?.toInt(),
+      installmentDueDay: (json['installment_due_day'] as num?)?.toInt(),
+      gracePeriodDays: (json['grace_period_days'] as num?)?.toInt() ?? 0,
+      minPaymentPercentageBasis: MinPaymentPercentageBasis.fromDb(
+        json['min_payment_percentage_basis'] as String? ?? 'statement_total',
+      ),
+      minPaymentIncludeInstallmentDues:
+          json['min_payment_include_installment_dues'] as bool? ?? false,
+      minPaymentIncludeBankFees:
+          json['min_payment_include_bank_fees'] as bool? ?? true,
+      minPaymentIncludeOverdue:
+          json['min_payment_include_overdue'] as bool? ?? false,
+      minPaymentFixedFloorMinor: (json['min_payment_fixed_floor_minor'] as num?)
+          ?.toInt(),
       statementRemainingMinor:
           (json['statement_remaining_minor'] as num?)?.toInt() ?? 0,
       nextStatementDueOn: json['next_statement_due_on'] == null
@@ -104,6 +124,13 @@ class CreditFacilitySummary {
   final MinPaymentMethod minPaymentMethod;
   final int? minPaymentFixedMinor;
   final int? minPaymentBasisPoints;
+  final int? installmentDueDay;
+  final int gracePeriodDays;
+  final MinPaymentPercentageBasis minPaymentPercentageBasis;
+  final bool minPaymentIncludeInstallmentDues;
+  final bool minPaymentIncludeBankFees;
+  final bool minPaymentIncludeOverdue;
+  final int? minPaymentFixedFloorMinor;
   final int statementRemainingMinor;
   final PlainDate? nextStatementDueOn;
   final int? statementDay;
@@ -188,10 +215,24 @@ class InstallmentPlan {
     this.interestMinor = 0,
     this.origin = PlanOrigin.app,
     this.revision = 1,
+    int remainingPrincipalMinor = -1,
+    this.remainingScheduledPaymentsMinor = 0,
+    this.remainingFutureInterestMinor = 0,
+    this.accruedInterestRemainingMinor = 0,
+    this.paidInstallments = 0,
+    this.currentPostedInstallments = 0,
+    this.futureInstallments = 0,
+    this.totalUnpaidInstallments = 0,
+    this.importAsOf,
+    this.paidThroughOn,
+    this.currentInstallmentPosted = false,
+    this.bankReportedPrincipalMinor,
+    this.reconciliationAsOf,
+    this.reconciliationNotes,
     this.nextDueOn,
     this.nextDueAmountMinor,
     this.notes,
-  });
+  }) : _remainingPrincipalMinor = remainingPrincipalMinor;
 
   factory InstallmentPlan.fromJson(Map<String, dynamic> json) {
     return InstallmentPlan(
@@ -225,6 +266,34 @@ class InstallmentPlan {
       interestMinor: (json['interest_minor'] as num?)?.toInt() ?? 0,
       origin: PlanOrigin.fromDb(json['origin'] as String? ?? 'app'),
       revision: (json['revision'] as num?)?.toInt() ?? 1,
+      remainingPrincipalMinor:
+          (json['remaining_principal_minor'] as num?)?.toInt() ?? -1,
+      remainingScheduledPaymentsMinor:
+          (json['remaining_scheduled_payments_minor'] as num?)?.toInt() ?? 0,
+      remainingFutureInterestMinor:
+          (json['remaining_future_interest_minor'] as num?)?.toInt() ?? 0,
+      accruedInterestRemainingMinor:
+          (json['accrued_interest_remaining_minor'] as num?)?.toInt() ?? 0,
+      paidInstallments: (json['paid_installments'] as num?)?.toInt() ?? 0,
+      currentPostedInstallments:
+          (json['current_posted_installments'] as num?)?.toInt() ?? 0,
+      futureInstallments: (json['future_installments'] as num?)?.toInt() ?? 0,
+      totalUnpaidInstallments:
+          (json['total_unpaid_installments'] as num?)?.toInt() ?? 0,
+      importAsOf: json['import_as_of'] == null
+          ? null
+          : PlainDate.parse(json['import_as_of'] as String),
+      paidThroughOn: json['paid_through_on'] == null
+          ? null
+          : PlainDate.parse(json['paid_through_on'] as String),
+      currentInstallmentPosted:
+          json['current_installment_posted'] as bool? ?? false,
+      bankReportedPrincipalMinor:
+          (json['bank_reported_principal_minor'] as num?)?.toInt(),
+      reconciliationAsOf: json['reconciliation_as_of'] == null
+          ? null
+          : PlainDate.parse(json['reconciliation_as_of'] as String),
+      reconciliationNotes: json['reconciliation_notes'] as String?,
       nextDueOn: json['next_due_on'] == null
           ? null
           : PlainDate.parse(json['next_due_on'] as String),
@@ -256,6 +325,20 @@ class InstallmentPlan {
   final int interestMinor;
   final PlanOrigin origin;
   final int revision;
+  final int _remainingPrincipalMinor;
+  final int remainingScheduledPaymentsMinor;
+  final int remainingFutureInterestMinor;
+  final int accruedInterestRemainingMinor;
+  final int paidInstallments;
+  final int currentPostedInstallments;
+  final int futureInstallments;
+  final int totalUnpaidInstallments;
+  final PlainDate? importAsOf;
+  final PlainDate? paidThroughOn;
+  final bool currentInstallmentPosted;
+  final int? bankReportedPrincipalMinor;
+  final PlainDate? reconciliationAsOf;
+  final String? reconciliationNotes;
   final PlainDate? nextDueOn;
   final int? nextDueAmountMinor;
   final String? notes;
@@ -273,17 +356,21 @@ class InstallmentPlan {
   Money get purchasePrice =>
       Money(minor: purchasePriceMinor, currencyCode: currencyCode);
 
-  /// Bank-style progress: of everything paid so far, only the part that
-  /// pays the item itself. Every payment splits pro rata, so a fully paid
-  /// installment contributes exactly principal / count to the item while
-  /// its interest-and-fees share belongs to the bank, never to the item.
-  int get principalPaidMinor {
-    if (totalPayableMinor <= 0) return 0;
-    final rounded =
-        (paidMinor * financedPrincipalMinor + totalPayableMinor ~/ 2) ~/
-        totalPayableMinor;
-    return rounded.clamp(0, financedPrincipalMinor);
-  }
+  /// Exact schedule-derived principal progress. For a reconciled historical
+  /// plan this includes the explicit bank adjustment.
+  int get remainingPrincipalMinor => _remainingPrincipalMinor >= 0
+      ? _remainingPrincipalMinor
+      : financedPrincipalMinor -
+            (totalPayableMinor <= 0
+                ? 0
+                : (paidMinor * financedPrincipalMinor / totalPayableMinor)
+                      .round());
+
+  int get principalPaidMinor =>
+      (financedPrincipalMinor - remainingPrincipalMinor).clamp(
+        0,
+        financedPrincipalMinor,
+      );
 
   /// Interest and fees handed to the bank so far.
   int get bankCostPaidMinor =>
@@ -300,6 +387,12 @@ class InstallmentPlan {
       Money(minor: bankCostPaidMinor, currencyCode: currencyCode);
   Money get bankCostTotal =>
       Money(minor: bankCostTotalMinor, currencyCode: currencyCode);
+  Money get remainingPrincipal =>
+      Money(minor: remainingPrincipalMinor, currencyCode: currencyCode);
+  Money get remainingScheduledPayments =>
+      Money(minor: remainingScheduledPaymentsMinor, currencyCode: currencyCode);
+  Money get remainingFutureInterest =>
+      Money(minor: remainingFutureInterestMinor, currencyCode: currencyCode);
 }
 
 /// A row from `app_finance.installment_due_statuses`.
@@ -319,6 +412,11 @@ class InstallmentDue {
     required this.remainingMinor,
     required this.status,
     this.isPresettled = false,
+    this.openingPrincipalMinor = 0,
+    this.principalMinor = 0,
+    this.interestMinor = 0,
+    this.financingFeeMinor = 0,
+    this.closingPrincipalMinor = 0,
   });
 
   factory InstallmentDue.fromJson(Map<String, dynamic> json) {
@@ -336,6 +434,13 @@ class InstallmentDue {
       remainingMinor: (json['remaining_minor'] as num).toInt(),
       status: InstallmentDueStatus.fromDb(json['due_status'] as String),
       isPresettled: json['is_presettled'] as bool? ?? false,
+      openingPrincipalMinor:
+          (json['opening_principal_minor'] as num?)?.toInt() ?? 0,
+      principalMinor: (json['principal_minor'] as num?)?.toInt() ?? 0,
+      interestMinor: (json['interest_minor'] as num?)?.toInt() ?? 0,
+      financingFeeMinor: (json['financing_fee_minor'] as num?)?.toInt() ?? 0,
+      closingPrincipalMinor:
+          (json['closing_principal_minor'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -354,6 +459,11 @@ class InstallmentDue {
 
   /// Paid before Finance Suit tracking began (imported running plan).
   final bool isPresettled;
+  final int openingPrincipalMinor;
+  final int principalMinor;
+  final int interestMinor;
+  final int financingFeeMinor;
+  final int closingPrincipalMinor;
 
   Money get amount => Money(minor: amountMinor, currencyCode: currencyCode);
   Money get remaining =>
@@ -396,6 +506,13 @@ class CreditFacilityDraft {
     this.minPaymentFixedMinor,
     this.minPaymentBasisPoints,
     this.colorHex,
+    this.installmentDueDay,
+    this.gracePeriodDays = 0,
+    this.minPaymentPercentageBasis = MinPaymentPercentageBasis.statementTotal,
+    this.minPaymentIncludeInstallmentDues = false,
+    this.minPaymentIncludeBankFees = true,
+    this.minPaymentIncludeOverdue = false,
+    this.minPaymentFixedFloorMinor,
     this.fxMarkupBasisPoints,
   });
 
@@ -414,6 +531,13 @@ class CreditFacilityDraft {
   final int? minPaymentFixedMinor;
   final int? minPaymentBasisPoints;
   final String? colorHex;
+  final int? installmentDueDay;
+  final int gracePeriodDays;
+  final MinPaymentPercentageBasis minPaymentPercentageBasis;
+  final bool minPaymentIncludeInstallmentDues;
+  final bool minPaymentIncludeBankFees;
+  final bool minPaymentIncludeOverdue;
+  final int? minPaymentFixedFloorMinor;
 
   /// Flat foreign-exchange markup rate in basis points; null disables it.
   /// Meaningful only on a credit card, but harmless to send for BNPL.
@@ -435,6 +559,13 @@ class CreditFacilityDraft {
     'p_min_payment_fixed_minor': minPaymentFixedMinor,
     'p_min_payment_basis_points': minPaymentBasisPoints,
     'p_color_hex': colorHex,
+    'p_installment_due_day': installmentDueDay,
+    'p_grace_period_days': gracePeriodDays,
+    'p_min_payment_percentage_basis': minPaymentPercentageBasis.dbValue,
+    'p_min_payment_include_installment_dues': minPaymentIncludeInstallmentDues,
+    'p_min_payment_include_bank_fees': minPaymentIncludeBankFees,
+    'p_min_payment_include_overdue': minPaymentIncludeOverdue,
+    'p_min_payment_fixed_floor_minor': minPaymentFixedFloorMinor,
     'p_fx_markup_basis_points': fxMarkupBasisPoints,
   };
 }
@@ -476,6 +607,13 @@ class InstallmentPlanDraft {
     this.upfrontFeesMinor = 0,
     this.downPaidOn,
     this.paidInstallments = 0,
+    this.importAsOf,
+    this.paidThroughOn,
+    this.currentInstallmentPosted = false,
+    this.allowFuturePresettlement = false,
+    this.bankReportedPrincipalMinor,
+    this.reconciliationAsOf,
+    this.reconciliationNotes,
   });
 
   final String accountId;
@@ -499,6 +637,13 @@ class InstallmentPlanDraft {
   final int upfrontFeesMinor;
   final PlainDate? downPaidOn;
   final int paidInstallments;
+  final PlainDate? importAsOf;
+  final PlainDate? paidThroughOn;
+  final bool currentInstallmentPosted;
+  final bool allowFuturePresettlement;
+  final int? bankReportedPrincipalMinor;
+  final PlainDate? reconciliationAsOf;
+  final String? reconciliationNotes;
 
   /// Client-generated id makes retries idempotent server-side.
   final String? planId;
@@ -526,6 +671,13 @@ class InstallmentPlanDraft {
     'p_upfront_fees_minor': upfrontFeesMinor,
     'p_down_paid_on': downPaidOn?.toIso(),
     'p_paid_installments': paidInstallments,
+    'p_import_as_of': importAsOf?.toIso(),
+    'p_paid_through_on': paidThroughOn?.toIso(),
+    'p_current_installment_posted': currentInstallmentPosted,
+    'p_allow_future_presettlement': allowFuturePresettlement,
+    'p_bank_reported_principal_minor': bankReportedPrincipalMinor,
+    'p_reconciliation_as_of': reconciliationAsOf?.toIso(),
+    'p_reconciliation_notes': reconciliationNotes,
   };
 
   /// The update RPC keeps the same shape minus account, plan id, and
@@ -609,6 +761,14 @@ class CardStatementSummary {
     required this.remainingMinor,
     required this.minimumDueMinor,
     required this.status,
+    this.ordinaryStatementChargesMinor = 0,
+    this.feeChargesMinor = 0,
+    this.installmentDueMinor = 0,
+    this.revolvingBaseMinor = 0,
+    this.totalStatementDueMinor = 0,
+    this.totalPaidMinor = 0,
+    this.totalRemainingMinor = 0,
+    this.obligationStatus = StatementCycleStatus.open,
   });
 
   factory CardStatementSummary.fromJson(Map<String, dynamic> json) {
@@ -624,6 +784,20 @@ class CardStatementSummary {
       remainingMinor: (json['remaining_minor'] as num).toInt(),
       minimumDueMinor: (json['minimum_due_minor'] as num).toInt(),
       status: StatementCycleStatus.fromDb(json['cycle_status'] as String),
+      ordinaryStatementChargesMinor:
+          (json['ordinary_statement_charges_minor'] as num?)?.toInt() ?? 0,
+      feeChargesMinor: (json['fee_charges_minor'] as num?)?.toInt() ?? 0,
+      installmentDueMinor:
+          (json['installment_due_minor'] as num?)?.toInt() ?? 0,
+      revolvingBaseMinor: (json['revolving_base_minor'] as num?)?.toInt() ?? 0,
+      totalStatementDueMinor:
+          (json['total_statement_due_minor'] as num?)?.toInt() ?? 0,
+      totalPaidMinor: (json['total_paid_minor'] as num?)?.toInt() ?? 0,
+      totalRemainingMinor:
+          (json['total_remaining_minor'] as num?)?.toInt() ?? 0,
+      obligationStatus: StatementCycleStatus.fromDb(
+        json['obligation_status'] as String? ?? json['cycle_status'] as String,
+      ),
     );
   }
 
@@ -638,10 +812,26 @@ class CardStatementSummary {
   final int remainingMinor;
   final int minimumDueMinor;
   final StatementCycleStatus status;
+  final int ordinaryStatementChargesMinor;
+  final int feeChargesMinor;
+  final int installmentDueMinor;
+  final int revolvingBaseMinor;
+  final int totalStatementDueMinor;
+  final int totalPaidMinor;
+  final int totalRemainingMinor;
+  final StatementCycleStatus obligationStatus;
 
   Money get charges => Money(minor: chargesMinor, currencyCode: currencyCode);
-  Money get remaining =>
-      Money(minor: remainingMinor, currencyCode: currencyCode);
+  Money get remaining => Money(
+    minor: totalRemainingMinor == 0 && totalStatementDueMinor == 0
+        ? remainingMinor
+        : totalRemainingMinor,
+    currencyCode: currencyCode,
+  );
+  Money get installmentDue =>
+      Money(minor: installmentDueMinor, currencyCode: currencyCode);
+  Money get totalDue =>
+      Money(minor: totalStatementDueMinor, currencyCode: currencyCode);
   Money get minimumDue =>
       Money(minor: minimumDueMinor, currencyCode: currencyCode);
 }
@@ -769,4 +959,30 @@ previewInstallmentSchedule({
         amountMinor: base + (i <= remainder ? 1 : 0),
       ),
   ];
+}
+
+int previewReducingRemainingPrincipal({
+  required int principalMinor,
+  required int totalInterestMinor,
+  required int installmentCount,
+  required int paidInstallments,
+  required int rateBasisPoints,
+  required InterestRatePeriod ratePeriod,
+}) {
+  var balance = principalMinor;
+  final total = principalMinor + totalInterestMinor;
+  var rate = rateBasisPoints / 10000;
+  if (ratePeriod == InterestRatePeriod.annual) rate /= 12;
+  for (
+    var sequence = 1;
+    sequence <= paidInstallments.clamp(0, installmentCount);
+    sequence++
+  ) {
+    final payment =
+        total ~/ installmentCount +
+        (sequence <= total % installmentCount ? 1 : 0);
+    final interest = (balance * rate).round();
+    balance = (balance - (payment - interest)).clamp(0, principalMinor);
+  }
+  return balance;
 }

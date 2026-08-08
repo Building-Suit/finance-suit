@@ -14,6 +14,8 @@ enum FacilityActivityKind {
   facilityRepayment('facility_repayment'),
   repaymentReversal('repayment_reversal'),
   feeCharge('fee_charge'),
+  purchaseInterest('purchase_interest'),
+  installmentInterest('installment_interest'),
   other('other');
 
   const FacilityActivityKind(this.dbValue);
@@ -137,7 +139,9 @@ FacilityActivityAction resolveFacilityActivityAction(
     FacilityActivityAction.editPlan,
   FacilityActivityKind.facilityRepayment =>
     FacilityActivityAction.reversePayment,
-  FacilityActivityKind.feeCharge => FacilityActivityAction.explainFee,
+  FacilityActivityKind.feeCharge ||
+  FacilityActivityKind.purchaseInterest ||
+  FacilityActivityKind.installmentInterest => FacilityActivityAction.explainFee,
   FacilityActivityKind.repaymentReversal ||
   FacilityActivityKind.other => FacilityActivityAction.explainSystem,
 };

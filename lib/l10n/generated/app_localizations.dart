@@ -5662,6 +5662,294 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We filled what we could. Complete the highlighted fields to continue.'**
   String get aiResearchIncompleteMessage;
+
+  /// No description provided for @cardPaymentDueDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment due day'**
+  String get cardPaymentDueDay;
+
+  /// No description provided for @cardStatementCloses.
+  ///
+  /// In en, this message translates to:
+  /// **'Statement closes'**
+  String get cardStatementCloses;
+
+  /// No description provided for @cardStatementExactDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Exact day'**
+  String get cardStatementExactDay;
+
+  /// No description provided for @cardStatementEndOfMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'End of month'**
+  String get cardStatementEndOfMonth;
+
+  /// No description provided for @cardInstallmentDueDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment due day (optional)'**
+  String get cardInstallmentDueDay;
+
+  /// No description provided for @cardGracePeriodDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Grace period (days)'**
+  String get cardGracePeriodDays;
+
+  /// No description provided for @valGracePeriodDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a grace period from 0 to 90 days.'**
+  String get valGracePeriodDays;
+
+  /// No description provided for @minPaymentPercentageBasis.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum percent applies to'**
+  String get minPaymentPercentageBasis;
+
+  /// No description provided for @minPaymentBasisRevolving.
+  ///
+  /// In en, this message translates to:
+  /// **'Revolving purchases and interest'**
+  String get minPaymentBasisRevolving;
+
+  /// No description provided for @minPaymentBasisStatement.
+  ///
+  /// In en, this message translates to:
+  /// **'Full statement obligation'**
+  String get minPaymentBasisStatement;
+
+  /// No description provided for @minPaymentIncludeInstallments.
+  ///
+  /// In en, this message translates to:
+  /// **'Include installment dues'**
+  String get minPaymentIncludeInstallments;
+
+  /// No description provided for @minPaymentIncludeBankFees.
+  ///
+  /// In en, this message translates to:
+  /// **'Include bank fees'**
+  String get minPaymentIncludeBankFees;
+
+  /// No description provided for @minPaymentIncludeOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Include overdue obligations'**
+  String get minPaymentIncludeOverdue;
+
+  /// No description provided for @purchaseInterestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase interest'**
+  String get purchaseInterestTitle;
+
+  /// No description provided for @purchaseInterestState.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest terms'**
+  String get purchaseInterestState;
+
+  /// No description provided for @purchaseInterestStateHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Use unknown when the bank posts actual interest but you do not know the calculation rate.'**
+  String get purchaseInterestStateHelp;
+
+  /// No description provided for @purchaseInterestRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest rate'**
+  String get purchaseInterestRate;
+
+  /// No description provided for @purchaseInterestRatePeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate period'**
+  String get purchaseInterestRatePeriod;
+
+  /// No description provided for @purchaseInterestPeriodMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Per month'**
+  String get purchaseInterestPeriodMonthly;
+
+  /// No description provided for @purchaseInterestPeriodAnnual.
+  ///
+  /// In en, this message translates to:
+  /// **'Per year'**
+  String get purchaseInterestPeriodAnnual;
+
+  /// No description provided for @purchaseInterestAccrual.
+  ///
+  /// In en, this message translates to:
+  /// **'Accrual method'**
+  String get purchaseInterestAccrual;
+
+  /// No description provided for @purchaseInterestAccrualManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank-posted actual amount'**
+  String get purchaseInterestAccrualManual;
+
+  /// No description provided for @purchaseInterestAccrualDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily balance calculation'**
+  String get purchaseInterestAccrualDaily;
+
+  /// No description provided for @purchaseInterestStarts.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest starts from'**
+  String get purchaseInterestStarts;
+
+  /// No description provided for @purchaseInterestStartTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction date'**
+  String get purchaseInterestStartTransaction;
+
+  /// No description provided for @purchaseInterestStartStatement.
+  ///
+  /// In en, this message translates to:
+  /// **'Statement date'**
+  String get purchaseInterestStartStatement;
+
+  /// No description provided for @purchaseInterestStartPaymentDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment due date'**
+  String get purchaseInterestStartPaymentDue;
+
+  /// No description provided for @purchaseInterestStartGraceExpiry.
+  ///
+  /// In en, this message translates to:
+  /// **'Grace period expiry'**
+  String get purchaseInterestStartGraceExpiry;
+
+  /// No description provided for @purchaseInterestGraceApplies.
+  ///
+  /// In en, this message translates to:
+  /// **'Grace period applies'**
+  String get purchaseInterestGraceApplies;
+
+  /// No description provided for @purchaseInterestEffectiveFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Effective from'**
+  String get purchaseInterestEffectiveFrom;
+
+  /// No description provided for @purchaseInterestCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest expense category'**
+  String get purchaseInterestCategory;
+
+  /// No description provided for @valPurchaseInterestRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a rate between 0.01 and 100%.'**
+  String get valPurchaseInterestRate;
+
+  /// No description provided for @valPurchaseInterestCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an expense category for interest.'**
+  String get valPurchaseInterestCategory;
+
+  /// No description provided for @feeTypePurchaseInterest.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase interest'**
+  String get feeTypePurchaseInterest;
+
+  /// No description provided for @facilityActivityPurchaseInterest.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase interest'**
+  String get facilityActivityPurchaseInterest;
+
+  /// No description provided for @facilityActivityInstallmentInterest.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment interest'**
+  String get facilityActivityInstallmentInterest;
+
+  /// No description provided for @purchaseImportAsOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Import position as of'**
+  String get purchaseImportAsOf;
+
+  /// No description provided for @purchasePaidThrough.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid through'**
+  String get purchasePaidThrough;
+
+  /// No description provided for @purchaseCurrentInstallmentPosted.
+  ///
+  /// In en, this message translates to:
+  /// **'Current installment is already posted'**
+  String get purchaseCurrentInstallmentPosted;
+
+  /// No description provided for @purchaseBankOutstanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank-reported principal outstanding'**
+  String get purchaseBankOutstanding;
+
+  /// No description provided for @purchaseBankOutstandingHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the bank\'s figure when it differs from the calculated remaining principal; the difference is retained for reconciliation.'**
+  String get purchaseBankOutstandingHelp;
+
+  /// No description provided for @purchaseReconciliationNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconciliation note'**
+  String get purchaseReconciliationNote;
+
+  /// No description provided for @valFutureInstallmentPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'A future installment cannot be marked paid unless it was explicitly prepaid.'**
+  String get valFutureInstallmentPaid;
+
+  /// No description provided for @valBankOutstanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a positive outstanding amount below the financed principal.'**
+  String get valBankOutstanding;
+
+  /// No description provided for @planOutstandingPrincipal.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding principal'**
+  String get planOutstandingPrincipal;
+
+  /// No description provided for @planRemainingScheduledPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining scheduled payments'**
+  String get planRemainingScheduledPayments;
+
+  /// No description provided for @planRemainingFutureInterest.
+  ///
+  /// In en, this message translates to:
+  /// **'Future interest not yet posted'**
+  String get planRemainingFutureInterest;
+
+  /// No description provided for @planInstallmentCounts.
+  ///
+  /// In en, this message translates to:
+  /// **'{paid} paid · {current} current · {future} future'**
+  String planInstallmentCounts(int paid, int current, int future);
 }
 
 class _AppLocalizationsDelegate

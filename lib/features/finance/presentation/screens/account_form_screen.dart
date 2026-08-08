@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/app/theme/facility_palette.dart';
+import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
@@ -18,6 +19,7 @@ import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
+import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
 import 'package:work_tracker/features/finance/domain/card_research.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
@@ -51,10 +53,13 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
   final _creditLimitController = TextEditingController();
   final _dueDayController = TextEditingController(text: '1');
   final _statementDayController = TextEditingController();
+  final _installmentDueDayController = TextEditingController();
+  final _gracePeriodController = TextEditingController(text: '0');
   final _lastFourController = TextEditingController();
   final _minFixedController = TextEditingController();
   final _minPercentController = TextEditingController();
   final _fxMarkupController = TextEditingController();
+  final _interestRateController = TextEditingController();
 
   AccountType _accountType = AccountType.current;
   bool _allowNegative = false;
@@ -62,6 +67,22 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
   int _reminderLeadDays = 3;
   FacilityStatus _facilityStatus = FacilityStatus.active;
   MinPaymentMethod _minPaymentMethod = MinPaymentMethod.full;
+  MinPaymentPercentageBasis _minPaymentPercentageBasis =
+      MinPaymentPercentageBasis.statementTotal;
+  bool _statementEndOfMonth = true;
+  bool _minPaymentIncludeInstallments = false;
+  bool _minPaymentIncludeBankFees = true;
+  bool _minPaymentIncludeOverdue = false;
+  CardRuleState _interestState = CardRuleState.unknown;
+  CardInterestRatePeriod _interestRatePeriod = CardInterestRatePeriod.monthly;
+  CardInterestAccrualMethod _interestAccrualMethod =
+      CardInterestAccrualMethod.bankPostedManual;
+  CardInterestStart _interestStarts = CardInterestStart.graceExpiry;
+  PlainDate _interestEffectiveFrom = PlainDate.today();
+  String? _interestCategoryId;
+  String? _interestRuleId;
+  bool _interestGraceApplies = true;
+  bool _interestDirty = true;
   String? _colorHex;
   AppFailure? _failure;
   bool _busy = false;
@@ -122,13 +143,24 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
         facility.creditLimitMinor,
       );
       _dueDayController.text = '${facility.defaultDueDay}';
-      _statementDayController.text = facility.statementDay == null
+      _statementEndOfMonth = facility.statementDay == 31;
+      _statementDayController.text =
+          facility.statementDay == null || _statementEndOfMonth
           ? ''
           : '${facility.statementDay}';
+      _installmentDueDayController.text = facility.installmentDueDay == null
+          ? ''
+          : '${facility.installmentDueDay}';
+      _gracePeriodController.text = '${facility.gracePeriodDays}';
       _lastFourController.text = facility.lastFourDigits ?? '';
       _reminderLeadDays = facility.reminderLeadDays;
       _facilityStatus = facility.facilityStatus;
       _minPaymentMethod = facility.minPaymentMethod;
+      _minPaymentPercentageBasis = facility.minPaymentPercentageBasis;
+      _minPaymentIncludeInstallments =
+          facility.minPaymentIncludeInstallmentDues;
+      _minPaymentIncludeBankFees = facility.minPaymentIncludeBankFees;
+      _minPaymentIncludeOverdue = facility.minPaymentIncludeOverdue;
       _colorHex = facility.colorHex;
       if (facility.minPaymentFixedMinor != null) {
         _minFixedController.text = formatMinorForInput(
@@ -142,6 +174,22 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
       if (facility.fxMarkupBasisPoints != null) {
         _fxMarkupController.text = facility.fxMarkupPercent!.toStringAsFixed(2);
       }
+      final rules = await repo.fetchFeeRules(facility.accountId);
+      if (!mounted) return;
+      final interestRule = rules.valueOrNull
+          ?.where((rule) => rule.feeType == CardFeeType.purchaseInterest)
+          .firstOrNull;
+      if (interestRule != null) {
+        _interestRuleId = interestRule.id;
+        _interestCategoryId = interestRule.categoryId;
+        _interestState = interestRule.state;
+        _interestEffectiveFrom = interestRule.startsOn;
+        if (interestRule.percentBasisPoints != null) {
+          _interestRateController.text =
+              (interestRule.percentBasisPoints! / 100).toStringAsFixed(2);
+        }
+      }
+      _interestDirty = false;
     }
     setState(() {
       _accountType = account.accountType;
@@ -159,10 +207,13 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
     _creditLimitController.dispose();
     _dueDayController.dispose();
     _statementDayController.dispose();
+    _installmentDueDayController.dispose();
+    _gracePeriodController.dispose();
     _lastFourController.dispose();
     _minFixedController.dispose();
     _minPercentController.dispose();
     _fxMarkupController.dispose();
+    _interestRateController.dispose();
     super.dispose();
   }
 
@@ -193,6 +244,13 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
     return basisPoints < 1 || basisPoints > 10000 ? null : basisPoints;
   }
 
+  int? get _interestRateBasisPoints {
+    final value = double.tryParse(_interestRateController.text.trim());
+    if (value == null) return null;
+    final basisPoints = (value * 100).round();
+    return basisPoints < 1 || basisPoints > 10000 ? null : basisPoints;
+  }
+
   String get _currencyCode {
     return _existing?.currencyCode ??
         ref.read(preferencesProvider).value?.currencyCode ??
@@ -204,6 +262,20 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
     if (text.isEmpty) return null;
     final e = Validators.dayOfMonth(int.tryParse(text));
     return e == null ? null : validationMessage(context, e);
+  }
+
+  Future<void> _pickInterestEffectiveDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _interestEffectiveFrom.toDateTime(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _interestEffectiveFrom = PlainDate.fromDateTime(picked);
+      _interestDirty = true;
+    });
   }
 
   Future<void> _save() async {
@@ -227,9 +299,12 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
           currencyCode: _currencyCode,
           creditLimitMinor: limit.minor,
           defaultDueDay: int.parse(_dueDayController.text.trim()),
-          statementDay:
-              _accountType == AccountType.creditCard && statementDay.isNotEmpty
-              ? int.parse(statementDay)
+          statementDay: _accountType == AccountType.creditCard
+              ? (_statementEndOfMonth
+                    ? 31
+                    : statementDay.isNotEmpty
+                    ? int.parse(statementDay)
+                    : null)
               : null,
           lastFourDigits:
               _accountType == AccountType.creditCard && lastFour.isNotEmpty
@@ -254,6 +329,24 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
               ? _minPaymentBasisPoints
               : null,
           colorHex: _colorHex,
+          installmentDueDay:
+              _accountType == AccountType.creditCard &&
+                  _installmentDueDayController.text.trim().isNotEmpty
+              ? int.parse(_installmentDueDayController.text.trim())
+              : null,
+          gracePeriodDays: _accountType == AccountType.creditCard
+              ? int.parse(_gracePeriodController.text.trim())
+              : 0,
+          minPaymentPercentageBasis: _minPaymentPercentageBasis,
+          minPaymentIncludeInstallmentDues:
+              _accountType == AccountType.creditCard &&
+              _minPaymentIncludeInstallments,
+          minPaymentIncludeBankFees:
+              _accountType != AccountType.creditCard ||
+              _minPaymentIncludeBankFees,
+          minPaymentIncludeOverdue:
+              _accountType == AccountType.creditCard &&
+              _minPaymentIncludeOverdue,
           fxMarkupBasisPoints: _accountType == AccountType.creditCard
               ? _fxMarkupBasisPoints
               : null,
@@ -262,9 +355,47 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
       // Home visibility rides along after the facility RPC, which owns
       // every other facility field.
       final accountId = facilityResult.valueOrNull;
-      result = accountId == null
-          ? facilityResult
-          : await repo.setHideFromHome(accountId, hidden: _hideFromHome);
+      if (accountId == null) {
+        result = Err(facilityResult.failureOrNull!);
+      } else {
+        var liabilityResult = await repo.setHideFromHome(
+          accountId,
+          hidden: _hideFromHome,
+        );
+        if (liabilityResult.isOk &&
+            _accountType == AccountType.creditCard &&
+            _interestDirty) {
+          final categories =
+              ref.read(categoriesProvider(CategoryKind.expense)).value ??
+              const [];
+          final categoryId = _interestCategoryId ?? categories.firstOrNull?.id;
+          if (categoryId != null) {
+            final interestResult = await repo.configurePurchaseInterest(
+              PurchaseInterestRuleDraft(
+                accountId: accountId,
+                categoryId: categoryId,
+                state: _interestState,
+                effectiveFrom: _interestEffectiveFrom,
+                rateBasisPoints: _interestState == CardRuleState.configured
+                    ? _interestRateBasisPoints
+                    : null,
+                ratePeriod: _interestRatePeriod,
+                accrualMethod: _interestAccrualMethod,
+                interestStarts: _interestStarts,
+                gracePeriodDays: int.parse(_gracePeriodController.text.trim()),
+                graceApplies: _interestGraceApplies,
+                notes: notes.isEmpty ? null : notes,
+                ruleId: _interestRuleId,
+              ),
+            );
+            liabilityResult = interestResult.when(
+              ok: (_) => const Ok<void>(null),
+              err: Err<void>.new,
+            );
+          }
+        }
+        result = liabilityResult;
+      }
     } else {
       final opening = Money.tryParse(
         _balanceController.text,
@@ -436,7 +567,10 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
       if (_accountType == AccountType.creditCard) {
         if (_fieldOrigin['statementDay'] != FieldOrigin.manual &&
             result.statementDay.isAutofillEligible) {
-          _statementDayController.text = '${result.statementDay.value}';
+          _statementEndOfMonth = result.statementDay.value == 31;
+          _statementDayController.text = _statementEndOfMonth
+              ? ''
+              : '${result.statementDay.value}';
           _fieldOrigin['statementDay'] = FieldOrigin.ai;
         }
         if (_fieldOrigin['minPaymentMethod'] != FieldOrigin.manual &&
@@ -564,6 +698,12 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final expenseCategories =
+        ref.watch(categoriesProvider(CategoryKind.expense)).value ?? const [];
+    final selectedInterestCategoryId =
+        expenseCategories.any((category) => category.id == _interestCategoryId)
+        ? _interestCategoryId
+        : expenseCategories.firstOrNull?.id;
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(
         semanticTitle: _isEdit ? l10n.moneyEditAccount : l10n.moneyNewAccount,
@@ -673,7 +813,9 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                           controller: _dueDayController,
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
-                            labelText: l10n.facilityDefaultDueDay,
+                            labelText: _accountType == AccountType.creditCard
+                                ? l10n.cardPaymentDueDay
+                                : l10n.facilityDefaultDueDay,
                           ),
                           onChanged: (_) => _markFieldManual('dueDay'),
                           validator: (v) {
@@ -693,17 +835,75 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                         ),
                         if (_accountType == AccountType.creditCard) ...[
                           const SizedBox(height: 16),
+                          Align(
+                            alignment: AlignmentDirectional.centerStart,
+                            child: Text(
+                              l10n.cardStatementCloses,
+                              style: Theme.of(context).textTheme.labelLarge,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          SegmentedButton<bool>(
+                            key: const Key('facility-statement-close-mode'),
+                            segments: [
+                              ButtonSegment(
+                                value: false,
+                                label: Text(l10n.cardStatementExactDay),
+                              ),
+                              ButtonSegment(
+                                value: true,
+                                label: Text(l10n.cardStatementEndOfMonth),
+                              ),
+                            ],
+                            selected: {_statementEndOfMonth},
+                            onSelectionChanged: (selection) => setState(() {
+                              _statementEndOfMonth = selection.single;
+                              _markFieldManual('statementDay');
+                            }),
+                          ),
+                          if (!_statementEndOfMonth) ...[
+                            const SizedBox(height: 12),
+                            AppTextFormField(
+                              key: const Key('facility-statement-day'),
+                              controller: _statementDayController,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                labelText: l10n.facilityStatementDay,
+                              ),
+                              onChanged: (_) =>
+                                  _markFieldManual('statementDay'),
+                              validator: (value) {
+                                if ((value ?? '').trim().isEmpty) {
+                                  return l10n.valRequired;
+                                }
+                                return _optionalDayError(value);
+                              },
+                            ),
+                          ],
+                          const SizedBox(height: 16),
                           AppTextFormField(
-                            key: const Key('facility-statement-day'),
-                            controller: _statementDayController,
+                            key: const Key('facility-installment-due-day'),
+                            controller: _installmentDueDayController,
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
-                              labelText:
-                                  '${l10n.facilityStatementDay} '
-                                  '(${l10n.commonOptional})',
+                              labelText: l10n.cardInstallmentDueDay,
                             ),
-                            onChanged: (_) => _markFieldManual('statementDay'),
                             validator: _optionalDayError,
+                          ),
+                          const SizedBox(height: 16),
+                          AppTextFormField(
+                            key: const Key('facility-grace-period-days'),
+                            controller: _gracePeriodController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              labelText: l10n.cardGracePeriodDays,
+                            ),
+                            validator: (value) {
+                              final days = int.tryParse(value?.trim() ?? '');
+                              return days == null || days < 0 || days > 90
+                                  ? l10n.valGracePeriodDays
+                                  : null;
+                            },
                           ),
                           const SizedBox(height: 16),
                           AppTextFormField(
@@ -796,7 +996,254 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                                   ? l10n.valMinPaymentPercent
                                   : null,
                             ),
+                            const SizedBox(height: 16),
+                            AppSelectionField<MinPaymentPercentageBasis>(
+                              key: ValueKey(
+                                'facility-min-basis-'
+                                '$_minPaymentPercentageBasis',
+                              ),
+                              initialValue: _minPaymentPercentageBasis,
+                              decoration: InputDecoration(
+                                labelText: l10n.minPaymentPercentageBasis,
+                              ),
+                              items: [
+                                DropdownMenuItem(
+                                  value: MinPaymentPercentageBasis
+                                      .revolvingNoninstallment,
+                                  child: Text(l10n.minPaymentBasisRevolving),
+                                ),
+                                DropdownMenuItem(
+                                  value:
+                                      MinPaymentPercentageBasis.statementTotal,
+                                  child: Text(l10n.minPaymentBasisStatement),
+                                ),
+                              ],
+                              onChanged: (value) => setState(() {
+                                _minPaymentPercentageBasis =
+                                    value ??
+                                    MinPaymentPercentageBasis.statementTotal;
+                              }),
+                            ),
                           ],
+                          SwitchListTile.adaptive(
+                            key: const Key('facility-min-include-installments'),
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(l10n.minPaymentIncludeInstallments),
+                            value: _minPaymentIncludeInstallments,
+                            onChanged: (value) => setState(
+                              () => _minPaymentIncludeInstallments = value,
+                            ),
+                          ),
+                          SwitchListTile.adaptive(
+                            key: const Key('facility-min-include-bank-fees'),
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(l10n.minPaymentIncludeBankFees),
+                            value: _minPaymentIncludeBankFees,
+                            onChanged: (value) => setState(
+                              () => _minPaymentIncludeBankFees = value,
+                            ),
+                          ),
+                          SwitchListTile.adaptive(
+                            key: const Key('facility-min-include-overdue'),
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(l10n.minPaymentIncludeOverdue),
+                            value: _minPaymentIncludeOverdue,
+                            onChanged: (value) => setState(
+                              () => _minPaymentIncludeOverdue = value,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            l10n.purchaseInterestTitle,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 12),
+                          AppSelectionField<CardRuleState>(
+                            key: ValueKey(
+                              'facility-interest-state-$_interestState',
+                            ),
+                            initialValue: _interestState,
+                            decoration: InputDecoration(
+                              labelText: l10n.purchaseInterestState,
+                              helperText: l10n.purchaseInterestStateHelp,
+                              helperMaxLines: 3,
+                            ),
+                            items: [
+                              for (final state in CardRuleState.values)
+                                DropdownMenuItem(
+                                  value: state,
+                                  child: Text(cardRuleStateLabel(l10n, state)),
+                                ),
+                            ],
+                            onChanged: (value) => setState(() {
+                              _interestState = value ?? CardRuleState.unknown;
+                              _interestDirty = true;
+                            }),
+                          ),
+                          if (_interestState == CardRuleState.configured) ...[
+                            const SizedBox(height: 16),
+                            AppTextFormField(
+                              key: const Key('facility-interest-rate'),
+                              controller: _interestRateController,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: InputDecoration(
+                                labelText: l10n.purchaseInterestRate,
+                                suffixText: '%',
+                              ),
+                              onChanged: (_) => _interestDirty = true,
+                              validator: (_) => _interestRateBasisPoints == null
+                                  ? l10n.valPurchaseInterestRate
+                                  : null,
+                            ),
+                            const SizedBox(height: 16),
+                            AppSelectionField<CardInterestRatePeriod>(
+                              key: ValueKey(
+                                'facility-interest-period-'
+                                '$_interestRatePeriod',
+                              ),
+                              initialValue: _interestRatePeriod,
+                              decoration: InputDecoration(
+                                labelText: l10n.purchaseInterestRatePeriod,
+                              ),
+                              items: [
+                                DropdownMenuItem(
+                                  value: CardInterestRatePeriod.monthly,
+                                  child: Text(
+                                    l10n.purchaseInterestPeriodMonthly,
+                                  ),
+                                ),
+                                DropdownMenuItem(
+                                  value: CardInterestRatePeriod.annual,
+                                  child: Text(
+                                    l10n.purchaseInterestPeriodAnnual,
+                                  ),
+                                ),
+                              ],
+                              onChanged: (value) => setState(() {
+                                _interestRatePeriod =
+                                    value ?? CardInterestRatePeriod.monthly;
+                                _interestDirty = true;
+                              }),
+                            ),
+                          ],
+                          const SizedBox(height: 16),
+                          AppSelectionField<CardInterestAccrualMethod>(
+                            key: ValueKey(
+                              'facility-interest-accrual-'
+                              '$_interestAccrualMethod',
+                            ),
+                            initialValue: _interestAccrualMethod,
+                            decoration: InputDecoration(
+                              labelText: l10n.purchaseInterestAccrual,
+                            ),
+                            items: [
+                              DropdownMenuItem(
+                                value:
+                                    CardInterestAccrualMethod.bankPostedManual,
+                                child: Text(l10n.purchaseInterestAccrualManual),
+                              ),
+                              DropdownMenuItem(
+                                value: CardInterestAccrualMethod.dailyAccrual,
+                                child: Text(l10n.purchaseInterestAccrualDaily),
+                              ),
+                            ],
+                            onChanged: (value) => setState(() {
+                              _interestAccrualMethod =
+                                  value ??
+                                  CardInterestAccrualMethod.bankPostedManual;
+                              _interestDirty = true;
+                            }),
+                          ),
+                          const SizedBox(height: 16),
+                          AppSelectionField<CardInterestStart>(
+                            key: ValueKey(
+                              'facility-interest-start-$_interestStarts',
+                            ),
+                            initialValue: _interestStarts,
+                            decoration: InputDecoration(
+                              labelText: l10n.purchaseInterestStarts,
+                            ),
+                            items: [
+                              DropdownMenuItem(
+                                value: CardInterestStart.purchaseDate,
+                                child: Text(
+                                  l10n.purchaseInterestStartTransaction,
+                                ),
+                              ),
+                              DropdownMenuItem(
+                                value: CardInterestStart.statementClose,
+                                child: Text(
+                                  l10n.purchaseInterestStartStatement,
+                                ),
+                              ),
+                              DropdownMenuItem(
+                                value: CardInterestStart.paymentDue,
+                                child: Text(
+                                  l10n.purchaseInterestStartPaymentDue,
+                                ),
+                              ),
+                              DropdownMenuItem(
+                                value: CardInterestStart.graceExpiry,
+                                child: Text(
+                                  l10n.purchaseInterestStartGraceExpiry,
+                                ),
+                              ),
+                            ],
+                            onChanged: (value) => setState(() {
+                              _interestStarts =
+                                  value ?? CardInterestStart.graceExpiry;
+                              _interestDirty = true;
+                            }),
+                          ),
+                          SwitchListTile.adaptive(
+                            key: const Key('facility-interest-grace-applies'),
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(l10n.purchaseInterestGraceApplies),
+                            value: _interestGraceApplies,
+                            onChanged: (value) => setState(() {
+                              _interestGraceApplies = value;
+                              _interestDirty = true;
+                            }),
+                          ),
+                          ListTile(
+                            key: const Key('facility-interest-effective-date'),
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(l10n.purchaseInterestEffectiveFrom),
+                            subtitle: Text(_interestEffectiveFrom.toIso()),
+                            trailing: const Icon(Icons.calendar_today_outlined),
+                            onTap: _pickInterestEffectiveDate,
+                          ),
+                          const SizedBox(height: 8),
+                          AppSelectionField<String>(
+                            key: ValueKey(
+                              'facility-interest-category-'
+                              '$selectedInterestCategoryId',
+                            ),
+                            initialValue: selectedInterestCategoryId,
+                            decoration: InputDecoration(
+                              labelText: l10n.purchaseInterestCategory,
+                            ),
+                            validator: (value) =>
+                                expenseCategories.isNotEmpty && value == null
+                                ? l10n.valPurchaseInterestCategory
+                                : null,
+                            items: [
+                              for (final category in expenseCategories)
+                                DropdownMenuItem(
+                                  value: category.id,
+                                  child: Text(
+                                    category.displayName(expenseCategories),
+                                  ),
+                                ),
+                            ],
+                            onChanged: (value) => setState(() {
+                              _interestCategoryId = value;
+                              _interestDirty = true;
+                            }),
+                          ),
                           const SizedBox(height: 16),
                           AppTextFormField(
                             key: const Key('facility-fx-markup'),
