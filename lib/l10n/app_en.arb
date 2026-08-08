@@ -1466,5 +1466,20 @@
       "current": {"type": "int"},
       "future": {"type": "int"}
     }
-  }
+  },
+  "planBilling": "Plan & Billing",
+  "proEarlyAccess": "Pro Early Access",
+  "proIncludedEarlyAccess": "Pro features are currently included during Early Access.",
+  "complimentaryAccess": "Complimentary access",
+  "noExpiration": "No expiration",
+  "availableUntil": "Available until: {date}",
+  "@availableUntil": {"placeholders": {"date": {"type": "String"}}},
+  "daysRemaining": "{days} days remaining",
+  "@daysRemaining": {"placeholders": {"days": {"type": "int"}}},
+  "proMonthly": "Pro · Monthly",
+  "proAnnual": "Pro · Annual",
+  "proComplimentary": "Pro · Complimentary",
+  "proEarlyAccessSummary": "Pro · Early Access",
+  "freePlan": "Free",
+  "billingNotReady": "Billing is not ready yet. Pro is included during Early Access."
 }

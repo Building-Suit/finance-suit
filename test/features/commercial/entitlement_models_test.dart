@@ -12,6 +12,7 @@ void main() {
       renewalAt: null,
       features: const {},
       limits: const {},
+      metadata: {},
     );
 
     expect(entitlement.daysRemaining(DateTime.utc(2026, 8, 8, 12)), 2);
@@ -28,6 +29,7 @@ void main() {
       renewalAt: null,
       features: {'transaction_macros': true, 'ai_card_research': false},
       limits: {'transaction_macros': null, 'ai_card_research': 0},
+      metadata: {},
     );
 
     expect(entitlement.isPro, isTrue);

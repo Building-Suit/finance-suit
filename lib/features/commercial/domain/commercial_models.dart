@@ -3,7 +3,16 @@ import 'package:work_tracker/core/money/money.dart';
 
 enum CommercialPlan { free, pro }
 
-enum EntitlementSource { free, paid, adminGrant, earlyAccess, standardTrial }
+enum EntitlementSource {
+  free,
+  paid,
+  adminGrant,
+  earlyAccess,
+  openEarlyAccess,
+  standardTrial,
+}
+
+enum MonetizationMode { openEarlyAccess, timedEarlyAccess, paidLive }
 
 @immutable
 class PlanPrice {
@@ -44,18 +53,33 @@ class PlanPrice {
 
 @immutable
 class CommercialCatalog {
-  const CommercialCatalog({required this.prices});
+  const CommercialCatalog({
+    required this.prices,
+    required this.monetizationMode,
+    required this.billingReady,
+  });
 
   factory CommercialCatalog.fromJson(Map<String, dynamic> json) {
     final pricesJson = json['prices'] as List<dynamic>? ?? const [];
+    final monetization =
+        json['monetization'] as Map<String, dynamic>? ?? const {};
+    final readiness =
+        json['billing_readiness'] as Map<String, dynamic>? ?? const {};
     return CommercialCatalog(
       prices: pricesJson
           .map((e) => PlanPrice.fromJson(e as Map<String, dynamic>))
           .toList(),
+      monetizationMode: _mode(monetization['mode'] as String?),
+      billingReady:
+          readiness['provider'] == 'synced' &&
+          readiness['product'] == 'synced' &&
+          readiness['verification'] == 'verified',
     );
   }
 
   final List<PlanPrice> prices;
+  final MonetizationMode monetizationMode;
+  final bool billingReady;
 
   PlanPrice? googlePlayPrice(String interval) {
     for (final price in prices) {
@@ -80,6 +104,7 @@ class EffectiveEntitlement {
     required this.renewalAt,
     required this.features,
     required this.limits,
+    required this.metadata,
   });
 
   factory EffectiveEntitlement.free() => const EffectiveEntitlement(
@@ -91,6 +116,7 @@ class EffectiveEntitlement {
     renewalAt: null,
     features: {},
     limits: {},
+    metadata: {},
   );
 
   factory EffectiveEntitlement.fromJson(Map<String, dynamic> json) =>
@@ -105,6 +131,9 @@ class EffectiveEntitlement {
         limits: (json['limits'] as Map).map(
           (key, value) => MapEntry(key as String, value as int?),
         ),
+        metadata: Map<String, dynamic>.from(
+          json['metadata'] as Map? ?? const {},
+        ),
       );
 
   final CommercialPlan plan;
@@ -115,6 +144,13 @@ class EffectiveEntitlement {
   final DateTime? renewalAt;
   final Map<String, bool> features;
   final Map<String, int?> limits;
+  final Map<String, dynamic> metadata;
+
+  String? get metadataInterval =>
+      (metadata['base_plan_id'] as String?)?.contains('annual') == true ||
+          (metadata['base_plan_id'] as String?)?.contains('year') == true
+      ? 'year'
+      : 'month';
 
   bool get isPro => plan == CommercialPlan.pro;
   bool hasFeature(String key) => features[key] ?? false;
@@ -138,6 +174,8 @@ class EffectiveEntitlement {
         return 'Super Admin grant';
       case EntitlementSource.earlyAccess:
         return 'Early Access';
+      case EntitlementSource.openEarlyAccess:
+        return 'Pro Early Access';
       case EntitlementSource.standardTrial:
         return 'Pro Trial';
     }
@@ -155,6 +193,8 @@ EntitlementSource _source(String value) {
       return EntitlementSource.adminGrant;
     case 'early_access':
       return EntitlementSource.earlyAccess;
+    case 'open_early_access':
+      return EntitlementSource.openEarlyAccess;
     case 'standard_trial':
       return EntitlementSource.standardTrial;
     default:
@@ -164,3 +204,14 @@ EntitlementSource _source(String value) {
 
 DateTime? _date(Object? value) =>
     value is String ? DateTime.tryParse(value)?.toUtc() : null;
+
+MonetizationMode _mode(String? value) {
+  switch (value) {
+    case 'timed_early_access':
+      return MonetizationMode.timedEarlyAccess;
+    case 'paid_live':
+      return MonetizationMode.paidLive;
+    default:
+      return MonetizationMode.openEarlyAccess;
+  }
+}

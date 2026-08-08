@@ -20,15 +20,40 @@ validated against Google Play, then published only when provider sync is true.
 
 `app_commercial.resolve_effective_entitlement()` returns one effective result:
 
-1. Active paid Pro subscription.
-2. Active Super Admin grant.
-3. Active Early Access or promotional grant.
-4. Active standard trial grant.
-5. Free.
+1. Active complimentary Super Admin Pro grant.
+2. Active verified paid Pro subscription.
+3. Open Early Access (a server-generated effective entitlement, not a grant).
+4. Active timed Early Access or promotional grant.
+5. Active standard trial grant.
+6. Free.
 
 Grants store `starts_at` and `ends_at`. Changing a campaign duration affects
 future grants only. Expiration is timestamp-based; no scheduled job is required
 for correctness.
+
+## Monetization modes
+
+`app_commercial.monetization_state` holds one validated, server-controlled
+mode. It starts as `open_early_access`:
+
+```text
+OPEN EARLY ACCESS
+       │ admin explicitly starts monetization
+       ▼
+TIMED EARLY ACCESS
+       │ launch campaign completes / protected admin transition
+       ▼
+    PAID LIVE
+```
+
+Open Early Access resolves all eligible users to Pro with no expiration and
+does not mutate their historical 90-day grants. `Start Monetization Cycle` is
+a protected, audited and idempotent operation: it captures server time, opens
+the configured 90-day timed campaign, and creates one launch grant per user.
+
+An `admin_grant` with `ends_at = NULL` is permanent complimentary Pro. It is
+independent from Google Play and remains effective in every mode until ended.
+Finite complimentary grants use an authoritative `ends_at` timestamp.
 
 ## Early Access and trials
 
@@ -95,7 +120,7 @@ Secrets must never be committed or exposed to Flutter/admin browser bundles.
 | --- | --- |
 | `google-play-billing` | Verifies/restores a purchase token with Android Publisher API, stores normalized subscription state, and returns effective entitlement. |
 | `google-play-rtdn` | Stores append-only RTDN events idempotently and updates matched subscription lifecycle status. |
-| `commercial-admin` | Super Admin overview, campaign changes, app config changes, and manual temporary Pro grants with audit logging. |
+| `commercial-admin` | Super Admin overview, user/grant lifecycle, campaign changes, protected monetization start, audit log, and app configuration actions. |
 
 ## Downgrade behavior
 
