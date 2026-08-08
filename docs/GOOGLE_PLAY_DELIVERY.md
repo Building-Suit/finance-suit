@@ -128,6 +128,27 @@ access.
 Do not put the service-account JSON in the app bundle, repository, workflow
 artifacts, issue comments, or chat messages.
 
+## 6. Authenticated RTDN push configuration
+
+The `google-play-rtdn` Edge Function keeps Supabase gateway JWT verification
+disabled because Pub/Sub sends a Google-signed OIDC identity token instead of
+a Supabase Auth token. The function verifies that token cryptographically and
+requires the Google issuer, the exact `GOOGLE_PLAY_RTDN_EXPECTED_AUDIENCE`, the
+exact `GOOGLE_PLAY_RTDN_PUSH_SERVICE_ACCOUNT_EMAIL`, and `email_verified=true`.
+
+Configure these Supabase secrets after deployment (placeholders only here):
+
+- `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`
+- `GOOGLE_PLAY_PACKAGE_NAME=com.buildingsuit.finance`
+- `GOOGLE_PLAY_RTDN_EXPECTED_AUDIENCE=https://<PROJECT_REF>.supabase.co/functions/v1/google-play-rtdn`
+- `GOOGLE_PLAY_RTDN_PUSH_SERVICE_ACCOUNT_EMAIL=finance-suit-rtdn-push@<GCP_PROJECT_ID>.iam.gserviceaccount.com`
+
+The operator must create the dedicated push identity, grant the Pub/Sub
+service-agent token-creator permission, configure authenticated push with that
+identity and exact audience, keep payload unwrapping off, and send a Play
+Console RTDN Test Notification. No Google Cloud resources are created by this
+repository.
+
 ## 5. Personal-account production access
 
 New Personal Play Console accounts must complete a Closed Test with at least
