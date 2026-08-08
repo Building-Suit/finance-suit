@@ -1133,6 +1133,17 @@ class FinanceRepository {
     });
   }
 
+  Future<Result<String>> configurePurchaseInterest(
+    PurchaseInterestRuleDraft draft,
+  ) {
+    return guard(() async {
+      return _db.rpc<String>(
+        'configure_purchase_interest_rule',
+        params: draft.toRpcParams(),
+      );
+    });
+  }
+
   /// Schedules a rate change effective from [effectiveFrom] (today or a
   /// future date); the previously effective version keeps its own history.
   Future<Result<String>> createFeeRuleVersion({

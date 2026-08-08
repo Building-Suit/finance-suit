@@ -3080,4 +3080,156 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get aiResearchIncompleteMessage =>
       'We filled what we could. Complete the highlighted fields to continue.';
+
+  @override
+  String get cardPaymentDueDay => 'Payment due day';
+
+  @override
+  String get cardStatementCloses => 'Statement closes';
+
+  @override
+  String get cardStatementExactDay => 'Exact day';
+
+  @override
+  String get cardStatementEndOfMonth => 'End of month';
+
+  @override
+  String get cardInstallmentDueDay => 'Installment due day (optional)';
+
+  @override
+  String get cardGracePeriodDays => 'Grace period (days)';
+
+  @override
+  String get valGracePeriodDays => 'Enter a grace period from 0 to 90 days.';
+
+  @override
+  String get minPaymentPercentageBasis => 'Minimum percent applies to';
+
+  @override
+  String get minPaymentBasisRevolving => 'Revolving purchases and interest';
+
+  @override
+  String get minPaymentBasisStatement => 'Full statement obligation';
+
+  @override
+  String get minPaymentIncludeInstallments => 'Include installment dues';
+
+  @override
+  String get minPaymentIncludeBankFees => 'Include bank fees';
+
+  @override
+  String get minPaymentIncludeOverdue => 'Include overdue obligations';
+
+  @override
+  String get purchaseInterestTitle => 'Purchase interest';
+
+  @override
+  String get purchaseInterestState => 'Interest terms';
+
+  @override
+  String get purchaseInterestStateHelp =>
+      'Use unknown when the bank posts actual interest but you do not know the calculation rate.';
+
+  @override
+  String get purchaseInterestRate => 'Interest rate';
+
+  @override
+  String get purchaseInterestRatePeriod => 'Rate period';
+
+  @override
+  String get purchaseInterestPeriodMonthly => 'Per month';
+
+  @override
+  String get purchaseInterestPeriodAnnual => 'Per year';
+
+  @override
+  String get purchaseInterestAccrual => 'Accrual method';
+
+  @override
+  String get purchaseInterestAccrualManual => 'Bank-posted actual amount';
+
+  @override
+  String get purchaseInterestAccrualDaily => 'Daily balance calculation';
+
+  @override
+  String get purchaseInterestStarts => 'Interest starts from';
+
+  @override
+  String get purchaseInterestStartTransaction => 'Transaction date';
+
+  @override
+  String get purchaseInterestStartStatement => 'Statement date';
+
+  @override
+  String get purchaseInterestStartPaymentDue => 'Payment due date';
+
+  @override
+  String get purchaseInterestStartGraceExpiry => 'Grace period expiry';
+
+  @override
+  String get purchaseInterestGraceApplies => 'Grace period applies';
+
+  @override
+  String get purchaseInterestEffectiveFrom => 'Effective from';
+
+  @override
+  String get purchaseInterestCategory => 'Interest expense category';
+
+  @override
+  String get valPurchaseInterestRate => 'Enter a rate between 0.01 and 100%.';
+
+  @override
+  String get valPurchaseInterestCategory =>
+      'Choose an expense category for interest.';
+
+  @override
+  String get feeTypePurchaseInterest => 'Purchase interest';
+
+  @override
+  String get facilityActivityPurchaseInterest => 'Purchase interest';
+
+  @override
+  String get facilityActivityInstallmentInterest => 'Installment interest';
+
+  @override
+  String get purchaseImportAsOf => 'Import position as of';
+
+  @override
+  String get purchasePaidThrough => 'Paid through';
+
+  @override
+  String get purchaseCurrentInstallmentPosted =>
+      'Current installment is already posted';
+
+  @override
+  String get purchaseBankOutstanding => 'Bank-reported principal outstanding';
+
+  @override
+  String get purchaseBankOutstandingHelp =>
+      'Use the bank\'s figure when it differs from the calculated remaining principal; the difference is retained for reconciliation.';
+
+  @override
+  String get purchaseReconciliationNote => 'Reconciliation note';
+
+  @override
+  String get valFutureInstallmentPaid =>
+      'A future installment cannot be marked paid unless it was explicitly prepaid.';
+
+  @override
+  String get valBankOutstanding =>
+      'Enter a positive outstanding amount below the financed principal.';
+
+  @override
+  String get planOutstandingPrincipal => 'Outstanding principal';
+
+  @override
+  String get planRemainingScheduledPayments => 'Remaining scheduled payments';
+
+  @override
+  String get planRemainingFutureInterest => 'Future interest not yet posted';
+
+  @override
+  String planInstallmentCounts(int paid, int current, int future) {
+    return '$paid paid · $current current · $future future';
+  }
 }

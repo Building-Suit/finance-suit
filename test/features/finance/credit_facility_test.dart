@@ -239,6 +239,13 @@ void main() {
       'p_min_payment_fixed_minor': null,
       'p_min_payment_basis_points': 500,
       'p_color_hex': null,
+      'p_installment_due_day': null,
+      'p_grace_period_days': 0,
+      'p_min_payment_percentage_basis': 'statement_total',
+      'p_min_payment_include_installment_dues': false,
+      'p_min_payment_include_bank_fees': true,
+      'p_min_payment_include_overdue': false,
+      'p_min_payment_fixed_floor_minor': null,
       'p_fx_markup_basis_points': null,
     });
 
@@ -273,6 +280,29 @@ void main() {
     expect(planJson['p_financing_fees_minor'], 3000);
     expect(planJson['p_total_payable_minor'], isNull);
     expect(planJson['p_plan_id'], 'plan-1');
+
+    const historicalDraft = InstallmentPlanDraft(
+      accountId: 'f1',
+      title: 'Imported plan',
+      categoryId: 'c1',
+      purchasedOn: PlainDate(2026, 1, 1),
+      purchasePriceMinor: 1300000,
+      installmentCount: 36,
+      firstDueOn: PlainDate(2026, 2, 25),
+      paidInstallments: 27,
+      importAsOf: PlainDate(2026, 8, 7),
+      paidThroughOn: PlainDate(2026, 7, 25),
+      currentInstallmentPosted: true,
+      bankReportedPrincipalMinor: 439869,
+      reconciliationAsOf: PlainDate(2026, 8, 7),
+      reconciliationNotes: 'Matched to bank activity.',
+    );
+    final historicalJson = historicalDraft.toJson();
+    expect(historicalJson['p_import_as_of'], '2026-08-07');
+    expect(historicalJson['p_paid_through_on'], '2026-07-25');
+    expect(historicalJson['p_current_installment_posted'], isTrue);
+    expect(historicalJson['p_bank_reported_principal_minor'], 439869);
+    expect(historicalJson['p_reconciliation_as_of'], '2026-08-07');
 
     const paymentDraft = FacilityPaymentDraft(
       accountId: 'f1',

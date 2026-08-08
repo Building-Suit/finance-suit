@@ -61,6 +61,8 @@ class _InstallmentPurchaseScreenState
   final _upfrontFeesController = TextEditingController(text: '0');
   final _countController = TextEditingController(text: '1');
   final _paidCountController = TextEditingController(text: '0');
+  final _bankOutstandingController = TextEditingController();
+  final _reconciliationNotesController = TextEditingController();
   final _notesController = TextEditingController();
 
   /// Client-generated so a save retry cannot create a second plan.
@@ -71,11 +73,14 @@ class _InstallmentPurchaseScreenState
   String? _downAccountId;
   bool _hasDownPayment = false;
   bool _importRunning = false;
+  bool _currentInstallmentPosted = false;
   PlanPricingMethod _pricing = PlanPricingMethod.manualFees;
   InterestRatePeriod _ratePeriod = InterestRatePeriod.monthly;
   InterestMethod _rateMethod = InterestMethod.flat;
   PlainDate _purchasedOn = PlainDate.today();
   PlainDate? _firstDueOn;
+  PlainDate _importAsOf = PlainDate.today();
+  PlainDate? _paidThroughOn;
   AppFailure? _failure;
   bool _busy = false;
   bool _editLoaded = false;
@@ -155,6 +160,17 @@ class _InstallmentPurchaseScreenState
         _importRunning = true;
         _paidCountController.text = '$presettled';
       }
+      _importRunning = true;
+      _importAsOf =
+          plan.importAsOf ?? plan.reconciliationAsOf ?? PlainDate.today();
+      _paidThroughOn = plan.paidThroughOn;
+      _currentInstallmentPosted = plan.currentInstallmentPosted;
+      if (plan.bankReportedPrincipalMinor != null) {
+        _bankOutstandingController.text = formatMinorForInput(
+          plan.bankReportedPrincipalMinor!,
+        );
+      }
+      _reconciliationNotesController.text = plan.reconciliationNotes ?? '';
     }
     setState(() => _editLoaded = true);
   }
@@ -172,12 +188,14 @@ class _InstallmentPurchaseScreenState
     _upfrontFeesController.dispose();
     _countController.dispose();
     _paidCountController.dispose();
+    _bankOutstandingController.dispose();
+    _reconciliationNotesController.dispose();
     _notesController.dispose();
     super.dispose();
   }
 
   PlainDate _defaultFirstDue(CreditFacilitySummary facility) {
-    final day = facility.defaultDueDay;
+    final day = facility.installmentDueDay ?? facility.defaultDueDay;
     var candidate = _purchasedOn.withDay(
       math.min(
         day,
@@ -217,6 +235,24 @@ class _InstallmentPurchaseScreenState
         _purchasedOn = PlainDate.fromDateTime(picked);
       } else {
         _firstDueOn = PlainDate.fromDateTime(picked);
+      }
+    });
+  }
+
+  Future<void> _pickImportDate({required bool paidThrough}) async {
+    final initial = paidThrough ? (_paidThroughOn ?? _importAsOf) : _importAsOf;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial.toDateTime(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      if (paidThrough) {
+        _paidThroughOn = PlainDate.fromDateTime(picked);
+      } else {
+        _importAsOf = PlainDate.fromDateTime(picked);
       }
     });
   }
@@ -266,6 +302,21 @@ class _InstallmentPurchaseScreenState
       upfrontFeesMinor: upfrontFees,
       downPaidOn: down > 0 ? _purchasedOn : null,
       paidInstallments: paid,
+      importAsOf: _importRunning ? _importAsOf : null,
+      paidThroughOn: _importRunning ? _paidThroughOn : null,
+      currentInstallmentPosted: _importRunning && _currentInstallmentPosted,
+      bankReportedPrincipalMinor: _importRunning
+          ? _minor(_bankOutstandingController, currency)
+          : null,
+      reconciliationAsOf:
+          _importRunning && _bankOutstandingController.text.trim().isNotEmpty
+          ? _importAsOf
+          : null,
+      reconciliationNotes:
+          _importRunning &&
+              _reconciliationNotesController.text.trim().isNotEmpty
+          ? _reconciliationNotesController.text.trim()
+          : null,
     );
   }
 
@@ -370,8 +421,20 @@ class _InstallmentPurchaseScreenState
     final paidCount = _importRunning
         ? (int.tryParse(_paidCountController.text.trim()) ?? 0)
         : 0;
-    final chargeMinor = financing == null || count == null || count < 1
+    final bankOutstanding = _importRunning
+        ? _minor(_bankOutstandingController, currency)
+        : null;
+    final calculatedCharge = financing == null || count == null || count < 1
         ? null
+        : _rateMethod == InterestMethod.reducing && financed != null
+        ? previewReducingRemainingPrincipal(
+            principalMinor: financed,
+            totalInterestMinor: financing.interestMinor,
+            installmentCount: count,
+            paidInstallments: paidCount,
+            rateBasisPoints: _rateBasisPoints,
+            ratePeriod: _ratePeriod,
+          )
         : financing.totalMinor -
               previewInstallmentSchedule(
                     totalPayableMinor: financing.totalMinor,
@@ -380,6 +443,7 @@ class _InstallmentPurchaseScreenState
                   )
                   .take(paidCount.clamp(0, count).toInt())
                   .fold<int>(0, (sum, e) => sum + e.amountMinor);
+    final chargeMinor = bankOutstanding ?? calculatedCharge;
     final exceedsCredit =
         !_isEdit &&
         chargeMinor != null &&
@@ -831,6 +895,19 @@ class _InstallmentPurchaseScreenState
                         : (v) => setState(() => _importRunning = v),
                   ),
                   if (_importRunning) ...[
+                    ListTile(
+                      key: const Key('purchase-import-as-of'),
+                      contentPadding: EdgeInsets.zero,
+                      leading: const FinanceSuitIcon(
+                        FinanceSuitIcons.calendarToday,
+                      ),
+                      title: Text(l10n.purchaseImportAsOf),
+                      subtitle: Text(_importAsOf.toIso()),
+                      trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
+                      onTap: _busy
+                          ? null
+                          : () => _pickImportDate(paidThrough: false),
+                    ),
                     AppTextFormField(
                       key: const Key('purchase-paid-count'),
                       controller: _paidCountController,
@@ -853,8 +930,77 @@ class _InstallmentPurchaseScreenState
                         if (total != null && paid >= total) {
                           return l10n.valPaidInstallments;
                         }
+                        final firstDue =
+                            _firstDueOn ?? _defaultFirstDue(facility);
+                        if (paid > 0 &&
+                            firstDue.addMonths(paid - 1).isAfter(_importAsOf)) {
+                          return l10n.valFutureInstallmentPaid;
+                        }
                         return null;
                       },
+                    ),
+                    ListTile(
+                      key: const Key('purchase-paid-through'),
+                      contentPadding: EdgeInsets.zero,
+                      leading: const FinanceSuitIcon(
+                        FinanceSuitIcons.eventAvailable,
+                      ),
+                      title: Text(l10n.purchasePaidThrough),
+                      subtitle: Text(
+                        _paidThroughOn?.toIso() ?? l10n.commonOptional,
+                      ),
+                      trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
+                      onTap: _busy
+                          ? null
+                          : () => _pickImportDate(paidThrough: true),
+                    ),
+                    SwitchListTile.adaptive(
+                      key: const Key('purchase-current-posted'),
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(l10n.purchaseCurrentInstallmentPosted),
+                      value: _currentInstallmentPosted,
+                      onChanged: _busy
+                          ? null
+                          : (value) => setState(
+                              () => _currentInstallmentPosted = value,
+                            ),
+                    ),
+                    AppTextFormField(
+                      key: const Key('purchase-bank-outstanding'),
+                      controller: _bankOutstandingController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      inputFormatters: moneyInputFormatters(),
+                      decoration: InputDecoration(
+                        labelText:
+                            '${l10n.purchaseBankOutstanding} '
+                            '(${l10n.commonOptional})',
+                        suffixText: currency,
+                        helperText: l10n.purchaseBankOutstandingHelp,
+                        helperMaxLines: 3,
+                      ),
+                      validator: (value) {
+                        if ((value ?? '').trim().isEmpty) return null;
+                        final money = Money.tryParse(
+                          value!,
+                          currencyCode: currency,
+                        );
+                        return money == null || money.minor < 0
+                            ? l10n.valBankOutstanding
+                            : null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    AppTextFormField(
+                      key: const Key('purchase-reconciliation-note'),
+                      controller: _reconciliationNotesController,
+                      maxLines: 2,
+                      decoration: InputDecoration(
+                        labelText:
+                            '${l10n.purchaseReconciliationNote} '
+                            '(${l10n.commonOptional})',
+                      ),
                     ),
                   ],
                 ],
