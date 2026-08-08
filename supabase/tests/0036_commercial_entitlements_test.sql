@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(26);
+select plan(27);
 
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -121,6 +121,12 @@ select is(
 
 set local role authenticated;
 set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}';
+
+select is(
+  (select source::text from app_commercial.resolve_effective_entitlement()),
+  'open_early_access',
+  'ordinary user can resolve their own entitlement from their JWT'
+);
 
 select throws_ok(
   $$insert into app_commercial.entitlement_grants (user_id, plan_key, source, starts_at, ends_at, reason)
