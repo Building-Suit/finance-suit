@@ -3063,4 +3063,153 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get aiResearchIncompleteMessage =>
       'قمنا بتعبئة ما استطعنا تعبئته. أكمل الحقول المميزة للمتابعة.';
+
+  @override
+  String get cardPaymentDueDay => 'يوم استحقاق السداد';
+
+  @override
+  String get cardStatementCloses => 'إغلاق كشف الحساب';
+
+  @override
+  String get cardStatementExactDay => 'يوم محدد';
+
+  @override
+  String get cardStatementEndOfMonth => 'نهاية الشهر';
+
+  @override
+  String get cardInstallmentDueDay => 'يوم استحقاق القسط (اختياري)';
+
+  @override
+  String get cardGracePeriodDays => 'فترة السماح (بالأيام)';
+
+  @override
+  String get valGracePeriodDays => 'أدخل فترة سماح من 0 إلى 90 يومًا.';
+
+  @override
+  String get minPaymentPercentageBasis => 'تُحسب نسبة الحد الأدنى على';
+
+  @override
+  String get minPaymentBasisRevolving => 'المشتريات الدوارة والفائدة';
+
+  @override
+  String get minPaymentBasisStatement => 'إجمالي التزامات كشف الحساب';
+
+  @override
+  String get minPaymentIncludeInstallments => 'تضمين الأقساط المستحقة';
+
+  @override
+  String get minPaymentIncludeBankFees => 'تضمين رسوم البنك';
+
+  @override
+  String get minPaymentIncludeOverdue => 'تضمين الالتزامات المتأخرة';
+
+  @override
+  String get purchaseInterestTitle => 'فائدة المشتريات';
+
+  @override
+  String get purchaseInterestState => 'شروط الفائدة';
+
+  @override
+  String get purchaseInterestStateHelp =>
+      'اختر غير معروف عندما يضيف البنك الفائدة الفعلية ولا تعرف معدل الاحتساب.';
+
+  @override
+  String get purchaseInterestRate => 'معدل الفائدة';
+
+  @override
+  String get purchaseInterestRatePeriod => 'فترة المعدل';
+
+  @override
+  String get purchaseInterestPeriodMonthly => 'شهريًا';
+
+  @override
+  String get purchaseInterestPeriodAnnual => 'سنويًا';
+
+  @override
+  String get purchaseInterestAccrual => 'طريقة الاحتساب';
+
+  @override
+  String get purchaseInterestAccrualManual => 'المبلغ الفعلي المسجل من البنك';
+
+  @override
+  String get purchaseInterestAccrualDaily => 'احتساب الرصيد اليومي';
+
+  @override
+  String get purchaseInterestStarts => 'تبدأ الفائدة من';
+
+  @override
+  String get purchaseInterestStartTransaction => 'تاريخ العملية';
+
+  @override
+  String get purchaseInterestStartStatement => 'تاريخ كشف الحساب';
+
+  @override
+  String get purchaseInterestStartPaymentDue => 'تاريخ استحقاق السداد';
+
+  @override
+  String get purchaseInterestStartGraceExpiry => 'انتهاء فترة السماح';
+
+  @override
+  String get purchaseInterestGraceApplies => 'تُطبق فترة السماح';
+
+  @override
+  String get purchaseInterestEffectiveFrom => 'ساري من';
+
+  @override
+  String get purchaseInterestCategory => 'فئة مصروف الفائدة';
+
+  @override
+  String get valPurchaseInterestRate => 'أدخل معدلًا بين 0.01 و100%.';
+
+  @override
+  String get valPurchaseInterestCategory => 'اختر فئة مصروف للفائدة.';
+
+  @override
+  String get feeTypePurchaseInterest => 'فائدة المشتريات';
+
+  @override
+  String get facilityActivityPurchaseInterest => 'فائدة المشتريات';
+
+  @override
+  String get facilityActivityInstallmentInterest => 'فائدة التقسيط';
+
+  @override
+  String get purchaseImportAsOf => 'موقف الاستيراد في';
+
+  @override
+  String get purchasePaidThrough => 'مدفوع حتى';
+
+  @override
+  String get purchaseCurrentInstallmentPosted => 'القسط الحالي مُسجل بالفعل';
+
+  @override
+  String get purchaseBankOutstanding => 'أصل الدين المتبقي حسب البنك';
+
+  @override
+  String get purchaseBankOutstandingHelp =>
+      'استخدم رقم البنك إذا اختلف عن أصل الدين المحسوب؛ سيُحفظ الفرق للمطابقة.';
+
+  @override
+  String get purchaseReconciliationNote => 'ملاحظة المطابقة';
+
+  @override
+  String get valFutureInstallmentPaid =>
+      'لا يمكن اعتبار قسط مستقبلي مدفوعًا إلا إذا كان مسددًا مقدمًا بالفعل.';
+
+  @override
+  String get valBankOutstanding => 'أدخل مبلغًا موجبًا أقل من أصل التمويل.';
+
+  @override
+  String get planOutstandingPrincipal => 'أصل الدين المتبقي';
+
+  @override
+  String get planRemainingScheduledPayments => 'الدفعات المجدولة المتبقية';
+
+  @override
+  String get planRemainingFutureInterest => 'فائدة مستقبلية لم تُسجل بعد';
+
+  @override
+  String planInstallmentCounts(int paid, int current, int future) {
+    return '$paid مدفوع · $current حالي · $future مستقبلي';
+  }
 }

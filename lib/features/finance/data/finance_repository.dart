@@ -582,7 +582,15 @@ class FinanceRepository {
   /// once, and rebuilds the statement linkage. Writing the table directly
   /// would be rejected by the facility guard rails as soon as either side is
   /// a credit card or BNPL account.
-  Future<Result<void>> updateTransaction(String id, TransactionDraft draft) {
+  ///
+  /// [isForeignCurrency] is evaluated fresh against the destination account
+  /// and new amount every time: creating, resizing, or removing the flat FX
+  /// markup to match, regardless of whether one existed before the edit.
+  Future<Result<void>> updateTransaction(
+    String id,
+    TransactionDraft draft, {
+    bool isForeignCurrency = false,
+  }) {
     return guard(() async {
       await _db.rpc<String>(
         'update_expense_transaction',
@@ -595,8 +603,23 @@ class FinanceRepository {
           'p_counterparty': draft.counterparty,
           'p_title': draft.title,
           'p_notes': draft.notes,
+          'p_is_foreign_currency': isForeignCurrency,
         },
       );
+    });
+  }
+
+  /// Whether [transactionId] already has a linked flat FX markup charge —
+  /// used to preselect the "in foreign currency?" switch when opening an
+  /// existing expense for editing.
+  Future<Result<bool>> hasFxMarkupCharge(String transactionId) {
+    return guard(() async {
+      final row = await _db
+          .from('credit_card_fx_markup_charges')
+          .select('id')
+          .eq('purchase_transaction_id', transactionId)
+          .maybeSingle();
+      return row != null;
     });
   }
 
@@ -1130,6 +1153,17 @@ class FinanceRepository {
         params: draft.toRpcParams(ruleId: ruleId),
       );
       return id;
+    });
+  }
+
+  Future<Result<String>> configurePurchaseInterest(
+    PurchaseInterestRuleDraft draft,
+  ) {
+    return guard(() async {
+      return _db.rpc<String>(
+        'configure_purchase_interest_rule',
+        params: draft.toRpcParams(),
+      );
     });
   }
 

@@ -917,6 +917,34 @@ class _PlanCard extends StatelessWidget {
               style: theme.textTheme.bodySmall,
               interactive: false,
             ),
+            const SizedBox(height: 4),
+            ProtectedMoneyText(
+              '${l10n.planOutstandingPrincipal}: '
+              '${plan.remainingPrincipal.format()}',
+              style: theme.textTheme.bodySmall,
+              interactive: false,
+            ),
+            ProtectedMoneyText(
+              '${l10n.planRemainingScheduledPayments}: '
+              '${plan.remainingScheduledPayments.format()}',
+              style: theme.textTheme.bodySmall,
+              interactive: false,
+            ),
+            if (plan.remainingFutureInterestMinor > 0)
+              ProtectedMoneyText(
+                '${l10n.planRemainingFutureInterest}: '
+                '${plan.remainingFutureInterest.format()}',
+                style: theme.textTheme.bodySmall,
+                interactive: false,
+              ),
+            Text(
+              l10n.planInstallmentCounts(
+                plan.paidInstallments,
+                plan.currentPostedInstallments,
+                plan.futureInstallments,
+              ),
+              style: theme.textTheme.bodySmall,
+            ),
             if (plan.bankCostTotalMinor > 0) ...[
               const SizedBox(height: 2),
               ProtectedMoneyText(
@@ -975,6 +1003,10 @@ class _RelatedActivityTile extends StatelessWidget {
       FacilityActivityKind.installmentDownPayment =>
         l10n.facilityActivityDownPayment,
       FacilityActivityKind.feeCharge => l10n.facilityActivityFee,
+      FacilityActivityKind.purchaseInterest =>
+        l10n.facilityActivityPurchaseInterest,
+      FacilityActivityKind.installmentInterest =>
+        l10n.facilityActivityInstallmentInterest,
       FacilityActivityKind.ordinaryExpense ||
       FacilityActivityKind.other => l10n.facilityPurchaseLabel,
     };
@@ -987,7 +1019,9 @@ class _RelatedActivityTile extends StatelessWidget {
     final icon = switch (item.kind) {
       FacilityActivityKind.facilityRepayment ||
       FacilityActivityKind.repaymentReversal => FinanceSuitIcons.payments,
-      FacilityActivityKind.feeCharge => FinanceSuitIcons.receiptLong,
+      FacilityActivityKind.feeCharge ||
+      FacilityActivityKind.purchaseInterest ||
+      FacilityActivityKind.installmentInterest => FinanceSuitIcons.receiptLong,
       _ => FinanceSuitIcons.shoppingCart,
     };
     return ListTile(
@@ -1035,7 +1069,7 @@ class _StatementTile extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final colors = context.suitColors;
     final theme = Theme.of(context);
-    final tone = switch (statement.status) {
+    final tone = switch (statement.obligationStatus) {
       StatementCycleStatus.overdue => colors.error,
       StatementCycleStatus.dueToday => colors.warning,
       _ => colors.info,
@@ -1049,12 +1083,12 @@ class _StatementTile extends StatelessWidget {
       ),
       subtitle: Text(
         '${l10n.statementDueOn(statement.dueOn.toIso())} · '
-        '${statementCycleStatusLabel(l10n, statement.status)}'
-        '${statement.minimumDueMinor < statement.remainingMinor && statement.remainingMinor > 0 ? '\n${l10n.statementMinimumDue}: ${statement.minimumDue.format()}' : ''}',
+        '${statementCycleStatusLabel(l10n, statement.obligationStatus)}'
+        '${statement.minimumDueMinor < statement.totalRemainingMinor && statement.totalRemainingMinor > 0 ? '\n${l10n.statementMinimumDue}: ${statement.minimumDue.format()}' : ''}',
       ),
       isThreeLine:
-          statement.minimumDueMinor < statement.remainingMinor &&
-          statement.remainingMinor > 0,
+          statement.minimumDueMinor < statement.totalRemainingMinor &&
+          statement.totalRemainingMinor > 0,
       trailing: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -1064,10 +1098,10 @@ class _StatementTile extends StatelessWidget {
             style: theme.textTheme.titleSmall,
             sign: AppMoneySign.never,
           ),
-          if (statement.status == StatementCycleStatus.overdue ||
-              statement.status == StatementCycleStatus.dueToday)
+          if (statement.obligationStatus == StatementCycleStatus.overdue ||
+              statement.obligationStatus == StatementCycleStatus.dueToday)
             Text(
-              statementCycleStatusLabel(l10n, statement.status),
+              statementCycleStatusLabel(l10n, statement.obligationStatus),
               style: theme.textTheme.labelSmall?.copyWith(color: tone.text),
             ),
         ],
@@ -1445,6 +1479,10 @@ List<FeePercentBasis> _feePercentBasesFor(CardRuleTrigger trigger) =>
       CardRuleTrigger.earlySettlement => const [
         FeePercentBasis.remainingPrincipal,
         FeePercentBasis.remainingOutstanding,
+      ],
+      CardRuleTrigger.statementInterest => const [
+        FeePercentBasis.statementBalance,
+        FeePercentBasis.outstandingBalance,
       ],
       CardRuleTrigger.manual => const [FeePercentBasis.outstandingBalance],
     };

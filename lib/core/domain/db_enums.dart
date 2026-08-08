@@ -180,6 +180,7 @@ enum CardFeeType {
   walletFee('wallet_fee'),
   statementFee('statement_fee'),
   earlySettlement('early_settlement'),
+  purchaseInterest('purchase_interest'),
   latePayment('late_payment'),
   overLimit('over_limit'),
   installmentConversion('installment_conversion'),
@@ -263,6 +264,7 @@ enum CardRuleTrigger {
   latePaymentMissedMinimum('late_payment_missed_minimum'),
   overLimitEvent('over_limit_event'),
   earlySettlement('early_settlement'),
+  statementInterest('statement_interest'),
   manual('manual');
 
   const CardRuleTrigger(this.dbValue);
@@ -332,6 +334,54 @@ enum MinPaymentMethod {
   final String dbValue;
 
   static MinPaymentMethod fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+enum MinPaymentPercentageBasis {
+  statementTotal('statement_total'),
+  revolvingNoninstallment('revolving_noninstallment');
+
+  const MinPaymentPercentageBasis(this.dbValue);
+  final String dbValue;
+
+  static MinPaymentPercentageBasis fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+enum CardInterestRatePeriod {
+  daily('daily'),
+  monthly('monthly'),
+  annual('annual');
+
+  const CardInterestRatePeriod(this.dbValue);
+  final String dbValue;
+
+  static CardInterestRatePeriod fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+enum CardInterestAccrualMethod {
+  bankPostedManual('bank_posted_manual'),
+  statementBased('statement_based'),
+  dailyAccrual('daily_accrual');
+
+  const CardInterestAccrualMethod(this.dbValue);
+  final String dbValue;
+
+  static CardInterestAccrualMethod fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+enum CardInterestStart {
+  purchaseDate('purchase_date'),
+  statementClose('statement_close'),
+  paymentDue('payment_due'),
+  graceExpiry('grace_expiry');
+
+  const CardInterestStart(this.dbValue);
+  final String dbValue;
+
+  static CardInterestStart fromDb(String value) =>
       values.firstWhere((e) => e.dbValue == value);
 }
 

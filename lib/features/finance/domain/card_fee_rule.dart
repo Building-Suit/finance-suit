@@ -107,6 +107,7 @@ CardRuleTrigger cardFeeTypeTrigger(CardFeeType type) => switch (type) {
   CardFeeType.latePayment => CardRuleTrigger.latePaymentMissedMinimum,
   CardFeeType.overLimit => CardRuleTrigger.overLimitEvent,
   CardFeeType.earlySettlement => CardRuleTrigger.earlySettlement,
+  CardFeeType.purchaseInterest => CardRuleTrigger.statementInterest,
   _ => CardRuleTrigger.schedule,
 };
 
@@ -188,6 +189,52 @@ class CardFeeRuleDraft {
     'p_apply_when': applyWhen?.dbValue,
     'p_mutual_exclusion_group': mutualExclusionGroup,
     'p_priority': priority,
+    'p_notes': notes,
+    'p_rule_id': ruleId,
+  };
+}
+
+@immutable
+class PurchaseInterestRuleDraft {
+  const PurchaseInterestRuleDraft({
+    required this.accountId,
+    required this.categoryId,
+    required this.state,
+    required this.effectiveFrom,
+    this.rateBasisPoints,
+    this.ratePeriod = CardInterestRatePeriod.monthly,
+    this.accrualMethod = CardInterestAccrualMethod.bankPostedManual,
+    this.interestStarts = CardInterestStart.graceExpiry,
+    this.gracePeriodDays,
+    this.graceApplies = true,
+    this.notes,
+    this.ruleId,
+  });
+
+  final String accountId;
+  final String categoryId;
+  final CardRuleState state;
+  final PlainDate effectiveFrom;
+  final int? rateBasisPoints;
+  final CardInterestRatePeriod ratePeriod;
+  final CardInterestAccrualMethod accrualMethod;
+  final CardInterestStart interestStarts;
+  final int? gracePeriodDays;
+  final bool graceApplies;
+  final String? notes;
+  final String? ruleId;
+
+  Map<String, dynamic> toRpcParams() => {
+    'p_account_id': accountId,
+    'p_category_id': categoryId,
+    'p_state': state.dbValue,
+    'p_effective_from': effectiveFrom.toIso(),
+    'p_rate_basis_points': rateBasisPoints,
+    'p_rate_period': ratePeriod.dbValue,
+    'p_accrual_method': accrualMethod.dbValue,
+    'p_interest_starts': interestStarts.dbValue,
+    'p_grace_period_days': gracePeriodDays,
+    'p_grace_applies': graceApplies,
     'p_notes': notes,
     'p_rule_id': ruleId,
   };

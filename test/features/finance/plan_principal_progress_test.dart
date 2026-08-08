@@ -12,6 +12,7 @@ void main() {
     required int total,
     required int paid,
     int count = 12,
+    int remainingPrincipal = -1,
   }) => InstallmentPlan(
     id: 'plan-1',
     accountId: 'card-1',
@@ -31,6 +32,7 @@ void main() {
     remainingMinor: total - paid,
     pricingMethod: PlanPricingMethod.interestRate,
     interestMinor: total - principal,
+    remainingPrincipalMinor: remainingPrincipal,
   );
 
   test('one paid installment credits the item with principal / count', () {
@@ -59,5 +61,17 @@ void main() {
     final p = plan(principal: 600000, total: 662244, paid: 0);
     expect(p.principalPaidMinor, 0);
     expect(p.bankCostPaidMinor, 0);
+  });
+
+  test('explicit bank principal overrides proportional legacy progress', () {
+    final p = plan(
+      principal: 1300000,
+      total: 1986734,
+      paid: 1490000,
+      count: 36,
+      remainingPrincipal: 439869,
+    );
+    expect(p.remainingPrincipalMinor, 439869);
+    expect(p.principalPaidMinor, 860131);
   });
 }
