@@ -1,4 +1,10 @@
 import { createClient } from "npm:@supabase/supabase-js@2.110.7";
+import {
+  type AdminBody,
+  assertUuid,
+  billingTestAccessReason,
+  requireReason,
+} from "./request.ts";
 
 const corsHeaders = {
   "access-control-allow-origin": "*",
@@ -16,43 +22,6 @@ const jsonHeaders = {
 
 function json(status: number, body: Record<string, unknown>): Response {
   return new Response(JSON.stringify(body), { status, headers: jsonHeaders });
-}
-
-type AdminBody = {
-  action?: string;
-  reason?: string;
-  userId?: string;
-  grantId?: string;
-  planKey?: "pro";
-  days?: number;
-  endsAt?: string;
-  permanent?: boolean;
-  enabled?: boolean;
-  page?: number;
-  pageSize?: number;
-  campaignKey?: string;
-  active?: boolean;
-  durationDays?: number;
-  configKey?: string;
-  value?: Record<string, unknown>;
-  announcement?: Record<string, unknown>;
-};
-
-function requireReason(body: AdminBody): string {
-  const reason = String(body.reason ?? "").trim();
-  if (reason.length < 6) throw new Error("reason_required");
-  return reason;
-}
-
-function assertUuid(value: unknown, code: string): string {
-  if (
-    typeof value !== "string" ||
-    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-      .test(value)
-  ) {
-    throw new Error(code);
-  }
-  return value;
 }
 
 Deno.serve(async (request: Request) => {
@@ -355,8 +324,8 @@ Deno.serve(async (request: Request) => {
       }
       case "set_billing_test_access": {
         const targetUserId = assertUuid(body.userId, "invalid_user_id");
-        const reason = requireReason(body);
         const enabled = body.enabled === true;
+        const reason = billingTestAccessReason(body, enabled);
         const before = await admin.schema("app_commercial").from(
           "billing_testers",
         )

@@ -12,7 +12,7 @@ port = 54321
 # the default schema and is split by module ownership. `public` stays exposed
 # only for the existing legacy finance tracker app that still reads those
 # tables.
-schemas = ["public", "app_core", "app_finance", "app_work", "app_salary", "app_reports"]
+schemas = ["public", "app_core", "app_finance", "app_work", "app_salary", "app_reports", "app_commercial"]
 # Extra schemas to add to the search_path of every request.
 extra_search_path = ["extensions"]
 # The maximum number of rows returns from a view, table, or stored procedure. Limits payload size
