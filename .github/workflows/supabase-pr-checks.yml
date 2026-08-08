@@ -29,3 +29,8 @@ jobs:
 
       - name: Run database tests
         run: npx --yes supabase@2.109.1 test db
+
+      - name: Verify production schema contract
+        run: >-
+          npx --yes supabase@2.109.1 db query --local
+          --file supabase/verification/production.sql
