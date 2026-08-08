@@ -140,9 +140,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
             .toStringAsFixed(2);
       }
       if (facility.fxMarkupBasisPoints != null) {
-        _fxMarkupController.text = facility.fxMarkupPercent!.toStringAsFixed(
-          2,
-        );
+        _fxMarkupController.text = facility.fxMarkupPercent!.toStringAsFixed(2);
       }
     }
     setState(() {

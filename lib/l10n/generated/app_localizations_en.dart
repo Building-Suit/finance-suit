@@ -2578,6 +2578,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get valMinPaymentPercent => 'Enter a percent between 0.01 and 100.';
 
   @override
+  String get fxMarkupLabel => 'Foreign exchange markup';
+
+  @override
+  String get fxMarkupHelp =>
+      'Charged as a second expense whenever a purchase on this card is flagged in foreign currency.';
+
+  @override
+  String get valFxMarkupPercent => 'Enter a percent between 0.01 and 100.';
+
+  @override
   String get feeRulesSection => 'Card fees';
 
   @override
@@ -2680,6 +2690,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Highest of recent statements';
 
   @override
+  String get feeBasisHighestDailyBalance => 'Highest balance in recent months';
+
+  @override
   String get feeBasisRemainingPrincipal => 'Remaining principal';
 
   @override
@@ -2695,7 +2708,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feeRuleLookbackCycles => 'Look back this many statements';
 
   @override
+  String get feeRuleLookbackMonths => 'Look back this many months';
+
+  @override
   String get valFeeLookback => 'Enter a number from 1 to 24';
+
+  @override
+  String get feeRuleTriggerHint =>
+      'Charged automatically when the matching card event happens — no schedule of its own.';
+
+  @override
+  String get feeRuleApplyWhen => 'Applies when';
+
+  @override
+  String get applyWhenCurrencyDiffers => 'Billed in a foreign currency';
+
+  @override
+  String get applyWhenMerchantOutsideHome => 'Merchant outside the country';
+
+  @override
+  String get applyWhenEither => 'Foreign currency or foreign merchant';
+
+  @override
+  String get applyWhenBoth => 'Foreign currency and foreign merchant';
+
+  @override
+  String get applyWhenForeignMerchantHomeCurrency =>
+      'Foreign merchant billed in card currency';
+
+  @override
+  String get txIsForeignCurrency => 'In foreign currency?';
+
+  @override
+  String get txIsForeignCurrencyHelp =>
+      'Adds the card\'s foreign exchange markup as a second charge.';
 
   @override
   String get feeRuleFixedAmount => 'Fee amount';
