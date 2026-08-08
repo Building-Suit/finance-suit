@@ -143,7 +143,7 @@ jobs:
           set -euo pipefail
 
           mapfile -t local_functions < <(
-            find supabase/functions -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort
+            find supabase/functions -mindepth 1 -maxdepth 1 -type d ! -name '_shared' -printf '%f\n' | sort
           )
 
           if (( ${#local_functions[@]} == 0 )); then
@@ -198,6 +198,13 @@ jobs:
           if [[ -n "${diff_range}" ]]; then
             while IFS= read -r changed_path; do
               case "${changed_path}" in
+                supabase/functions/_shared/*)
+                  # Shared modules are bundled into each function. Redeploy all
+                  # deployable functions, but never attempt to deploy _shared.
+                  for function_name in "${local_functions[@]}"; do
+                    add_function "${function_name}"
+                  done
+                  ;;
                 supabase/functions/*/*)
                   function_name="${changed_path#supabase/functions/}"
                   function_name="${function_name%%/*}"
