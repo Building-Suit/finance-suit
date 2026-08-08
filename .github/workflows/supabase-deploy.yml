@@ -42,6 +42,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          fetch-depth: 0
 
       - name: Validate release branch and secrets
         shell: bash
@@ -133,21 +135,111 @@ jobs:
           npx --yes supabase@${SUPABASE_CLI_VERSION} db query --linked \
             --file supabase/verification/production.sql
 
-      - name: Deploy delete-account Edge Function
-        run: >-
-          npx --yes supabase@${SUPABASE_CLI_VERSION} functions deploy delete-account
-          --project-ref "${SUPABASE_PROJECT_REF}"
-          --no-verify-jwt
-          --use-api
+      - name: Deploy changed or missing Edge Functions
+        shell: bash
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
 
-      - name: Deploy ai-card-research Edge Function
-        run: >-
-          npx --yes supabase@${SUPABASE_CLI_VERSION} functions deploy ai-card-research
-          --project-ref "${SUPABASE_PROJECT_REF}"
-          --use-api
+          mapfile -t local_functions < <(
+            find supabase/functions -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort
+          )
 
-      - name: Deploy notification-worker Edge Function
-        run: >-
-          npx --yes supabase@${SUPABASE_CLI_VERSION} functions deploy notification-worker
-          --project-ref "${SUPABASE_PROJECT_REF}"
-          --use-api
+          if (( ${#local_functions[@]} == 0 )); then
+            echo "No local Edge Functions found; skipping deployment."
+            exit 0
+          fi
+
+          remote_json="${RUNNER_TEMP}/supabase-functions.json"
+          npx --yes supabase@${SUPABASE_CLI_VERSION} functions list \
+            --project-ref "${SUPABASE_PROJECT_REF}" \
+            --output json > "${remote_json}"
+
+          mapfile -t remote_functions < <(
+            python3 - "${remote_json}" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], "r", encoding="utf-8") as handle:
+              data = json.load(handle)
+          for item in data:
+              slug = item.get("slug") or item.get("name")
+              if slug:
+                  print(slug)
+          PY
+          )
+
+          deploy_file="${RUNNER_TEMP}/edge-functions-to-deploy"
+          : > "${deploy_file}"
+
+          add_function() {
+            local function_name="$1"
+            grep -Fxq "${function_name}" "${deploy_file}" || echo "${function_name}" >> "${deploy_file}"
+          }
+
+          for function_name in "${local_functions[@]}"; do
+            if ! printf '%s\n' "${remote_functions[@]}" | grep -Fxq "${function_name}"; then
+              echo "Will deploy new Edge Function: ${function_name}"
+              add_function "${function_name}"
+            fi
+          done
+
+          diff_range=""
+          zero_sha="0000000000000000000000000000000000000000"
+          if [[ -n "${BEFORE_SHA:-}" &&
+                "${BEFORE_SHA}" != "${zero_sha}" &&
+                "$(git cat-file -t "${BEFORE_SHA}" 2>/dev/null || true)" == "commit" ]]; then
+            diff_range="${BEFORE_SHA}...HEAD"
+          elif git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            diff_range="HEAD^...HEAD"
+          fi
+
+          if [[ -n "${diff_range}" ]]; then
+            while IFS= read -r changed_path; do
+              case "${changed_path}" in
+                supabase/functions/*/*)
+                  function_name="${changed_path#supabase/functions/}"
+                  function_name="${function_name%%/*}"
+                  add_function "${function_name}"
+                  ;;
+                supabase/config.toml)
+                  for function_name in "${local_functions[@]}"; do
+                    add_function "${function_name}"
+                  done
+                  ;;
+              esac
+            done < <(git diff --name-only "${diff_range}")
+          else
+            echo "No comparable previous commit found; deploying all local Edge Functions."
+            for function_name in "${local_functions[@]}"; do
+              add_function "${function_name}"
+            done
+          fi
+
+          if [[ ! -s "${deploy_file}" ]]; then
+            echo "No new or changed Edge Functions; skipping deployment."
+            exit 0
+          fi
+
+          while IFS= read -r function_name; do
+            mapfile -t deploy_args < <(
+              python3 - "${function_name}" <<'PY'
+          import sys
+          import tomllib
+
+          with open("supabase/config.toml", "rb") as handle:
+              config = tomllib.load(handle)
+
+          function_config = config.get("functions", {}).get(sys.argv[1], {})
+          if function_config.get("verify_jwt") is False:
+              print("--no-verify-jwt")
+          PY
+            )
+
+            echo "Deploying Edge Function: ${function_name}"
+            npx --yes supabase@${SUPABASE_CLI_VERSION} functions deploy "${function_name}" \
+              --project-ref "${SUPABASE_PROJECT_REF}" \
+              --use-api \
+              "${deploy_args[@]}"
+          done < "${deploy_file}"
