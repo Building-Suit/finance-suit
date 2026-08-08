@@ -256,14 +256,20 @@ reconciliation self-checking (§1.1 is exactly the check that cannot be run).
 
 ### 4.6 Backend features with no client reach
 
-> **Update (2026-08-07):** the FX row of this table is closed — the fee
-> editor now derives trigger kind from the fee type (with `apply_when`,
-> including a new *foreign merchant billed in home currency* condition, and
-> the `transaction_amount` basis), and card charges carry a merchant &
-> currency choice through `charge_credit_card`. A `highest daily balance`
-> basis was also added, so quarterly stamp duty computes CIB's real base.
-> Tenor rates, early settlement, and cash-advance/wallet subtypes remain
-> unwired below.
+> **Update (2026-08-07):** the FX row of this table is closed, twice over.
+> First pass: the fee editor learned to derive trigger kind from the fee
+> type (with `apply_when`, including a *foreign merchant billed in home
+> currency* condition, and the `transaction_amount` basis), and card charges
+> carried a merchant & currency choice through `charge_credit_card`. Second
+> pass, superseding it for the common case: a flat `fx_markup_basis_points`
+> rate lives directly on `credit_facility_settings`, and card charges carry
+> a plain "in foreign currency?" switch through `charge_liability_account` —
+> no fee rule to create first. The two mechanisms are independent and can
+> coexist; the rule-based one remains available for a card whose FX pricing
+> needs a condition, clamp, or lookback the flat rate can't express. A
+> `highest daily balance` basis was also added, so quarterly stamp duty
+> computes CIB's real base. Tenor rates, early settlement, and
+> cash-advance/wallet subtypes remain unwired below.
 
 | Feature | Backend | Repository | UI |
 | --- | --- | --- | --- |
