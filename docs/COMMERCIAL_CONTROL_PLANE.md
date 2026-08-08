@@ -106,11 +106,10 @@ Manual external setup still required:
 6. Store its JSON in the Edge Function secret
    `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`.
 7. Set `GOOGLE_PLAY_PACKAGE_NAME=com.buildingsuit.finance`.
-8. Configure Pub/Sub RTDN delivery to `google-play-rtdn`.
-9. Set `GOOGLE_PLAY_RTDN_SHARED_SECRET` and send it as
-   `x-finance-suit-rtdn-secret` if using the simple shared-secret guard.
-10. Mark provider sync as `synced` only after Play Console and Supabase config
-    match.
+8. Configure authenticated Pub/Sub RTDN delivery to `google-play-rtdn` as
+   described below.
+9. Mark provider sync as `synced` only after Play Console and Supabase config
+   match.
 
 Secrets must never be committed or exposed to Flutter/admin browser bundles.
 
@@ -121,6 +120,62 @@ Secrets must never be committed or exposed to Flutter/admin browser bundles.
 | `google-play-billing` | Verifies/restores a purchase token with Android Publisher API, stores normalized subscription state, and returns effective entitlement. |
 | `google-play-rtdn` | Stores append-only RTDN events idempotently and updates matched subscription lifecycle status. |
 | `commercial-admin` | Super Admin overview, user/grant lifecycle, campaign changes, protected monetization start, audit log, and app configuration actions. |
+
+## Google Play RTDN — Authenticated Pub/Sub Push
+
+The production lifecycle is:
+
+```text
+Google Play
+    ↓
+Cloud Pub/Sub topic
+    ↓
+Authenticated push subscription (payload unwrapping off)
+    ↓
+Google-signed OIDC JWT
+    ↓
+Supabase google-play-rtdn (gateway JWT verification remains false)
+    ↓
+Cryptographic OIDC verification: Google issuer, exact audience, exact email
+    ↓
+purchaseToken (hashed for local correlation)
+    ↓
+Google Android Publisher subscriptionsv2.get
+    ↓
+Verified SubscriptionPurchaseV2 and shared normalization
+    ↓
+paid_subscriptions
+    ↓
+resolve_effective_entitlement()
+```
+
+The RTDN notification type is audit context only. The verified Google API
+response is authoritative for subscription state. A notification received
+before client verification is recorded as `verified_unmatched`; it cannot
+create an ownerless or incorrectly owned subscription.
+
+Required Edge Function secrets/configuration:
+
+- `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`: Google Android Publisher API service-account JSON.
+- `GOOGLE_PLAY_PACKAGE_NAME`: `com.buildingsuit.finance`.
+- `GOOGLE_PLAY_RTDN_EXPECTED_AUDIENCE`: exact function URL, for example
+  `https://<PROJECT_REF>.supabase.co/functions/v1/google-play-rtdn`.
+- `GOOGLE_PLAY_RTDN_PUSH_SERVICE_ACCOUNT_EMAIL`: dedicated Pub/Sub push identity,
+  for example `finance-suit-rtdn-push@<GCP_PROJECT_ID>.iam.gserviceaccount.com`.
+
+After deployment, the human operator must manually:
+
+1. Create the dedicated push-auth service account.
+2. Grant the required Pub/Sub service-agent token-creator permission.
+3. Configure an authenticated push subscription using that identity.
+4. Set the audience to the exact Supabase RTDN function URL.
+5. Leave Pub/Sub payload unwrapping off.
+6. Set the two RTDN OIDC Supabase secrets above.
+7. Send a Play Console RTDN Test Notification.
+8. Confirm the resulting `google_play` `rtdn_test` billing event before marking RTDN healthy.
+
+These cloud and Play Console steps have not been performed by this repository
+change. `GOOGLE_PLAY_RTDN_SHARED_SECRET` and the old custom header are not used.
 
 ## Downgrade behavior
 
