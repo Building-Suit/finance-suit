@@ -68,6 +68,11 @@ Normal authenticated users can read the public catalog and their own grants and
 subscriptions. They cannot write grants, subscriptions, pricing, campaigns, or
 admin tables.
 
+Commercial RLS policies use `app_private.is_commercial_admin(...)`. The private
+schema grants authenticated callers only `USAGE` plus `EXECUTE` on that helper;
+the helper can evaluate only the caller's own `auth.uid()`. Do not revoke that
+narrow grant or ordinary entitlement reads will fail during policy evaluation.
+
 Super Admins are stored in `app_commercial.platform_admins`. Do not hardcode an
 email or UUID in app code. Bootstrap the first admin with a secure SQL command:
 
@@ -93,6 +98,10 @@ where user_id = '<AUTH_USER_ID>';
 Admin mutations go through the `commercial-admin` Edge Function, which validates
 the caller's JWT, checks `platform_admins`, performs the privileged mutation
 server-side, and writes `app_commercial.audit_log`.
+
+Billing-test access never grants Pro. Its admin action accepts an optional
+operator reason and records a canonical audit reason when the admin portal does
+not supply one.
 
 ## Google Play setup
 
