@@ -131,7 +131,7 @@ begin
   end if;
 
   if to_regprocedure(
-    'app_finance.create_installment_plan(uuid,text,uuid,date,bigint,integer,date,bigint,uuid,bigint,bigint,text,uuid,app_finance.plan_pricing_method,bigint,integer,app_finance.interest_rate_period,app_finance.interest_method,bigint,bigint,date,integer)'
+    'app_finance.create_installment_plan(uuid,text,uuid,date,bigint,integer,date,bigint,uuid,bigint,bigint,text,uuid,app_finance.plan_pricing_method,bigint,integer,app_finance.interest_rate_period,app_finance.interest_method,bigint,bigint,date,integer,date,date,boolean,boolean,bigint,date,text)'
   ) is null then
     v_missing := array_append(v_missing, 'create_installment_plan');
   end if;
@@ -141,7 +141,7 @@ begin
     raise exception 'Legacy create_installment_plan overload remains';
   end if;
   if to_regprocedure(
-    'app_finance.save_credit_facility(text,app_finance.account_type,text,bigint,smallint,smallint,text,smallint,text,uuid,app_finance.facility_status,app_finance.min_payment_method,bigint,integer,text,integer)'
+    'app_finance.save_credit_facility(text,app_finance.account_type,text,bigint,smallint,smallint,text,smallint,text,uuid,app_finance.facility_status,app_finance.min_payment_method,bigint,integer,text,integer,smallint,smallint,app_finance.min_payment_percentage_basis,boolean,boolean,boolean,bigint)'
   ) is null then
     v_missing := array_append(v_missing, 'save_credit_facility');
   end if;
