@@ -182,8 +182,8 @@ Every `stg` and `main` build calls the reusable Supabase deployment workflow
 before Flutter quality checks. It records migration history, creates schema
 and data dumps, uploads them as a seven-day private artifact, previews and
 applies pending migrations, verifies required objects and RLS, and redeploys
-the `delete-account` Edge Function. A backup or verification failure blocks
-the Android build.
+the production Edge Functions. A backup or verification failure blocks the
+Android build.
 
 The shared production Supabase project is never mutated by feature or `dev`
 workflows. Database pull requests replay migrations and pgTAP locally instead.

@@ -155,9 +155,10 @@ audit row (extra recognized cost books an explicit adjustment expense).
 Push notifications: devices register their FCM token in
 `app_core.push_devices` (owner RLS); `app_core.notification_preferences`
 holds per-user switches with amounts hidden by default; the
-`send-due-reminders` Edge Function writes `app_core.notification_outbox`
-(select-only for clients) whose unique key makes each reminder
-exactly-once per device, obligation, kind, and local date. See
+`notification-worker` Edge Function materializes, claims, sends, retries,
+and suppresses rows in `app_core.notification_outbox` (select-only for
+clients) whose unique key makes each notification exactly-once per device,
+obligation, kind, and local date. See
 `docs/NOTIFICATIONS_FCM.md` for the activation guide.
 
 Recurring income is materialized as pending occurrences. Materialization alone
