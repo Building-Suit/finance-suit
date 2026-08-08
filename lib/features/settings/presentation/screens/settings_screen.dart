@@ -395,6 +395,15 @@ class SettingsScreen extends ConsumerWidget {
               trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
               onTap: () => context.go('${AppRoutes.settings}/password'),
             ),
+            ListTile(
+              leading: const FinanceSuitIcon(FinanceSuitIcons.star),
+              title: const Text('Subscription'),
+              subtitle: const Text(
+                'Plan, trial, Early Access, and Pro options',
+              ),
+              trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+              onTap: () => context.go(AppRoutes.subscription),
+            ),
             const Divider(),
             _SectionHeader(title: l10n.setSalarySection),
             ListTile(

@@ -17,6 +17,8 @@ import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/domain_labels.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dart';
+import 'package:work_tracker/features/commercial/data/commercial_repository.dart';
+import 'package:work_tracker/features/commercial/presentation/widgets/pro_feature_gate.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
@@ -1527,47 +1529,50 @@ class _AiAutofillEntryPoint extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final status = _statusText(l10n);
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          OutlinedButton.icon(
-            key: const Key('ai-autofill-button'),
-            onPressed: _busy ? null : onPressed,
-            icon: const Icon(Icons.auto_awesome_outlined),
-            label: Text(l10n.aiAutofillButtonLabel),
-          ),
-          const SizedBox(height: 8),
-          Text(l10n.aiAutofillHelperText, style: theme.textTheme.bodySmall),
-          const SizedBox(height: 4),
-          Text(
-            l10n.aiAutofillCautionText,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontStyle: FontStyle.italic,
+    return ProFeatureGate(
+      featureKey: CommercialFeatureKeys.aiCardResearch,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            OutlinedButton.icon(
+              key: const Key('ai-autofill-button'),
+              onPressed: _busy ? null : onPressed,
+              icon: const Icon(Icons.auto_awesome_outlined),
+              label: Text(l10n.aiAutofillButtonLabel),
             ),
-          ),
-          if (status != null) ...[
             const SizedBox(height: 8),
-            Row(
-              children: [
-                const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(status, key: const Key('ai-autofill-status')),
-                ),
-              ],
+            Text(l10n.aiAutofillHelperText, style: theme.textTheme.bodySmall),
+            const SizedBox(height: 4),
+            Text(
+              l10n.aiAutofillCautionText,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontStyle: FontStyle.italic,
+              ),
             ),
+            if (status != null) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(status, key: const Key('ai-autofill-status')),
+                  ),
+                ],
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
