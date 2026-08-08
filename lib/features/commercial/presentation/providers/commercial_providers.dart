@@ -51,26 +51,15 @@ class PurchaseSyncController extends AsyncNotifier<void> {
   }
 
   Future<void> _handlePurchases(List<PurchaseDetails> purchases) async {
-    final catalog = await ref.read(commercialCatalogProvider.future);
     for (final purchase in purchases) {
       if (purchase.status == PurchaseStatus.pending) continue;
       if (purchase.status == PurchaseStatus.error ||
           purchase.status == PurchaseStatus.canceled) {
         continue;
       }
-      PlanPrice? price;
-      for (final candidate in catalog.prices) {
-        if (candidate.provider == 'google_play' &&
-            candidate.providerProductId == purchase.productID) {
-          price = candidate;
-          break;
-        }
-      }
-      if (price == null) continue;
       await ref
           .read(commercialRepositoryProvider)
           .verifyGooglePlayPurchase(
-            price: price,
             purchase: purchase,
             restore: purchase.status == PurchaseStatus.restored,
           );

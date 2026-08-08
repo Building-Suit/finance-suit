@@ -1,4 +1,5 @@
 import {
+  hasGooglePlayPlanMismatch,
   normalizeGoogleSubscriptionStatus,
   sanitizeProviderPayload,
 } from "./google_play.ts";
@@ -55,5 +56,42 @@ Deno.test("provider payload sanitizer removes purchase tokens recursively", () =
   }
   if ((result.nested as Record<string, unknown>).safe !== "value") {
     throw new Error("safe value was removed");
+  }
+});
+
+Deno.test("verified Google base plan is authoritative over a client plan hint", () => {
+  const verified = normalizeGoogleSubscriptionStatus({
+    ...purchase("SUBSCRIPTION_STATE_ACTIVE"),
+    lineItems: [{
+      productId: "finance_suit_pro",
+      expiryTime: "2030-01-01T00:00:00Z",
+      offerDetails: { basePlanId: "pro-yearly-egp" },
+    }],
+  });
+
+  if (verified.basePlanId !== "pro-yearly-egp") {
+    throw new Error(`expected annual plan, got ${verified.basePlanId}`);
+  }
+  if (
+    !hasGooglePlayPlanMismatch(
+      verified.productId,
+      verified.basePlanId,
+      "finance_suit_pro",
+      "pro-monthly-egp",
+    )
+  ) {
+    throw new Error(
+      "monthly client hint must not remap a verified annual purchase",
+    );
+  }
+  if (
+    hasGooglePlayPlanMismatch(
+      verified.productId,
+      verified.basePlanId,
+      "finance_suit_pro",
+      "pro-yearly-egp",
+    )
+  ) {
+    throw new Error("matching client hint should be accepted");
   }
 });
