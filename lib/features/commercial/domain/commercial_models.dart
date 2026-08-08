@@ -49,6 +49,23 @@ class PlanPrice {
   final String? providerProductId;
   final String? providerBasePlanId;
   final String providerSyncStatus;
+
+  bool matchesGooglePlayOffer({
+    required String productId,
+    required String basePlanId,
+    required String? offerToken,
+  }) =>
+      provider == 'google_play' &&
+      providerProductId == productId &&
+      providerBasePlanId == basePlanId &&
+      offerToken != null;
+
+  bool matchesGooglePlayPrice({
+    required String currencyCode,
+    required double rawPrice,
+  }) =>
+      money.currencyCode == currencyCode &&
+      (rawPrice * 100).round() == money.minor;
 }
 
 @immutable
@@ -57,6 +74,8 @@ class CommercialCatalog {
     required this.prices,
     required this.monetizationMode,
     required this.billingReady,
+    required this.googlePlayConfigured,
+    required this.billingTestAccess,
   });
 
   factory CommercialCatalog.fromJson(Map<String, dynamic> json) {
@@ -74,12 +93,21 @@ class CommercialCatalog {
           readiness['provider'] == 'synced' &&
           readiness['product'] == 'synced' &&
           readiness['verification'] == 'verified',
+      googlePlayConfigured:
+          readiness['provider'] == 'synced' && readiness['product'] == 'synced',
+      billingTestAccess: json['billing_test_access'] == true,
     );
   }
 
   final List<PlanPrice> prices;
   final MonetizationMode monetizationMode;
   final bool billingReady;
+
+  /// The provider and its configured catalog mapping are ready to be queried.
+  /// This deliberately does not require a previous verified purchase so an
+  /// authorized tester can exercise the first real checkout safely.
+  final bool googlePlayConfigured;
+  final bool billingTestAccess;
 
   PlanPrice? googlePlayPrice(String interval) {
     for (final price in prices) {

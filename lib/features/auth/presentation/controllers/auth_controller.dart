@@ -47,15 +47,23 @@ class AuthStateNotifier extends Notifier<AuthStateData> {
                     userId: session.user.id,
                   );
           case AuthChangeEvent.signedIn:
-          case AuthChangeEvent.tokenRefreshed:
           case AuthChangeEvent.userUpdated:
-            // Do not downgrade an active recovery phase on token refresh.
-            if (state.phase == AuthPhase.passwordRecovery &&
-                event.event == AuthChangeEvent.tokenRefreshed) {
-              return;
-            }
             final session = event.session;
             if (session != null) {
+              state = AuthStateData(
+                phase: AuthPhase.signedIn,
+                userId: session.user.id,
+              );
+            }
+          case AuthChangeEvent.tokenRefreshed:
+            // A refreshed access token does not change routing state. In
+            // particular, notifying listeners here can re-run providers that
+            // refresh the token themselves.
+            if (state.phase == AuthPhase.passwordRecovery) return;
+            final session = event.session;
+            if (session != null &&
+                (state.phase != AuthPhase.signedIn ||
+                    state.userId != session.user.id)) {
               state = AuthStateData(
                 phase: AuthPhase.signedIn,
                 userId: session.user.id,

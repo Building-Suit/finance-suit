@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:intl/intl.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
@@ -46,7 +47,6 @@ class SubscriptionScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final entitlement = ref.watch(effectiveEntitlementProvider);
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(semanticTitle: 'Subscription'),
@@ -70,9 +70,11 @@ class SubscriptionScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 if (effective.source == EntitlementSource.openEarlyAccess)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Text(l10n.proIncludedEarlyAccess),
+                  _BillingTesterSection(
+                    locale: locale,
+                    onBuy: (price, product) =>
+                        _buy(context, ref, price, product),
+                    onRestore: () => _restore(context, ref),
                   )
                 else ...[
                   const SizedBox(height: 16),
@@ -110,20 +112,81 @@ class SubscriptionScreen extends ConsumerWidget {
 }
 
 class _PurchaseOptions extends ConsumerWidget {
-  const _PurchaseOptions({required this.locale, required this.onBuy});
+  const _PurchaseOptions({
+    required this.locale,
+    required this.onBuy,
+    this.allowUnverifiedProvider = false,
+  });
 
   final String locale;
   final void Function(PlanPrice price, ProductDetails product) onBuy;
+  final bool allowUnverifiedProvider;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final catalog = ref.watch(commercialCatalogProvider);
     return catalog.when(
-      data: (value) => value.billingReady
+      data: (value) =>
+          (allowUnverifiedProvider
+              ? value.googlePlayConfigured
+              : value.billingReady)
           ? _GooglePlayPurchaseOptions(locale: locale, onBuy: onBuy)
           : Text(AppLocalizations.of(context).billingNotReady),
       loading: () => const LinearProgressIndicator(),
       error: (_, _) => const Text('Commercial catalog is unavailable.'),
+    );
+  }
+}
+
+class _BillingTesterSection extends ConsumerWidget {
+  const _BillingTesterSection({
+    required this.locale,
+    required this.onBuy,
+    required this.onRestore,
+  });
+  final String locale;
+  final void Function(PlanPrice, ProductDetails) onBuy;
+  final Future<void> Function() onRestore;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final catalog = ref.watch(commercialCatalogProvider);
+    return catalog.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+      data: (value) => value.billingTestAccess
+          ? Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'TEST BILLING',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Test checkout only. Your Early Access entitlement remains active.',
+                  ),
+                  const SizedBox(height: 12),
+                  _PurchaseOptions(
+                    locale: locale,
+                    onBuy: onBuy,
+                    allowUnverifiedProvider: true,
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: onRestore,
+                    icon: const FinanceSuitIcon(FinanceSuitIcons.refresh),
+                    label: const Text('Restore purchases'),
+                  ),
+                ],
+              ),
+            )
+          : Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: Text(AppLocalizations.of(context).proIncludedEarlyAccess),
+            ),
     );
   }
 }
@@ -163,10 +226,25 @@ class _GooglePlayPurchaseOptions extends ConsumerWidget {
   }
 
   ProductDetails? _productFor(List<ProductDetails> products, PlanPrice? price) {
-    final id = price?.providerProductId;
-    if (id == null) return null;
+    final selectedPrice = price;
+    if (selectedPrice == null ||
+        selectedPrice.providerProductId == null ||
+        selectedPrice.providerBasePlanId == null) {
+      return null;
+    }
     for (final product in products) {
-      if (product.id == id) return product;
+      if (product is GooglePlayProductDetails &&
+          product.subscriptionIndex != null &&
+          selectedPrice.matchesGooglePlayOffer(
+            productId: product.id,
+            basePlanId: product
+                .productDetails
+                .subscriptionOfferDetails![product.subscriptionIndex!]
+                .basePlanId,
+            offerToken: product.offerToken,
+          )) {
+        return product;
+      }
     }
     return null;
   }
@@ -261,14 +339,24 @@ class _PriceTile extends StatelessWidget {
       return const ListTile(title: Text('Price not configured'));
     }
     final interval = price.interval == 'year' ? 'Yearly' : 'Monthly';
+    final providerProduct = product;
+    final providerPriceMatches =
+        providerProduct != null &&
+        price.matchesGooglePlayPrice(
+          currencyCode: providerProduct.currencyCode,
+          rawPrice: providerProduct.rawPrice,
+        );
     final providerReady =
-        product != null && price.providerSyncStatus == 'synced';
+        product != null &&
+        price.providerSyncStatus == 'synced' &&
+        providerPriceMatches;
     return ListTile(
       leading: const FinanceSuitIcon(FinanceSuitIcons.payments),
       title: Text('$interval Pro'),
       subtitle: Text(
-        '${price.money.format(locale: locale)} / ${price.interval}'
-        '${providerReady ? '' : '\nGoogle Play sync required before purchase.'}',
+        '${product?.price ?? price.money.format(locale: locale)} / ${price.interval}'
+        '${providerPriceMatches ? '' : '\nGoogle Play price does not match the configured plan.'}'
+        '${product == null ? '\nGoogle Play base plan is unavailable.' : ''}',
       ),
       trailing: FilledButton(
         onPressed: providerReady ? () => onBuy(price, product!) : null,

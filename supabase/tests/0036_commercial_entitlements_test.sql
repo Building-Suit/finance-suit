@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(27);
+select plan(34);
 
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -14,9 +14,11 @@ select has_table('app_commercial', 'plan_prices', 'commercial prices exists');
 select has_table('app_commercial', 'entitlement_grants', 'entitlement grants exists');
 select has_table('app_commercial', 'paid_subscriptions', 'paid subscriptions exists');
 select has_table('app_commercial', 'audit_log', 'audit log exists');
+select has_table('app_commercial', 'billing_testers', 'billing testers exists');
 
 select ok((select relrowsecurity from pg_class where oid = 'app_commercial.entitlement_grants'::regclass), 'RLS on entitlement grants');
 select ok((select relrowsecurity from pg_class where oid = 'app_commercial.paid_subscriptions'::regclass), 'RLS on paid subscriptions');
+select ok((select relrowsecurity from pg_class where oid = 'app_commercial.billing_testers'::regclass), 'RLS on billing testers');
 
 select is(
   (select mode::text from app_commercial.monetization_state where singleton),
@@ -128,6 +130,40 @@ select is(
   'ordinary user can resolve their own entitlement from their JWT'
 );
 
+reset role;
+insert into app_commercial.billing_testers (user_id, enabled, created_by, reason)
+values
+  ('00000000-0000-0000-0000-0000000000c1', true, '00000000-0000-0000-0000-0000000000ad', 'First real Play Billing test'),
+  ('00000000-0000-0000-0000-0000000000c2', true, '00000000-0000-0000-0000-0000000000ad', 'Second real Play Billing test');
+
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}';
+
+select ok(
+  (select (app_commercial.current_published_catalog()->>'billing_test_access')::boolean),
+  'billing tester receives test access from the backend catalog'
+);
+
+select is(
+  (select source::text from app_commercial.resolve_effective_entitlement()),
+  'open_early_access',
+  'billing tester access itself does not change effective entitlement'
+);
+
+select is(
+  (select count(*)::int from app_commercial.billing_testers),
+  1,
+  'billing tester can read only their own record'
+);
+
+select throws_ok(
+  $$insert into app_commercial.billing_testers (user_id, enabled, created_by, reason)
+    values ('00000000-0000-0000-0000-0000000000c1', true, '00000000-0000-0000-0000-0000000000c1', 'attempted self enrollment')$$,
+  '42501',
+  null,
+  'ordinary user cannot grant billing test access'
+);
+
 select throws_ok(
   $$insert into app_commercial.entitlement_grants (user_id, plan_key, source, starts_at, ends_at, reason)
     values ('00000000-0000-0000-0000-0000000000c1', 'pro', 'admin_grant', now(), now() + interval '1 year', 'self upgrade')$$,
@@ -160,6 +196,12 @@ select is(
   (select count(*)::int from app_commercial.entitlement_grants where user_id = '00000000-0000-0000-0000-0000000000c1'),
   1,
   'super admin can read user grants'
+);
+
+select is(
+  (select count(*)::int from app_commercial.billing_testers),
+  2,
+  'super admin can read billing tester records'
 );
 
 select is(

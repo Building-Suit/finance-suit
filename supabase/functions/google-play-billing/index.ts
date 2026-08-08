@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.110.7";
 import {
   extractSubscriptionLineItem,
   getGoogleSubscriptionPurchaseV2,
+  hasGooglePlayPlanMismatch,
   normalizeGoogleSubscriptionStatus,
   sanitizeProviderPayload,
   sha256,
@@ -50,9 +51,7 @@ Deno.serve(async (request: Request) => {
   } catch {
     return json(400, { code: "invalid_request" });
   }
-  if (
-    body.provider !== "google_play" || !body.productId || !body.purchaseToken
-  ) {
+  if (body.provider !== "google_play" || !body.purchaseToken) {
     return json(400, { code: "invalid_purchase_payload" });
   }
 
@@ -62,6 +61,23 @@ Deno.serve(async (request: Request) => {
     accessToken,
   );
   if (userError || !user) return json(401, { code: "invalid_access_token" });
+
+  const [{ data: state }, { data: tester }, { data: provider }] = await Promise
+    .all([
+      admin.schema("app_commercial").from("monetization_state").select("mode")
+        .eq("singleton", true).single(),
+      admin.schema("app_commercial").from("billing_testers").select("user_id")
+        .eq("user_id", user.id).eq("enabled", true).maybeSingle(),
+      admin.schema("app_commercial").from("provider_configurations").select(
+        "status",
+      ).eq("provider", "google_play").maybeSingle(),
+    ]);
+  if (state?.mode === "open_early_access" && !tester) {
+    return json(403, { code: "billing_test_access_required" });
+  }
+  if (provider?.status !== "synced") {
+    return json(409, { code: "provider_not_ready" });
+  }
 
   let providerPayload: Record<string, unknown>;
   try {
@@ -75,17 +91,28 @@ Deno.serve(async (request: Request) => {
     return json(retryable ? 503 : 400, { code: `provider_${code}` });
   }
 
-  const lineItem = extractSubscriptionLineItem(
-    providerPayload,
-    body.productId,
-    body.basePlanId,
-  );
+  // The token response is authoritative. Client plan fields are only hints
+  // and must never select or remap a subscription line item.
+  const lineItem = extractSubscriptionLineItem(providerPayload);
   const normalized = normalizeGoogleSubscriptionStatus(
     providerPayload,
     lineItem,
   );
-  const productId = normalized.productId ?? body.productId;
-  const basePlanId = normalized.basePlanId ?? body.basePlanId ?? null;
+  const productId = normalized.productId;
+  const basePlanId = normalized.basePlanId;
+  if (!productId || !basePlanId) {
+    return json(400, { code: "provider_mapping_missing" });
+  }
+  if (
+    hasGooglePlayPlanMismatch(
+      productId,
+      basePlanId,
+      body.productId,
+      body.basePlanId,
+    )
+  ) {
+    return json(400, { code: "provider_selection_mismatch" });
+  }
   const { data: price } = await admin
     .schema("app_commercial")
     .from("plan_prices")
@@ -94,6 +121,7 @@ Deno.serve(async (request: Request) => {
     .eq("provider_product_id", productId)
     .eq("provider_base_plan_id", basePlanId)
     .eq("status", "published")
+    .eq("provider_sync_status", "synced")
     .maybeSingle();
   if (!price) return json(400, { code: "provider_mapping_not_published" });
 
