@@ -227,6 +227,22 @@ export function extractSubscriptionLineItem(
   return productId || basePlanId ? null : items[0] ?? null;
 }
 
+/**
+ * Purchase-token data is authoritative. A client request may describe the
+ * offer it intended to open, but it can only confirm—not choose—the verified
+ * Google product/base-plan pair.
+ */
+export function hasGooglePlayPlanMismatch(
+  verifiedProductId: string | null,
+  verifiedBasePlanId: string | null,
+  requestedProductId?: string | null,
+  requestedBasePlanId?: string | null,
+): boolean {
+  return (requestedProductId != null &&
+    requestedProductId !== verifiedProductId) ||
+    (requestedBasePlanId != null && requestedBasePlanId !== verifiedBasePlanId);
+}
+
 export function normalizeGoogleSubscriptionStatus(
   payload: GoogleSubscriptionPurchaseV2,
   lineItem = extractSubscriptionLineItem(payload),

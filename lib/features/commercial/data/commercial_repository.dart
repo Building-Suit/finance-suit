@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/result/result.dart';
@@ -89,7 +90,25 @@ class CommercialRepository {
 
   Future<Result<void>> buyPro(PlanPrice price, ProductDetails product) {
     return guard(() async {
-      final purchaseParam = PurchaseParam(productDetails: product);
+      if (product is! GooglePlayProductDetails ||
+          product.subscriptionIndex == null ||
+          price.providerBasePlanId == null) {
+        throw const ValidationFailure('google_play_offer_unavailable');
+      }
+      final offer = product
+          .productDetails
+          .subscriptionOfferDetails![product.subscriptionIndex!];
+      if (!price.matchesGooglePlayOffer(
+        productId: product.id,
+        basePlanId: offer.basePlanId,
+        offerToken: product.offerToken,
+      )) {
+        throw const ValidationFailure('google_play_base_plan_mismatch');
+      }
+      final purchaseParam = GooglePlayPurchaseParam(
+        productDetails: product,
+        offerToken: product.offerToken,
+      );
       await _purchases.buyNonConsumable(purchaseParam: purchaseParam);
     });
   }
@@ -102,7 +121,6 @@ class CommercialRepository {
       _purchases.purchaseStream;
 
   Future<Result<EffectiveEntitlement>> verifyGooglePlayPurchase({
-    required PlanPrice price,
     required PurchaseDetails purchase,
     required bool restore,
   }) {
@@ -112,8 +130,9 @@ class CommercialRepository {
         body: {
           'action': restore ? 'restore' : 'verify_purchase',
           'provider': 'google_play',
-          'productId': price.providerProductId,
-          'basePlanId': price.providerBasePlanId,
+          // Google derives product/base plan from the purchase token. These
+          // fields are deliberately only optional consistency hints.
+          'productId': purchase.productID,
           'purchaseToken': purchase.verificationData.serverVerificationData,
         },
       );
