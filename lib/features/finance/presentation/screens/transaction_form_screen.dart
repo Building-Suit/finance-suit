@@ -99,11 +99,10 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
   /// never blocks the form from appearing; a brief default-off flicker on a
   /// slow connection is preferable to a loading gate on every edit.
   Future<void> _loadExistingFxMarkup(String transactionId) async {
-    final result = await ref
-        .read(financeRepositoryProvider)
-        .hasFxMarkupCharge(transactionId);
+    final hasMarkup = await ref.read(
+      transactionHasFxMarkupProvider(transactionId).future,
+    );
     if (!mounted) return;
-    final hasMarkup = result.valueOrNull ?? false;
     if (hasMarkup) setState(() => _isForeignCurrency = true);
   }
 
