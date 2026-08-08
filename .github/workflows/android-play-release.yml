@@ -203,6 +203,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           PLAY_UPLOAD_KEYSTORE_BASE64: ${{ secrets.PLAY_UPLOAD_KEYSTORE_BASE64 }}
+          FIREBASE_ANDROID_GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.FIREBASE_ANDROID_GOOGLE_SERVICES_JSON_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
@@ -216,6 +217,7 @@ jobs:
           [[ -n "${SUPABASE_URL}" ]] || missing+=(SUPABASE_URL)
           [[ -n "${SUPABASE_ANON_KEY}" ]] || missing+=(SUPABASE_ANON_KEY)
           [[ -n "${PLAY_UPLOAD_KEYSTORE_BASE64}" ]] || missing+=(PLAY_UPLOAD_KEYSTORE_BASE64)
+          [[ -n "${FIREBASE_ANDROID_GOOGLE_SERVICES_JSON_BASE64}" ]] || missing+=(FIREBASE_ANDROID_GOOGLE_SERVICES_JSON_BASE64)
           [[ -n "${ANDROID_KEYSTORE_PASSWORD}" ]] || missing+=(PLAY_UPLOAD_KEYSTORE_PASSWORD)
           [[ -n "${ANDROID_KEY_ALIAS}" ]] || missing+=(PLAY_UPLOAD_KEY_ALIAS)
           [[ -n "${ANDROID_KEY_PASSWORD}" ]] || missing+=(PLAY_UPLOAD_KEY_PASSWORD)
@@ -260,6 +262,16 @@ jobs:
           printf '%s' "${PLAY_UPLOAD_KEYSTORE_BASE64}" | base64 --decode > "${keystore_path}"
           chmod 600 "${keystore_path}"
           echo "ANDROID_KEYSTORE_PATH=${keystore_path}" >> "${GITHUB_ENV}"
+
+      - name: Restore Firebase Android config
+        shell: bash
+        env:
+          FIREBASE_ANDROID_GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.FIREBASE_ANDROID_GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          set -euo pipefail
+          printf '%s' "${FIREBASE_ANDROID_GOOGLE_SERVICES_JSON_BASE64}" \
+            | base64 --decode > android/app/google-services.json
+          test -s android/app/google-services.json
 
       - name: Build optimized signed app bundle
         shell: bash

@@ -124,3 +124,9 @@ jobs:
           npx --yes supabase@${SUPABASE_CLI_VERSION} functions deploy ai-card-research
           --project-ref "${SUPABASE_PROJECT_REF}"
           --use-api
+
+      - name: Deploy notification-worker Edge Function
+        run: >-
+          npx --yes supabase@${SUPABASE_CLI_VERSION} functions deploy notification-worker
+          --project-ref "${SUPABASE_PROJECT_REF}"
+          --use-api

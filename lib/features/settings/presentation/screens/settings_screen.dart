@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,9 +7,11 @@ import 'package:work_tracker/app/configuration/env.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/notifications/notifications_repository.dart';
+import 'package:work_tracker/core/notifications/push_notifications_service.dart';
 import 'package:work_tracker/core/security/biometric_login_controller.dart';
 import 'package:work_tracker/core/security/device_authenticator.dart';
 import 'package:work_tracker/core/security/device_privacy_controller.dart';
+import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
@@ -489,6 +492,20 @@ class _NotificationPreferencesSection extends ConsumerWidget {
     );
   }
 
+  Future<void> _enableNotifications(BuildContext context, WidgetRef ref) async {
+    final userId = ref.read(currentUserIdProvider);
+    if (userId == null) return;
+    await ref
+        .read(pushNotificationsServiceProvider)
+        .syncRegistration(
+          userId: userId,
+          openRoute: ref.read(appRouterProvider).go,
+          locale: Localizations.localeOf(context).toLanguageTag(),
+          forcePermissionRequest: true,
+        );
+    ref.invalidate(pushNotificationStatusProvider);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
@@ -496,8 +513,64 @@ class _NotificationPreferencesSection extends ConsumerWidget {
         ref.watch(notificationPreferencesProvider).value ??
         const NotificationPreferences();
     final loaded = ref.watch(notificationPreferencesProvider).hasValue;
+    final pushStatus = ref.watch(pushNotificationStatusProvider).value;
+    final osPermission = pushStatus?.permission;
+    final isArabic = Directionality.of(context) == TextDirection.rtl;
+    final osStatus = switch (osPermission) {
+      AuthorizationStatus.authorized || AuthorizationStatus.provisional =>
+        isArabic ? 'إشعارات النظام مفعّلة' : 'System notifications are allowed',
+      AuthorizationStatus.denied =>
+        isArabic ? 'إشعارات النظام متوقفة' : 'System notifications are blocked',
+      AuthorizationStatus.notDetermined =>
+        isArabic
+            ? 'لم يتم طلب إذن النظام بعد'
+            : 'System permission has not been requested',
+      null =>
+        isArabic
+            ? 'الإشعارات غير متاحة في هذا البناء'
+            : 'Notifications are unavailable in this build',
+    };
+    final registrationStatus = switch (pushStatus) {
+      PushNotificationStatus(firebaseAvailable: false) =>
+        isArabic
+            ? 'Firebase غير متاح في هذا البناء'
+            : 'Firebase is unavailable in this build',
+      PushNotificationStatus(registered: true, maskedToken: final token?) =>
+        isArabic ? 'الجهاز مسجل ($token)' : 'Device registered ($token)',
+      PushNotificationStatus(hasFcmToken: true) =>
+        isArabic
+            ? 'تم إنشاء رمز FCM، لكن الجهاز غير مسجل في الخادم'
+            : 'FCM token exists, but server registration is missing',
+      PushNotificationStatus(lastError: final error?) =>
+        isArabic ? 'فشل التسجيل: $error' : 'Registration failed: $error',
+      _ => isArabic ? 'الجهاز غير مسجل بعد' : 'Device is not registered yet',
+    };
     return Column(
       children: [
+        ListTile(
+          key: const Key('notif-os-permission-status'),
+          leading: const FinanceSuitIcon(FinanceSuitIcons.eventAvailable),
+          title: Text(
+            isArabic ? 'إذن إشعارات النظام' : 'System notification permission',
+          ),
+          subtitle: Text(osStatus),
+          trailing: TextButton(
+            onPressed: () => _enableNotifications(context, ref),
+            child: Text(isArabic ? 'تفعيل' : 'Enable'),
+          ),
+        ),
+        ListTile(
+          key: const Key('notif-device-registration-status'),
+          leading: const FinanceSuitIcon(FinanceSuitIcons.payments),
+          title: Text(
+            isArabic ? 'تسجيل هذا الجهاز' : 'This device registration',
+          ),
+          subtitle: Text(registrationStatus),
+          trailing: TextButton(
+            onPressed: () => _enableNotifications(context, ref),
+            child: Text(isArabic ? 'إعادة المحاولة' : 'Retry'),
+          ),
+        ),
         SwitchListTile.adaptive(
           key: const Key('notif-due-reminders'),
           secondary: const FinanceSuitIcon(FinanceSuitIcons.eventAvailable),
