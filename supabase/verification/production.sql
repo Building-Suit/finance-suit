@@ -273,14 +273,24 @@ begin
       'Legacy fx-switch-less charge_liability_account overload remains';
   end if;
   if to_regprocedure(
-    'app_finance.update_expense_transaction(uuid,uuid,date,bigint,uuid,text,text,text)'
+    'app_finance.update_expense_transaction(uuid,uuid,date,bigint,uuid,text,text,text,boolean)'
   ) is null then
     v_missing := array_append(v_missing, 'update_expense_transaction');
+  end if;
+  if to_regprocedure(
+    'app_finance.update_expense_transaction(uuid,uuid,date,bigint,uuid,text,text,text)'
+  ) is not null then
+    raise exception
+      'Legacy fx-switch-less update_expense_transaction overload remains';
   end if;
   if to_regprocedure(
     'app_finance.delete_ledger_transaction(uuid)'
   ) is null then
     v_missing := array_append(v_missing, 'delete_ledger_transaction');
+  end if;
+  if to_regclass('app_finance.credit_card_fx_markup_charges') is null then
+    v_missing := array_append(
+      v_missing, 'app_finance.credit_card_fx_markup_charges');
   end if;
   if to_regclass('app_finance.facility_activity_items') is null then
     v_missing := array_append(

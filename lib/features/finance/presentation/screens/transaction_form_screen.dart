@@ -89,7 +89,22 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
       _notesController.text = existing.notes ?? '';
       _accountId = existing.sourceAccountId ?? existing.destinationAccountId;
       _categoryId = existing.categoryId;
+      _loadExistingFxMarkup(existing.id);
     }
+  }
+
+  /// Preselects the switch from whatever the ledger already says, rather
+  /// than always opening on "off": a foreign-currency expense edited later
+  /// should show its markup as already on. Runs after the first frame so it
+  /// never blocks the form from appearing; a brief default-off flicker on a
+  /// slow connection is preferable to a loading gate on every edit.
+  Future<void> _loadExistingFxMarkup(String transactionId) async {
+    final result = await ref
+        .read(financeRepositoryProvider)
+        .hasFxMarkupCharge(transactionId);
+    if (!mounted) return;
+    final hasMarkup = result.valueOrNull ?? false;
+    if (hasMarkup) setState(() => _isForeignCurrency = true);
   }
 
   @override
@@ -222,7 +237,11 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     setState(() => _busy = true);
     final repo = ref.read(financeRepositoryProvider);
     final result = _isEdit
-        ? await repo.updateTransaction(widget.existing!.id, draft)
+        ? await repo.updateTransaction(
+            widget.existing!.id,
+            draft,
+            isForeignCurrency: _isForeignCurrency,
+          )
         : await repo.createTransaction(draft);
     if (!mounted) return;
     setState(() => _busy = false);
@@ -490,8 +509,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                       ? validationMessage(context, ValidationError.required)
                       : null,
                 ),
-                if (!_isEdit &&
-                    selected?.accountType == AccountType.creditCard) ...[
+                if (selected?.accountType == AccountType.creditCard) ...[
                   const SizedBox(height: 8),
                   SwitchListTile(
                     key: const Key('tx-is-foreign-currency'),
