@@ -16,10 +16,17 @@ final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
 
-/// Emits on every auth state change (sign in, sign out, token refresh,
-/// password recovery deep link).
+/// Emits changes that can affect the active user identity.
+///
+/// A token refresh keeps the same user signed in. Filtering it out prevents
+/// identity-dependent providers from re-running solely because a repository
+/// refreshed the access token.
 final authStateChangesProvider = StreamProvider<AuthState>((ref) {
-  return ref.watch(supabaseClientProvider).auth.onAuthStateChange;
+  return ref
+      .watch(supabaseClientProvider)
+      .auth
+      .onAuthStateChange
+      .where((state) => state.event != AuthChangeEvent.tokenRefreshed);
 });
 
 /// Current user id, or null when signed out.

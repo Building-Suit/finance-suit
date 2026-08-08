@@ -37,4 +37,84 @@ void main() {
     expect(entitlement.hasFeature('ai_card_research'), isFalse);
     expect(entitlement.featureLimit('ai_card_research'), 0);
   });
+
+  test('tester access permits a configured provider without granting Pro', () {
+    final catalog = CommercialCatalog.fromJson({
+      'prices': const <dynamic>[],
+      'monetization': const {'mode': 'open_early_access'},
+      'billing_readiness': const {
+        'provider': 'synced',
+        'product': 'synced',
+        'verification': 'not_verified',
+      },
+      'billing_test_access': true,
+    });
+
+    expect(catalog.billingTestAccess, isTrue);
+    expect(catalog.googlePlayConfigured, isTrue);
+    expect(catalog.billingReady, isFalse);
+    expect(EffectiveEntitlement.free().isPro, isFalse);
+  });
+
+  test(
+    'Google Play offers require the configured base plan, not product ID',
+    () {
+      final monthly = PlanPrice.fromJson({
+        'id': 'monthly',
+        'plan_key': 'pro',
+        'provider': 'google_play',
+        'interval': 'month',
+        'amount_minor': 9900,
+        'currency_code': 'EGP',
+        'provider_product_id': 'finance_suit_pro',
+        'provider_base_plan_id': 'pro-monthly-egp',
+        'provider_sync_status': 'synced',
+      });
+
+      expect(
+        monthly.matchesGooglePlayOffer(
+          productId: 'finance_suit_pro',
+          basePlanId: 'pro-monthly-egp',
+          offerToken: 'monthly-token',
+        ),
+        isTrue,
+      );
+      expect(
+        monthly.matchesGooglePlayOffer(
+          productId: 'finance_suit_pro',
+          basePlanId: 'pro-yearly-egp',
+          offerToken: 'yearly-token',
+        ),
+        isFalse,
+        reason: 'the shared product ID must not select the annual base plan',
+      );
+    },
+  );
+
+  test('Google Play price mismatch is rejected before checkout', () {
+    final price = PlanPrice.fromJson({
+      'id': 'monthly',
+      'plan_key': 'pro',
+      'provider': 'google_play',
+      'interval': 'month',
+      'amount_minor': 9900,
+      'currency_code': 'EGP',
+      'provider_product_id': 'finance_suit_pro',
+      'provider_base_plan_id': 'pro-monthly-egp',
+      'provider_sync_status': 'synced',
+    });
+
+    expect(
+      price.matchesGooglePlayPrice(currencyCode: 'EGP', rawPrice: 99),
+      isTrue,
+    );
+    expect(
+      price.matchesGooglePlayPrice(currencyCode: 'USD', rawPrice: 99),
+      isFalse,
+    );
+    expect(
+      price.matchesGooglePlayPrice(currencyCode: 'EGP', rawPrice: 109),
+      isFalse,
+    );
+  });
 }
