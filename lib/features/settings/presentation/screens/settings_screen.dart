@@ -506,6 +506,43 @@ class _NotificationPreferencesSection extends ConsumerWidget {
     ref.invalidate(pushNotificationStatusProvider);
   }
 
+  Future<void> _sendTestNotification(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final result = await ref
+        .read(notificationsRepositoryProvider)
+        .sendDeveloperTestNotification();
+    if (!context.mounted) return;
+    final isArabic = Directionality.of(context) == TextDirection.rtl;
+    result.when(
+      ok: (delivery) {
+        if (delivery.sent > 0) {
+          AppToast.success(
+            context,
+            isArabic ? 'تم إرسال إشعار تجريبي' : 'Test notification sent',
+          );
+        } else if (delivery.failed > 0 || delivery.suppressed > 0) {
+          AppToast.warning(
+            context,
+            isArabic
+                ? 'تم إنشاء الاختبار لكن لم يتم تسليمه'
+                : 'Test queued, but delivery did not complete',
+          );
+        } else {
+          AppToast.info(
+            context,
+            isArabic
+                ? 'تم إنشاء الاختبار. انتظر لحظة ثم تحقق من الإشعارات'
+                : 'Test queued. Check notifications in a moment',
+          );
+        }
+      },
+      err: (failure) =>
+          AppToast.error(context, failureMessage(context, failure)),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
@@ -536,23 +573,32 @@ class _NotificationPreferencesSection extends ConsumerWidget {
             ? 'Firebase غير متاح في هذا البناء'
             : 'Firebase is unavailable in this build',
       PushNotificationStatus(registered: true, maskedToken: final token?) =>
-        isArabic ? 'الجهاز مسجل ($token)' : 'Device registered ($token)',
+        isArabic
+            ? 'جاهز على هذا الجهاز ($token)'
+            : 'Ready on this device ($token)',
       PushNotificationStatus(hasFcmToken: true) =>
         isArabic
-            ? 'تم إنشاء رمز FCM، لكن الجهاز غير مسجل في الخادم'
-            : 'FCM token exists, but server registration is missing',
+            ? 'تم الاتصال ب Firebase، لكن التسليم لم يكتمل'
+            : 'Firebase is connected, but delivery setup is incomplete',
       PushNotificationStatus(lastError: final error?) =>
-        isArabic ? 'فشل التسجيل: $error' : 'Registration failed: $error',
-      _ => isArabic ? 'الجهاز غير مسجل بعد' : 'Device is not registered yet',
+        isArabic
+            ? 'تعذر تفعيل التسليم: $error'
+            : 'Delivery setup failed: $error',
+      _ =>
+        isArabic
+            ? 'فعّل الإشعارات لإرسال التنبيهات إلى هذا الجهاز'
+            : 'Turn on notifications to send alerts to this device',
     };
+    final canSendTest =
+        pushStatus?.registered == true &&
+        (osPermission == AuthorizationStatus.authorized ||
+            osPermission == AuthorizationStatus.provisional);
     return Column(
       children: [
         ListTile(
           key: const Key('notif-os-permission-status'),
           leading: const FinanceSuitIcon(FinanceSuitIcons.eventAvailable),
-          title: Text(
-            isArabic ? 'إذن إشعارات النظام' : 'System notification permission',
-          ),
+          title: Text(isArabic ? 'إشعارات الهاتف' : 'Phone notifications'),
           subtitle: Text(osStatus),
           trailing: TextButton(
             onPressed: () => _enableNotifications(context, ref),
@@ -562,13 +608,29 @@ class _NotificationPreferencesSection extends ConsumerWidget {
         ListTile(
           key: const Key('notif-device-registration-status'),
           leading: const FinanceSuitIcon(FinanceSuitIcons.payments),
-          title: Text(
-            isArabic ? 'تسجيل هذا الجهاز' : 'This device registration',
-          ),
+          title: Text(isArabic ? 'تسليم التنبيهات' : 'Alert delivery'),
           subtitle: Text(registrationStatus),
           trailing: TextButton(
             onPressed: () => _enableNotifications(context, ref),
             child: Text(isArabic ? 'إعادة المحاولة' : 'Retry'),
+          ),
+        ),
+        ListTile(
+          key: const Key('notif-send-test'),
+          leading: const FinanceSuitIcon(FinanceSuitIcons.play),
+          title: Text(
+            isArabic ? 'إرسال إشعار تجريبي' : 'Send test notification',
+          ),
+          subtitle: Text(
+            isArabic
+                ? 'يتحقق من التسليم من الخادم إلى هذا الهاتف.'
+                : 'Checks delivery from the server to this phone.',
+          ),
+          trailing: TextButton(
+            onPressed: canSendTest
+                ? () => _sendTestNotification(context, ref)
+                : null,
+            child: Text(isArabic ? 'إرسال' : 'Send'),
           ),
         ),
         SwitchListTile.adaptive(
