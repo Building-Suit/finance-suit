@@ -108,6 +108,12 @@ The switch only appears on credit-card purchases and only does anything when
 the card's markup field is set — leaving it on for a BNPL account, or for a
 card with no rate configured, is always a no-op.
 
+The switch also works on **editing** an existing purchase, not just when
+creating one: opening a saved charge preselects it from whatever the ledger
+already says, and flipping it creates, resizes, or removes the markup charge
+to match — so a purchase entered with the switch off can be corrected later
+without deleting and re-adding it.
+
 ---
 
 ## 3. The two installment plans

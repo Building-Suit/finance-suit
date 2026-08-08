@@ -131,6 +131,7 @@ List<dynamic> _overrides({
   List<AccountBalance> accounts = const [_wallet],
   List<CreditFacilitySummary> facilities = const [_visa, _valu],
   List<FacilityActivityItem> activity = const [],
+  Set<String> fxMarkupTransactionIds = const {},
 }) => [
   currentUserIdProvider.overrideWithValue('user-1'),
   accountBalancesProvider.overrideWith(
@@ -157,6 +158,10 @@ List<dynamic> _overrides({
   ),
   feeRulesProvider.overrideWith(
     (ref, accountId) async => const <CardFeeRule>[],
+  ),
+  transactionHasFxMarkupProvider.overrideWith(
+    (ref, transactionId) async =>
+        fxMarkupTransactionIds.contains(transactionId),
   ),
   facilityActivityProvider.overrideWith((ref, accountId) async => activity),
 ];
@@ -259,6 +264,33 @@ void main() {
       );
 
       expect(find.textContaining('Valu'), findsOneWidget);
+    });
+
+    testWidgets('Edit Expense restores its linked FX markup switch', (
+      tester,
+    ) async {
+      final existing = FinancialTransaction(
+        id: 'tx-fx',
+        kind: TransactionKind.expense,
+        occurredOn: PlainDate.parse('2026-08-01'),
+        amountMinor: 25000,
+        currencyCode: 'EGP',
+        sourceAccountId: 'card-1',
+        categoryId: 'cat-1',
+      );
+      await _pump(
+        tester,
+        TransactionFormScreen(
+          kind: TransactionKind.expense,
+          existing: existing,
+        ),
+        overrides: _overrides(fxMarkupTransactionIds: const {'tx-fx'}),
+      );
+
+      final tile = tester.widget<SwitchListTile>(
+        find.byKey(const Key('tx-is-foreign-currency')),
+      );
+      expect(tile.value, isTrue);
     });
 
     testWidgets('an archived current account stays visible while editing', (

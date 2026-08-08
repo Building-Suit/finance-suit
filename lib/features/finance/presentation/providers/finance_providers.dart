@@ -92,6 +92,20 @@ final transactionsCountProvider = FutureProvider.family
       return result.when(ok: (count) => count, err: (failure) => throw failure);
     });
 
+/// Whether an existing purchase owns a generated flat FX markup charge.
+///
+/// Keeping this lookup separate lets transaction forms load independently of
+/// the repository in previews and tests, while production still reads the
+/// canonical ledger link.
+final transactionHasFxMarkupProvider = FutureProvider.family
+    .autoDispose<bool, String>((ref, transactionId) async {
+      ref.watch(currentUserIdProvider);
+      final result = await ref
+          .watch(financeRepositoryProvider)
+          .hasFxMarkupCharge(transactionId);
+      return result.valueOrNull ?? false;
+    });
+
 /// Saved macros with their items, for the macros screen and the add sheet.
 final macrosProvider = FutureProvider<List<TransactionMacro>>((ref) async {
   ref.watch(currentUserIdProvider);
