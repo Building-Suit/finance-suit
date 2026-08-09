@@ -17,7 +17,8 @@ The catalog is stored in four layers:
 - `financial_product_catalog_sources` stores deduplicated source provenance for
   each version.
 - `catalog_research_queue` and `catalog_research_runs` provide atomic leases,
-  retry state, and sanitized curator/heartbeat audit records.
+  retry state, and category-only curator/heartbeat audit records. Raw worker
+  errors are never persisted because they may echo user data or credentials.
 
 `catalog_configuration` centralizes the 30-day freshness window, five-item
 curator batch, 30-minute lease, three-attempt retry limit, and authenticated
@@ -63,19 +64,20 @@ unknown/null.
 
 ### Scheduled Task operations
 
-Connected Scheduled Tasks use only these SQL forms. They must never issue direct
-DML or DDL:
+Recurring connected Scheduled Tasks use only these seven SQL forms. They must
+never issue direct DML or DDL:
 
 ```sql
 select app_finance.record_catalog_automation_heartbeat('task-name');
 select app_finance.catalog_status_summary();
 select app_finance.get_catalog_research_contract();
-select app_finance.enqueue_catalog_research_automation(
-  'credit_card', 'EG', 'Issuer', 'Product',
-  p_reason => 'initial_seed'
-);
 select app_finance.enqueue_due_catalog_research();
 select app_finance.get_catalog_research_work(5);
 select app_finance.upsert_catalog_research_result('{...}'::jsonb);
-select app_finance.fail_catalog_research_work('queue-uuid'::uuid, 'sanitized error');
+select app_finance.fail_catalog_research_work('queue-uuid'::uuid, 'provider timeout');
 ```
+
+`enqueue_catalog_research_automation` is a separate trusted administrative
+surface for explicit initial-seed or curator enqueue operations. It is not part
+of the recurring Scheduled Task loop. Management SQL may invoke it as
+`postgres`; app users, `anon`, and `authenticated` cannot.
