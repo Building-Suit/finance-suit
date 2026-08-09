@@ -3082,6 +3082,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'We filled what we could. Complete the highlighted fields to continue.';
 
   @override
+  String aiResearchCatalogVerifiedOn(String date) {
+    return 'Verified from Finance Suit catalog · $date';
+  }
+
+  @override
   String get cardPaymentDueDay => 'Payment due day';
 
   @override

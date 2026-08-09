@@ -98,6 +98,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
   AccountType? _aiRequestAccountType;
   int _aiRequestCounter = 0;
   bool _autofillBatchInProgress = false;
+  DateTime? _catalogVerifiedAt;
   final Map<String, FieldOrigin> _fieldOrigin = {};
 
   bool get _isEdit => widget.accountId != null;
@@ -470,6 +471,8 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
   Future<void> _runAiResearch(
     AiCardResearchSheetInput input, {
     String? selectedProductId,
+    List<CatalogResearchMatch> catalogMatches = const [],
+    bool skipCatalog = false,
   }) async {
     final requestId = _nextAiRequestId();
     final requestAccountType = _accountType;
@@ -477,6 +480,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
       _aiRequestId = requestId;
       _aiRequestAccountType = requestAccountType;
       _aiPhase = AiAutofillPhase.researching;
+      _catalogVerifiedAt = null;
     });
 
     final repo = ref.read(financeRepositoryProvider);
@@ -498,6 +502,8 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
         bnplTypicalTenorMonths: input.bnplTypicalTenorMonths,
         userNotes: input.userNotes,
         selectedProductId: selectedProductId,
+        catalogMatches: catalogMatches,
+        skipCatalog: skipCatalog,
       ),
     );
 
@@ -519,6 +525,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
 
     switch (research.status) {
       case ResearchStatus.resolved:
+        setState(() => _catalogVerifiedAt = research.catalogVerifiedAt);
         _applyAutofill(research);
       case ResearchStatus.ambiguous:
         setState(() => _aiPhase = AiAutofillPhase.needsDisambiguation);
@@ -531,7 +538,12 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
           setState(() => _aiPhase = AiAutofillPhase.idle);
           return;
         }
-        await _runAiResearch(input, selectedProductId: chosenId);
+        await _runAiResearch(
+          input,
+          selectedProductId: chosenId,
+          catalogMatches: research.catalogMatches,
+          skipCatalog: research.origin != CardResearchOrigin.catalog,
+        );
       case ResearchStatus.insufficientInformation:
       case ResearchStatus.error:
         setState(() => _aiPhase = AiAutofillPhase.failed);
@@ -783,6 +795,7 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                           const SizedBox(height: 16),
                           _AiAutofillEntryPoint(
                             phase: _aiPhase,
+                            catalogVerifiedAt: _catalogVerifiedAt,
                             onPressed: _openAiResearch,
                           ),
                         ],
@@ -1506,9 +1519,14 @@ class _Swatch extends StatelessWidget {
 /// while research/autofill is in flight. Manual fields stay fully usable
 /// the whole time — this never disables the rest of the form.
 class _AiAutofillEntryPoint extends StatelessWidget {
-  const _AiAutofillEntryPoint({required this.phase, required this.onPressed});
+  const _AiAutofillEntryPoint({
+    required this.phase,
+    required this.catalogVerifiedAt,
+    required this.onPressed,
+  });
 
   final AiAutofillPhase phase;
+  final DateTime? catalogVerifiedAt;
   final VoidCallback onPressed;
 
   bool get _busy =>
@@ -1555,6 +1573,30 @@ class _AiAutofillEntryPoint extends StatelessWidget {
                 fontStyle: FontStyle.italic,
               ),
             ),
+            if (catalogVerifiedAt != null) ...[
+              const SizedBox(height: 8),
+              Row(
+                key: const Key('catalog-verified-indicator'),
+                children: [
+                  Icon(
+                    Icons.verified_outlined,
+                    size: 16,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      l10n.aiResearchCatalogVerifiedOn(
+                        MaterialLocalizations.of(
+                          context,
+                        ).formatMediumDate(catalogVerifiedAt!.toLocal()),
+                      ),
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ),
+                ],
+              ),
+            ],
             if (status != null) ...[
               const SizedBox(height: 8),
               Row(

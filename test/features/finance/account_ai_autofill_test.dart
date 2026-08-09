@@ -338,6 +338,43 @@ void main() {
     },
   );
 
+  testWidgets('a catalog result shows localized verification and date', (
+    tester,
+  ) async {
+    final repo = _MockFinanceRepository();
+    final catalogResult =
+        CardResearchResult.fromJson(
+          _resolvedJson(creditLimitMinor: null),
+        ).withCatalogMetadata(
+          productId: 'product-1',
+          versionId: 'version-1',
+          verifiedAt: DateTime.utc(2026, 8, 1),
+          request: const CardResearchRequest(
+            requestId: 'request-1',
+            accountType: AccountType.creditCard,
+            issuerName: 'CIB',
+            countryCode: 'EG',
+            productName: 'Platinum',
+          ),
+        );
+    when(
+      () => repo.researchCardProduct(any()),
+    ).thenAnswer((_) async => Ok(catalogResult));
+
+    await _pump(tester, repository: repo);
+    await _selectAccountType(tester, 'Current balance', 'Credit Card');
+    await tester.tap(find.byKey(const Key('ai-autofill-button')));
+    await tester.pumpAndSettle();
+    await _fillIdentificationSheet(tester);
+
+    expect(find.byKey(const Key('catalog-verified-indicator')), findsOneWidget);
+    expect(
+      find.textContaining('Verified from Finance Suit catalog'),
+      findsOneWidget,
+    );
+    verifyNever(() => repo.saveCreditFacility(any()));
+  });
+
   testWidgets('an incomplete result fills what it can but never auto-submits', (
     tester,
   ) async {

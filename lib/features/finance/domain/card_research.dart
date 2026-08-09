@@ -62,6 +62,8 @@ enum ResearchStatus {
   );
 }
 
+enum CardResearchOrigin { liveAi, catalog }
+
 /// Where a value currently on the account-creation form came from. Tracked
 /// per logical field so a manually-typed value is never silently
 /// overwritten by AI autofill (task spec section 56).
@@ -164,6 +166,138 @@ class ProductCandidate {
 
   final String id;
   final String label;
+}
+
+/// Public product identity used by catalog lookup and queueing. This type is
+/// deliberately unable to carry account limits, dates, notes, or credentials.
+@immutable
+class CatalogProductIdentity {
+  const CatalogProductIdentity({
+    required this.accountType,
+    required this.countryCode,
+    required this.issuerName,
+    required this.productName,
+    this.tier,
+    this.network,
+    this.currencyCode,
+    this.officialWebsite,
+  });
+
+  factory CatalogProductIdentity.fromRequest(CardResearchRequest request) =>
+      CatalogProductIdentity(
+        accountType: request.accountType,
+        countryCode: request.countryCode.trim().toUpperCase(),
+        issuerName: request.issuerName.trim(),
+        productName: request.productName.trim(),
+        tier: request.tier?.trim(),
+        network: request.network,
+        currencyCode: request.currencyCode?.trim().toUpperCase(),
+        officialWebsite: request.officialWebsite?.trim(),
+      );
+
+  final AccountType accountType;
+  final String countryCode;
+  final String issuerName;
+  final String productName;
+  final String? tier;
+  final CardNetworkGuess? network;
+  final String? currencyCode;
+  final String? officialWebsite;
+
+  Map<String, dynamic> toSearchParams() => {
+    'p_account_type': accountType.dbValue,
+    'p_country_code': countryCode,
+    'p_issuer_name': issuerName,
+    'p_product_name': productName,
+    'p_tier': tier,
+    'p_network': network?.wireValue,
+    'p_currency_code': currencyCode,
+  };
+
+  Map<String, dynamic> toEnqueueParams(String reason) => {
+    ...toSearchParams(),
+    'p_official_website': officialWebsite,
+    'p_reason': reason,
+    'p_priority': 0,
+  };
+}
+
+/// One normalized row returned by `catalog_search`.
+@immutable
+class CatalogResearchMatch {
+  const CatalogResearchMatch({
+    required this.productId,
+    required this.versionId,
+    required this.identity,
+    required this.researchPayload,
+    required this.sources,
+    required this.verifiedAt,
+    required this.isFresh,
+    required this.ageDays,
+    required this.matchQuality,
+  });
+
+  factory CatalogResearchMatch.fromJson(Map<String, dynamic> json) {
+    final accountType = AccountType.fromDb(json['account_type'] as String);
+    return CatalogResearchMatch(
+      productId: json['catalog_product_id'] as String,
+      versionId: json['catalog_version_id'] as String,
+      identity: CatalogProductIdentity(
+        accountType: accountType,
+        countryCode: json['country_code'] as String,
+        issuerName: json['issuer_name'] as String,
+        productName: json['product_name'] as String,
+        tier: json['tier'] as String?,
+        network: json['network'] == null
+            ? null
+            : CardNetworkGuess.fromWire(json['network'] as String),
+        currencyCode: json['currency_code'] as String?,
+        officialWebsite: json['official_website'] as String?,
+      ),
+      researchPayload: Map<String, dynamic>.from(
+        json['research_payload'] as Map,
+      ),
+      sources:
+          (json['sources'] as List?)
+              ?.map((source) => Map<String, dynamic>.from(source as Map))
+              .toList() ??
+          const [],
+      verifiedAt: DateTime.parse(json['verified_at'] as String).toUtc(),
+      isFresh: json['is_fresh'] as bool? ?? false,
+      ageDays: (json['age_days'] as num?)?.toInt() ?? 0,
+      matchQuality: (json['match_quality'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  final String productId;
+  final String versionId;
+  final CatalogProductIdentity identity;
+  final Map<String, dynamic> researchPayload;
+  final List<Map<String, dynamic>> sources;
+  final DateTime verifiedAt;
+  final bool isFresh;
+  final int ageDays;
+  final int matchQuality;
+
+  String get label => [
+    identity.issuerName,
+    identity.productName,
+    identity.tier,
+    identity.network?.wireValue,
+  ].whereType<String>().where((part) => part.isNotEmpty).join(' · ');
+
+  CardResearchResult toResearchResult(CardResearchRequest request) {
+    final payload = Map<String, dynamic>.from(researchPayload);
+    payload['requestId'] = 'catalog:$versionId';
+    payload['status'] = ResearchStatus.resolved.wireValue;
+    if (sources.isNotEmpty) payload['sources'] = sources;
+    return CardResearchResult.fromJson(payload).withCatalogMetadata(
+      productId: productId,
+      versionId: versionId,
+      verifiedAt: verifiedAt,
+      request: request,
+    );
+  }
 }
 
 @immutable
@@ -319,6 +453,11 @@ class CardResearchResult {
     required this.conflicts,
     required this.unsupportedFindings,
     this.errorMessage,
+    this.origin = CardResearchOrigin.liveAi,
+    this.catalogProductId,
+    this.catalogVersionId,
+    this.catalogVerifiedAt,
+    this.catalogMatches = const [],
   });
 
   factory CardResearchResult.fromJson(Map<String, dynamic> json) {
@@ -443,6 +582,57 @@ class CardResearchResult {
   final List<String> unresolvedRequiredFields;
   final List<CardResearchConflict> conflicts;
   final List<UnsupportedFinding> unsupportedFindings;
+  final CardResearchOrigin origin;
+  final String? catalogProductId;
+  final String? catalogVersionId;
+  final DateTime? catalogVerifiedAt;
+  final List<CatalogResearchMatch> catalogMatches;
+
+  CardResearchResult withCatalogMetadata({
+    required String productId,
+    required String versionId,
+    required DateTime verifiedAt,
+    required CardResearchRequest request,
+  }) => CardResearchResult(
+    requestId: requestId,
+    status: status,
+    candidates: candidates,
+    issuerName: issuerName,
+    productName: productName,
+    tier: tier,
+    network: network,
+    currencyCode: currencyCode,
+    suggestedName: suggestedName,
+    creditLimitMinor: request.knownCreditLimitMinor == null
+        ? creditLimitMinor
+        : _userProvided(request.knownCreditLimitMinor!),
+    defaultDueDay: request.knownDueDay == null
+        ? defaultDueDay
+        : _userProvided(request.knownDueDay!),
+    statementDay: request.knownStatementDay == null
+        ? statementDay
+        : _userProvided(request.knownStatementDay!),
+    minPaymentMethod: minPaymentMethod,
+    minPaymentFixedMinor: minPaymentFixedMinor,
+    minPaymentBasisPoints: minPaymentBasisPoints,
+    rules: rules,
+    installmentTenors: installmentTenors,
+    sources: sources,
+    unresolvedRequiredFields: unresolvedRequiredFields,
+    conflicts: conflicts,
+    unsupportedFindings: unsupportedFindings,
+    errorMessage: errorMessage,
+    origin: CardResearchOrigin.catalog,
+    catalogProductId: productId,
+    catalogVersionId: versionId,
+    catalogVerifiedAt: verifiedAt,
+  );
+
+  static ResearchedValue<T> _userProvided<T>(T value) => ResearchedValue<T>(
+    value: value,
+    status: ResearchFieldStatus.userProvided,
+    confidence: ConfidenceLevel.high,
+  );
 }
 
 /// Request payload sent to the `ai-card-research` Edge Function. Only
@@ -466,6 +656,8 @@ class CardResearchRequest {
     this.bnplTypicalTenorMonths,
     this.userNotes,
     this.selectedProductId,
+    this.catalogMatches = const [],
+    this.skipCatalog = false,
   }) : assert(
          accountType == AccountType.creditCard ||
              accountType == AccountType.bnpl,
@@ -488,6 +680,12 @@ class CardResearchRequest {
   final int? bnplTypicalTenorMonths;
   final String? userNotes;
   final String? selectedProductId;
+
+  /// Session-only matches used after disambiguation; never serialized.
+  final List<CatalogResearchMatch> catalogMatches;
+
+  /// Session-only flag preventing another lookup after live disambiguation.
+  final bool skipCatalog;
 
   Map<String, dynamic> toJson() => {
     'requestId': requestId,
@@ -526,6 +724,8 @@ class CardResearchRequest {
         bnplTypicalTenorMonths: bnplTypicalTenorMonths,
         userNotes: userNotes,
         selectedProductId: selectedProductId ?? this.selectedProductId,
+        catalogMatches: catalogMatches,
+        skipCatalog: skipCatalog,
       );
 }
 
