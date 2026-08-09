@@ -47,11 +47,6 @@ Important derived objects:
 
 All user-owned tables have RLS policies tied to `auth.uid()`.
 
-Global Credit Card / BNPL reference data lives in the versioned financial
-product catalog. It is RLS-locked against direct client writes and is separate
-from user facilities; see `docs/DATABASE_ARCHITECTURE.md` for its storage,
-curator RPCs, freshness rules, and Scheduled Task boundary.
-
 `transaction_categories.parent_category_id` is nullable. Existing rows remain
 top-level categories and transactions continue to reference the same
 `category_id`; new children are restricted to one level, the same owner, and
