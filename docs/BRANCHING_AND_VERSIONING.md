@@ -17,13 +17,9 @@ feature/fix branch -> dev -> stg -> main
 
 ## Version rule
 
-Feature/fix pull requests into `dev` use Conventional Commit titles; each is
-squash-merged, so that title becomes the one commit release tooling scans.
-Promotion pull requests (`dev` -> `stg`, `stg` -> `main`) merge with history
-preserved rather than squashed, carry no commit of their own, and are not
-title-checked — the version impact already comes from the underlying
-commits already in `dev`. The highest unreleased impact since `main`
-determines the next version:
+Pull requests into `dev` use Conventional Commit titles. The policy compares
+each PR with the current `dev` version, derives that PR's impact from its title,
+and requires the exact next version in `pubspec.yaml`:
 
 | Change                                 | Version impact |
 | -------------------------------------- | -------------- |
@@ -33,15 +29,15 @@ determines the next version:
 | Docs, tests, CI, build, or chores only | None           |
 
 Runtime-file changes with no recognized commit type conservatively count as a
-patch. `tool/check_release_version.sh origin/main report` prints the required
-version. Promotion to `stg` or `main` fails unless `pubspec.yaml` matches it.
-The build number increments once per release version; GitHub's run number is
-still used as the monotonically increasing Android `versionCode`.
+patch. Run `tool/check_release_version.sh origin/dev check "<PR title>"`
+locally to print and validate the exact version. Major, minor, and patch changes
+also increment the build number by one; no-impact changes keep both values.
 
-`0.5.0+10` was prepared on the staging line before the current production
-`main` caught up, so `tool/release_baseline.env` records that commit as a
-temporary release floor. The checker automatically uses `main` again as soon
-as production contains a newer version.
+Promotion pull requests (`dev` -> `stg`, `stg` -> `main`) preserve the version
+already decided and tested on the original PR. They do not rescan months of
+old commits or calculate another bump. Instead, the policy requires both the
+semantic version and build number to be newer than the target branch, which
+prevents stale or duplicate releases.
 
 ## User-facing release notes
 
