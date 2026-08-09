@@ -31,11 +31,22 @@ that app integration is outside this backend migration.
 
 Authenticated app users may call only `catalog_search`,
 `enqueue_catalog_research`, and `get_catalog_research_contract`. Catalog table
-DML is denied. Curator, lease, failure, heartbeat, stale-enqueue, and operational
-summary RPCs are granted only to `service_role`/database administration. All
-functions revoke PostgreSQL's default `PUBLIC` execute access, catalog tables
-have RLS enabled with no client mutation policies, and Flutter must never carry
-the service-role key.
+DML is denied. `enqueue_catalog_research` is the app-user path: it requires
+`auth.uid()`, rate-limits by user, restricts user-selectable reasons, and records
+the caller in `requested_by`. `enqueue_catalog_research_automation` is the
+trusted unattended curator/initial-seed path: it has no JWT dependency, records
+`requested_by` as null, and is executable only by `service_role` or the database
+owner. Both wrappers share the same private identity validation, normalization,
+deduplication, and queue insertion helper.
+
+Supabase Management and ChatGPT Scheduled Task SQL executes with
+`current_user = postgres` while `auth.uid()` is null. Those callers must use
+`enqueue_catalog_research_automation`; they must never use the authenticated
+app-user enqueue RPC. Curator, lease, failure, heartbeat, stale-enqueue, and
+operational summary RPCs are likewise restricted to trusted automation/database
+administration. All functions revoke PostgreSQL's unsafe default `PUBLIC`
+execute access, catalog tables have RLS enabled with no client mutation
+policies, and Flutter must never carry the service-role key.
 
 `upsert_catalog_research_result` is the sole curator result-write interface. It
 checks `finance-card-catalog-v1`, validates the existing AI research enums and
@@ -59,6 +70,10 @@ DML or DDL:
 select app_finance.record_catalog_automation_heartbeat('task-name');
 select app_finance.catalog_status_summary();
 select app_finance.get_catalog_research_contract();
+select app_finance.enqueue_catalog_research_automation(
+  'credit_card', 'EG', 'Issuer', 'Product',
+  p_reason => 'initial_seed'
+);
 select app_finance.enqueue_due_catalog_research();
 select app_finance.get_catalog_research_work(5);
 select app_finance.upsert_catalog_research_result('{...}'::jsonb);
