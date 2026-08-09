@@ -32,8 +32,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Fetch production baseline
-        run: git fetch --no-tags origin main:refs/remotes/origin/main
+      - name: Fetch branch baselines
+        run: |
+          git fetch --no-tags origin \
+            main:refs/remotes/origin/main \
+            stg:refs/remotes/origin/stg \
+            dev:refs/remotes/origin/dev
 
       - name: Validate pull-request route and title
         if: github.event_name == 'pull_request'
@@ -67,36 +71,42 @@ jobs:
               ;;
           esac
 
-          # Only feature/fix PRs into dev need a Conventional Commit title:
-          # that title is what a human reads as the change summary, and
-          # squashing it in becomes the commit message release tooling later
-          # scans. Promotion PRs (dev->stg, stg->main) carry no new commits
-          # of their own — GitHub fills their title from the merge summary,
-          # which never matches this pattern — and version impact for them
-          # is already computed from the underlying commits by
-          # check_release_version.sh below, not from this title. Enforcing
-          # the same regex there just fails every promotion PR by
-          # construction, requiring a manual retitle each time.
+          # The dev PR title is the release-impact signal and becomes the
+          # squash commit summary. Promotion PRs preserve the version already
+          # decided on dev, so they only receive a monotonicity check below.
           if [[ "${BASE_BRANCH}" == "dev" ]] && [[ ! "${PR_TITLE}" =~ ^(feat|fix|perf|refactor|docs|test|ci|build|chore)(\([a-z0-9_-]+\))?(!)?:\ .+ ]]; then
             echo "Use a Conventional Commit PR title so version impact is explicit." >&2
             echo "Example: feat(finance): add recurring income" >&2
             exit 1
           fi
 
-      - name: Calculate release impact
+      - name: Test version policy
+        shell: bash
+        run: ./tool/test_release_version_policy.sh
+
+      - name: Calculate and enforce release impact
         id: version
         shell: bash
-        run: ./tool/check_release_version.sh origin/main report
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_BRANCH: ${{ github.base_ref }}
+          CURRENT_BRANCH: ${{ github.ref_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -euo pipefail
+          if [[ "${EVENT_NAME}" == "pull_request" ]]; then
+            if [[ "${BASE_BRANCH}" == "dev" ]]; then
+              ./tool/check_release_version.sh origin/dev check "${PR_TITLE}"
+            else
+              ./tool/check_release_version.sh "origin/${BASE_BRANCH}" promote
+            fi
+          elif [[ "${CURRENT_BRANCH}" == "dev" ]]; then
+            ./tool/check_release_version.sh "${BEFORE_SHA}" check
+          else
+            ./tool/check_release_version.sh "${BEFORE_SHA}" promote
+          fi
 
       - name: Validate bilingual Play release notes
         shell: bash
         run: ./tool/check_play_release_notes.sh origin/main check
-
-      - name: Enforce release version on stg and main
-        if: >-
-          (github.event_name == 'pull_request' &&
-          (github.base_ref == 'stg' || github.base_ref == 'main')) ||
-          (github.event_name == 'push' &&
-          (github.ref_name == 'stg' || github.ref_name == 'main'))
-        shell: bash
-        run: ./tool/check_release_version.sh origin/main check

@@ -164,9 +164,11 @@ release to `main`.
   later production build is newer than earlier Internal Testing builds.
 - Test builds use `<pubspec-version>-stg.<run-number>` as `versionName`.
 - Production uses the base `pubspec.yaml` version as `versionName`.
-- Before promoting `dev` to `stg`, set `pubspec.yaml` to the version calculated
-  from all unreleased Conventional Commit titles. Promotion workflows reject
-  an incorrect or previously released version.
+- Each pull request into `dev` sets `pubspec.yaml` to the exact version derived
+  from its Conventional Commit title and the current `dev` version. CI reports
+  the expected value and rejects an incorrect bump.
+- Promotion workflows preserve that already-tested version and reject a
+  version/build that is not newer than the target branch.
 - After Google Play accepts the production bundle, the workflow creates the
   matching `v<pubspec-version>` tag and publishes the AAB and checksum to a
   GitHub Release.
@@ -189,9 +191,9 @@ Testing. After QA approves that build, promote the exact `stg` state to
 
 ```bash
 gh pr create --base stg --head dev \
-  --title "chore(release): stage Finance Suit v0.6.0"
+  --title "chore(release): stage Finance Suit vX.Y.Z"
 gh pr create --base main --head stg \
-  --title "chore(release): publish Finance Suit v0.6.0"
+  --title "chore(release): publish Finance Suit vX.Y.Z"
 ```
 
 The workflow can also be dispatched manually on either `stg` or `main`; the
