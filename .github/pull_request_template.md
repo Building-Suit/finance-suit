@@ -11,6 +11,10 @@ The PR title is the release signal:
 - `type!:` or `BREAKING CHANGE:` → major version
 - `docs:`, `test:`, `ci:`, `build:`, or `chore:` → no app-version bump unless runtime files change
 
+For PRs into `dev`, update `pubspec.yaml` to the exact version CI derives from
+the current `dev` version and this title. Release-impact changes increment the
+build number once. Promotion PRs preserve the version already tested in `dev`.
+
 ## User-facing release notes
 
 When the app version changes, update both files with the same real user-visible

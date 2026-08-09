@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-requested_base_ref="${1:-origin/main}"
+base_ref="${1:-origin/dev}"
 mode="${2:-report}"
+change_text="${3:-}"
 
-if [[ "${mode}" != "report" && "${mode}" != "check" ]]; then
-  echo "Usage: $0 [base-ref] [report|check]" >&2
+if [[ "${mode}" != "report" && "${mode}" != "check" && "${mode}" != "promote" ]]; then
+  echo "Usage: $0 [base-ref] [report|check|promote] [change-text]" >&2
   exit 2
 fi
 
 read_version() {
-  sed -n 's/^version: \([0-9][0-9.]*\)+\([0-9][0-9]*\)$/\1 \2/p'
+  sed -n 's/^version: \([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\)+\([0-9][0-9]*\)$/\1 \2/p'
 }
 
-base_ref="${requested_base_ref}"
 base_version_line="$(git show "${base_ref}:pubspec.yaml" | read_version)"
 head_version_line="$(read_version < pubspec.yaml)"
 
@@ -32,26 +32,53 @@ version_weight() {
   printf '%d' "$((major * 100000000 + minor * 10000 + patch))"
 }
 
-# 0.5.0 was staged before the current main branch caught up. Treat it as the
-# minimum baseline, then automatically prefer main after production advances.
-source tool/release_baseline.env
-if (( $(version_weight "${RELEASE_BASE_VERSION}") > $(version_weight "${base_version}") )); then
-  base_ref="${RELEASE_BASE_COMMIT}"
-  base_version="${RELEASE_BASE_VERSION}"
-  base_build="${RELEASE_BASE_BUILD}"
+base_weight="$(version_weight "${base_version}")"
+head_weight="$(version_weight "${head_version}")"
+actual_declared="${head_version}+${head_build}"
+
+if [[ "${mode}" == "promote" ]]; then
+  echo "Promotion baseline: ${base_version}+${base_build} (${base_ref})"
+  echo "Promoted version: ${actual_declared}"
+
+  if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+    {
+      echo "impact=promotion"
+      echo "expected=>${base_version}+${base_build}"
+      echo "actual=${actual_declared}"
+    } >> "${GITHUB_OUTPUT}"
+  fi
+
+  if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+    {
+      echo "### Version promotion"
+      echo
+      echo "- Target baseline: \`${base_version}+${base_build}\`"
+      echo "- Promoted version: \`${actual_declared}\`"
+    } >> "${GITHUB_STEP_SUMMARY}"
+  fi
+
+  if (( head_weight <= base_weight || head_build <= base_build )); then
+    echo "Promotion must increase both semantic version and build number beyond ${base_version}+${base_build}." >&2
+    exit 1
+  fi
+  exit 0
 fi
 
-commit_text="$(git log --format='%s%n%b' "${base_ref}..HEAD")"
-impact="none"
+if [[ -z "${change_text}" ]]; then
+  change_text="$(git log --format='%s%n%b' "${base_ref}..HEAD")"
+fi
 
-if grep -Eq '^[a-z]+(\([^)]*\))?!:|^BREAKING CHANGE:' <<< "${commit_text}"; then
+impact="none"
+if grep -Eq '^[a-z]+(\([^)]*\))?!:|^BREAKING CHANGE:' <<< "${change_text}"; then
   impact="major"
-elif grep -Eq '^feat(\([^)]*\))?:' <<< "${commit_text}"; then
+elif grep -Eq '^feat(\([^)]*\))?:' <<< "${change_text}"; then
   impact="minor"
-elif grep -Eq '^(fix|perf|refactor)(\([^)]*\))?:' <<< "${commit_text}"; then
+elif grep -Eq '^(fix|perf|refactor)(\([^)]*\))?:' <<< "${change_text}"; then
   impact="patch"
 elif git diff --name-only "${base_ref}...HEAD" | grep -Eq \
-    '^(android|assets|ios|lib|supabase/migrations)/|^pubspec\.lock$'; then
+    '^(android|assets|ios|lib|supabase/functions|supabase/migrations)/|^pubspec\.lock$'; then
+  # Protect non-Conventional local commits: shipped application/database
+  # changes must still advance at least the patch version.
   impact="patch"
 fi
 
@@ -68,7 +95,6 @@ if [[ "${impact}" != "none" ]]; then
   expected_build="$((base_build + 1))"
 fi
 expected_declared="${expected_version}+${expected_build}"
-actual_declared="${head_version}+${head_build}"
 
 echo "Release baseline: ${base_version}+${base_build} (${base_ref})"
 echo "Calculated impact: ${impact}"
