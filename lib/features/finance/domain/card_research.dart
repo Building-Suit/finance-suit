@@ -104,13 +104,16 @@ class ResearchedValue<T> {
   final ConfidenceLevel? confidence;
   final List<String> sourceIds;
 
-  /// Only [verified] and [userProvided] values are safe to write into the
-  /// form automatically — see task spec section 23 ("safest default: do
-  /// not autofill weak financial values").
+  /// User-provided values remain authoritative. Researched values must be
+  /// verified, carry source provenance, and have non-low confidence before
+  /// they are safe to write into the form automatically.
   bool get isAutofillEligible =>
       value != null &&
-      (status == ResearchFieldStatus.verified ||
-          status == ResearchFieldStatus.userProvided);
+      (status == ResearchFieldStatus.userProvided ||
+          (status == ResearchFieldStatus.verified &&
+              sourceIds.isNotEmpty &&
+              confidence != null &&
+              confidence != ConfidenceLevel.low));
 }
 
 ResearchedValue<T> _parseValue<T>(
