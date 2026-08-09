@@ -358,7 +358,10 @@ class _FinanceSuitMenuPanel extends StatelessWidget {
         heightFactor: 1,
         child: Material(
           key: const Key('finance-suit-menu-panel'),
-          color: Theme.of(context).colorScheme.surface,
+          // Keep the menu content interactive without painting a separate
+          // surface behind it. The route's scrim remains responsible for
+          // separating the menu from the page underneath.
+          type: MaterialType.transparency,
           child: SafeArea(
             // Compact mode: destination rows sit on the accessible 48dp
             // floor instead of inheriting the theme's taller tile padding.
