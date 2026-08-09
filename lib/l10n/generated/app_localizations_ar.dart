@@ -3065,6 +3065,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'قمنا بتعبئة ما استطعنا تعبئته. أكمل الحقول المميزة للمتابعة.';
 
   @override
+  String aiResearchCatalogVerifiedOn(String date) {
+    return 'تم التحقق من كتالوج Finance Suit · $date';
+  }
+
+  @override
   String get cardPaymentDueDay => 'يوم استحقاق السداد';
 
   @override

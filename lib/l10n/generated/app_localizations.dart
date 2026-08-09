@@ -5663,6 +5663,12 @@ abstract class AppLocalizations {
   /// **'We filled what we could. Complete the highlighted fields to continue.'**
   String get aiResearchIncompleteMessage;
 
+  /// No description provided for @aiResearchCatalogVerifiedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified from Finance Suit catalog · {date}'**
+  String aiResearchCatalogVerifiedOn(String date);
+
   /// No description provided for @cardPaymentDueDay.
   ///
   /// In en, this message translates to:

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
@@ -5,6 +6,7 @@ import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/result/result.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
+import 'package:work_tracker/features/finance/data/card_research_data_source.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
 import 'package:work_tracker/features/finance/domain/card_research.dart';
@@ -19,9 +21,14 @@ import 'package:work_tracker/features/finance/domain/transaction_macro.dart';
 import 'package:work_tracker/features/finance/domain/transaction_query.dart';
 
 class FinanceRepository {
-  FinanceRepository(this._client);
+  FinanceRepository(
+    this._client, {
+    CardResearchDataSource? cardResearchDataSource,
+  }) : _cardResearchDataSource =
+           cardResearchDataSource ?? SupabaseCardResearchDataSource(_client);
 
   final SupabaseClient _client;
+  final CardResearchDataSource _cardResearchDataSource;
 
   SupabaseQuerySchema get _db => _client.schema(AppSchemas.finance);
 
@@ -819,20 +826,171 @@ class FinanceRepository {
     });
   }
 
-  /// Researches a Credit Card or BNPL product's public terms server-side
-  /// (never calling any AI provider directly from Flutter) and returns a
-  /// normalized DTO the caller maps onto the existing Add Account form. The
-  /// AI never writes to Supabase — this call is read-only research.
+  /// Resolves public product terms catalog-first, falling back to the existing
+  /// AI Edge Function whenever the catalog cannot safely answer. Neither path
+  /// creates an account; only [saveCreditFacility] has that authority.
   Future<Result<CardResearchResult>> researchCardProduct(
     CardResearchRequest request,
   ) {
     return guard(() async {
-      final response = await _client.functions.invoke(
-        'ai-card-research',
-        body: request.toJson(),
-      );
-      return CardResearchResult.fromJson(response.data as Map<String, dynamic>);
+      const confidentMatch = 80;
+      final identity = CatalogProductIdentity.fromRequest(request);
+
+      if (request.catalogMatches.isNotEmpty) {
+        final selected = request.catalogMatches.firstWhereOrNull(
+          (match) => match.productId == request.selectedProductId,
+        );
+        if (selected != null) {
+          if (selected.isFresh) {
+            return _catalogResultOrLive(selected, request);
+          }
+          _logResearchEvent('catalog_stale');
+          return _queueAndResearchLive(identity, request, reason: 'stale');
+        }
+      }
+
+      if (request.skipCatalog) return _researchLive(request);
+
+      late final List<CatalogResearchMatch> matches;
+      try {
+        final rows = await _cardResearchDataSource.searchCatalog(identity);
+        matches = rows
+            .map(CatalogResearchMatch.fromJson)
+            .where((match) => match.matchQuality >= confidentMatch)
+            .toList();
+      } catch (_) {
+        _logResearchEvent('catalog_error');
+        return _researchLive(request);
+      }
+
+      if (matches.isEmpty) {
+        _logResearchEvent('catalog_miss');
+        return _queueAndResearchLive(identity, request, reason: 'new_product');
+      }
+
+      if (request.selectedProductId != null) {
+        final selected = matches.firstWhereOrNull(
+          (match) => match.productId == request.selectedProductId,
+        );
+        if (selected != null && selected.isFresh) {
+          return _catalogResultOrLive(selected, request);
+        }
+        if (selected != null) {
+          _logResearchEvent('catalog_stale');
+          return _queueAndResearchLive(identity, request, reason: 'stale');
+        }
+        return _researchLive(request);
+      }
+
+      final bestQuality = matches
+          .map((match) => match.matchQuality)
+          .reduce((left, right) => left > right ? left : right);
+      final best = matches
+          .where((match) => match.matchQuality == bestQuality)
+          .toList();
+      if (best.length > 1) {
+        _logResearchEvent('catalog_ambiguous');
+        return _ambiguousCatalogResult(request, best);
+      }
+
+      final match = best.single;
+      if (match.isFresh) return _catalogResultOrLive(match, request);
+
+      _logResearchEvent('catalog_stale');
+      return _queueAndResearchLive(identity, request, reason: 'stale');
     }, timeout: const Duration(seconds: 60));
+  }
+
+  Future<CardResearchResult> _researchLive(CardResearchRequest request) async {
+    _logResearchEvent('live_ai_fallback');
+    final json = await _cardResearchDataSource.researchLive(request);
+    return CardResearchResult.fromJson(json);
+  }
+
+  Future<CardResearchResult> _catalogResultOrLive(
+    CatalogResearchMatch match,
+    CardResearchRequest request,
+  ) async {
+    try {
+      final result = match.toResearchResult(request);
+      _logResearchEvent('catalog_hit');
+      return result;
+    } catch (_) {
+      _logResearchEvent('catalog_error');
+      return _researchLive(request);
+    }
+  }
+
+  Future<void> _queueCatalogBestEffort(
+    CatalogProductIdentity identity, {
+    required String reason,
+  }) async {
+    try {
+      await _cardResearchDataSource.enqueueCatalogResearch(
+        identity,
+        reason: reason,
+      );
+    } catch (_) {
+      // Queue availability must never block the manual/live research flow.
+    }
+  }
+
+  Future<CardResearchResult> _queueAndResearchLive(
+    CatalogProductIdentity identity,
+    CardResearchRequest request, {
+    required String reason,
+  }) async {
+    final queueFuture = _queueCatalogBestEffort(identity, reason: reason);
+    final liveFuture = _researchLive(request);
+    final results = await Future.wait<dynamic>([queueFuture, liveFuture]);
+    return results[1] as CardResearchResult;
+  }
+
+  CardResearchResult _ambiguousCatalogResult(
+    CardResearchRequest request,
+    List<CatalogResearchMatch> matches,
+  ) => CardResearchResult(
+    requestId: request.requestId,
+    status: ResearchStatus.ambiguous,
+    candidates: matches
+        .map(
+          (match) => ProductCandidate(id: match.productId, label: match.label),
+        )
+        .toList(),
+    issuerName: const ResearchedValue.empty(),
+    productName: const ResearchedValue.empty(),
+    tier: const ResearchedValue.empty(),
+    network: const ResearchedValue.empty(),
+    currencyCode: const ResearchedValue.empty(),
+    suggestedName: const ResearchedValue.empty(),
+    creditLimitMinor: const ResearchedValue.empty(),
+    defaultDueDay: const ResearchedValue.empty(),
+    statementDay: const ResearchedValue.empty(),
+    minPaymentMethod: const ResearchedValue.empty(),
+    minPaymentFixedMinor: const ResearchedValue.empty(),
+    minPaymentBasisPoints: const ResearchedValue.empty(),
+    rules: const [],
+    installmentTenors: const [],
+    sources: const [],
+    unresolvedRequiredFields: const [],
+    conflicts: const [],
+    unsupportedFindings: const [],
+    origin: CardResearchOrigin.catalog,
+    catalogMatches: matches,
+  );
+
+  void _logResearchEvent(String event) {
+    assert(
+      const {
+        'catalog_hit',
+        'catalog_miss',
+        'catalog_stale',
+        'catalog_ambiguous',
+        'catalog_error',
+        'live_ai_fallback',
+      }.contains(event),
+    );
+    debugPrint('card_research event=$event');
   }
 
   /// One plan by id, for the edit form.
@@ -1488,3 +1646,12 @@ class FinanceRepository {
 final financeRepositoryProvider = Provider<FinanceRepository>(
   (ref) => FinanceRepository(ref.watch(supabaseClientProvider)),
 );
+
+extension _FirstWhereOrNull<T> on Iterable<T> {
+  T? firstWhereOrNull(bool Function(T value) test) {
+    for (final value in this) {
+      if (test(value)) return value;
+    }
+    return null;
+  }
+}
