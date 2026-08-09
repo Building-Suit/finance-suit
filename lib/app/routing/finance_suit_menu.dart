@@ -7,6 +7,7 @@ import 'package:work_tracker/app/branding/finance_suit_brand.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/branding/finance_suit_mark.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
+import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
@@ -286,7 +287,13 @@ class _FinanceSuitMenuPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final semanticColors = theme.extension<FinanceSuitSemanticColors>()!;
+    // The transparent menu is always drawn over the darkened page scrim, so
+    // its foreground must use the on-overlay roles even in light mode.
+    final foreground = semanticColors.onBrandSurface;
+    final mutedForeground = foreground.withValues(alpha: 0.76);
     final groups = [
       (
         heading: l10n.menuGroupGeneral,
@@ -368,6 +375,8 @@ class _FinanceSuitMenuPanel extends StatelessWidget {
             child: ListTileTheme.merge(
               visualDensity: VisualDensity.compact,
               contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              textColor: foreground,
+              iconColor: mutedForeground,
               child: Column(
                 children: [
                   Expanded(
@@ -396,7 +405,9 @@ class _FinanceSuitMenuPanel extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   FinanceSuitBrand.name,
-                                  style: textTheme.titleMedium,
+                                  style: textTheme.titleMedium?.copyWith(
+                                    color: foreground,
+                                  ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -414,7 +425,9 @@ class _FinanceSuitMenuPanel extends StatelessWidget {
                             ),
                             child: Text(
                               group.heading,
-                              style: textTheme.labelLarge,
+                              style: textTheme.labelLarge?.copyWith(
+                                color: foreground,
+                              ),
                             ),
                           ),
                           for (final item in group.items)
@@ -431,11 +444,11 @@ class _FinanceSuitMenuPanel extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Divider(height: 1),
+                  _MenuLogoutSeparator(color: mutedForeground),
                   ListTile(
                     key: const Key('menu-item-logout'),
-                    iconColor: Theme.of(context).colorScheme.error,
-                    textColor: Theme.of(context).colorScheme.error,
+                    iconColor: theme.colorScheme.error,
+                    textColor: theme.colorScheme.error,
                     leading: const FinanceSuitIcon(FinanceSuitIcons.logout),
                     title: Text(l10n.authLogout),
                     onTap: () => Navigator.of(
@@ -445,6 +458,29 @@ class _FinanceSuitMenuPanel extends StatelessWidget {
                 ],
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MenuLogoutSeparator extends StatelessWidget {
+  const _MenuLogoutSeparator({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      key: const Key('finance-suit-menu-logout-separator'),
+      height: 0.5,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: AlignmentDirectional.centerStart,
+            end: AlignmentDirectional.centerEnd,
+            colors: [color.withValues(alpha: 0.24), Colors.transparent],
           ),
         ),
       ),

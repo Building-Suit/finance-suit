@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:work_tracker/app/routing/finance_suit_menu.dart';
 import 'package:work_tracker/app/routing/finance_suit_navigation_bar.dart';
+import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/features/auth/presentation/controllers/auth_controller.dart';
 
@@ -52,6 +53,40 @@ void main() {
     final panel = tester.getRect(find.byKey(panelKey));
     expect(panel.width, closeTo(screen.width * 0.675, 1.0));
     expect(panel.right, closeTo(screen.width, 1.0));
+  });
+
+  testWidgets('uses readable overlay colors and an end-fading separator', (
+    tester,
+  ) async {
+    await pumpShellApp(tester, buildShellTestRouter());
+    await openMenu(tester);
+
+    final menuContext = tester.element(find.byKey(panelKey));
+    final foreground = Theme.of(
+      menuContext,
+    ).extension<FinanceSuitSemanticColors>()!.onBrandSurface;
+    expect(
+      tester.widget<Text>(find.text('Finance Suit')).style?.color,
+      foreground,
+    );
+    expect(tester.widget<Text>(find.text('General')).style?.color, foreground);
+
+    const separatorKey = Key('finance-suit-menu-logout-separator');
+    expect(tester.getSize(find.byKey(separatorKey)).height, 0.5);
+    final decoration =
+        tester
+                .widget<DecoratedBox>(
+                  find.descendant(
+                    of: find.byKey(separatorKey),
+                    matching: find.byType(DecoratedBox),
+                  ),
+                )
+                .decoration
+            as BoxDecoration;
+    final gradient = decoration.gradient! as LinearGradient;
+    expect(gradient.begin, AlignmentDirectional.centerStart);
+    expect(gradient.end, AlignmentDirectional.centerEnd);
+    expect(gradient.colors.last, Colors.transparent);
   });
 
   testWidgets('uses the 320ms emphasized open and 240ms scrim', (tester) async {
