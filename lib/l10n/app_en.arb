@@ -1412,6 +1412,12 @@
   "aiResearchDisambiguationTitle": "Which one do you have?",
   "aiResearchUnableToFind": "We couldn't find enough reliable information. You can continue filling the form manually.",
   "aiResearchIncompleteMessage": "We filled what we could. Complete the highlighted fields to continue.",
+  "aiResearchCatalogVerifiedOn": "Verified from Finance Suit catalog · {date}",
+  "@aiResearchCatalogVerifiedOn": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
   "cardPaymentDueDay": "Payment due day",
   "cardStatementCloses": "Statement closes",
   "cardStatementExactDay": "Exact day",
