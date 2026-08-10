@@ -73,7 +73,11 @@ run_case wrong-feat 'feat: add catalog lookup' 0.6.1+12 1 \
   'Set pubspec.yaml version to 0.7.0+12.'
 run_case promotion 'promotion' 0.7.0+12 0 \
   'Promoted version: 0.7.0+12' promote
-run_case stale-promotion 'promotion' 0.6.0+11 1 \
-  'Promotion must increase both semantic version and build number' promote
+run_case operational-promotion 'promotion' 0.6.0+11 0 \
+  'allowing operational-only changes' promote false
+run_case stale-promotion 'promotion' 0.5.9+10 1 \
+  'Promotion must not decrease semantic version or build number' promote false
+run_case incomplete-promotion 'promotion' 0.7.0+11 1 \
+  'A versioned promotion must increase both semantic version and build number' promote
 
 echo "Version policy tests passed."
