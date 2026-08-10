@@ -136,6 +136,30 @@ FinanceRepository _repository(_FakeCardResearchDataSource source) =>
     );
 
 void main() {
+  test('autofill eligibility requires confidence and source provenance', () {
+    const lowConfidence = ResearchedValue<int>(
+      value: 17,
+      status: ResearchFieldStatus.verified,
+      confidence: ConfidenceLevel.low,
+      sourceIds: ['official'],
+    );
+    const missingSource = ResearchedValue<int>(
+      value: 17,
+      status: ResearchFieldStatus.verified,
+      confidence: ConfidenceLevel.high,
+    );
+    const supported = ResearchedValue<int>(
+      value: 17,
+      status: ResearchFieldStatus.verified,
+      confidence: ConfidenceLevel.medium,
+      sourceIds: ['official'],
+    );
+
+    expect(lowConfidence.isAutofillEligible, isFalse);
+    expect(missingSource.isAutofillEligible, isFalse);
+    expect(supported.isAutofillEligible, isTrue);
+  });
+
   test(
     'fresh confident catalog hit maps provenance and avoids live AI',
     () async {

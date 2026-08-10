@@ -15,7 +15,6 @@ import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/core/widgets/app_money_text.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/protected_money.dart';
-import 'package:work_tracker/features/commercial/domain/commercial_models.dart';
 import 'package:work_tracker/features/commercial/presentation/providers/commercial_providers.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
@@ -41,9 +40,14 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  static const _solidHeaderThreshold = 12.0;
+  static const _floatingHeaderThreshold = 4.0;
+
+  final _scrollController = ScrollController();
   late ReportRangeSelection _range = ReportRangeSelection.currentMonth(
     PlainDate.today(),
   );
+  var _isHeaderSolid = false;
 
   static const _presetOptions = [
     DateRangePreset.currentMonth,
@@ -56,7 +60,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_updateHeaderState);
     Future<void>.microtask(_restoreRange);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _updateHeaderState());
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_updateHeaderState)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _updateHeaderState() {
+    if (!_scrollController.hasClients) return;
+    final offset = _scrollController.position.pixels;
+    final shouldBeSolid = _isHeaderSolid
+        ? offset >= _floatingHeaderThreshold
+        : offset > _solidHeaderThreshold;
+    if (shouldBeSolid == _isHeaderSolid || !mounted) return;
+    setState(() => _isHeaderSolid = shouldBeSolid);
   }
 
   Future<void> _restoreRange() async {
@@ -165,6 +189,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final accountsAsync = ref.watch(accountBalancesProvider);
+    final entitlementAsync = ref.watch(effectiveEntitlementProvider);
     final allAccountsAsync = ref.watch(allAccountBalancesProvider);
     final summaryAsync = ref.watch(homeCashFlowSummaryProvider(_range.range));
     final salarySettingsAsync = ref.watch(salarySettingsProvider);
@@ -206,16 +231,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
 
     return Scaffold(
-      appBar: FinanceSuitAppBar.topLevel(semanticTitle: l10n.tabHome),
+      appBar: FinanceSuitHomeAppBar(
+        semanticTitle: l10n.tabHome,
+        isSolid: _isHeaderSolid,
+        entitlement: entitlementAsync.value,
+      ),
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: ListView(
+          key: const Key('home-dashboard-scroll'),
+          controller: _scrollController,
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
           children: [
             if (hasDashboardFailure) _HomeDataStatusCard(onRetry: _refresh),
-            _HomeEntitlementIndicator(
-              entitlement: ref.watch(effectiveEntitlementProvider),
-            ),
             compactSection(
               pendingIncomeAsync,
               loading: const SizedBox.shrink(),
@@ -325,42 +353,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
-}
-
-class _HomeEntitlementIndicator extends StatelessWidget {
-  const _HomeEntitlementIndicator({required this.entitlement});
-  final AsyncValue<EffectiveEntitlement> entitlement;
-
-  @override
-  Widget build(BuildContext context) => entitlement.when(
-    loading: () => const SizedBox.shrink(),
-    error: (_, _) => const SizedBox.shrink(),
-    data: (value) => value.source == EntitlementSource.openEarlyAccess
-        ? Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-                child: Row(
-                  children: [
-                    const FinanceSuitIcon(FinanceSuitIcons.star),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Pro Early Access',
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          )
-        : const SizedBox.shrink(),
-  );
 }
 
 class _HomeDataStatusCard extends StatelessWidget {

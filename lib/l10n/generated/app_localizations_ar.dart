@@ -3260,6 +3260,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get freePlan => 'مجاني';
 
   @override
+  String get proPlan => 'برو';
+
+  @override
+  String get subscriptionUpgradePrompt => 'اضغط هنا للترقية';
+
+  @override
+  String get subscriptionUpgradeFromFree => 'الترقية من الخطة المجانية';
+
+  @override
   String get billingNotReady =>
       'الفوترة غير جاهزة بعد. برو متاح ضمن الوصول المبكر.';
 }

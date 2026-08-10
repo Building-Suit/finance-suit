@@ -1487,5 +1487,8 @@
   "proComplimentary": "Pro · Complimentary",
   "proEarlyAccessSummary": "Pro · Early Access",
   "freePlan": "Free",
+  "proPlan": "Pro",
+  "subscriptionUpgradePrompt": "click here to upgrade",
+  "subscriptionUpgradeFromFree": "Upgrade from Free",
   "billingNotReady": "Billing is not ready yet. Pro is included during Early Access."
 }

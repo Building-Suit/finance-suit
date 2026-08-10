@@ -78,10 +78,12 @@ Map<String, dynamic> _resolvedJson() => {
 
 void main() {
   group('ResearchedValue.isAutofillEligible', () {
-    test('is true for verified and user_provided with a value', () {
+    test('is true for supported verified and user-provided values', () {
       const verified = ResearchedValue<String>(
         value: 'CIB',
         status: ResearchFieldStatus.verified,
+        confidence: ConfidenceLevel.high,
+        sourceIds: ['s1'],
       );
       const userProvided = ResearchedValue<int>(
         value: 5000000,
