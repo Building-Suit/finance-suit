@@ -18,7 +18,7 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   policy:
@@ -31,6 +31,10 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
           fetch-depth: 0
+          # A same-repository dev PR is checked out at its head so the
+          # guarded version synchronizer can commit directly to that branch.
+          # Fork PRs remain read-only and continue through normal validation.
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.base_ref == 'dev' && github.head_ref || github.sha }}
 
       - name: Fetch branch baselines
         run: |
@@ -79,6 +83,24 @@ jobs:
             echo "Example: feat(finance): add recurring income" >&2
             exit 1
           fi
+
+      - name: Synchronize version for trusted dev pull requests
+        if: github.event_name == 'pull_request' && github.base_ref == 'dev' && github.event.pull_request.head.repo.full_name == github.repository
+        shell: bash
+        env:
+          HEAD_BRANCH: ${{ github.head_ref }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -euo pipefail
+          bash ./tool/sync_release_version.sh origin/dev "${PR_TITLE}"
+          if git diff --quiet -- pubspec.yaml; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pubspec.yaml
+          git commit -m "chore(release): synchronize app version"
+          git push origin "HEAD:${HEAD_BRANCH}"
 
       - name: Test version policy
         shell: bash
