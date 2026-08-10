@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
+import 'package:work_tracker/app/routing/finance_suit_navigation_bar.dart';
 import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
@@ -69,7 +70,9 @@ class _WorkScreenState extends ConsumerState<WorkScreen> {
             onRefresh: () async =>
                 ref.invalidate(workEntriesForMonthProvider(_month)),
             child: ListView(
-              padding: const EdgeInsets.only(bottom: 88),
+              padding: EdgeInsets.only(
+                bottom: FinanceSuitNavigationBar.contentClearance(context),
+              ),
               children: [
                 _MonthNavigator(month: _month, onShift: _shiftMonth),
                 _CalendarGrid(

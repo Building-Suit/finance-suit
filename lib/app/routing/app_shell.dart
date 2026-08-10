@@ -163,6 +163,7 @@ class _AppShellState extends ConsumerState<AppShell> {
     final l10n = AppLocalizations.of(context);
     return FinanceSuitMenuPagePlane(
       child: Scaffold(
+        extendBody: true,
         body: navigationShell,
         bottomNavigationBar: FinanceSuitNavigationBar(
           selectedIndex: navigationShell.currentIndex,

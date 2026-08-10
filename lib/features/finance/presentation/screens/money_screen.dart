@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
+import 'package:work_tracker/app/routing/finance_suit_navigation_bar.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
@@ -174,6 +175,9 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
         return RefreshIndicator(
           onRefresh: () async => invalidateFinanceData(ref),
           child: ListView(
+            padding: EdgeInsets.only(
+              bottom: FinanceSuitNavigationBar.contentClearance(context),
+            ),
             children: [
               Card(
                 margin: const EdgeInsets.all(16),
@@ -387,6 +391,9 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
         return RefreshIndicator(
           onRefresh: () async => ref.invalidate(heldAmountsProvider),
           child: ListView(
+            padding: EdgeInsets.only(
+              bottom: FinanceSuitNavigationBar.contentClearance(context),
+            ),
             children: [
               Card(
                 margin: const EdgeInsets.all(16),
