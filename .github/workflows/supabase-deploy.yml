@@ -38,6 +38,10 @@ jobs:
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       SUPABASE_PROJECT_REF: kedjrbwnznvfqlzszawa
       SUPABASE_CLI_VERSION: 2.113.0
+      # Pooler connections occasionally time out from GitHub-hosted runners.
+      # The shared helper retries only known transient network/API failures.
+      SUPABASE_RETRY_ATTEMPTS: 5
+      SUPABASE_RETRY_DELAY_SECONDS: 30
 
     steps:
       - name: Check out repository
@@ -73,18 +77,10 @@ jobs:
 
       - name: Record migration state before deployment
         shell: bash
-        run: |
-          set -euo pipefail
-          for attempt in 1 2 3; do
-            if npx --yes supabase@${SUPABASE_CLI_VERSION} migration list --linked; then
-              exit 0
-            fi
-            if [[ "${attempt}" == 3 ]]; then
-              echo "Unable to connect to Postgres after 3 attempts." >&2
-              exit 1
-            fi
-            sleep "$((attempt * 10))"
-          done
+        run: >-
+          .github/scripts/retry-supabase-command.sh
+          - "Record migration state"
+          npx --yes supabase@${SUPABASE_CLI_VERSION} migration list --linked
 
       - name: Create pre-migration backups
         shell: bash
@@ -92,10 +88,12 @@ jobs:
           set -euo pipefail
           backup_dir="${RUNNER_TEMP}/finance-suit-supabase-backup"
           mkdir -p "${backup_dir}"
-          npx --yes supabase@${SUPABASE_CLI_VERSION} db dump --linked \
+          .github/scripts/retry-supabase-command.sh - "Back up database schema" \
+            npx --yes supabase@${SUPABASE_CLI_VERSION} db dump --linked \
             --password "${SUPABASE_DB_PASSWORD}" \
             --file "${backup_dir}/backup_pre_sync.sql"
-          npx --yes supabase@${SUPABASE_CLI_VERSION} db dump --linked \
+          .github/scripts/retry-supabase-command.sh - "Back up database data" \
+            npx --yes supabase@${SUPABASE_CLI_VERSION} db dump --linked \
             --password "${SUPABASE_DB_PASSWORD}" \
             --data-only --use-copy \
             --file "${backup_dir}/backup_pre_sync_data.sql"
@@ -114,25 +112,21 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npx --yes supabase@${SUPABASE_CLI_VERSION} db push --linked --dry-run
-          npx --yes supabase@${SUPABASE_CLI_VERSION} db push --linked
+          .github/scripts/retry-supabase-command.sh - "Preview pending migrations" \
+            npx --yes supabase@${SUPABASE_CLI_VERSION} db push --linked --dry-run
+          .github/scripts/retry-supabase-command.sh - "Apply pending migrations" \
+            npx --yes supabase@${SUPABASE_CLI_VERSION} db push --linked
 
       - name: Verify migration state and schema
         shell: bash
         run: |
           set -euo pipefail
-          for attempt in 1 2 3; do
-            if npx --yes supabase@${SUPABASE_CLI_VERSION} migration list --linked; then
-              break
-            fi
-            if [[ "${attempt}" == 3 ]]; then
-              echo "Unable to connect to Postgres after 3 attempts." >&2
-              exit 1
-            fi
-            sleep "$((attempt * 10))"
-          done
-          npx --yes supabase@${SUPABASE_CLI_VERSION} db push --linked --dry-run
-          npx --yes supabase@${SUPABASE_CLI_VERSION} db query --linked \
+          .github/scripts/retry-supabase-command.sh - "Verify migration state" \
+            npx --yes supabase@${SUPABASE_CLI_VERSION} migration list --linked
+          .github/scripts/retry-supabase-command.sh - "Verify no pending migrations" \
+            npx --yes supabase@${SUPABASE_CLI_VERSION} db push --linked --dry-run
+          .github/scripts/retry-supabase-command.sh - "Verify production schema" \
+            npx --yes supabase@${SUPABASE_CLI_VERSION} db query --linked \
             --file supabase/verification/production.sql
 
       - name: Deploy changed or missing Edge Functions
