@@ -87,4 +87,36 @@ void main() {
     await pumpHome(tester);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Home header morphs after scrolling and restores at the top', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 320));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await pumpHome(tester);
+    final surface = find.byKey(
+      const Key('finance-suit-home-header-surface'),
+    );
+    final scrollView = find.byKey(const Key('home-dashboard-scroll'));
+    expect(
+      tester.widget<AnimatedContainer>(surface).margin,
+      const EdgeInsetsDirectional.symmetric(horizontal: 16),
+    );
+
+    await tester.drag(scrollView, const Offset(0, -120));
+    await tester.pump(const Duration(milliseconds: 240));
+    expect(
+      tester.widget<AnimatedContainer>(surface).margin,
+      EdgeInsetsDirectional.zero,
+    );
+
+    await tester.drag(scrollView, const Offset(0, 120));
+    await tester.pump(const Duration(milliseconds: 240));
+    expect(
+      tester.widget<AnimatedContainer>(surface).margin,
+      const EdgeInsetsDirectional.symmetric(horizontal: 16),
+    );
+    expect(tester.takeException(), isNull);
+  });
 }

@@ -143,6 +143,9 @@ abstract final class FinanceSuitIcons {
   static const menu = FinanceSuitGlyph(HugeIconsStrokeRounded.menu01);
   static const money = FinanceSuitGlyph(HugeIconsStrokeRounded.cash01);
   static const moreTime = FinanceSuitGlyph(HugeIconsStrokeRounded.clockPlus);
+  static const notifications = FinanceSuitGlyph(
+    HugeIconsStrokeRounded.notification02,
+  );
   static const password = FinanceSuitGlyph(
     HugeIconsStrokeRounded.squareLockPassword,
   );

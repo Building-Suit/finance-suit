@@ -41,9 +41,14 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  static const _solidHeaderThreshold = 12.0;
+  static const _floatingHeaderThreshold = 4.0;
+
+  final _scrollController = ScrollController();
   late ReportRangeSelection _range = ReportRangeSelection.currentMonth(
     PlainDate.today(),
   );
+  var _isHeaderSolid = false;
 
   static const _presetOptions = [
     DateRangePreset.currentMonth,
@@ -56,7 +61,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_updateHeaderState);
     Future<void>.microtask(_restoreRange);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _updateHeaderState());
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_updateHeaderState)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _updateHeaderState() {
+    if (!_scrollController.hasClients) return;
+    final offset = _scrollController.position.pixels;
+    final shouldBeSolid = _isHeaderSolid
+        ? offset >= _floatingHeaderThreshold
+        : offset > _solidHeaderThreshold;
+    if (shouldBeSolid == _isHeaderSolid || !mounted) return;
+    setState(() => _isHeaderSolid = shouldBeSolid);
   }
 
   Future<void> _restoreRange() async {
@@ -206,10 +231,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
 
     return Scaffold(
-      appBar: FinanceSuitAppBar.topLevel(semanticTitle: l10n.tabHome),
+      appBar: FinanceSuitHomeAppBar(
+        semanticTitle: l10n.tabHome,
+        isSolid: _isHeaderSolid,
+      ),
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: ListView(
+          key: const Key('home-dashboard-scroll'),
+          controller: _scrollController,
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
           children: [
             if (hasDashboardFailure) _HomeDataStatusCard(onRetry: _refresh),

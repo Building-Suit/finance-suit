@@ -25,6 +25,7 @@ void main() {
     WidgetTester tester, {
     required PreferredSizeWidget appBar,
     Locale locale = const Locale('en'),
+    bool disableAnimations = false,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -33,6 +34,14 @@ void main() {
           locale: locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
+          builder: (context, child) => disableAnimations
+              ? MediaQuery(
+                  data: MediaQuery.of(
+                    context,
+                  ).copyWith(disableAnimations: true),
+                  child: child!,
+                )
+              : child!,
           home: Scaffold(appBar: appBar, body: const SizedBox()),
         ),
       ),
@@ -55,6 +64,73 @@ void main() {
     expect(hamburger.dx, lessThan(width / 4));
     // No visible page title.
     expect(find.text('Home'), findsNothing);
+  });
+
+  testWidgets('Home header keeps the logo centered while its surface morphs', (
+    tester,
+  ) async {
+    await pumpBar(
+      tester,
+      appBar: const FinanceSuitHomeAppBar(
+        semanticTitle: 'Home',
+        isSolid: false,
+      ),
+    );
+
+    final surface = find.byKey(
+      const Key('finance-suit-home-header-surface'),
+    );
+    final width = tester.getSize(find.byType(MaterialApp)).width;
+    expect(
+      tester.widget<AnimatedContainer>(surface).margin,
+      const EdgeInsetsDirectional.symmetric(horizontal: 16),
+    );
+    expect(
+      tester.getCenter(find.byType(FinanceSuitMark)).dx,
+      closeTo(width / 2, 1.0),
+    );
+    expect(
+      find.byKey(const Key('finance-suit-notifications-button')),
+      findsOneWidget,
+    );
+
+    await pumpBar(
+      tester,
+      appBar: const FinanceSuitHomeAppBar(
+        semanticTitle: 'Home',
+        isSolid: true,
+      ),
+    );
+    expect(
+      tester.widget<AnimatedContainer>(surface).margin,
+      EdgeInsetsDirectional.zero,
+    );
+    expect(
+      tester.getCenter(find.byType(FinanceSuitMark)).dx,
+      closeTo(width / 2, 1.0),
+    );
+  });
+
+  testWidgets('Home header disables its motion when requested by the device', (
+    tester,
+  ) async {
+    await pumpBar(
+      tester,
+      appBar: const FinanceSuitHomeAppBar(
+        semanticTitle: 'Home',
+        isSolid: false,
+      ),
+      disableAnimations: true,
+    );
+
+    expect(
+      tester
+          .widget<AnimatedContainer>(
+            find.byKey(const Key('finance-suit-home-header-surface')),
+          )
+          .duration,
+      Duration.zero,
+    );
   });
 
   testWidgets('RTL mirrors the hamburger but never the logo artwork', (
