@@ -1,5 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
+import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 
 /// One primary destination in [FinanceSuitNavigationBar].
 class FinanceSuitNavDestination {
@@ -11,13 +14,10 @@ class FinanceSuitNavDestination {
 
 /// The canonical Finance Suit bottom navigation bar.
 ///
-/// Renders exactly four primary destinations with the global Add action in
-/// an equal, stable center slot: Home | Work | + | Money | Reports. The Add
-/// slot is a plain button, never a selectable destination, so it carries
-/// button semantics instead of tab semantics — the reason this extends the
-/// design system rather than reusing [NavigationBar] directly. All colors,
-/// heights, and text styles come from the existing [NavigationBarThemeData]
-/// roles.
+/// The navigation assembly is fully sized by the shell's
+/// [Scaffold.bottomNavigationBar] slot. Its surface floats within that slot,
+/// while a painted, centered concave notch makes room for the independent
+/// global Add action: Home | Work | + | Money | Reports.
 class FinanceSuitNavigationBar extends StatelessWidget {
   const FinanceSuitNavigationBar({
     super.key,
@@ -36,46 +36,90 @@ class FinanceSuitNavigationBar extends StatelessWidget {
   /// Localized tooltip and semantic label for the global Add action.
   final String addLabel;
 
-  // Material 3 navigation-indicator pill dimensions.
-  static const double _indicatorWidth = 64;
+  @visibleForTesting
+  static const double assemblyHeight = 96;
+  @visibleForTesting
+  static const double horizontalInset = 16;
+  @visibleForTesting
+  static const double surfaceTop = 28;
+  @visibleForTesting
+  static const double surfaceHeight = 60;
+  @visibleForTesting
+  static const double centerButtonDiameter = 64;
+  static const double _centerGap = 72;
+  static const double _indicatorMaxWidth = 64;
   static const double _indicatorHeight = 32;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final navTheme = NavigationBarTheme.of(context);
-    final colorScheme = theme.colorScheme;
-    // The Add action inherits the roles the global-add FloatingActionButton
-    // used before it moved into the bar.
-    final fabTheme = theme.floatingActionButtonTheme;
-    return Material(
-      color: navTheme.backgroundColor ?? colorScheme.surface,
-      elevation: navTheme.elevation ?? 0,
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: navTheme.height ?? 72,
-          child: Row(
-            children: [
-              for (var i = 0; i < 2; i++) _destination(i),
-              Expanded(
-                child: Center(
-                  child: IconButton.filled(
-                    key: const Key('global-add-button'),
-                    tooltip: addLabel,
-                    onPressed: onAddPressed,
-                    style: IconButton.styleFrom(
-                      backgroundColor:
-                          fabTheme.backgroundColor ?? colorScheme.primary,
-                      foregroundColor:
-                          fabTheme.foregroundColor ?? colorScheme.onPrimary,
+    final colors = context.suitColors;
+    return SafeArea(
+      top: false,
+      child: SizedBox(
+        height: assemblyHeight,
+        child: RepaintBoundary(
+          child: LayoutBuilder(
+            builder: (context, constraints) => Material(
+              color: Colors.transparent,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  IgnorePointer(
+                    child: CustomPaint(
+                      key: const Key('finance-suit-navigation-notch'),
+                      painter: _NavigationSurfacePainter(
+                        surfaceColor: colors.surface,
+                        borderColor: colors.borderSubtle,
+                        shadowColor: colors.background.withValues(alpha: 0.24),
+                      ),
                     ),
-                    icon: const FinanceSuitIcon(FinanceSuitIcons.add),
                   ),
-                ),
+                  PositionedDirectional(
+                    top: surfaceTop,
+                    start: horizontalInset,
+                    end: horizontalInset,
+                    height: surfaceHeight,
+                    child: Row(
+                      children: [
+                        _destination(0),
+                        _destination(1),
+                        const SizedBox(width: _centerGap),
+                        _destination(2),
+                        _destination(3),
+                      ],
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: Semantics(
+                      button: true,
+                      label: addLabel,
+                      child: SizedBox.square(
+                        dimension: centerButtonDiameter,
+                        child: IconButton.filled(
+                          key: const Key('global-add-button'),
+                          tooltip: addLabel,
+                          onPressed: onAddPressed,
+                          style: IconButton.styleFrom(
+                            backgroundColor: colors.primary,
+                            foregroundColor: colors.onPrimary,
+                            minimumSize: const Size.square(
+                              centerButtonDiameter,
+                            ),
+                            maximumSize: const Size.square(
+                              centerButtonDiameter,
+                            ),
+                            elevation: 3,
+                            shape: const CircleBorder(),
+                          ),
+                          icon: const FinanceSuitIcon(FinanceSuitIcons.add),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              for (var i = 2; i < 4; i++) _destination(i),
-            ],
+            ),
           ),
         ),
       ),
@@ -91,6 +135,74 @@ class FinanceSuitNavigationBar extends StatelessWidget {
       ),
     );
   }
+}
+
+class _NavigationSurfacePainter extends CustomPainter {
+  const _NavigationSurfacePainter({
+    required this.surfaceColor,
+    required this.borderColor,
+    required this.shadowColor,
+  });
+
+  final Color surfaceColor;
+  final Color borderColor;
+  final Color shadowColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const left = FinanceSuitNavigationBar.horizontalInset;
+    const top = FinanceSuitNavigationBar.surfaceTop;
+    const height = FinanceSuitNavigationBar.surfaceHeight;
+    const cornerRadius = 20.0;
+    const notchRadius = 36.0;
+    const notchDepth = 38.0;
+    final right = size.width - left;
+    final bottom = top + height;
+    final center = size.width / 2;
+    final path = Path()
+      ..moveTo(left + cornerRadius, top)
+      ..lineTo(center - notchRadius, top)
+      ..cubicTo(
+        center - notchRadius * 0.52,
+        top,
+        center - notchRadius * 0.62,
+        top + notchDepth,
+        center,
+        top + notchDepth,
+      )
+      ..cubicTo(
+        center + notchRadius * 0.62,
+        top + notchDepth,
+        center + notchRadius * 0.52,
+        top,
+        center + notchRadius,
+        top,
+      )
+      ..lineTo(right - cornerRadius, top)
+      ..quadraticBezierTo(right, top, right, top + cornerRadius)
+      ..lineTo(right, bottom - cornerRadius)
+      ..quadraticBezierTo(right, bottom, right - cornerRadius, bottom)
+      ..lineTo(left + cornerRadius, bottom)
+      ..quadraticBezierTo(left, bottom, left, bottom - cornerRadius)
+      ..lineTo(left, top + cornerRadius)
+      ..quadraticBezierTo(left, top, left + cornerRadius, top)
+      ..close();
+
+    canvas.drawShadow(path, shadowColor, 8, false);
+    canvas.drawPath(path, Paint()..color = surfaceColor);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = borderColor
+        ..style = PaintingStyle.stroke,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_NavigationSurfacePainter oldDelegate) =>
+      surfaceColor != oldDelegate.surfaceColor ||
+      borderColor != oldDelegate.borderColor ||
+      shadowColor != oldDelegate.shadowColor;
 }
 
 class _FinanceSuitNavigationSlot extends StatelessWidget {
@@ -116,36 +228,42 @@ class _FinanceSuitNavigationSlot extends StatelessWidget {
       selected: selected,
       button: true,
       child: InkWell(
+        borderRadius: BorderRadius.circular(16),
         onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: FinanceSuitNavigationBar._indicatorWidth,
-              height: FinanceSuitNavigationBar._indicatorHeight,
-              alignment: Alignment.center,
-              decoration: selected
-                  ? ShapeDecoration(
-                      color:
-                          navTheme.indicatorColor ??
-                          colorScheme.secondaryContainer,
-                      shape: navTheme.indicatorShape ?? const StadiumBorder(),
-                    )
-                  : null,
-              child: IconTheme.merge(
-                data: iconTheme ?? const IconThemeData(),
-                child: FinanceSuitIcon(destination.icon),
+        child: LayoutBuilder(
+          builder: (context, constraints) => Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: math.min<double>(
+                  FinanceSuitNavigationBar._indicatorMaxWidth,
+                  constraints.maxWidth,
+                ),
+                height: FinanceSuitNavigationBar._indicatorHeight,
+                alignment: Alignment.center,
+                decoration: selected
+                    ? ShapeDecoration(
+                        color:
+                            navTheme.indicatorColor ??
+                            colorScheme.secondaryContainer,
+                        shape: navTheme.indicatorShape ?? const StadiumBorder(),
+                      )
+                    : null,
+                child: IconTheme.merge(
+                  data: iconTheme ?? const IconThemeData(),
+                  child: FinanceSuitIcon(destination.icon),
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              destination.label,
-              style: labelStyle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-            ),
-          ],
+              const SizedBox(height: 2),
+              Text(
+                destination.label,
+                style: labelStyle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );

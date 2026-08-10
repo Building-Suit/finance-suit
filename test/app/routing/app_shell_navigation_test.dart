@@ -74,6 +74,32 @@ void main() {
     expect(add.dx, closeTo(width / 2, 1.0));
   });
 
+  testWidgets('keeps the floating notch and Add action inside the app shell', (
+    tester,
+  ) async {
+    await pumpShellApp(tester, buildShellTestRouter());
+
+    final barRect = tester.getRect(navBar());
+    final notchRect = tester.getRect(
+      find.byKey(const Key('finance-suit-navigation-notch')),
+    );
+    final addRect = tester.getRect(find.byKey(addButton));
+    final workRect = tester.getRect(
+      find.descendant(of: navBar(), matching: find.text('Work')),
+    );
+    final moneyRect = tester.getRect(
+      find.descendant(of: navBar(), matching: find.text('Money')),
+    );
+
+    expect(notchRect, barRect);
+    expect(addRect.top, greaterThanOrEqualTo(barRect.top));
+    expect(addRect.bottom, lessThanOrEqualTo(barRect.bottom));
+    expect(addRect.width, FinanceSuitNavigationBar.centerButtonDiameter);
+    expect(addRect.center.dx, closeTo(barRect.center.dx, 1));
+    expect(workRect.right, lessThanOrEqualTo(addRect.left));
+    expect(moneyRect.left, greaterThanOrEqualTo(addRect.right));
+  });
+
   testWidgets('centers the add action between Work and Money in RTL', (
     tester,
   ) async {
@@ -351,5 +377,25 @@ void main() {
     );
     expect(navBar(), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('keeps the complete navigation assembly contained responsively', (
+    tester,
+  ) async {
+    for (final width in [320.0, 360.0, 390.0, 430.0, 768.0]) {
+      await tester.binding.setSurfaceSize(Size(width, 600));
+      await pumpShellApp(tester, buildShellTestRouter());
+
+      final appRect = tester.getRect(find.byType(MaterialApp));
+      final barRect = tester.getRect(navBar());
+      final addRect = tester.getRect(find.byKey(addButton));
+      expect(barRect.left, greaterThanOrEqualTo(appRect.left));
+      expect(barRect.right, lessThanOrEqualTo(appRect.right));
+      expect(addRect.left, greaterThanOrEqualTo(appRect.left));
+      expect(addRect.right, lessThanOrEqualTo(appRect.right));
+      expect(addRect.bottom, lessThanOrEqualTo(appRect.bottom));
+      expect(tester.takeException(), isNull, reason: 'width: $width');
+    }
+    addTearDown(() => tester.binding.setSurfaceSize(null));
   });
 }

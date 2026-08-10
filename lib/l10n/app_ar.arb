@@ -1487,5 +1487,8 @@
   "proComplimentary": "برو · وصول مجاني",
   "proEarlyAccessSummary": "برو · الوصول المبكر",
   "freePlan": "مجاني",
+  "proPlan": "برو",
+  "subscriptionUpgradePrompt": "اضغط هنا للترقية",
+  "subscriptionUpgradeFromFree": "الترقية من الخطة المجانية",
   "billingNotReady": "الفوترة غير جاهزة بعد. برو متاح ضمن الوصول المبكر."
 }
