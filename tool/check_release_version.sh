@@ -57,8 +57,18 @@ if [[ "${mode}" == "promote" ]]; then
     } >> "${GITHUB_STEP_SUMMARY}"
   fi
 
-  if (( head_weight <= base_weight || head_build <= base_build )); then
-    echo "Promotion must increase both semantic version and build number beyond ${base_version}+${base_build}." >&2
+  if (( head_weight < base_weight || head_build < base_build )); then
+    echo "Promotion must not decrease semantic version or build number below ${base_version}+${base_build}." >&2
+    exit 1
+  fi
+
+  if (( head_weight == base_weight && head_build == base_build )); then
+    echo "Promotion carries no new app version; allowing operational-only changes."
+    exit 0
+  fi
+
+  if (( head_weight == base_weight || head_build == base_build )); then
+    echo "A versioned promotion must increase both semantic version and build number beyond ${base_version}+${base_build}." >&2
     exit 1
   fi
   exit 0

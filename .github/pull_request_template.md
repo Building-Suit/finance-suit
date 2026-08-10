@@ -14,6 +14,8 @@ The PR title is the release signal:
 For PRs into `dev`, update `pubspec.yaml` to the exact version CI derives from
 the current `dev` version and this title. Release-impact changes increment the
 build number once. Promotion PRs preserve the version already tested in `dev`.
+Operational-only promotions may keep an unchanged version; versioned promotions
+must increase both the semantic version and build number.
 
 ## User-facing release notes
 
