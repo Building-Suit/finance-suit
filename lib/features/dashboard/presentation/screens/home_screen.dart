@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
+import 'package:work_tracker/app/routing/finance_suit_navigation_bar.dart';
 import 'package:work_tracker/app/theme/facility_palette.dart';
 import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/date_time/date_range.dart';
@@ -241,7 +242,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: ListView(
           key: const Key('home-dashboard-scroll'),
           controller: _scrollController,
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
+          padding: EdgeInsets.fromLTRB(
+            16,
+            8,
+            16,
+            FinanceSuitNavigationBar.contentClearance(context),
+          ),
           children: [
             if (hasDashboardFailure) _HomeDataStatusCard(onRetry: _refresh),
             compactSection(

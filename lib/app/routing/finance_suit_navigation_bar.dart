@@ -46,9 +46,16 @@ class FinanceSuitNavigationBar extends StatelessWidget {
   static const double surfaceHeight = 60;
   @visibleForTesting
   static const double centerButtonDiameter = 64;
+  static const double _contentClearanceAboveSurface = 76;
   static const double _centerGap = 72;
   static const double _indicatorMaxWidth = 64;
   static const double _indicatorHeight = 32;
+
+  /// Space a scrolling page needs below its final interactive item when this
+  /// overlay navigation is present. The visual wrapper stays transparent;
+  /// only scroll content reserves this clearance.
+  static double contentClearance(BuildContext context) =>
+      MediaQuery.paddingOf(context).bottom + _contentClearanceAboveSurface;
 
   @override
   Widget build(BuildContext context) {

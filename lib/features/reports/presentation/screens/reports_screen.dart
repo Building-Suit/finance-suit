@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
+import 'package:work_tracker/app/routing/finance_suit_navigation_bar.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/date_time/date_range.dart';
@@ -115,7 +116,12 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+          padding: EdgeInsets.fromLTRB(
+            16,
+            8,
+            16,
+            FinanceSuitNavigationBar.contentClearance(context),
+          ),
           children: [
             _RangeChips(
               presets: _rangePresets,
