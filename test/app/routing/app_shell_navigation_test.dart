@@ -100,6 +100,22 @@ void main() {
     expect(moneyRect.left, greaterThanOrEqualTo(addRect.right));
   });
 
+  testWidgets('lays page content behind the transparent navigation wrapper', (
+    tester,
+  ) async {
+    await pumpShellApp(tester, buildShellTestRouter());
+
+    final shellScaffold = tester
+        .widgetList<Scaffold>(find.byType(Scaffold))
+        .firstWhere(
+          (scaffold) =>
+              scaffold.bottomNavigationBar is FinanceSuitNavigationBar,
+        );
+    // The shell body now extends under the transparent wrapper. Only each
+    // page's scroll padding reserves its final tappable item above the bar.
+    expect(shellScaffold.extendBody, isTrue);
+  });
+
   testWidgets('centers the add action between Work and Money in RTL', (
     tester,
   ) async {

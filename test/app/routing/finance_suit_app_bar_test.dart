@@ -179,6 +179,14 @@ void main() {
           .opacity,
       0,
     );
+    expect(
+      const FinanceSuitHomeAppBar(
+        semanticTitle: 'Home',
+        isSolid: true,
+        entitlement: entitlement,
+      ).preferredSize.height,
+      kToolbarHeight,
+    );
   });
 
   testWidgets('RTL mirrors the hamburger but never the logo artwork', (

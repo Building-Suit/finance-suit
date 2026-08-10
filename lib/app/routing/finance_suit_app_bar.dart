@@ -119,9 +119,9 @@ class FinanceSuitHomeAppBar extends StatelessWidget
   @override
   Size get preferredSize => Size.fromHeight(
     _toolbarHeight +
-        (entitlement == null
-            ? 0
-            : SubscriptionStatusStrip.height - _stripOverlap),
+        (entitlement != null && !isSolid
+            ? SubscriptionStatusStrip.height - _stripOverlap
+            : 0),
   );
 
   @override
