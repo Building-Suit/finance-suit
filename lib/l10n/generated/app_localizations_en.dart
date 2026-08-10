@@ -3280,6 +3280,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get freePlan => 'Free';
 
   @override
+  String get proPlan => 'Pro';
+
+  @override
+  String get subscriptionUpgradePrompt => 'click here to upgrade';
+
+  @override
+  String get subscriptionUpgradeFromFree => 'Upgrade from Free';
+
+  @override
   String get billingNotReady =>
       'Billing is not ready yet. Pro is included during Early Access.';
 }

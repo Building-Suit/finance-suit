@@ -6,6 +6,8 @@ import 'package:shared_preferences_platform_interface/shared_preferences_async_p
 import 'package:work_tracker/app/branding/finance_suit_mark.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
+import 'package:work_tracker/features/commercial/domain/commercial_models.dart';
+import 'package:work_tracker/features/commercial/presentation/widgets/subscription_status_strip.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/transaction_query.dart';
@@ -77,9 +79,7 @@ void main() {
       ),
     );
 
-    final surface = find.byKey(
-      const Key('finance-suit-home-header-surface'),
-    );
+    final surface = find.byKey(const Key('finance-suit-home-header-surface'));
     final width = tester.getSize(find.byType(MaterialApp)).width;
     expect(
       tester.widget<AnimatedContainer>(surface).margin,
@@ -96,10 +96,7 @@ void main() {
 
     await pumpBar(
       tester,
-      appBar: const FinanceSuitHomeAppBar(
-        semanticTitle: 'Home',
-        isSolid: true,
-      ),
+      appBar: const FinanceSuitHomeAppBar(semanticTitle: 'Home', isSolid: true),
     );
     expect(
       tester.widget<AnimatedContainer>(surface).margin,
@@ -130,6 +127,57 @@ void main() {
           )
           .duration,
       Duration.zero,
+    );
+  });
+
+  testWidgets('Home status rail tucks under the floating header and retracts', (
+    tester,
+  ) async {
+    const entitlement = EffectiveEntitlement(
+      plan: CommercialPlan.pro,
+      source: EntitlementSource.openEarlyAccess,
+      startsAt: null,
+      endsAt: null,
+      subscriptionStatus: null,
+      renewalAt: null,
+      features: {},
+      limits: {},
+      metadata: {},
+    );
+    const appBar = FinanceSuitHomeAppBar(
+      semanticTitle: 'Home',
+      isSolid: false,
+      entitlement: entitlement,
+    );
+    await pumpBar(tester, appBar: appBar);
+
+    final surface = find.byKey(const Key('finance-suit-home-header-surface'));
+    final strip = find.byKey(const Key('subscription-status-strip'));
+    final surfaceRect = tester.getRect(surface);
+    final stripRect = tester.getRect(strip);
+    expect(stripRect.top, lessThan(surfaceRect.bottom));
+    expect(stripRect.bottom, greaterThan(surfaceRect.bottom));
+    expect(stripRect.width, closeTo((surfaceRect.width - 32) * 0.9, 1));
+    expect(appBar.preferredSize.height, 80);
+
+    await pumpBar(
+      tester,
+      appBar: const FinanceSuitHomeAppBar(
+        semanticTitle: 'Home',
+        isSolid: true,
+        entitlement: entitlement,
+      ),
+    );
+    expect(
+      tester
+          .widget<AnimatedOpacity>(
+            find.descendant(
+              of: find.byType(SubscriptionStatusStrip),
+              matching: find.byType(AnimatedOpacity),
+            ),
+          )
+          .opacity,
+      0,
     );
   });
 

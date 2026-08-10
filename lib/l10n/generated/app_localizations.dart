@@ -6029,6 +6029,24 @@ abstract class AppLocalizations {
   /// **'Free'**
   String get freePlan;
 
+  /// No description provided for @proPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro'**
+  String get proPlan;
+
+  /// No description provided for @subscriptionUpgradePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'click here to upgrade'**
+  String get subscriptionUpgradePrompt;
+
+  /// No description provided for @subscriptionUpgradeFromFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade from Free'**
+  String get subscriptionUpgradeFromFree;
+
   /// No description provided for @billingNotReady.
   ///
   /// In en, this message translates to:

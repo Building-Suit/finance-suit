@@ -15,7 +15,6 @@ import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/core/widgets/app_money_text.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/protected_money.dart';
-import 'package:work_tracker/features/commercial/domain/commercial_models.dart';
 import 'package:work_tracker/features/commercial/presentation/providers/commercial_providers.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
@@ -190,6 +189,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final accountsAsync = ref.watch(accountBalancesProvider);
+    final entitlementAsync = ref.watch(effectiveEntitlementProvider);
     final allAccountsAsync = ref.watch(allAccountBalancesProvider);
     final summaryAsync = ref.watch(homeCashFlowSummaryProvider(_range.range));
     final salarySettingsAsync = ref.watch(salarySettingsProvider);
@@ -234,6 +234,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       appBar: FinanceSuitHomeAppBar(
         semanticTitle: l10n.tabHome,
         isSolid: _isHeaderSolid,
+        entitlement: entitlementAsync.value,
       ),
       body: RefreshIndicator(
         onRefresh: _refresh,
@@ -243,9 +244,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
           children: [
             if (hasDashboardFailure) _HomeDataStatusCard(onRetry: _refresh),
-            _HomeEntitlementIndicator(
-              entitlement: ref.watch(effectiveEntitlementProvider),
-            ),
             compactSection(
               pendingIncomeAsync,
               loading: const SizedBox.shrink(),
@@ -355,42 +353,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
-}
-
-class _HomeEntitlementIndicator extends StatelessWidget {
-  const _HomeEntitlementIndicator({required this.entitlement});
-  final AsyncValue<EffectiveEntitlement> entitlement;
-
-  @override
-  Widget build(BuildContext context) => entitlement.when(
-    loading: () => const SizedBox.shrink(),
-    error: (_, _) => const SizedBox.shrink(),
-    data: (value) => value.source == EntitlementSource.openEarlyAccess
-        ? Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-                child: Row(
-                  children: [
-                    const FinanceSuitIcon(FinanceSuitIcons.star),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Pro Early Access',
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          )
-        : const SizedBox.shrink(),
-  );
 }
 
 class _HomeDataStatusCard extends StatelessWidget {
