@@ -33,6 +33,9 @@ import 'package:work_tracker/features/salary/presentation/widgets/estimate_break
 import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
+const _homeTopContentGap = 4.0;
+const _homeSectionGap = 16.0;
+
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -244,7 +247,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           controller: _scrollController,
           padding: EdgeInsets.fromLTRB(
             16,
-            8,
+            _homeTopContentGap,
             16,
             FinanceSuitNavigationBar.contentClearance(context),
           ),
@@ -762,7 +765,7 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 20, bottom: 8),
+      padding: const EdgeInsets.only(top: _homeSectionGap, bottom: 8),
       child: Row(
         children: [
           Expanded(
