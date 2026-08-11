@@ -45,10 +45,15 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  static const _solidHeaderThreshold = 12.0;
+  static const _floatingHeaderThreshold = 4.0;
+
   final _scrollController = ScrollController();
   late ReportRangeSelection _range = ReportRangeSelection.currentMonth(
     PlainDate.today(),
   );
+  var _fallbackHeaderIsSolid = false;
+  var _usesShellScrollScope = false;
 
   static const _presetOptions = [
     DateRangePreset.currentMonth,
@@ -65,9 +70,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final usesShellScrollScope =
+        FinanceSuitHeaderScrollScope.maybeOf(context) != null;
+    if (usesShellScrollScope == _usesShellScrollScope) return;
+    _usesShellScrollScope = usesShellScrollScope;
+    if (usesShellScrollScope) {
+      _scrollController.removeListener(_updateFallbackHeaderState);
+    } else {
+      _scrollController.addListener(_updateFallbackHeaderState);
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _updateFallbackHeaderState(),
+      );
+    }
+  }
+
+  @override
   void dispose() {
-    _scrollController.dispose();
+    _scrollController
+      ..removeListener(_updateFallbackHeaderState)
+      ..dispose();
     super.dispose();
+  }
+
+  /// Previews and focused widget tests can render Home outside [AppShell].
+  /// They retain the original local observer, while authenticated app usage
+  /// always uses the shell's single shared observer instead.
+  void _updateFallbackHeaderState() {
+    if (_usesShellScrollScope || !_scrollController.hasClients) return;
+    final offset = _scrollController.position.pixels;
+    final shouldBeSolid = _fallbackHeaderIsSolid
+        ? offset >= _floatingHeaderThreshold
+        : offset > _solidHeaderThreshold;
+    if (shouldBeSolid == _fallbackHeaderIsSolid || !mounted) return;
+    setState(() => _fallbackHeaderIsSolid = shouldBeSolid);
   }
 
   Future<void> _restoreRange() async {
@@ -347,7 +384,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final headerScrollState = FinanceSuitHeaderScrollScope.maybeOf(context);
     return headerScrollState == null
-        ? page(false)
+        ? page(_fallbackHeaderIsSolid)
         : ValueListenableBuilder<bool>(
             valueListenable: headerScrollState,
             builder: (context, isSolid, _) => page(isSolid),

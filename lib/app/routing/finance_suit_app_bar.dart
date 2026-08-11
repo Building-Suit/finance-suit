@@ -110,30 +110,34 @@ class FinanceSuitAppBar extends StatelessWidget implements PreferredSizeWidget {
         if (isSolid) ColoredBox(color: surfaceColor),
         SafeArea(
           bottom: false,
-          child: AnimatedContainer(
-            key: const Key('finance-suit-app-bar-surface'),
+          child: AnimatedPadding(
             duration: MediaQuery.of(context).disableAnimations
                 ? Duration.zero
                 : FinanceSuitHomeAppBar.transitionDuration,
             curve: Curves.easeOutCubic,
-            margin: EdgeInsetsDirectional.symmetric(
+            padding: EdgeInsetsDirectional.symmetric(
               horizontal: isSolid ? 0 : _horizontalInset,
             ),
-            decoration: BoxDecoration(
-              color: surfaceColor,
-              borderRadius: BorderRadius.circular(isSolid ? 0 : _cornerRadius),
-              border: Border.all(
-                color: isSolid ? Colors.transparent : borderColor,
+            child: DecoratedBox(
+              key: const Key('finance-suit-app-bar-surface'),
+              decoration: BoxDecoration(
+                color: surfaceColor,
+                borderRadius: BorderRadius.circular(
+                  isSolid ? 0 : _cornerRadius,
+                ),
+                border: Border.all(
+                  color: isSolid ? Colors.transparent : borderColor,
+                ),
+                boxShadow: isSolid
+                    ? const []
+                    : [
+                        BoxShadow(
+                          color: shadowColor,
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
               ),
-              boxShadow: isSolid
-                  ? const []
-                  : [
-                      BoxShadow(
-                        color: shadowColor,
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
             ),
           ),
         ),

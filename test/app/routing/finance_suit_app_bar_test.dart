@@ -81,7 +81,7 @@ void main() {
     final appWidth = tester.getSize(find.byType(MaterialApp)).width;
     final surfaceRect = tester.getRect(surface);
     final decoration =
-        tester.widget<AnimatedContainer>(surface).decoration as BoxDecoration;
+        tester.widget<DecoratedBox>(surface).decoration as BoxDecoration;
 
     expect(surfaceRect.left, 16);
     expect(surfaceRect.right, appWidth - 16);
@@ -162,7 +162,7 @@ void main() {
     );
     final width = tester.getSize(find.byType(MaterialApp)).width;
     expect(
-      tester.widget<AnimatedContainer>(surface).margin,
+      tester.widget<AnimatedPadding>(find.byType(AnimatedPadding)).padding,
       const EdgeInsetsDirectional.symmetric(horizontal: 16),
     );
     expect(
@@ -183,7 +183,7 @@ void main() {
       appBar: const FinanceSuitHomeAppBar(semanticTitle: 'Home', isSolid: true),
     );
     expect(
-      tester.widget<AnimatedContainer>(surface).margin,
+      tester.widget<AnimatedPadding>(find.byType(AnimatedPadding)).padding,
       EdgeInsetsDirectional.zero,
     );
     expect(
