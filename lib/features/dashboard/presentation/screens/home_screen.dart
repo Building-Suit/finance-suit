@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
+import 'package:work_tracker/app/routing/finance_suit_header_scroll_scope.dart';
 import 'package:work_tracker/app/routing/finance_suit_navigation_bar.dart';
 import 'package:work_tracker/app/theme/facility_palette.dart';
 import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
@@ -51,7 +52,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   late ReportRangeSelection _range = ReportRangeSelection.currentMonth(
     PlainDate.today(),
   );
-  var _isHeaderSolid = false;
+  var _fallbackHeaderIsSolid = false;
+  var _usesShellScrollScope = false;
 
   static const _presetOptions = [
     DateRangePreset.currentMonth,
@@ -64,27 +66,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_updateHeaderState);
+    _scrollController.addListener(_updateFallbackHeaderState);
     Future<void>.microtask(_restoreRange);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _updateHeaderState());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final usesShellScrollScope =
+        FinanceSuitHeaderScrollScope.maybeOf(context) != null;
+    if (usesShellScrollScope == _usesShellScrollScope) return;
+    _usesShellScrollScope = usesShellScrollScope;
+    if (usesShellScrollScope) {
+      _scrollController.removeListener(_updateFallbackHeaderState);
+    } else {
+      _scrollController.addListener(_updateFallbackHeaderState);
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _updateFallbackHeaderState(),
+      );
+    }
   }
 
   @override
   void dispose() {
     _scrollController
-      ..removeListener(_updateHeaderState)
+      ..removeListener(_updateFallbackHeaderState)
       ..dispose();
     super.dispose();
   }
 
-  void _updateHeaderState() {
-    if (!_scrollController.hasClients) return;
+  /// Previews and focused widget tests can render Home outside [AppShell].
+  /// They retain the original local observer, while authenticated app usage
+  /// always uses the shell's single shared observer instead.
+  void _updateFallbackHeaderState() {
+    if (_usesShellScrollScope || !_scrollController.hasClients) return;
     final offset = _scrollController.position.pixels;
-    final shouldBeSolid = _isHeaderSolid
+    final shouldBeSolid = _fallbackHeaderIsSolid
         ? offset >= _floatingHeaderThreshold
         : offset > _solidHeaderThreshold;
-    if (shouldBeSolid == _isHeaderSolid || !mounted) return;
-    setState(() => _isHeaderSolid = shouldBeSolid);
+    if (shouldBeSolid == _fallbackHeaderIsSolid || !mounted) return;
+    setState(() => _fallbackHeaderIsSolid = shouldBeSolid);
   }
 
   Future<void> _restoreRange() async {
@@ -234,10 +255,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       error: (_, _) => const SizedBox.shrink(),
     );
 
-    return Scaffold(
+    Widget page(bool isHeaderSolid) => Scaffold(
       appBar: FinanceSuitHomeAppBar(
         semanticTitle: l10n.tabHome,
-        isSolid: _isHeaderSolid,
+        isSolid: isHeaderSolid,
         entitlement: entitlementAsync.value,
       ),
       body: RefreshIndicator(
@@ -361,6 +382,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       ),
     );
+
+    final headerScrollState = FinanceSuitHeaderScrollScope.maybeOf(context);
+    return headerScrollState == null
+        ? page(_fallbackHeaderIsSolid)
+        : ValueListenableBuilder<bool>(
+            valueListenable: headerScrollState,
+            builder: (context, isSolid, _) => page(isSolid),
+          );
   }
 }
 
