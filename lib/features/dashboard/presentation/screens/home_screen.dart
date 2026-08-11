@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
+import 'package:work_tracker/app/routing/finance_suit_header_scroll_scope.dart';
 import 'package:work_tracker/app/routing/finance_suit_navigation_bar.dart';
 import 'package:work_tracker/app/theme/facility_palette.dart';
 import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
@@ -44,14 +45,10 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  static const _solidHeaderThreshold = 12.0;
-  static const _floatingHeaderThreshold = 4.0;
-
   final _scrollController = ScrollController();
   late ReportRangeSelection _range = ReportRangeSelection.currentMonth(
     PlainDate.today(),
   );
-  var _isHeaderSolid = false;
 
   static const _presetOptions = [
     DateRangePreset.currentMonth,
@@ -64,27 +61,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_updateHeaderState);
     Future<void>.microtask(_restoreRange);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _updateHeaderState());
   }
 
   @override
   void dispose() {
-    _scrollController
-      ..removeListener(_updateHeaderState)
-      ..dispose();
+    _scrollController.dispose();
     super.dispose();
-  }
-
-  void _updateHeaderState() {
-    if (!_scrollController.hasClients) return;
-    final offset = _scrollController.position.pixels;
-    final shouldBeSolid = _isHeaderSolid
-        ? offset >= _floatingHeaderThreshold
-        : offset > _solidHeaderThreshold;
-    if (shouldBeSolid == _isHeaderSolid || !mounted) return;
-    setState(() => _isHeaderSolid = shouldBeSolid);
   }
 
   Future<void> _restoreRange() async {
@@ -234,10 +217,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       error: (_, _) => const SizedBox.shrink(),
     );
 
-    return Scaffold(
+    Widget page(bool isHeaderSolid) => Scaffold(
       appBar: FinanceSuitHomeAppBar(
         semanticTitle: l10n.tabHome,
-        isSolid: _isHeaderSolid,
+        isSolid: isHeaderSolid,
         entitlement: entitlementAsync.value,
       ),
       body: RefreshIndicator(
@@ -361,6 +344,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       ),
     );
+
+    final headerScrollState = FinanceSuitHeaderScrollScope.maybeOf(context);
+    return headerScrollState == null
+        ? page(false)
+        : ValueListenableBuilder<bool>(
+            valueListenable: headerScrollState,
+            builder: (context, isSolid, _) => page(isSolid),
+          );
   }
 }
 

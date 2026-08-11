@@ -5,6 +5,7 @@ import 'package:shared_preferences_platform_interface/in_memory_shared_preferenc
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 import 'package:work_tracker/app/branding/finance_suit_mark.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
+import 'package:work_tracker/app/routing/finance_suit_header_scroll_scope.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/features/commercial/domain/commercial_models.dart';
 import 'package:work_tracker/features/commercial/presentation/widgets/subscription_status_strip.dart';
@@ -80,12 +81,53 @@ void main() {
     final appWidth = tester.getSize(find.byType(MaterialApp)).width;
     final surfaceRect = tester.getRect(surface);
     final decoration =
-        tester.widget<DecoratedBox>(surface).decoration as BoxDecoration;
+        tester.widget<AnimatedContainer>(surface).decoration as BoxDecoration;
 
     expect(surfaceRect.left, 16);
     expect(surfaceRect.right, appWidth - 16);
     expect(decoration.borderRadius, BorderRadius.circular(16));
   });
+
+  testWidgets(
+    'top-level headers use the shell scroll state without a color tween',
+    (tester) async {
+      final isSolid = ValueNotifier(false);
+      addTearDown(isSolid.dispose);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            theme: AppTheme.light(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: FinanceSuitHeaderScrollScope(
+              isSolid: isSolid,
+              child: const Scaffold(
+                appBar: FinanceSuitAppBar.topLevel(semanticTitle: 'Work'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final surface = find.byKey(const Key('finance-suit-app-bar-surface'));
+      expect(
+        tester.widget<AnimatedContainer>(surface).margin,
+        const EdgeInsetsDirectional.symmetric(horizontal: 16),
+      );
+
+      isSolid.value = true;
+      await tester.pump();
+      expect(
+        tester.widget<AnimatedContainer>(surface).margin,
+        EdgeInsetsDirectional.zero,
+      );
+      // The safe-area surface is an immediate opaque paint, not an animated
+      // transparent-to-surface blend that can reveal the page background.
+      expect(find.byType(ColoredBox), findsWidgets);
+    },
+  );
 
   testWidgets('standalone headers keep the shared chrome without navigation', (
     tester,
@@ -132,9 +174,7 @@ void main() {
       findsOneWidget,
     );
     expect(
-      (tester.widget<AnimatedContainer>(safeAreaSurface).decoration
-              as BoxDecoration)
-          .color,
+      tester.widget<ColoredBox>(safeAreaSurface).color,
       Colors.transparent,
     );
 
@@ -151,9 +191,7 @@ void main() {
       closeTo(width / 2, 1.0),
     );
     expect(
-      (tester.widget<AnimatedContainer>(safeAreaSurface).decoration
-              as BoxDecoration)
-          .color,
+      tester.widget<ColoredBox>(safeAreaSurface).color,
       Theme.of(tester.element(surface)).appBarTheme.backgroundColor,
     );
   });

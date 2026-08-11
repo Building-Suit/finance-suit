@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
+import 'package:work_tracker/app/routing/finance_suit_header_scroll_scope.dart';
 import 'package:work_tracker/app/routing/finance_suit_menu.dart';
 import 'package:work_tracker/app/routing/finance_suit_navigation_bar.dart';
 import 'package:work_tracker/app/routing/global_add_sheet.dart';
@@ -59,6 +60,10 @@ class _AppShellState extends ConsumerState<AppShell> {
   String get currentLocation => widget.currentLocation;
   Timer? _exitTimer;
   bool _exitArmed = false;
+  final ValueNotifier<bool> _headerIsSolid = ValueNotifier(false);
+
+  static const _solidHeaderThreshold = 12.0;
+  static const _floatingHeaderThreshold = 4.0;
 
   @override
   void initState() {
@@ -69,7 +74,31 @@ class _AppShellState extends ConsumerState<AppShell> {
   @override
   void dispose() {
     _exitTimer?.cancel();
+    _headerIsSolid.dispose();
     super.dispose();
+  }
+
+  /// The shell is the sole observer for top-level page scrolling. This keeps
+  /// every tab on the same header state contract and prevents offstage tabs
+  /// from owning stale header state.
+  bool _onPageScroll(ScrollNotification notification) {
+    if (notification.depth != 0 ||
+        notification.metrics.axis != Axis.vertical ||
+        (notification is! ScrollUpdateNotification &&
+            notification is! ScrollEndNotification &&
+            notification is! ScrollStartNotification &&
+            notification is! ScrollMetricsNotification)) {
+      return false;
+    }
+
+    final offset = notification.metrics.pixels;
+    final shouldBeSolid = _headerIsSolid.value
+        ? offset >= _floatingHeaderThreshold
+        : offset > _solidHeaderThreshold;
+    if (shouldBeSolid != _headerIsSolid.value) {
+      _headerIsSolid.value = shouldBeSolid;
+    }
+    return false;
   }
 
   void _resetExit() {
@@ -209,11 +238,18 @@ class _AppShellState extends ConsumerState<AppShell> {
         onPopInvokedWithResult: _handleRootBack,
         child: Scaffold(
           extendBody: true,
-          body: navigationShell,
+          body: FinanceSuitHeaderScrollScope(
+            isSolid: _headerIsSolid,
+            child: NotificationListener<ScrollNotification>(
+              onNotification: _onPageScroll,
+              child: navigationShell,
+            ),
+          ),
           bottomNavigationBar: FinanceSuitNavigationBar(
             selectedIndex: navigationShell.currentIndex,
             onDestinationSelected: (index) {
               _resetExit();
+              _headerIsSolid.value = false;
               navigationShell.goBranch(
                 index,
                 initialLocation: index == navigationShell.currentIndex,
