@@ -80,6 +80,9 @@ void main() {
     );
 
     final surface = find.byKey(const Key('finance-suit-home-header-surface'));
+    final safeAreaSurface = find.byKey(
+      const Key('finance-suit-home-header-safe-area-surface'),
+    );
     final width = tester.getSize(find.byType(MaterialApp)).width;
     expect(
       tester.widget<AnimatedContainer>(surface).margin,
@@ -93,6 +96,12 @@ void main() {
       find.byKey(const Key('finance-suit-notifications-button')),
       findsOneWidget,
     );
+    expect(
+      (tester.widget<AnimatedContainer>(safeAreaSurface).decoration
+              as BoxDecoration)
+          .color,
+      Colors.transparent,
+    );
 
     await pumpBar(
       tester,
@@ -105,6 +114,12 @@ void main() {
     expect(
       tester.getCenter(find.byType(FinanceSuitMark)).dx,
       closeTo(width / 2, 1.0),
+    );
+    expect(
+      (tester.widget<AnimatedContainer>(safeAreaSurface).decoration
+              as BoxDecoration)
+          .color,
+      Theme.of(tester.element(surface)).appBarTheme.backgroundColor,
     );
   });
 
@@ -157,8 +172,10 @@ void main() {
     final stripRect = tester.getRect(strip);
     expect(stripRect.top, lessThan(surfaceRect.bottom));
     expect(stripRect.bottom, greaterThan(surfaceRect.bottom));
-    expect(stripRect.width, closeTo((surfaceRect.width - 32) * 0.9, 1));
-    expect(appBar.preferredSize.height, 80);
+    expect(stripRect.width, lessThan(surfaceRect.width - 32));
+    expect(stripRect.center.dx, closeTo(surfaceRect.center.dx, 1));
+    expect(stripRect.height, SubscriptionStatusStrip.height);
+    expect(appBar.preferredSize.height, 76);
 
     await pumpBar(
       tester,
@@ -187,6 +204,35 @@ void main() {
       ).preferredSize.height,
       kToolbarHeight,
     );
+  });
+
+  testWidgets('Home status rail remains compact at phone widths', (
+    tester,
+  ) async {
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    for (final width in [320.0, 360.0, 390.0, 430.0]) {
+      await tester.binding.setSurfaceSize(Size(width, 800));
+      await pumpBar(
+        tester,
+        appBar: FinanceSuitHomeAppBar(
+          semanticTitle: 'Home',
+          isSolid: false,
+          entitlement: EffectiveEntitlement.free(),
+        ),
+      );
+
+      final surfaceRect = tester.getRect(
+        find.byKey(const Key('finance-suit-home-header-surface')),
+      );
+      final stripRect = tester.getRect(
+        find.byKey(const Key('subscription-status-strip')),
+      );
+      expect(stripRect.center.dx, closeTo(surfaceRect.center.dx, 1));
+      expect(stripRect.left, greaterThanOrEqualTo(16));
+      expect(stripRect.right, lessThanOrEqualTo(width - 16));
+      expect(stripRect.height, SubscriptionStatusStrip.height);
+    }
   });
 
   testWidgets('RTL mirrors the hamburger but never the logo artwork', (
