@@ -68,6 +68,41 @@ void main() {
     expect(find.text('Home'), findsNothing);
   });
 
+  testWidgets('standard headers use the same floating surface as Home', (
+    tester,
+  ) async {
+    await pumpBar(
+      tester,
+      appBar: const FinanceSuitAppBar.topLevel(semanticTitle: 'Work'),
+    );
+
+    final surface = find.byKey(const Key('finance-suit-app-bar-surface'));
+    final appWidth = tester.getSize(find.byType(MaterialApp)).width;
+    final surfaceRect = tester.getRect(surface);
+    final decoration =
+        tester.widget<DecoratedBox>(surface).decoration as BoxDecoration;
+
+    expect(surfaceRect.left, 16);
+    expect(surfaceRect.right, appWidth - 16);
+    expect(decoration.borderRadius, BorderRadius.circular(16));
+  });
+
+  testWidgets('standalone headers keep the shared chrome without navigation', (
+    tester,
+  ) async {
+    await pumpBar(
+      tester,
+      appBar: const FinanceSuitAppBar.standalone(semanticTitle: 'Welcome'),
+    );
+
+    expect(
+      find.byKey(const Key('finance-suit-app-bar-surface')),
+      findsOneWidget,
+    );
+    expect(find.byKey(menuButton), findsNothing);
+    expect(find.byKey(const Key('finance-suit-back-button')), findsNothing);
+  });
+
   testWidgets('Home header keeps the logo centered while its surface morphs', (
     tester,
   ) async {

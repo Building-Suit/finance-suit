@@ -47,7 +47,7 @@ class FinanceSuitNavigationBar extends StatelessWidget {
   @visibleForTesting
   static const double centerButtonDiameter = 56;
   static const double _contentClearanceAboveSurface = 76;
-  static const double _centerGap = 64;
+  static const double _centerGap = 80;
   static const double _indicatorMaxWidth = 64;
   static const double _indicatorHeight = 32;
 
@@ -168,8 +168,8 @@ class _NavigationSurfacePainter extends CustomPainter {
     // The concave surface is intentionally wider than the 56dp action, so
     // the button reads as seated in a real, continuous cutout rather than
     // overlaid on a rectangular bar.
-    const notchRadius = 34.0;
-    const notchDepth = 36.0;
+    const notchRadius = 42.0;
+    const notchDepth = 44.0;
     final right = size.width - left;
     final bottom = top + height;
     final center = size.width / 2;
