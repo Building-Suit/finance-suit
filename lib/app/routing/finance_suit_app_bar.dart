@@ -74,16 +74,26 @@ class FinanceSuitAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.suitColors;
+    final theme = Theme.of(context);
+    final semanticColors = theme.extension<FinanceSuitSemanticColors>();
+    // The app normally supplies FinanceSuitSemanticColors, but shared chrome
+    // must also render in isolated previews and plain Material test harnesses.
+    // Falling back to ColorScheme keeps the header functional instead of
+    // crashing when that optional theme extension is absent.
+    final surfaceColor = semanticColors?.surface ?? theme.colorScheme.surface;
+    final borderColor =
+        semanticColors?.borderSubtle ?? theme.colorScheme.outlineVariant;
+    final backgroundColor =
+        semanticColors?.background ?? theme.colorScheme.surface;
+    final inverseSurfaceColor =
+        semanticColors?.inverseSurface ?? theme.colorScheme.inverseSurface;
     final l10n = AppLocalizations.of(context);
     final shadowColor =
-        (Theme.of(context).brightness == Brightness.dark
-                ? colors.background
-                : colors.inverseSurface)
+        (theme.brightness == Brightness.dark
+                ? backgroundColor
+                : inverseSurfaceColor)
             .withValues(
-              alpha: Theme.of(context).brightness == Brightness.dark
-                  ? 0.28
-                  : 0.08,
+              alpha: theme.brightness == Brightness.dark ? 0.28 : 0.08,
             );
     return AppBar(
       automaticallyImplyLeading: false,
@@ -101,9 +111,9 @@ class FinanceSuitAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: DecoratedBox(
             key: const Key('finance-suit-app-bar-surface'),
             decoration: BoxDecoration(
-              color: colors.surface,
+              color: surfaceColor,
               borderRadius: BorderRadius.circular(_cornerRadius),
-              border: Border.all(color: colors.borderSubtle),
+              border: Border.all(color: borderColor),
               boxShadow: [
                 BoxShadow(
                   color: shadowColor,

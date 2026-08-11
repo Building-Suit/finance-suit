@@ -158,6 +158,29 @@ void main() {
     );
   });
 
+  testWidgets('standard header falls back safely to a plain Material theme', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const Scaffold(
+            appBar: FinanceSuitAppBar.topLevel(semanticTitle: 'Home'),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('finance-suit-app-bar-surface')),
+      findsOneWidget,
+    );
+    expect(find.byKey(menuButton), findsOneWidget);
+  });
+
   testWidgets('Home header disables its motion when requested by the device', (
     tester,
   ) async {
