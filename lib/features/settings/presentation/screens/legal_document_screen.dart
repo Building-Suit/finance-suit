@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:work_tracker/app/configuration/env.dart';
+import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 enum LegalDocument { privacyPolicy, terms, accountDeletion }
@@ -50,7 +51,7 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(_title(l10n))),
+      appBar: FinanceSuitAppBar.focused(semanticTitle: _title(l10n)),
       body: FutureBuilder<String>(
         future: _documentFuture,
         builder: (context, snapshot) {

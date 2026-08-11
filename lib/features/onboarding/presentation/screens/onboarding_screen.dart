@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/money/money.dart';
@@ -276,10 +277,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             _submitCurrentStep,
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.onbWelcome),
-          automaticallyImplyLeading: false,
-        ),
+        appBar: FinanceSuitAppBar.standalone(semanticTitle: l10n.onbWelcome),
         body: SafeArea(
           child: Column(
             children: [
