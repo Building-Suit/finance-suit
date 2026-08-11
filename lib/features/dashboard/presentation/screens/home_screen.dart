@@ -66,6 +66,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_updateFallbackHeaderState);
     Future<void>.microtask(_restoreRange);
   }
 

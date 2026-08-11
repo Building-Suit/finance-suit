@@ -111,16 +111,15 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final surface = find.byKey(const Key('finance-suit-app-bar-surface'));
       expect(
-        tester.widget<AnimatedContainer>(surface).margin,
+        tester.widget<AnimatedPadding>(find.byType(AnimatedPadding)).padding,
         const EdgeInsetsDirectional.symmetric(horizontal: 16),
       );
 
       isSolid.value = true;
       await tester.pump();
       expect(
-        tester.widget<AnimatedContainer>(surface).margin,
+        tester.widget<AnimatedPadding>(find.byType(AnimatedPadding)).padding,
         EdgeInsetsDirectional.zero,
       );
       // The safe-area surface is an immediate opaque paint, not an animated
@@ -162,7 +161,7 @@ void main() {
     );
     final width = tester.getSize(find.byType(MaterialApp)).width;
     expect(
-      tester.widget<AnimatedPadding>(find.byType(AnimatedPadding)).padding,
+      tester.widget<AnimatedContainer>(surface).margin,
       const EdgeInsetsDirectional.symmetric(horizontal: 16),
     );
     expect(
@@ -183,7 +182,7 @@ void main() {
       appBar: const FinanceSuitHomeAppBar(semanticTitle: 'Home', isSolid: true),
     );
     expect(
-      tester.widget<AnimatedPadding>(find.byType(AnimatedPadding)).padding,
+      tester.widget<AnimatedContainer>(surface).margin,
       EdgeInsetsDirectional.zero,
     );
     expect(
