@@ -254,10 +254,12 @@ class _FinanceSuitNavigationSlot extends StatelessWidget {
                   constraints.maxWidth,
                 ),
                 height: FinanceSuitNavigationBar._indicatorHeight,
-                alignment: Alignment.center,
-                child: IconTheme.merge(
-                  data: iconTheme ?? const IconThemeData(),
-                  child: FinanceSuitIcon(destination.icon),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: IconTheme.merge(
+                    data: iconTheme ?? const IconThemeData(),
+                    child: FinanceSuitIcon(destination.icon),
+                  ),
                 ),
               ),
               const SizedBox(height: 2),
