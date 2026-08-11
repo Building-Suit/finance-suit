@@ -80,4 +80,13 @@ run_case stale-promotion 'promotion' 0.5.9+10 1 \
 run_case incomplete-promotion 'promotion' 0.7.0+11 1 \
   'A versioned promotion must increase both semantic version and build number' promote
 
+# Feature PRs are validated before merging. Two independently prepared
+# features may therefore carry the same release version when merged into dev.
+# The post-merge dev check must only enforce monotonicity, not demand a second
+# version bump from the later squash commit.
+workflow_file="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.github/workflows/branch-version-policy.yml"
+dev_push_block="$(sed -n '/elif \[\[ "${CURRENT_BRANCH}" == "dev" \]\]; then/,/else/p' "${workflow_file}")"
+grep -Fq './tool/check_release_version.sh "${BEFORE_SHA}" promote' <<< "${dev_push_block}" ||
+  fail 'dev push must perform the monotonic promotion check for parallel feature merges'
+
 echo "Version policy tests passed."
