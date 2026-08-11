@@ -126,9 +126,13 @@ as $$
         'productName', jsonb_build_object(
           'value', q.product_name, 'status', 'verified',
           'confidence', 'high', 'sourceIds', jsonb_build_array('official')
-        )
+        ),
+        'tier', jsonb_build_object('value',null,'status','unknown','confidence',null,'sourceIds','[]'::jsonb),
+        'network', jsonb_build_object('value',null,'status','unknown','confidence',null,'sourceIds','[]'::jsonb),
+        'currencyCode', jsonb_build_object('value',null,'status','unknown','confidence',null,'sourceIds','[]'::jsonb)
       ),
       'accountForm', jsonb_build_object(
+        'suggestedName', jsonb_build_object('value',null,'status','unknown','confidence',null,'sourceIds','[]'::jsonb),
         'creditLimitMinor', jsonb_build_object(
           'value', null, 'status', 'unknown',
           'confidence', null, 'sourceIds', '[]'::jsonb
@@ -136,7 +140,11 @@ as $$
         'defaultDueDay', jsonb_build_object(
           'value', p_due_day, 'status', 'verified',
           'confidence', 'medium', 'sourceIds', jsonb_build_array('official')
-        )
+        ),
+        'statementDay', jsonb_build_object('value',null,'status','unknown','confidence',null,'sourceIds','[]'::jsonb),
+        'minPaymentMethod', jsonb_build_object('value',null,'status','unknown','confidence',null,'sourceIds','[]'::jsonb),
+        'minPaymentFixedMinor', jsonb_build_object('value',null,'status','unknown','confidence',null,'sourceIds','[]'::jsonb),
+        'minPaymentBasisPoints', jsonb_build_object('value',null,'status','unknown','confidence',null,'sourceIds','[]'::jsonb)
       ),
       'rules', '[]'::jsonb,
       'installmentTenors', '[]'::jsonb,
