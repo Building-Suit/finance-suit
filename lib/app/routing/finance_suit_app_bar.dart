@@ -27,6 +27,8 @@ class FinanceSuitAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.semanticTitle,
     this.bottom,
   }) : _isTopLevel = true,
+       _hasLeadingControl = true,
+       _showsMoneyVisibility = true,
        actions = null;
 
   /// Header for focused, pushed, form, detail, and utility destinations.
@@ -35,9 +37,24 @@ class FinanceSuitAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.semanticTitle,
     this.actions,
     this.bottom,
-  }) : _isTopLevel = false;
+  }) : _isTopLevel = false,
+       _hasLeadingControl = true,
+       _showsMoneyVisibility = true;
+
+  /// Header for pre-authentication and onboarding pages. It keeps the same
+  /// Finance Suit chrome without exposing app navigation before setup ends.
+  const FinanceSuitAppBar.standalone({
+    super.key,
+    required this.semanticTitle,
+    this.bottom,
+  }) : _isTopLevel = false,
+       _hasLeadingControl = false,
+       _showsMoneyVisibility = false,
+       actions = null;
 
   final bool _isTopLevel;
+  final bool _hasLeadingControl;
+  final bool _showsMoneyVisibility;
 
   /// Accessible name of the current screen, announced as a header.
   final String semanticTitle;
@@ -48,6 +65,8 @@ class FinanceSuitAppBar extends StatelessWidget implements PreferredSizeWidget {
   final PreferredSizeWidget? bottom;
 
   static const double _logoSize = 32;
+  static const double _horizontalInset = 16;
+  static const double _cornerRadius = 16;
 
   @override
   Size get preferredSize =>
@@ -55,11 +74,60 @@ class FinanceSuitAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final semanticColors = theme.extension<FinanceSuitSemanticColors>();
+    // The app normally supplies FinanceSuitSemanticColors, but shared chrome
+    // must also render in isolated previews and plain Material test harnesses.
+    // Falling back to ColorScheme keeps the header functional instead of
+    // crashing when that optional theme extension is absent.
+    final surfaceColor = semanticColors?.surface ?? theme.colorScheme.surface;
+    final borderColor =
+        semanticColors?.borderSubtle ?? theme.colorScheme.outlineVariant;
+    final backgroundColor =
+        semanticColors?.background ?? theme.colorScheme.surface;
+    final inverseSurfaceColor =
+        semanticColors?.inverseSurface ?? theme.colorScheme.inverseSurface;
     final l10n = AppLocalizations.of(context);
+    final shadowColor =
+        (theme.brightness == Brightness.dark
+                ? backgroundColor
+                : inverseSurfaceColor)
+            .withValues(
+              alpha: theme.brightness == Brightness.dark ? 0.28 : 0.08,
+            );
     return AppBar(
       automaticallyImplyLeading: false,
       centerTitle: true,
-      leading: _isTopLevel
+      backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      flexibleSpace: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.symmetric(
+            horizontal: _horizontalInset,
+          ),
+          child: DecoratedBox(
+            key: const Key('finance-suit-app-bar-surface'),
+            decoration: BoxDecoration(
+              color: surfaceColor,
+              borderRadius: BorderRadius.circular(_cornerRadius),
+              border: Border.all(color: borderColor),
+              boxShadow: [
+                BoxShadow(
+                  color: shadowColor,
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      leading: !_hasLeadingControl
+          ? null
+          : _isTopLevel
           ? IconButton(
               key: const Key('finance-suit-menu-button'),
               tooltip: l10n.menuOpenTooltip,
@@ -87,7 +155,10 @@ class FinanceSuitAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: FinanceSuitMark(size: _logoSize, semanticLabel: null),
         ),
       ),
-      actions: [const _MoneyVisibilityAction(), ...?actions],
+      actions: [
+        if (_showsMoneyVisibility) const _MoneyVisibilityAction(),
+        ...?actions,
+      ],
       bottom: bottom,
     );
   }
