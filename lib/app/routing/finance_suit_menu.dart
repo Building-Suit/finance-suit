@@ -7,8 +7,8 @@ import 'package:work_tracker/app/branding/finance_suit_brand.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/branding/finance_suit_mark.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
-import 'package:work_tracker/core/notifications/notification_center.dart';
 import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
+import 'package:work_tracker/core/notifications/notification_center.dart';
 import 'package:work_tracker/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
