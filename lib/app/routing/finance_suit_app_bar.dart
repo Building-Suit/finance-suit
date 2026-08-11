@@ -141,102 +141,124 @@ class FinanceSuitHomeAppBar extends StatelessWidget
                   : 0.08,
             );
 
-    return SafeArea(
-      bottom: false,
-      child: RepaintBoundary(
-        child: SizedBox(
-          height: preferredSize.height,
-          child: LayoutBuilder(
-            builder: (context, constraints) => Stack(
-              clipBehavior: Clip.hardEdge,
-              alignment: Alignment.topCenter,
-              children: [
-                if (strip != null)
-                  Positioned(
-                    top: _toolbarHeight - _stripOverlap,
-                    child: SizedBox(
-                      width: (constraints.maxWidth - 32) * 0.9,
-                      child: SubscriptionStatusStrip(
-                        entitlement: strip,
-                        visible: isFloating,
-                        onUpgrade: () => context.push(AppRoutes.subscription),
+    // SafeArea provides the device-specific status-bar inset. Painting this
+    // parent only while solid makes the full-width state one continuous app
+    // bar from the top edge through the toolbar, without changing the
+    // floating state's breathing room.
+    return AnimatedContainer(
+      key: const Key('finance-suit-home-header-safe-area-surface'),
+      duration: reducedMotion ? Duration.zero : _transitionDuration,
+      curve: Curves.easeOutCubic,
+      color: isSolid ? colors.surface : Colors.transparent,
+      child: SafeArea(
+        bottom: false,
+        child: RepaintBoundary(
+          child: SizedBox(
+            height: preferredSize.height,
+            child: LayoutBuilder(
+              builder: (context, constraints) => Stack(
+                clipBehavior: Clip.hardEdge,
+                alignment: Alignment.topCenter,
+                children: [
+                  if (strip != null)
+                    Positioned(
+                      top: _toolbarHeight - _stripOverlap,
+                      left: 16,
+                      right: 16,
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: constraints.maxWidth - 32,
+                          ),
+                          child: SubscriptionStatusStrip(
+                            entitlement: strip,
+                            visible: isFloating,
+                            onUpgrade: () =>
+                                context.push(AppRoutes.subscription),
+                          ),
+                        ),
+                      ),
+                    ),
+                  AnimatedContainer(
+                    key: const Key('finance-suit-home-header-surface'),
+                    duration: reducedMotion
+                        ? Duration.zero
+                        : _transitionDuration,
+                    curve: Curves.easeOutCubic,
+                    width: double.infinity,
+                    height: _toolbarHeight,
+                    margin: EdgeInsetsDirectional.symmetric(
+                      horizontal: isFloating ? 16 : 0,
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      color: colors.surface,
+                      borderRadius: BorderRadius.circular(isFloating ? 16 : 0),
+                      border: Border.all(
+                        color: isFloating
+                            ? colors.borderSubtle
+                            : Colors.transparent,
+                      ),
+                      boxShadow: isFloating
+                          ? [
+                              BoxShadow(
+                                color: shadowColor,
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ]
+                          : const [],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          PositionedDirectional(
+                            start: 0,
+                            child: IconButton(
+                              key: const Key('finance-suit-menu-button'),
+                              tooltip: l10n.menuOpenTooltip,
+                              onPressed: () => FinanceSuitMenu.open(context),
+                              icon: const FinanceSuitIcon(
+                                FinanceSuitIcons.menu,
+                              ),
+                            ),
+                          ),
+                          Semantics(
+                            header: true,
+                            label: semanticTitle,
+                            child: const ExcludeSemantics(
+                              child: FinanceSuitMark(size: _logoSize),
+                            ),
+                          ),
+                          PositionedDirectional(
+                            end: 0,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const _MoneyVisibilityAction(),
+                                IconButton(
+                                  key: const Key(
+                                    'finance-suit-notifications-button',
+                                  ),
+                                  tooltip: l10n.setNotificationsSection,
+                                  onPressed: () =>
+                                      context.push(AppRoutes.settings),
+                                  icon: const FinanceSuitIcon(
+                                    FinanceSuitIcons.notifications,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                AnimatedContainer(
-                  key: const Key('finance-suit-home-header-surface'),
-                  duration: reducedMotion ? Duration.zero : _transitionDuration,
-                  curve: Curves.easeOutCubic,
-                  width: double.infinity,
-                  height: _toolbarHeight,
-                  margin: EdgeInsetsDirectional.symmetric(
-                    horizontal: isFloating ? 16 : 0,
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(
-                    color: colors.surface,
-                    borderRadius: BorderRadius.circular(isFloating ? 16 : 0),
-                    border: Border.all(
-                      color: isFloating
-                          ? colors.borderSubtle
-                          : Colors.transparent,
-                    ),
-                    boxShadow: isFloating
-                        ? [
-                            BoxShadow(
-                              color: shadowColor,
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ]
-                        : const [],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        PositionedDirectional(
-                          start: 0,
-                          child: IconButton(
-                            key: const Key('finance-suit-menu-button'),
-                            tooltip: l10n.menuOpenTooltip,
-                            onPressed: () => FinanceSuitMenu.open(context),
-                            icon: const FinanceSuitIcon(FinanceSuitIcons.menu),
-                          ),
-                        ),
-                        Semantics(
-                          header: true,
-                          label: semanticTitle,
-                          child: const ExcludeSemantics(
-                            child: FinanceSuitMark(size: _logoSize),
-                          ),
-                        ),
-                        PositionedDirectional(
-                          end: 0,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const _MoneyVisibilityAction(),
-                              IconButton(
-                                key: const Key(
-                                  'finance-suit-notifications-button',
-                                ),
-                                tooltip: l10n.setNotificationsSection,
-                                onPressed: () =>
-                                    context.push(AppRoutes.settings),
-                                icon: const FinanceSuitIcon(
-                                  FinanceSuitIcons.notifications,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

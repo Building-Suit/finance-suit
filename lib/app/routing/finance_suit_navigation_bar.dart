@@ -45,9 +45,9 @@ class FinanceSuitNavigationBar extends StatelessWidget {
   @visibleForTesting
   static const double surfaceHeight = 60;
   @visibleForTesting
-  static const double centerButtonDiameter = 64;
+  static const double centerButtonDiameter = 56;
   static const double _contentClearanceAboveSurface = 76;
-  static const double _centerGap = 72;
+  static const double _centerGap = 64;
   static const double _indicatorMaxWidth = 64;
   static const double _indicatorHeight = 32;
 
@@ -96,30 +96,34 @@ class FinanceSuitNavigationBar extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Align(
-                    alignment: Alignment.topCenter,
-                    child: Semantics(
-                      button: true,
-                      label: addLabel,
-                      child: SizedBox.square(
-                        dimension: centerButtonDiameter,
-                        child: IconButton.filled(
-                          key: const Key('global-add-button'),
-                          tooltip: addLabel,
-                          onPressed: onAddPressed,
-                          style: IconButton.styleFrom(
-                            backgroundColor: colors.primary,
-                            foregroundColor: colors.onPrimary,
-                            minimumSize: const Size.square(
-                              centerButtonDiameter,
+                  Positioned(
+                    top: 8,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: Semantics(
+                        button: true,
+                        label: addLabel,
+                        child: SizedBox.square(
+                          dimension: centerButtonDiameter,
+                          child: IconButton.filled(
+                            key: const Key('global-add-button'),
+                            tooltip: addLabel,
+                            onPressed: onAddPressed,
+                            style: IconButton.styleFrom(
+                              backgroundColor: colors.primary,
+                              foregroundColor: colors.onPrimary,
+                              minimumSize: const Size.square(
+                                centerButtonDiameter,
+                              ),
+                              maximumSize: const Size.square(
+                                centerButtonDiameter,
+                              ),
+                              elevation: 3,
+                              shape: const CircleBorder(),
                             ),
-                            maximumSize: const Size.square(
-                              centerButtonDiameter,
-                            ),
-                            elevation: 3,
-                            shape: const CircleBorder(),
+                            icon: const FinanceSuitIcon(FinanceSuitIcons.add),
                           ),
-                          icon: const FinanceSuitIcon(FinanceSuitIcons.add),
                         ),
                       ),
                     ),
@@ -161,8 +165,11 @@ class _NavigationSurfacePainter extends CustomPainter {
     const top = FinanceSuitNavigationBar.surfaceTop;
     const height = FinanceSuitNavigationBar.surfaceHeight;
     const cornerRadius = 20.0;
-    const notchRadius = 36.0;
-    const notchDepth = 38.0;
+    // The concave surface is intentionally wider than the 56dp action, so
+    // the button reads as seated in a real, continuous cutout rather than
+    // overlaid on a rectangular bar.
+    const notchRadius = 34.0;
+    const notchDepth = 36.0;
     final right = size.width - left;
     final bottom = top + height;
     final center = size.width / 2;
@@ -226,10 +233,10 @@ class _FinanceSuitNavigationSlot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final navTheme = NavigationBarTheme.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
     final states = {if (selected) WidgetState.selected};
     final iconTheme = navTheme.iconTheme?.resolve(states);
     final labelStyle = navTheme.labelTextStyle?.resolve(states);
+    final labelColor = selected ? iconTheme?.color : labelStyle?.color;
     return Semantics(
       container: true,
       selected: selected,
@@ -241,30 +248,24 @@ class _FinanceSuitNavigationSlot extends StatelessWidget {
           builder: (context, constraints) => Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
+              SizedBox(
                 width: math.min<double>(
                   FinanceSuitNavigationBar._indicatorMaxWidth,
                   constraints.maxWidth,
                 ),
                 height: FinanceSuitNavigationBar._indicatorHeight,
-                alignment: Alignment.center,
-                decoration: selected
-                    ? ShapeDecoration(
-                        color:
-                            navTheme.indicatorColor ??
-                            colorScheme.secondaryContainer,
-                        shape: navTheme.indicatorShape ?? const StadiumBorder(),
-                      )
-                    : null,
-                child: IconTheme.merge(
-                  data: iconTheme ?? const IconThemeData(),
-                  child: FinanceSuitIcon(destination.icon),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: IconTheme.merge(
+                    data: iconTheme ?? const IconThemeData(),
+                    child: FinanceSuitIcon(destination.icon),
+                  ),
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 destination.label,
-                style: labelStyle,
+                style: labelStyle?.copyWith(color: labelColor),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,

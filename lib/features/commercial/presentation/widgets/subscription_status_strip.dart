@@ -20,7 +20,7 @@ class SubscriptionStatusStrip extends StatelessWidget {
   final bool visible;
   final VoidCallback onUpgrade;
 
-  static const double height = 32;
+  static const double height = 28;
   static const double bottomRadius = 12;
   static const _motionDuration = Duration(milliseconds: 220);
 
@@ -39,7 +39,7 @@ class SubscriptionStatusStrip extends StatelessWidget {
     final child = Container(
       key: const Key('subscription-status-strip'),
       height: height,
-      padding: const EdgeInsetsDirectional.symmetric(horizontal: 12),
+      padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: colors.warning.background,
         border: Border.all(color: colors.warning.border),
@@ -53,16 +53,16 @@ class SubscriptionStatusStrip extends StatelessWidget {
         children: [
           FinanceSuitIcon(
             FinanceSuitIcons.star,
-            size: 16,
+            size: 14,
             color: colors.warning.icon,
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           Flexible(
             child: Text(
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: colors.warning.text,
                 fontWeight: FontWeight.w600,
               ),
