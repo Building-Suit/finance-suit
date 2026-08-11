@@ -23,6 +23,7 @@
   "commonNext": "Next",
   "commonDone": "Done",
   "commonClose": "Close",
+  "appBackAgainToClose": "back again to close the app",
   "commonUndo": "Undo",
   "commonAll": "All",
   "commonNone": "None",

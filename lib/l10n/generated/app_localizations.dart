@@ -236,6 +236,10 @@ abstract class AppLocalizations {
   /// **'Close'**
   String get commonClose;
 
+  /// In en, this message translates to:
+  /// **'back again to close the app'**
+  String get appBackAgainToClose;
+
   /// No description provided for @commonUndo.
   ///
   /// In en, this message translates to:

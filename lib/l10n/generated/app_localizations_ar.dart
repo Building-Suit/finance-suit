@@ -78,6 +78,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonClose => 'إغلاق';
 
   @override
+  String get appBackAgainToClose => 'اضغط رجوع مرة أخرى لإغلاق التطبيق';
+
+  @override
   String get commonUndo => 'تراجع';
 
   @override

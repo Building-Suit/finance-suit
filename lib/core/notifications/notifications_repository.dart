@@ -65,6 +65,55 @@ class NotificationTestDelivery {
   final int suppressed;
 }
 
+/// A delivered notification visible in the in-app Notification Center.
+///
+/// Delivery history already belongs to the authenticated user under RLS. The
+/// app deliberately reads only sent rows, so pending/retry implementation
+/// details and failed attempts are never presented as user notifications.
+@immutable
+class NotificationHistoryItem {
+  const NotificationHistoryItem({
+    required this.id,
+    required this.obligationType,
+    required this.reminderKind,
+    required this.createdAt,
+    required this.payload,
+  });
+
+  factory NotificationHistoryItem.fromJson(Map<String, dynamic> json) =>
+      NotificationHistoryItem(
+        id: json['id'] as String,
+        obligationType: json['obligation_type'] as String? ?? 'general',
+        reminderKind: json['reminder_kind'] as String? ?? 'due_today',
+        createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
+        payload: Map<String, dynamic>.from(
+          (json['payload_snapshot'] as Map?) ?? const <String, dynamic>{},
+        ),
+      );
+
+  final String id;
+  final String obligationType;
+  final String reminderKind;
+  final DateTime createdAt;
+  final Map<String, dynamic> payload;
+}
+
+@immutable
+class NotificationHistoryCursor {
+  const NotificationHistoryCursor({required this.createdAt, required this.id});
+
+  final DateTime createdAt;
+  final String id;
+}
+
+@immutable
+class NotificationHistoryPage {
+  const NotificationHistoryPage({required this.items, required this.next});
+
+  final List<NotificationHistoryItem> items;
+  final NotificationHistoryCursor? next;
+}
+
 /// Push device registration and notification preferences in `app_core`.
 class NotificationsRepository {
   NotificationsRepository(this._client);
@@ -161,6 +210,46 @@ class NotificationsRepository {
       return row == null
           ? const NotificationPreferences()
           : NotificationPreferences.fromJson(row);
+    });
+  }
+
+  /// Fetches delivered notifications newest first with a stable
+  /// `(created_at, id)` keyset cursor. RLS and the explicit owner filter keep
+  /// the feed private even if a caller supplies a stale cursor.
+  Future<Result<NotificationHistoryPage>> fetchHistory({
+    NotificationHistoryCursor? after,
+    int limit = 20,
+  }) {
+    return guard(() async {
+      final pageSize = limit.clamp(1, 50).toInt();
+      var query = _db
+          .from('notification_outbox')
+          .select(
+            'id,obligation_type,reminder_kind,created_at,payload_snapshot',
+          )
+          .eq('user_id', _userId)
+          .eq('status', 'sent');
+      if (after != null) {
+        final timestamp = after.createdAt.toUtc().toIso8601String();
+        query = query.or(
+          'created_at.lt.$timestamp,and(created_at.eq.$timestamp,id.lt.${after.id})',
+        );
+      }
+      final rows = await query
+          .order('created_at', ascending: false)
+          .order('id', ascending: false)
+          .limit(pageSize + 1);
+      final parsed = rows
+          .map((row) => NotificationHistoryItem.fromJson(row))
+          .toList(growable: false);
+      final items = parsed.take(pageSize).toList(growable: false);
+      final last = items.isEmpty ? null : items.last;
+      return NotificationHistoryPage(
+        items: items,
+        next: parsed.length > pageSize && last != null
+            ? NotificationHistoryCursor(createdAt: last.createdAt, id: last.id)
+            : null,
+      );
     });
   }
 

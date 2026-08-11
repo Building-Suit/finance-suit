@@ -78,6 +78,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonClose => 'Close';
 
   @override
+  String get appBackAgainToClose => 'back again to close the app';
+
+  @override
   String get commonUndo => 'Undo';
 
   @override
