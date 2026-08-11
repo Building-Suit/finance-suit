@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_menu.dart';
@@ -123,6 +123,7 @@ abstract final class NotificationCenter {
     // A menu is modal and already blocks the bell, but this also protects
     // programmatic callers: exactly one app-level drawer may be open.
     if (FinanceSuitMenu.isOpen) await FinanceSuitMenu.close();
+    if (!context.mounted) return;
     final theme = Theme.of(context);
     final route = _NotificationCenterRoute(
       reduceMotion: MediaQuery.of(context).disableAnimations,

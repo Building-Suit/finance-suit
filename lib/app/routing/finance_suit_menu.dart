@@ -83,6 +83,7 @@ abstract final class FinanceSuitMenu {
   static Future<void> open(BuildContext context) async {
     if (isOpen) return;
     if (NotificationCenter.isOpen) await NotificationCenter.close();
+    if (!context.mounted) return;
     final l10n = AppLocalizations.of(context);
     final router = GoRouter.of(context);
     final theme = Theme.of(context);
