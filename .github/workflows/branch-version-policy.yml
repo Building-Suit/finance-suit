@@ -124,7 +124,12 @@ jobs:
               ./tool/check_release_version.sh "origin/${BASE_BRANCH}" promote
             fi
           elif [[ "${CURRENT_BRANCH}" == "dev" ]]; then
-            ./tool/check_release_version.sh "${BEFORE_SHA}" check
+            # A dev push is the result of a protected PR merge. Its feature
+            # version was validated and synchronized on the source PR, but
+            # another feature may already have advanced dev to that same
+            # release version. Require a monotonic version here instead of
+            # calculating a second release bump from the squash commit.
+            ./tool/check_release_version.sh "${BEFORE_SHA}" promote
           else
             ./tool/check_release_version.sh "${BEFORE_SHA}" promote
           fi
