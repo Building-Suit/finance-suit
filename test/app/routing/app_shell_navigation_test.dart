@@ -53,6 +53,30 @@ void main() {
     expect(find.byType(FloatingActionButton), findsNothing);
   });
 
+  testWidgets('uses matched icon and label color without an active pill', (
+    tester,
+  ) async {
+    await pumpShellApp(tester, buildShellTestRouter());
+
+    final homeLabel = tester.widget<Text>(
+      find.descendant(of: navBar(), matching: find.text('Home')),
+    );
+    final homeIconTheme = tester.widget<IconTheme>(
+      find.descendant(of: navBar(), matching: find.byType(IconTheme)).first,
+    );
+
+    expect(homeLabel.style?.color, homeIconTheme.data.color);
+    expect(
+      find.descendant(
+        of: navBar(),
+        matching: find.byWidgetPredicate(
+          (widget) => widget is Container && widget.decoration != null,
+        ),
+      ),
+      findsNothing,
+    );
+  });
+
   testWidgets('centers the add action between Work and Money in LTR', (
     tester,
   ) async {
