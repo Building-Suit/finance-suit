@@ -106,6 +106,10 @@ begin
       if v_node->>'status' not in ('verified','probable','conflicting','unknown','not_applicable') then
         raise exception 'invalid catalog field status' using errcode='22023';
       end if;
+      if v_name='accountForm' and v_key='creditLimitMinor'
+        and v_node <> v_defs->'unknownShape' then
+        raise exception 'personal credit limit is forbidden in the global catalog' using errcode='22023';
+      end if;
       if v_node->>'status' in ('verified','probable','conflicting') and
         (v_node->'value'='null'::jsonb or coalesce(v_node->>'confidence','') not in ('high','medium','low')) then
         raise exception 'researched values require a value and confidence' using errcode='22023';
