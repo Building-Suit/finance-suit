@@ -162,6 +162,30 @@ void main() {
     expect(add.dx, closeTo(width / 2, 1.0));
   });
 
+  testWidgets('system Back sends every non-Home tab root to Home', (
+    tester,
+  ) async {
+    await pumpShellApp(tester, buildShellTestRouter());
+    await tester.tap(
+      find.descendant(of: navBar(), matching: find.text('Reports')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('reports-root'), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('home-root'), findsOneWidget);
+  });
+
+  testWidgets('first system Back on Home arms the close hint', (tester) async {
+    await pumpShellApp(tester, buildShellTestRouter());
+
+    await tester.binding.handlePopRoute();
+    await tester.pump();
+    expect(find.text('back again to close the app'), findsOneWidget);
+    expect(find.text('home-root'), findsOneWidget);
+  });
+
   testWidgets('add opens the Global Add sheet without changing the branch', (
     tester,
   ) async {
