@@ -6,6 +6,7 @@ import 'package:work_tracker/app/branding/finance_suit_mark.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_menu.dart';
 import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
+import 'package:work_tracker/core/notifications/notification_center.dart';
 import 'package:work_tracker/core/security/device_authenticator.dart';
 import 'package:work_tracker/core/security/device_privacy_controller.dart';
 import 'package:work_tracker/core/widgets/app_toast.dart';
@@ -316,7 +317,7 @@ class FinanceSuitHomeAppBar extends StatelessWidget
                                   ),
                                   tooltip: l10n.setNotificationsSection,
                                   onPressed: () =>
-                                      context.push(AppRoutes.settings),
+                                      NotificationCenter.open(context),
                                   icon: const FinanceSuitIcon(
                                     FinanceSuitIcons.notifications,
                                   ),

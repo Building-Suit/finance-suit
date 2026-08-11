@@ -1,4 +1,8 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
@@ -53,11 +57,49 @@ class AppShell extends ConsumerStatefulWidget {
 class _AppShellState extends ConsumerState<AppShell> {
   StatefulNavigationShell get navigationShell => widget.navigationShell;
   String get currentLocation => widget.currentLocation;
+  Timer? _exitTimer;
+  bool _exitArmed = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _maybeOfferUpdate());
+  }
+
+  @override
+  void dispose() {
+    _exitTimer?.cancel();
+    super.dispose();
+  }
+
+  void _resetExit() {
+    _exitArmed = false;
+    _exitTimer?.cancel();
+    _exitTimer = null;
+  }
+
+  /// The one back decision point for Android hardware/gesture back and the
+  /// platform PopScope path. Popup routes (drawers, sheets, dialogs) resolve
+  /// before this shell receives a pop, and pushed sub-pages retain real router
+  /// history above it. At a tab root we then follow the deliberate, no-loop
+  /// sequence: non-Home -> Home -> double back to exit.
+  void _handleRootBack(bool didPop, Object? result) {
+    if (didPop) return;
+    if (navigationShell.currentIndex != 0) {
+      _resetExit();
+      navigationShell.goBranch(0, initialLocation: true);
+      return;
+    }
+    if (_exitArmed) {
+      _resetExit();
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        SystemNavigator.pop();
+      }
+      return;
+    }
+    _exitArmed = true;
+    AppToast.warning(context, AppLocalizations.of(context).appBackAgainToClose);
+    _exitTimer = Timer(const Duration(seconds: 2), _resetExit);
   }
 
   Future<void> _maybeOfferUpdate() async {
@@ -162,35 +204,42 @@ class _AppShellState extends ConsumerState<AppShell> {
     ref.watch(realtimeInvalidationProvider);
     final l10n = AppLocalizations.of(context);
     return FinanceSuitMenuPagePlane(
-      child: Scaffold(
-        extendBody: true,
-        body: navigationShell,
-        bottomNavigationBar: FinanceSuitNavigationBar(
-          selectedIndex: navigationShell.currentIndex,
-          onDestinationSelected: (index) => navigationShell.goBranch(
-            index,
-            initialLocation: index == navigationShell.currentIndex,
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: _handleRootBack,
+        child: Scaffold(
+          extendBody: true,
+          body: navigationShell,
+          bottomNavigationBar: FinanceSuitNavigationBar(
+            selectedIndex: navigationShell.currentIndex,
+            onDestinationSelected: (index) {
+              _resetExit();
+              navigationShell.goBranch(
+                index,
+                initialLocation: index == navigationShell.currentIndex,
+              );
+            },
+            onAddPressed: () => _openAddSheet(context, ref),
+            addLabel: l10n.globalAddLabel,
+            destinations: [
+              FinanceSuitNavDestination(
+                icon: FinanceSuitIcons.home,
+                label: l10n.tabHome,
+              ),
+              FinanceSuitNavDestination(
+                icon: FinanceSuitIcons.work,
+                label: l10n.tabWork,
+              ),
+              FinanceSuitNavDestination(
+                icon: FinanceSuitIcons.accountBalanceWallet,
+                label: l10n.tabMoney,
+              ),
+              FinanceSuitNavDestination(
+                icon: FinanceSuitIcons.barChart,
+                label: l10n.tabReports,
+              ),
+            ],
           ),
-          onAddPressed: () => _openAddSheet(context, ref),
-          addLabel: l10n.globalAddLabel,
-          destinations: [
-            FinanceSuitNavDestination(
-              icon: FinanceSuitIcons.home,
-              label: l10n.tabHome,
-            ),
-            FinanceSuitNavDestination(
-              icon: FinanceSuitIcons.work,
-              label: l10n.tabWork,
-            ),
-            FinanceSuitNavDestination(
-              icon: FinanceSuitIcons.accountBalanceWallet,
-              label: l10n.tabMoney,
-            ),
-            FinanceSuitNavDestination(
-              icon: FinanceSuitIcons.barChart,
-              label: l10n.tabReports,
-            ),
-          ],
         ),
       ),
     );

@@ -8,6 +8,7 @@ import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/branding/finance_suit_mark.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
+import 'package:work_tracker/core/notifications/notification_center.dart';
 import 'package:work_tracker/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
@@ -68,10 +69,21 @@ abstract final class FinanceSuitMenu {
   /// counts as open and repeated activations share one state machine.
   static bool get isOpen => _activeRoute != null;
 
+  /// Dismisses the current menu route and waits for its exit animation.
+  /// App-level drawers use this to remain mutually exclusive.
+  static Future<void> close() async {
+    final route = _activeRoute;
+    if (route == null) return;
+    route.navigator?.pop();
+    await route.completed;
+  }
+
   /// Opens the menu over the root navigator and navigates to the selected
   /// destination after the close animation has been initiated.
   static Future<void> open(BuildContext context) async {
     if (isOpen) return;
+    if (NotificationCenter.isOpen) await NotificationCenter.close();
+    if (!context.mounted) return;
     final l10n = AppLocalizations.of(context);
     final router = GoRouter.of(context);
     final theme = Theme.of(context);
