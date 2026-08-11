@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(35);
+select plan(36);
 
 select has_table('app_finance','financial_product_catalog_aliases','trusted alias table exists');
 select has_function('app_finance','resolve_catalog_research_alias',array['uuid','uuid'],'alias RPC exists');
