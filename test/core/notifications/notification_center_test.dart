@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/notifications/notification_center.dart';
 import 'package:work_tracker/core/notifications/notifications_repository.dart';
 import 'package:work_tracker/core/result/result.dart';
@@ -64,7 +65,18 @@ void main() {
     final panelMaterial = tester.widget<Material>(
       find.byKey(const Key('notification-center-panel')),
     );
-    expect(panelMaterial.color, Theme.of(context).colorScheme.surface);
+    expect(panelMaterial.type, MaterialType.transparency);
+    expect(panelMaterial.color, isNull);
+    expect(panelMaterial.elevation, 0);
+    expect(panelMaterial.borderRadius, isNull);
+    expect(panelMaterial.clipBehavior, Clip.none);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('notification-center-panel')),
+        matching: find.byType(Divider),
+      ),
+      findsNothing,
+    );
     expect(find.byKey(const Key('notification-center-list')), findsOneWidget);
     expect(
       find.byKey(const Key('notification-center-settings')),
@@ -127,42 +139,65 @@ void main() {
     final panelMaterial = tester.widget<Material>(
       find.byKey(const Key('notification-center-panel')),
     );
-    expect(panelMaterial.color, Theme.of(context).colorScheme.surface);
+    expect(panelMaterial.type, MaterialType.transparency);
 
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
     await opened;
   });
 
-  testWidgets('uses the semantic dark surface in dark mode', (tester) async {
-    await pumpShellApp(
-      tester,
-      buildShellTestRouter(),
-      themeMode: ThemeMode.dark,
-      extraOverrides: [
-        notificationHistoryLoaderProvider.overrideWithValue(
-          ({NotificationHistoryCursor? after, int limit = 20}) async =>
-              Ok(firstPage),
-        ),
-      ],
-    );
-    final context = tester.element(
-      find.byKey(const Key('finance-suit-menu-button')),
-    );
-    final opened = NotificationCenter.open(context);
-    await tester.pumpAndSettle();
+  testWidgets(
+    'uses transparent structure and dark semantic text in dark mode',
+    (tester) async {
+      await pumpShellApp(
+        tester,
+        buildShellTestRouter(),
+        themeMode: ThemeMode.dark,
+        extraOverrides: [
+          notificationHistoryLoaderProvider.overrideWithValue(
+            ({NotificationHistoryCursor? after, int limit = 20}) async =>
+                Ok(firstPage),
+          ),
+        ],
+      );
+      final context = tester.element(
+        find.byKey(const Key('finance-suit-menu-button')),
+      );
+      final opened = NotificationCenter.open(context);
+      await tester.pumpAndSettle();
 
-    expect(
-      tester
-          .widget<Material>(find.byKey(const Key('notification-center-panel')))
-          .color,
-      Theme.of(context).colorScheme.surface,
-    );
+      final panelMaterial = tester.widget<Material>(
+        find.byKey(const Key('notification-center-panel')),
+      );
+      expect(panelMaterial.type, MaterialType.transparency);
+      expect(panelMaterial.color, isNull);
+      final foreground = context.suitColors.textPrimary;
+      final mutedForeground = context.suitColors.textMuted;
+      expect(
+        tester.widget<Text>(find.text('Notifications')).style?.color,
+        foreground,
+      );
+      expect(
+        tester.widget<Text>(find.text('Today')).style?.color,
+        mutedForeground,
+      );
+      expect(
+        tester.widget<Text>(find.text('Due today')).style?.color,
+        foreground,
+      );
+      final markAllRead = tester.widget<TextButton>(
+        find.byKey(const Key('notification-center-mark-all-read')),
+      );
+      expect(
+        markAllRead.style?.foregroundColor?.resolve(const <WidgetState>{}),
+        context.suitColors.primary,
+      );
 
-    await tester.binding.handlePopRoute();
-    await tester.pumpAndSettle();
-    await opened;
-  });
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      await opened;
+    },
+  );
 
   testWidgets('moves a pushed Settings route with the notification center', (
     tester,
