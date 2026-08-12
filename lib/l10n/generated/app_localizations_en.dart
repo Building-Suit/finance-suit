@@ -2213,6 +2213,88 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get homeNextDueTitle => 'Next due';
+
+  @override
+  String get homeCalculate => 'Calculate';
+
+  @override
+  String get homeDueImpact => 'Due impact';
+
+  @override
+  String get homeMinimumDue => 'Minimum due';
+
+  @override
+  String get homeTotalDue => 'Total due';
+
+  @override
+  String get homeLateAfter => 'Late after';
+
+  @override
+  String get homeWhatYouPayFor => 'What you\'re paying for';
+
+  @override
+  String get homePayFromAccount => 'Pay from account';
+
+  @override
+  String get homeCurrentBalance => 'Current balance';
+
+  @override
+  String get homeAmountDeducted => 'Amount deducted';
+
+  @override
+  String get homeRemainingBalance => 'Remaining balance';
+
+  @override
+  String get homeNothingDueThisMonth => 'Nothing due this month';
+
+  @override
+  String get homeUpcoming => 'Upcoming';
+
+  @override
+  String get homeLate => 'Late';
+
+  @override
+  String homeDueCount(int count) {
+    return '$count obligations included';
+  }
+
+  @override
+  String homeInsufficientFunds(String amount) {
+    return 'Shortfall: $amount';
+  }
+
+  @override
+  String get homeStatementDue => 'Statement due';
+
+  @override
+  String get homeRecurringPayment => 'Recurring payment';
+
+  @override
+  String homeInstallmentOf(int current, int total) {
+    return 'Installment $current of $total';
+  }
+
+  @override
+  String homeScheduled(String date) {
+    return 'Scheduled $date';
+  }
+
+  @override
+  String get homePurchaseDate => 'Purchase date';
+
+  @override
+  String get homePlanRemaining => 'Plan remaining';
+
+  @override
+  String get homeMultipleCurrencies =>
+      'Choose a matching account for each currency; amounts are not converted automatically.';
+
+  @override
+  String get homeNoMatchingAccount =>
+      'No active asset account matches this currency.';
+
+  @override
   String get reportsDebtTitle => 'Credit & installments';
 
   @override

@@ -236,6 +236,8 @@ abstract class AppLocalizations {
   /// **'Close'**
   String get commonClose;
 
+  /// No description provided for @appBackAgainToClose.
+  ///
   /// In en, this message translates to:
   /// **'back again to close the app'**
   String get appBackAgainToClose;
@@ -4100,6 +4102,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{amount} overdue'**
   String homeOverdue(String amount);
+
+  /// No description provided for @homeNextDueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Next due'**
+  String get homeNextDueTitle;
+
+  /// No description provided for @homeCalculate.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculate'**
+  String get homeCalculate;
+
+  /// No description provided for @homeDueImpact.
+  ///
+  /// In en, this message translates to:
+  /// **'Due impact'**
+  String get homeDueImpact;
+
+  /// No description provided for @homeMinimumDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum due'**
+  String get homeMinimumDue;
+
+  /// No description provided for @homeTotalDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Total due'**
+  String get homeTotalDue;
+
+  /// No description provided for @homeLateAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'Late after'**
+  String get homeLateAfter;
+
+  /// No description provided for @homeWhatYouPayFor.
+  ///
+  /// In en, this message translates to:
+  /// **'What you\'re paying for'**
+  String get homeWhatYouPayFor;
+
+  /// No description provided for @homePayFromAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay from account'**
+  String get homePayFromAccount;
+
+  /// No description provided for @homeCurrentBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Current balance'**
+  String get homeCurrentBalance;
+
+  /// No description provided for @homeAmountDeducted.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount deducted'**
+  String get homeAmountDeducted;
+
+  /// No description provided for @homeRemainingBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining balance'**
+  String get homeRemainingBalance;
+
+  /// No description provided for @homeNothingDueThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing due this month'**
+  String get homeNothingDueThisMonth;
+
+  /// No description provided for @homeUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get homeUpcoming;
+
+  /// No description provided for @homeLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Late'**
+  String get homeLate;
+
+  /// No description provided for @homeDueCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} obligations included'**
+  String homeDueCount(int count);
+
+  /// No description provided for @homeInsufficientFunds.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortfall: {amount}'**
+  String homeInsufficientFunds(String amount);
+
+  /// No description provided for @homeStatementDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Statement due'**
+  String get homeStatementDue;
+
+  /// No description provided for @homeRecurringPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring payment'**
+  String get homeRecurringPayment;
+
+  /// No description provided for @homeInstallmentOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment {current} of {total}'**
+  String homeInstallmentOf(int current, int total);
+
+  /// No description provided for @homeScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled {date}'**
+  String homeScheduled(String date);
+
+  /// No description provided for @homePurchaseDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase date'**
+  String get homePurchaseDate;
+
+  /// No description provided for @homePlanRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan remaining'**
+  String get homePlanRemaining;
+
+  /// No description provided for @homeMultipleCurrencies.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a matching account for each currency; amounts are not converted automatically.'**
+  String get homeMultipleCurrencies;
+
+  /// No description provided for @homeNoMatchingAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'No active asset account matches this currency.'**
+  String get homeNoMatchingAccount;
 
   /// No description provided for @reportsDebtTitle.
   ///
