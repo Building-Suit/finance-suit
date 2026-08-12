@@ -46,6 +46,12 @@ class FinanceSuitNavigationBar extends StatelessWidget {
   static const double surfaceHeight = 60;
   @visibleForTesting
   static const double centerButtonDiameter = 56;
+
+  /// The circular clearance between the Add button and its surrounding notch.
+  @visibleForTesting
+  static const double notchClearance = 8;
+  @visibleForTesting
+  static const double notchRadius = centerButtonDiameter / 2 + notchClearance;
   static const double _contentClearanceAboveSurface = 76;
   static const double _centerGap = 80;
   static const double _indicatorMaxWidth = 64;
@@ -165,11 +171,11 @@ class _NavigationSurfacePainter extends CustomPainter {
     const top = FinanceSuitNavigationBar.surfaceTop;
     const height = FinanceSuitNavigationBar.surfaceHeight;
     const cornerRadius = 20.0;
-    // The concave surface is intentionally wider than the 56dp action, so
-    // the button reads as seated in a real, continuous cutout rather than
-    // overlaid on a rectangular bar.
-    const notchRadius = 42.0;
-    const notchDepth = 44.0;
+    // The notch is an exact circular U-curve: the 56dp action plus 8dp of
+    // clearance. The former two Bézier curves used unmatched control points,
+    // so their join formed a narrow, pointed tail underneath the button.
+    const notchRadius = FinanceSuitNavigationBar.notchRadius;
+    const circularBezierFactor = 0.55228475;
     final right = size.width - left;
     final bottom = top + height;
     final center = size.width / 2;
@@ -177,18 +183,18 @@ class _NavigationSurfacePainter extends CustomPainter {
       ..moveTo(left + cornerRadius, top)
       ..lineTo(center - notchRadius, top)
       ..cubicTo(
-        center - notchRadius * 0.52,
-        top,
-        center - notchRadius * 0.62,
-        top + notchDepth,
+        center - notchRadius,
+        top + notchRadius * circularBezierFactor,
+        center - notchRadius * circularBezierFactor,
+        top + notchRadius,
         center,
-        top + notchDepth,
+        top + notchRadius,
       )
       ..cubicTo(
-        center + notchRadius * 0.62,
-        top + notchDepth,
-        center + notchRadius * 0.52,
-        top,
+        center + notchRadius * circularBezierFactor,
+        top + notchRadius,
+        center + notchRadius,
+        top + notchRadius * circularBezierFactor,
         center + notchRadius,
         top,
       )
