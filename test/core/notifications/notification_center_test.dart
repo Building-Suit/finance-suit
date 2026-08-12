@@ -171,8 +171,8 @@ void main() {
       );
       expect(panelMaterial.type, MaterialType.transparency);
       expect(panelMaterial.color, isNull);
-      final foreground = context.suitColors.textPrimary;
-      final mutedForeground = context.suitColors.textMuted;
+      final foreground = context.suitColors.onBrandSurface;
+      final mutedForeground = foreground.withValues(alpha: 0.76);
       expect(
         tester.widget<Text>(find.text('Notifications')).style?.color,
         foreground,

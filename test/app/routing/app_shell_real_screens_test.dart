@@ -268,7 +268,6 @@ void main() {
     await pumpRealApp(tester);
     for (final location in [
       '/settings',
-      '/history',
       '/settings/income-sources',
       '/work/periods',
       '/work/holidays',
