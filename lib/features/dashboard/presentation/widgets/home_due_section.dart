@@ -144,7 +144,7 @@ class _DueImpactSheet extends StatefulWidget {
 }
 
 class _DueImpactSheetState extends State<_DueImpactSheet> {
-  String? _selectedAccountId;
+  final Map<String, String?> _selectedAccountIds = {};
 
   List<AccountBalance> _eligible(String currency) => widget.accounts
       .where(
@@ -158,25 +158,21 @@ class _DueImpactSheetState extends State<_DueImpactSheet> {
   @override
   void initState() {
     super.initState();
-    final eligible = _eligible(widget.summary.totals.first.currencyCode);
-    _selectedAccountId =
-        eligible.where((account) => account.isDefault).firstOrNull?.accountId ??
-        eligible.firstOrNull?.accountId;
+    for (final total in widget.summary.totals) {
+      final eligible = _eligible(total.currencyCode);
+      _selectedAccountIds[total.currencyCode] =
+          eligible
+              .where((account) => account.isDefault)
+              .firstOrNull
+              ?.accountId ??
+          eligible.firstOrNull?.accountId;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final colors = context.suitColors;
-    final total = widget.summary.totals.first;
-    final eligible = _eligible(total.currencyCode);
-    final selected = eligible
-        .where((account) => account.accountId == _selectedAccountId)
-        .firstOrNull;
-    final remaining = selected == null
-        ? null
-        : selected.balanceMinor - total.totalMinor;
-    final shortfall = remaining == null || remaining >= 0 ? null : -remaining;
     return SafeArea(
       top: false,
       child: FractionallySizedBox(
@@ -219,16 +215,18 @@ class _DueImpactSheetState extends State<_DueImpactSheet> {
                     for (final obligation in widget.summary.obligations)
                       _ObligationDetail(obligation: obligation),
                     const SizedBox(height: 16),
-                    _PaymentImpact(
-                      currencyTotal: total,
-                      selected: selected,
-                      eligible: eligible,
-                      selectedId: _selectedAccountId,
-                      remainingMinor: remaining,
-                      shortfallMinor: shortfall,
-                      onChanged: (id) =>
-                          setState(() => _selectedAccountId = id),
-                    ),
+                    for (final total in widget.summary.totals)
+                      _PaymentImpact(
+                        currencyTotal: total,
+                        selected: _selectedFor(total),
+                        eligible: _eligible(total.currencyCode),
+                        selectedId: _selectedAccountIds[total.currencyCode],
+                        remainingMinor: _remainingFor(total),
+                        shortfallMinor: _shortfallFor(total),
+                        onChanged: (id) => setState(
+                          () => _selectedAccountIds[total.currencyCode] = id,
+                        ),
+                      ),
                     if (widget.summary.totals.length > 1) ...[
                       const SizedBox(height: 12),
                       Semantics(
@@ -247,6 +245,24 @@ class _DueImpactSheetState extends State<_DueImpactSheet> {
         ),
       ),
     );
+  }
+
+  AccountBalance? _selectedFor(HomeDueCurrencyTotal total) =>
+      _eligible(total.currencyCode)
+          .where(
+            (account) =>
+                account.accountId == _selectedAccountIds[total.currencyCode],
+          )
+          .firstOrNull;
+
+  int? _remainingFor(HomeDueCurrencyTotal total) {
+    final selected = _selectedFor(total);
+    return selected == null ? null : selected.balanceMinor - total.totalMinor;
+  }
+
+  int? _shortfallFor(HomeDueCurrencyTotal total) {
+    final remaining = _remainingFor(total);
+    return remaining == null || remaining >= 0 ? null : -remaining;
   }
 }
 
