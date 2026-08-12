@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/finance_suit_header_scroll_scope.dart';
-import 'package:work_tracker/app/routing/finance_suit_menu.dart';
 import 'package:work_tracker/app/routing/finance_suit_navigation_bar.dart';
 import 'package:work_tracker/app/routing/global_add_sheet.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
@@ -235,45 +234,44 @@ class _AppShellState extends ConsumerState<AppShell> {
       canPop: false,
       onPopInvokedWithResult: _handleRootBack,
       child: Scaffold(
-          extendBody: true,
-          body: FinanceSuitHeaderScrollScope(
-            isSolid: _headerIsSolid,
-            child: NotificationListener<ScrollNotification>(
-              onNotification: _onPageScroll,
-              child: navigationShell,
+        extendBody: true,
+        body: FinanceSuitHeaderScrollScope(
+          isSolid: _headerIsSolid,
+          child: NotificationListener<ScrollNotification>(
+            onNotification: _onPageScroll,
+            child: navigationShell,
+          ),
+        ),
+        bottomNavigationBar: FinanceSuitNavigationBar(
+          selectedIndex: navigationShell.currentIndex,
+          onDestinationSelected: (index) {
+            _resetExit();
+            _headerIsSolid.value = false;
+            navigationShell.goBranch(
+              index,
+              initialLocation: index == navigationShell.currentIndex,
+            );
+          },
+          onAddPressed: () => _openAddSheet(context, ref),
+          addLabel: l10n.globalAddLabel,
+          destinations: [
+            FinanceSuitNavDestination(
+              icon: FinanceSuitIcons.home,
+              label: l10n.tabHome,
             ),
-          ),
-          bottomNavigationBar: FinanceSuitNavigationBar(
-            selectedIndex: navigationShell.currentIndex,
-            onDestinationSelected: (index) {
-              _resetExit();
-              _headerIsSolid.value = false;
-              navigationShell.goBranch(
-                index,
-                initialLocation: index == navigationShell.currentIndex,
-              );
-            },
-            onAddPressed: () => _openAddSheet(context, ref),
-            addLabel: l10n.globalAddLabel,
-            destinations: [
-              FinanceSuitNavDestination(
-                icon: FinanceSuitIcons.home,
-                label: l10n.tabHome,
-              ),
-              FinanceSuitNavDestination(
-                icon: FinanceSuitIcons.work,
-                label: l10n.tabWork,
-              ),
-              FinanceSuitNavDestination(
-                icon: FinanceSuitIcons.accountBalanceWallet,
-                label: l10n.tabMoney,
-              ),
-              FinanceSuitNavDestination(
-                icon: FinanceSuitIcons.barChart,
-                label: l10n.tabReports,
-              ),
-            ],
-          ),
+            FinanceSuitNavDestination(
+              icon: FinanceSuitIcons.work,
+              label: l10n.tabWork,
+            ),
+            FinanceSuitNavDestination(
+              icon: FinanceSuitIcons.accountBalanceWallet,
+              label: l10n.tabMoney,
+            ),
+            FinanceSuitNavDestination(
+              icon: FinanceSuitIcons.barChart,
+              label: l10n.tabReports,
+            ),
+          ],
         ),
       ),
     );

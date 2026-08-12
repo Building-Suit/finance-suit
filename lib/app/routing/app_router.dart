@@ -182,278 +182,287 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state, child) =>
             FinanceSuitMenuPagePlane(child: child),
         routes: [
-      StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) => AppShell(
-          navigationShell: navigationShell,
-          currentLocation: state.uri.path,
-        ),
-        branches: [
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.home,
-                builder: (context, state) => const HomeScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.work,
-                builder: (context, state) => const WorkScreen(),
+          StatefulShellRoute.indexedStack(
+            builder: (context, state, navigationShell) => AppShell(
+              navigationShell: navigationShell,
+              currentLocation: state.uri.path,
+            ),
+            branches: [
+              StatefulShellBranch(
                 routes: [
                   GoRoute(
-                    path: 'entry/new',
-                    parentNavigatorKey: appNavigatorKey,
-                    builder: (context, state) => WorkEntryFormScreen(
-                      initialDate: switch (state.uri.queryParameters['date']) {
-                        final String iso => PlainDate.parse(iso),
-                        null => null,
-                      },
-                      initialType: switch (state.uri.queryParameters['type']) {
-                        final String type => WorkEntryType.fromDb(type),
-                        null => null,
-                      },
-                    ),
-                  ),
-                  GoRoute(
-                    path: 'entry/edit',
-                    parentNavigatorKey: appNavigatorKey,
-                    builder: (context, state) => WorkEntryFormScreen(
-                      existing: state.extra! as WorkEntry,
-                    ),
-                  ),
-                  GoRoute(
-                    path: 'holidays',
-                    parentNavigatorKey: appNavigatorKey,
-                    builder: (context, state) => const HolidaysScreen(),
-                    routes: [
-                      GoRoute(
-                        path: 'new',
-                        parentNavigatorKey: appNavigatorKey,
-                        builder: (context, state) => const HolidayFormScreen(),
-                      ),
-                    ],
-                  ),
-                  GoRoute(
-                    path: 'periods',
-                    parentNavigatorKey: appNavigatorKey,
-                    builder: (context, state) => const SalaryPeriodsScreen(),
-                    routes: [
-                      GoRoute(
-                        path: ':id',
-                        parentNavigatorKey: appNavigatorKey,
-                        builder: (context, state) => SalaryPeriodDetailScreen(
-                          periodId: state.pathParameters['id']!,
-                        ),
-                      ),
-                    ],
-                  ),
-                  GoRoute(
-                    path: 'adjustments/new',
-                    parentNavigatorKey: appNavigatorKey,
-                    builder: (context, state) => SalaryAdjustmentFormScreen(
-                      preferredPeriodId: state.uri.queryParameters['periodId'],
-                    ),
+                    path: AppRoutes.home,
+                    builder: (context, state) => const HomeScreen(),
                   ),
                 ],
               ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.money,
-                builder: (context, state) => const MoneyScreen(),
+              StatefulShellBranch(
                 routes: [
                   GoRoute(
-                    path: 'accounts/new',
-                    parentNavigatorKey: appNavigatorKey,
-                    builder: (context, state) => const AccountFormScreen(),
-                  ),
-                  GoRoute(
-                    path: 'accounts/:id',
-                    parentNavigatorKey: appNavigatorKey,
-                    builder: (context, state) => AccountFormScreen(
-                      accountId: state.pathParameters['id'],
-                    ),
-                  ),
-                  // Static facility routes must precede the ':id' pattern.
-                  GoRoute(
-                    path: 'facilities/purchase',
-                    parentNavigatorKey: appNavigatorKey,
-                    builder: (context, state) => InstallmentPurchaseScreen(
-                      accountId: state.uri.queryParameters['accountId'],
-                      planId: state.uri.queryParameters['planId'],
-                    ),
-                  ),
-                  GoRoute(
-                    path: 'facilities/pay',
-                    parentNavigatorKey: appNavigatorKey,
-                    builder: (context, state) => FacilityPaymentScreen(
-                      accountId: state.uri.queryParameters['accountId'],
-                    ),
-                  ),
-                  GoRoute(
-                    path: 'facilities/:id',
-                    parentNavigatorKey: appNavigatorKey,
-                    builder: (context, state) => CreditFacilityDetailScreen(
-                      accountId: state.pathParameters['id']!,
-                    ),
-                  ),
-                  GoRoute(
-                    path: 'tx/new',
-                    parentNavigatorKey: appNavigatorKey,
-                    builder: (context, state) => TransactionFormScreen(
-                      kind: TransactionKind.fromDb(
-                        state.uri.queryParameters['kind'] ?? 'expense',
-                      ),
-                    ),
-                  ),
-                  GoRoute(
-                    path: 'tx/edit',
-                    parentNavigatorKey: appNavigatorKey,
-                    builder: (context, state) => TransactionFormScreen(
-                      kind: (state.extra! as FinancialTransaction).kind,
-                      existing: state.extra! as FinancialTransaction,
-                    ),
-                  ),
-                  GoRoute(
-                    path: 'transfer',
-                    parentNavigatorKey: appNavigatorKey,
-                    builder: (context, state) => const TransferFormScreen(),
-                  ),
-                  GoRoute(
-                    path: 'categories',
-                    parentNavigatorKey: appNavigatorKey,
-                    builder: (context, state) => const CategoriesScreen(),
+                    path: AppRoutes.work,
+                    builder: (context, state) => const WorkScreen(),
                     routes: [
                       GoRoute(
-                        path: 'new',
+                        path: 'entry/new',
                         parentNavigatorKey: appNavigatorKey,
-                        builder: (context, state) => CategoryFormScreen(
-                          initialKind: state.uri.queryParameters['kind'] == null
-                              ? null
-                              : CategoryKind.fromDb(
-                                  state.uri.queryParameters['kind']!,
+                        builder: (context, state) => WorkEntryFormScreen(
+                          initialDate:
+                              switch (state.uri.queryParameters['date']) {
+                                final String iso => PlainDate.parse(iso),
+                                null => null,
+                              },
+                          initialType:
+                              switch (state.uri.queryParameters['type']) {
+                                final String type => WorkEntryType.fromDb(type),
+                                null => null,
+                              },
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'entry/edit',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) => WorkEntryFormScreen(
+                          existing: state.extra! as WorkEntry,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'holidays',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) => const HolidaysScreen(),
+                        routes: [
+                          GoRoute(
+                            path: 'new',
+                            parentNavigatorKey: appNavigatorKey,
+                            builder: (context, state) =>
+                                const HolidayFormScreen(),
+                          ),
+                        ],
+                      ),
+                      GoRoute(
+                        path: 'periods',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) =>
+                            const SalaryPeriodsScreen(),
+                        routes: [
+                          GoRoute(
+                            path: ':id',
+                            parentNavigatorKey: appNavigatorKey,
+                            builder: (context, state) =>
+                                SalaryPeriodDetailScreen(
+                                  periodId: state.pathParameters['id']!,
                                 ),
-                          initialParentCategoryId:
-                              state.uri.queryParameters['parent'],
+                          ),
+                        ],
+                      ),
+                      GoRoute(
+                        path: 'adjustments/new',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) => SalaryAdjustmentFormScreen(
+                          preferredPeriodId:
+                              state.uri.queryParameters['periodId'],
                         ),
                       ),
                     ],
                   ),
+                ],
+              ),
+              StatefulShellBranch(
+                routes: [
                   GoRoute(
-                    path: 'macros',
-                    parentNavigatorKey: appNavigatorKey,
-                    builder: (context, state) => const MacrosScreen(),
+                    path: AppRoutes.money,
+                    builder: (context, state) => const MoneyScreen(),
                     routes: [
                       GoRoute(
-                        path: 'new',
+                        path: 'accounts/new',
                         parentNavigatorKey: appNavigatorKey,
-                        builder: (context, state) => const MacroFormScreen(),
+                        builder: (context, state) => const AccountFormScreen(),
                       ),
                       GoRoute(
-                        path: 'edit',
+                        path: 'accounts/:id',
                         parentNavigatorKey: appNavigatorKey,
-                        builder: (context, state) => MacroFormScreen(
-                          existing: state.extra! as TransactionMacro,
+                        builder: (context, state) => AccountFormScreen(
+                          accountId: state.pathParameters['id'],
+                        ),
+                      ),
+                      // Static facility routes must precede the ':id' pattern.
+                      GoRoute(
+                        path: 'facilities/purchase',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) => InstallmentPurchaseScreen(
+                          accountId: state.uri.queryParameters['accountId'],
+                          planId: state.uri.queryParameters['planId'],
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'facilities/pay',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) => FacilityPaymentScreen(
+                          accountId: state.uri.queryParameters['accountId'],
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'facilities/:id',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) => CreditFacilityDetailScreen(
+                          accountId: state.pathParameters['id']!,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'tx/new',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) => TransactionFormScreen(
+                          kind: TransactionKind.fromDb(
+                            state.uri.queryParameters['kind'] ?? 'expense',
+                          ),
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'tx/edit',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) => TransactionFormScreen(
+                          kind: (state.extra! as FinancialTransaction).kind,
+                          existing: state.extra! as FinancialTransaction,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'transfer',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) => const TransferFormScreen(),
+                      ),
+                      GoRoute(
+                        path: 'categories',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) => const CategoriesScreen(),
+                        routes: [
+                          GoRoute(
+                            path: 'new',
+                            parentNavigatorKey: appNavigatorKey,
+                            builder: (context, state) => CategoryFormScreen(
+                              initialKind:
+                                  state.uri.queryParameters['kind'] == null
+                                  ? null
+                                  : CategoryKind.fromDb(
+                                      state.uri.queryParameters['kind']!,
+                                    ),
+                              initialParentCategoryId:
+                                  state.uri.queryParameters['parent'],
+                            ),
+                          ),
+                        ],
+                      ),
+                      GoRoute(
+                        path: 'macros',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) => const MacrosScreen(),
+                        routes: [
+                          GoRoute(
+                            path: 'new',
+                            parentNavigatorKey: appNavigatorKey,
+                            builder: (context, state) =>
+                                const MacroFormScreen(),
+                          ),
+                          GoRoute(
+                            path: 'edit',
+                            parentNavigatorKey: appNavigatorKey,
+                            builder: (context, state) => MacroFormScreen(
+                              existing: state.extra! as TransactionMacro,
+                            ),
+                          ),
+                        ],
+                      ),
+                      GoRoute(
+                        path: 'held/new',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) => HeldAmountFormScreen(
+                          prefill: state.extra as HeldAmountDraft?,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'held/edit',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) => HeldAmountFormScreen(
+                          existing: state.extra! as HeldAmount,
                         ),
                       ),
                     ],
                   ),
+                ],
+              ),
+              StatefulShellBranch(
+                routes: [
                   GoRoute(
-                    path: 'held/new',
-                    parentNavigatorKey: appNavigatorKey,
-                    builder: (context, state) => HeldAmountFormScreen(
-                      prefill: state.extra as HeldAmountDraft?,
-                    ),
-                  ),
-                  GoRoute(
-                    path: 'held/edit',
-                    parentNavigatorKey: appNavigatorKey,
-                    builder: (context, state) => HeldAmountFormScreen(
-                      existing: state.extra! as HeldAmount,
-                    ),
+                    path: AppRoutes.reports,
+                    builder: (context, state) => const ReportsScreen(),
                   ),
                 ],
               ),
             ],
           ),
-          StatefulShellBranch(
+          // Pushed utility destinations retain their URLs and cover the bottom
+          // navigation, while remaining inside the shared page-plane navigator.
+          GoRoute(
+            path: AppRoutes.history,
+            builder: (context, state) => const HistoryScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.settings,
+            builder: (context, state) => const SettingsScreen(),
             routes: [
               GoRoute(
-                path: AppRoutes.reports,
-                builder: (context, state) => const ReportsScreen(),
+                path: 'subscription',
+                builder: (context, state) => const SubscriptionScreen(),
+              ),
+              GoRoute(
+                path: 'salary',
+                builder: (context, state) => const SalarySettingsScreen(),
+              ),
+              GoRoute(
+                path: 'income-sources',
+                builder: (context, state) => const IncomeSourcesScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    builder: (context, state) => const IncomeSourceFormScreen(),
+                  ),
+                  GoRoute(
+                    path: 'edit',
+                    builder: (context, state) => IncomeSourceFormScreen(
+                      existing: state.extra! as IncomeSource,
+                    ),
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: 'recurring',
+                builder: (context, state) => const RecurringRulesScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    builder: (context, state) =>
+                        const RecurringRuleFormScreen(),
+                  ),
+                  GoRoute(
+                    path: 'edit',
+                    builder: (context, state) => RecurringRuleFormScreen(
+                      existing: state.extra! as RecurringRule,
+                    ),
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: 'password',
+                builder: (context, state) => const ChangePasswordScreen(),
+              ),
+              GoRoute(
+                path: 'email',
+                builder: (context, state) => const ChangeEmailScreen(),
+              ),
+              GoRoute(
+                path: 'delete-account',
+                builder: (context, state) => const DeleteAccountScreen(),
               ),
             ],
           ),
-        ],
-      ),
-      // Pushed utility destinations retain their URLs and cover the bottom
-      // navigation, while remaining inside the shared page-plane navigator.
-      GoRoute(
-        path: AppRoutes.history,
-        builder: (context, state) => const HistoryScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.settings,
-        builder: (context, state) => const SettingsScreen(),
-        routes: [
-          GoRoute(
-            path: 'subscription',
-            builder: (context, state) => const SubscriptionScreen(),
-          ),
-          GoRoute(
-            path: 'salary',
-            builder: (context, state) => const SalarySettingsScreen(),
-          ),
-          GoRoute(
-            path: 'income-sources',
-            builder: (context, state) => const IncomeSourcesScreen(),
-            routes: [
-              GoRoute(
-                path: 'new',
-                builder: (context, state) => const IncomeSourceFormScreen(),
-              ),
-              GoRoute(
-                path: 'edit',
-                builder: (context, state) => IncomeSourceFormScreen(
-                  existing: state.extra! as IncomeSource,
-                ),
-              ),
-            ],
-          ),
-          GoRoute(
-            path: 'recurring',
-            builder: (context, state) => const RecurringRulesScreen(),
-            routes: [
-              GoRoute(
-                path: 'new',
-                builder: (context, state) => const RecurringRuleFormScreen(),
-              ),
-              GoRoute(
-                path: 'edit',
-                builder: (context, state) => RecurringRuleFormScreen(
-                  existing: state.extra! as RecurringRule,
-                ),
-              ),
-            ],
-          ),
-          GoRoute(
-            path: 'password',
-            builder: (context, state) => const ChangePasswordScreen(),
-          ),
-          GoRoute(
-            path: 'email',
-            builder: (context, state) => const ChangeEmailScreen(),
-          ),
-          GoRoute(
-            path: 'delete-account',
-            builder: (context, state) => const DeleteAccountScreen(),
-          ),
-        ],
-      ),
         ],
       ),
     ],
