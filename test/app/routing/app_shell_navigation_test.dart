@@ -124,14 +124,35 @@ void main() {
     expect(moneyRect.left, greaterThanOrEqualTo(addRect.right));
   });
 
-  test('derives the wrap-around notch from the smaller Add button', () {
+  test('derives the approved wider shallow notch from the Add button', () {
     expect(FinanceSuitNavigationBar.centerButtonDiameter, 56);
-    expect(FinanceSuitNavigationBar.notchClearance, 8);
+    expect(FinanceSuitNavigationBar.notchWidthFactor, 1.5);
+    expect(FinanceSuitNavigationBar.notchDepthFactor, 0.45);
     expect(
-      FinanceSuitNavigationBar.notchRadius,
-      FinanceSuitNavigationBar.centerButtonDiameter / 2 +
-          FinanceSuitNavigationBar.notchClearance,
+      FinanceSuitNavigationBar.notchWidth,
+      FinanceSuitNavigationBar.centerButtonDiameter * 1.5,
     );
+    expect(
+      FinanceSuitNavigationBar.notchDepth,
+      FinanceSuitNavigationBar.centerButtonDiameter * 0.45,
+    );
+  });
+
+  test('painted notch remains open and centered at every phone width', () {
+    for (final width in [320.0, 360.0, 390.0, 430.0]) {
+      final path = FinanceSuitNavigationBar.surfacePathFor(
+        Size(width, FinanceSuitNavigationBar.assemblyHeight),
+      );
+      final center = width / 2;
+      final top = FinanceSuitNavigationBar.surfaceTop;
+      final bottomOfBowl = top + FinanceSuitNavigationBar.notchDepth;
+
+      expect(path.contains(Offset(center, top + 1)), isFalse);
+      expect(path.contains(Offset(center, bottomOfBowl - 1)), isFalse);
+      expect(path.contains(Offset(center, bottomOfBowl + 1)), isTrue);
+      expect(path.contains(Offset(center - 50, top + 1)), isTrue);
+      expect(path.contains(Offset(center + 50, top + 1)), isTrue);
+    }
   });
 
   testWidgets('lays page content behind the transparent navigation wrapper', (
@@ -325,6 +346,42 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('work-root'), findsOneWidget);
+  });
+
+  testWidgets('Money nested tab scrolling drives the shared header motion', (
+    tester,
+  ) async {
+    await pumpShellApp(tester, buildShellTestRouter());
+    await tester.tap(
+      find.descendant(of: navBar(), matching: find.text('Money')),
+    );
+    await tester.pumpAndSettle();
+
+    final surface = find.byKey(const Key('finance-suit-app-bar-surface'));
+    expect(
+      tester.widget<AnimatedContainer>(surface).margin,
+      const EdgeInsetsDirectional.symmetric(horizontal: 16),
+    );
+
+    await tester.drag(
+      find.byKey(const Key('money-root-scroll-0')),
+      const Offset(0, -160),
+    );
+    await tester.pump(const Duration(milliseconds: 240));
+    expect(
+      tester.widget<AnimatedContainer>(surface).margin,
+      EdgeInsetsDirectional.zero,
+    );
+
+    await tester.drag(
+      find.byKey(const Key('money-root-scroll-0')),
+      const Offset(0, 200),
+    );
+    await tester.pump(const Duration(milliseconds: 240));
+    expect(
+      tester.widget<AnimatedContainer>(surface).margin,
+      const EdgeInsetsDirectional.symmetric(horizontal: 16),
+    );
   });
 
   testWidgets('hides the bar on pushed Settings and restores the tab', (
