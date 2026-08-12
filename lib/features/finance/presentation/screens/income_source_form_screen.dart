@@ -24,9 +24,14 @@ import 'package:work_tracker/features/finance/presentation/widgets/category_sele
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 class IncomeSourceFormScreen extends ConsumerStatefulWidget {
-  const IncomeSourceFormScreen({super.key, this.existing});
+  const IncomeSourceFormScreen({
+    super.key,
+    this.existing,
+    this.showAppBar = true,
+  });
 
   final IncomeSource? existing;
+  final bool showAppBar;
 
   @override
   ConsumerState<IncomeSourceFormScreen> createState() =>
@@ -365,9 +370,13 @@ class _IncomeSourceFormScreenState
         hasPercentageRules && _includeExtraWorkInPercentage;
 
     return Scaffold(
-      appBar: FinanceSuitAppBar.focused(
-        semanticTitle: _isEdit ? l10n.incomeEditSource : l10n.incomeAddSource,
-      ),
+      appBar: widget.showAppBar
+          ? FinanceSuitAppBar.focused(
+              semanticTitle: _isEdit
+                  ? l10n.incomeEditSource
+                  : l10n.incomeAddSource,
+            )
+          : null,
       body: FinanceSuitFocusedBody(
         title: _isEdit ? l10n.incomeEditSource : l10n.incomeAddSource,
         child: SingleChildScrollView(

@@ -31,9 +31,14 @@ const _promptChoices = [0, 1, 2, 3, 5, 7];
 
 /// Create or edit a recurring expense or transfer rule.
 class RecurringRuleFormScreen extends ConsumerStatefulWidget {
-  const RecurringRuleFormScreen({super.key, this.existing});
+  const RecurringRuleFormScreen({
+    super.key,
+    this.existing,
+    this.showAppBar = true,
+  });
 
   final RecurringRule? existing;
+  final bool showAppBar;
 
   @override
   ConsumerState<RecurringRuleFormScreen> createState() =>
@@ -198,7 +203,9 @@ class _RecurringRuleFormScreenState
         .toList();
 
     return Scaffold(
-      appBar: FinanceSuitAppBar.focused(semanticTitle: title),
+      appBar: widget.showAppBar
+          ? FinanceSuitAppBar.focused(semanticTitle: title)
+          : null,
       body: FinanceSuitFocusedBody(
         title: title,
         child: SingleChildScrollView(

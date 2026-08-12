@@ -23,10 +23,12 @@ class CategoryFormScreen extends ConsumerStatefulWidget {
     super.key,
     this.initialKind,
     this.initialParentCategoryId,
+    this.showAppBar = true,
   });
 
   final CategoryKind? initialKind;
   final String? initialParentCategoryId;
+  final bool showAppBar;
 
   @override
   ConsumerState<CategoryFormScreen> createState() => _CategoryFormScreenState();
@@ -80,7 +82,9 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
         .where((category) => !category.isSubcategory)
         .toList();
     return Scaffold(
-      appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.catNew),
+      appBar: widget.showAppBar
+          ? FinanceSuitAppBar.focused(semanticTitle: l10n.catNew)
+          : null,
       body: FinanceSuitFocusedBody(
         title: l10n.catNew,
         child: SingleChildScrollView(

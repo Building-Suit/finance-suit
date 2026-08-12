@@ -18,10 +18,10 @@ import 'package:work_tracker/core/widgets/app_money_text.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/protected_money.dart';
 import 'package:work_tracker/features/commercial/presentation/providers/commercial_providers.dart';
-import 'package:work_tracker/features/dashboard/presentation/widgets/home_due_section.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
+import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/finance_widgets.dart';
 import 'package:work_tracker/features/history/domain/history_models.dart';
@@ -195,7 +195,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ..invalidate(salarySettingsProvider);
     ref.invalidate(pendingIncomeProvider);
     ref.invalidate(pendingRecurringProvider);
-    ref.invalidate(homeCurrentMonthObligationsProvider);
   }
 
   String _rangeLabel(AppLocalizations l10n, DateRangePreset preset) {
@@ -217,7 +216,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final accountsAsync = ref.watch(accountBalancesProvider);
     final entitlementAsync = ref.watch(effectiveEntitlementProvider);
     final allAccountsAsync = ref.watch(allAccountBalancesProvider);
-    final homeDuesAsync = ref.watch(homeCurrentMonthObligationsProvider);
     final summaryAsync = ref.watch(homeCashFlowSummaryProvider(_range.range));
     final salarySettingsAsync = ref.watch(salarySettingsProvider);
     final salaryEnabled = salarySettingsAsync.value?.salaryEnabled == true;
@@ -241,7 +239,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       pendingIncomeAsync,
       accountsAsync,
       allAccountsAsync,
-      homeDuesAsync,
       summaryAsync,
       salarySettingsAsync,
       ?estimateAsync,
@@ -289,6 +286,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           context.push('${AppRoutes.settings}/income-sources'),
                     ),
             ),
+            compactSection(
+              ref.watch(pendingRecurringProvider),
+              loading: const SizedBox.shrink(),
+              data: (items) => items.isEmpty
+                  ? const SizedBox.shrink()
+                  : _PendingRecurringSection(
+                      items: items,
+                      today: PlainDate.today(),
+                      onOpen: () =>
+                          context.push('${AppRoutes.settings}/recurring'),
+                    ),
+            ),
             _SectionHeader(title: l10n.homeBalance),
             compactSection(
               accountsAsync,
@@ -299,17 +308,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 accounts: accounts
                     .where((account) => !account.hideFromHome)
                     .toList(),
-              ),
-            ),
-            _SectionHeader(title: l10n.homeNextDueTitle),
-            compactSection(
-              homeDuesAsync,
-              loading: const _SectionLoader(),
-              data: (summary) => HomeDueSection(
-                summary: summary,
-                // Includes active hidden accounts for the funding picker;
-                // Home visibility only affects the Balance summary above.
-                accounts: allAccountsAsync.value ?? const [],
               ),
             ),
             compactSection(
@@ -326,7 +324,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     _SectionHeader(
                       title: l10n.homeCardsTitle,
                       actionLabel: l10n.commonSeeAll,
-                      onAction: () => context.push(AppRoutes.money),
+                      // Money is a StatefulShell branch; go() switches the
+                      // active bottom-navigation destination instead of
+                      // pushing it over Home.
+                      onAction: () => context.go(AppRoutes.money),
                     ),
                     _CreditCardCarousel(facilities: cards),
                   ],
@@ -360,7 +361,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             _SectionHeader(
               title: l10n.homeRecentActivity,
               actionLabel: l10n.commonSeeAll,
-              onAction: () => context.push(AppRoutes.history),
+              onAction: () =>
+                  context.push('${AppRoutes.money}?tab=transactions'),
             ),
             compactSection(
               recentAsync,
@@ -576,6 +578,100 @@ class _CreditCardTile extends StatelessWidget {
                       color: palette.onSurface,
                     ),
                   ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Compact summary of recurring expenses/transfers waiting for a decision;
+/// tapping opens the recurring automation center.
+class _PendingRecurringSection extends StatelessWidget {
+  const _PendingRecurringSection({
+    required this.items,
+    required this.today,
+    required this.onOpen,
+  });
+
+  final List<PendingRecurring> items;
+  final PlainDate today;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final warning = context.suitColors.warning;
+    final first = items.first;
+    final amount = first.expectedAmount.format();
+    return Card(
+      color: warning.background,
+      clipBehavior: Clip.antiAlias,
+      child: Semantics(
+        button: true,
+        label: l10n.recurringPendingTitle,
+        child: InkWell(
+          key: const Key('home-pending-recurring-summary'),
+          onTap: onOpen,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                FinanceSuitIcon(
+                  FinanceSuitIcons.eventRepeat,
+                  color: warning.icon,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        l10n.recurringPendingTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: warning.text,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      if (items.length == 1)
+                        ProtectedMoneyText(
+                          '${first.rule.name} · $amount',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        )
+                      else
+                        Text(
+                          '${l10n.recurringPendingCount(items.length)} · '
+                          '${first.rule.name}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      Text(
+                        first.isDueOn(today)
+                            ? l10n.incomeDue(
+                                first.occurrence.scheduledOn.toIso(),
+                              )
+                            : l10n.incomeUpcoming(
+                                first.occurrence.scheduledOn.toIso(),
+                              ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: context.suitColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
               ],
             ),
           ),

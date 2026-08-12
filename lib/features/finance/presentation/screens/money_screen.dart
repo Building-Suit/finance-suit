@@ -25,7 +25,9 @@ import 'package:work_tracker/features/finance/presentation/widgets/transactions_
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 class MoneyScreen extends ConsumerStatefulWidget {
-  const MoneyScreen({super.key});
+  const MoneyScreen({super.key, this.initialTab = 0});
+
+  final int initialTab;
 
   @override
   ConsumerState<MoneyScreen> createState() => _MoneyScreenState();
@@ -449,6 +451,7 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
     final l10n = AppLocalizations.of(context);
     return DefaultTabController(
       length: 3,
+      initialIndex: widget.initialTab.clamp(0, 2),
       child: Scaffold(
         appBar: FinanceSuitAppBar.topLevel(
           semanticTitle: l10n.tabMoney,

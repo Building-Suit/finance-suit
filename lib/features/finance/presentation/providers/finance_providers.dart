@@ -8,7 +8,6 @@ import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/facility_activity.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
-import 'package:work_tracker/features/finance/domain/home_due_obligation.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
@@ -173,18 +172,6 @@ final creditFacilitiesProvider = FutureProvider<List<CreditFacilitySummary>>((
   return facilities;
 });
 
-/// Canonical Home current-month payable obligations, distinct from the cards'
-/// rolling one-month lookahead and the actionable recurring reminder feed.
-final homeCurrentMonthObligationsProvider = FutureProvider<HomeDueSummary>((
-  ref,
-) async {
-  ref.watch(currentUserIdProvider);
-  final result = await ref
-      .watch(financeRepositoryProvider)
-      .fetchHomeCurrentMonthObligations(PlainDate.today());
-  return result.when(ok: (summary) => summary, err: (failure) => throw failure);
-});
-
 /// Installment plans of one facility, newest first.
 final installmentPlansProvider = FutureProvider.family
     .autoDispose<List<InstallmentPlan>, String>((ref, accountId) async {
@@ -272,7 +259,6 @@ void invalidateFinanceData(WidgetRef ref) {
   ref.invalidate(facilityActivityProvider);
   ref.invalidate(planRevisionsProvider);
   ref.invalidate(feeRulesProvider);
-  ref.invalidate(homeCurrentMonthObligationsProvider);
 }
 
 void invalidateIncomeAutomation(WidgetRef ref) {
@@ -304,6 +290,5 @@ final pendingRecurringProvider = FutureProvider<List<PendingRecurring>>((
 void invalidateRecurringAutomation(WidgetRef ref) {
   ref
     ..invalidate(recurringRulesProvider)
-    ..invalidate(pendingRecurringProvider)
-    ..invalidate(homeCurrentMonthObligationsProvider);
+    ..invalidate(pendingRecurringProvider);
 }

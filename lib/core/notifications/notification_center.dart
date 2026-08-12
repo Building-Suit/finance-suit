@@ -365,8 +365,8 @@ class _NotificationCenterPanelState
     final colors = context.suitColors;
     final l10n = AppLocalizations.of(context);
     final feed = ref.watch(notificationFeedProvider);
-    final foreground = colors.textPrimary;
-    final mutedForeground = colors.textMuted;
+    final foreground = colors.onBrandSurface;
+    final mutedForeground = foreground.withValues(alpha: 0.76);
     return Align(
       alignment: AlignmentDirectional.centerEnd,
       child: FractionallySizedBox(
@@ -374,9 +374,8 @@ class _NotificationCenterPanelState
         heightFactor: 1,
         child: Material(
           key: const Key('notification-center-panel'),
-          // This is the transparent structural layer used for layout,
-          // hit-testing and Ink effects. The page-plane's existing app-shell
-          // background remains visible behind the notification content.
+          // Keep the page-plane surface visible; notification content uses
+          // the overlay foreground roles for readable contrast.
           type: MaterialType.transparency,
           child: SafeArea(
             child: Column(
@@ -628,9 +627,10 @@ class _NotificationTile extends ConsumerWidget {
         colors.info.icon,
       ),
     };
-    final timestamp = DateFormat.jm(
-      Localizations.localeOf(context).toString(),
-    ).format(item.createdAt);
+    final locale = Localizations.localeOf(context).toString();
+    final timestamp =
+        '${DateFormat.MMMd(locale).format(item.createdAt)} · '
+        '${DateFormat.jm(locale).format(item.createdAt)}';
     return InkWell(
       key: Key('notification-item-${item.id}'),
       borderRadius: BorderRadius.circular(16),
@@ -644,7 +644,7 @@ class _NotificationTile extends ConsumerWidget {
       child: Padding(
         padding: const EdgeInsetsDirectional.fromSTEB(8, 10, 6, 10),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             DecoratedBox(
               decoration: BoxDecoration(

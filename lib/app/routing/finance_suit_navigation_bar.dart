@@ -45,7 +45,7 @@ class FinanceSuitNavigationBar extends StatelessWidget {
   @visibleForTesting
   static const double surfaceHeight = 60;
   @visibleForTesting
-  static const double centerButtonDiameter = 56;
+  static const double centerButtonDiameter = 52;
   @visibleForTesting
   // The action is intentionally seated into the bowl rather than floating
   // above it. The values below keep a 4dp contour gap at the bowl's lowest
@@ -55,9 +55,9 @@ class FinanceSuitNavigationBar extends StatelessWidget {
   /// The approved bowl is wider than the action so its shoulders remain
   /// visible instead of disappearing behind the circle.
   @visibleForTesting
-  static const double notchWidthFactor = 1.6;
+  static const double notchWidthFactor = 1.85;
   @visibleForTesting
-  static const double notchDepthFactor = 0.5;
+  static const double notchDepthFactor = 0.72;
   @visibleForTesting
   static const double notchWidth = centerButtonDiameter * notchWidthFactor;
   @visibleForTesting
@@ -65,7 +65,8 @@ class FinanceSuitNavigationBar extends StatelessWidget {
   static const double _contentClearanceAboveSurface = 76;
   static const double _centerGap = 80;
   static const double _indicatorMaxWidth = 64;
-  static const double _indicatorHeight = 32;
+  // Keep the icon and label visually grouped within the compact surface.
+  static const double _indicatorHeight = 24;
 
   /// The exact painted navigation contour, exposed for geometry regressions.
   @visibleForTesting
@@ -98,7 +99,7 @@ class FinanceSuitNavigationBar extends StatelessWidget {
                       painter: _NavigationSurfacePainter(
                         surfaceColor: colors.surface,
                         borderColor: colors.borderSubtle,
-                        shadowColor: colors.background.withValues(alpha: 0.24),
+                        shadowColor: colors.textPrimary.withValues(alpha: 0.18),
                       ),
                     ),
                   ),
@@ -140,7 +141,10 @@ class FinanceSuitNavigationBar extends StatelessWidget {
                               maximumSize: const Size.square(
                                 centerButtonDiameter,
                               ),
-                              elevation: 3,
+                              elevation: 6,
+                              shadowColor: colors.textPrimary.withValues(
+                                alpha: 0.32,
+                              ),
                               shape: const CircleBorder(),
                             ),
                             icon: const FinanceSuitIcon(FinanceSuitIcons.add),
@@ -335,7 +339,7 @@ class _FinanceSuitNavigationSlot extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 0),
               Text(
                 destination.label,
                 style: labelStyle?.copyWith(color: labelColor),

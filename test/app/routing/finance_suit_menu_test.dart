@@ -69,7 +69,10 @@ void main() {
       tester.widget<Text>(find.text('Finance Suit')).style?.color,
       foreground,
     );
-    expect(tester.widget<Text>(find.text('General')).style?.color, foreground);
+    expect(
+      tester.widget<Text>(find.text('Automation')).style?.color,
+      foreground,
+    );
 
     const separatorKey = Key('finance-suit-menu-logout-separator');
     expect(tester.getSize(find.byKey(separatorKey)).height, 0.5);
@@ -239,7 +242,7 @@ void main() {
   ) async {
     final routesToLabels = {
       '/settings': 'settings-root',
-      '/history': 'history-screen',
+      '/money?tab=transactions': 'money-root',
       '/settings/income-sources': 'automation-center',
       '/work/periods': 'salary-periods-screen',
       '/work/holidays': 'holidays-screen',
@@ -261,10 +264,17 @@ void main() {
       await tester.tap(item);
       await tester.pumpAndSettle();
       expect(find.text(entry.value), findsOneWidget, reason: entry.key);
-      // The bottom navigation stays hidden on every menu destination.
-      expect(find.byType(FinanceSuitNavigationBar), findsNothing);
+      // Money is a real shell destination; focused utility pages cover it.
+      expect(
+        find.byType(FinanceSuitNavigationBar),
+        entry.key == '/money?tab=transactions' ? findsOneWidget : findsNothing,
+      );
 
-      router.pop();
+      if (entry.key == '/money?tab=transactions') {
+        router.go('/home');
+      } else {
+        router.pop();
+      }
       await tester.pumpAndSettle();
     }
   });
@@ -321,7 +331,9 @@ void main() {
       find
           .ancestor(
             of: find.byWidget(focused.context!.widget),
-            matching: find.byKey(const Key('menu-item-/settings')),
+            matching: find.byKey(
+              const Key('menu-item-/settings/income-sources'),
+            ),
           )
           .evaluate(),
       isNotEmpty,
@@ -366,12 +378,21 @@ void main() {
 
     final logout = find.byKey(const Key('menu-item-logout'));
     expect(logout, findsOneWidget);
-    // Pinned at the panel bottom, below every destination.
+    // Settings and Logout stay pinned at the panel bottom, below every
+    // grouped destination, with Logout retaining the final position.
+    final history = find.byKey(const Key('menu-item-/money?tab=transactions'));
+    await tester.dragUntilVisible(
+      history,
+      find.byKey(const Key('finance-suit-menu-list')),
+      const Offset(0, -40),
+    );
     final logoutDy = tester.getCenter(logout).dy;
-    final lastDestinationDy = tester
-        .getCenter(find.byKey(const Key('menu-item-/money/macros')))
+    final settingsDy = tester
+        .getCenter(find.byKey(const Key('menu-item-/settings')))
         .dy;
-    expect(logoutDy, greaterThan(lastDestinationDy));
+    final historyDy = tester.getCenter(history).dy;
+    expect(settingsDy, greaterThan(historyDy));
+    expect(logoutDy, greaterThan(settingsDy));
 
     await tester.tap(logout);
     await tester.pumpAndSettle();

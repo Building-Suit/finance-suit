@@ -18,6 +18,7 @@ import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
+import 'package:work_tracker/features/finance/presentation/screens/income_source_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/income_automation_actions.dart';
 import 'package:work_tracker/features/salary/domain/salary_estimate.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
@@ -25,6 +26,18 @@ import 'package:work_tracker/l10n/generated/app_localizations.dart';
 /// Manage recurring income schedules, approvals, and account splits.
 class IncomeSourcesScreen extends ConsumerWidget {
   const IncomeSourcesScreen({super.key});
+
+  Future<void> _openNew(BuildContext context) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => const FractionallySizedBox(
+        heightFactor: 0.88,
+        child: IncomeSourceFormScreen(showAppBar: false),
+      ),
+    );
+  }
 
   void _showFailure(BuildContext context, AppFailure failure) {
     AppToast.error(context, failureMessage(context, failure));
@@ -402,7 +415,14 @@ class IncomeSourcesScreen extends ConsumerWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
                 children: [
-                  Card(
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
@@ -429,16 +449,6 @@ class IncomeSourcesScreen extends ConsumerWidget {
                                 ),
                               ),
                             ],
-                          ),
-                          const SizedBox(height: 12),
-                          FilledButton.icon(
-                            onPressed: () => context.push(
-                              '${AppRoutes.settings}/income-sources/new',
-                            ),
-                            icon: const FinanceSuitIcon(
-                              FinanceSuitIcons.addCircle,
-                            ),
-                            label: Text(l10n.addAutomation),
                           ),
                         ],
                       ),
@@ -497,6 +507,11 @@ class IncomeSourcesScreen extends ConsumerWidget {
             );
           },
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        tooltip: l10n.addAutomation,
+        onPressed: () => _openNew(context),
+        child: const FinanceSuitIcon(FinanceSuitIcons.add),
       ),
     );
   }
