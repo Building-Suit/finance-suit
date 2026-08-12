@@ -146,7 +146,13 @@ abstract final class FinanceSuitMenu {
   /// already-active destination is never pushed twice.
   static String _currentTopLocation(GoRouter router) {
     final configuration = router.routerDelegate.currentConfiguration;
-    final top = configuration.matches.lastOrNull;
+    RouteMatchBase? top = configuration.matches.lastOrNull;
+    // Imperative pushes inside the app's page-plane ShellRoute are nested
+    // beneath its ShellRouteMatch. Walk through the shell before deciding
+    // whether the selected menu route is already active.
+    while (top is ShellRouteMatch && top.matches.isNotEmpty) {
+      top = top.matches.last;
+    }
     if (top is ImperativeRouteMatch) return top.matches.uri.path;
     return configuration.uri.path;
   }
