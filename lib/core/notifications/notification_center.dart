@@ -374,12 +374,10 @@ class _NotificationCenterPanelState
         heightFactor: 1,
         child: Material(
           key: const Key('notification-center-panel'),
-          color: colors.surface,
-          clipBehavior: Clip.antiAlias,
-          borderRadius: const BorderRadiusDirectional.only(
-            topStart: Radius.circular(24),
-            bottomStart: Radius.circular(24),
-          ),
+          // This is the transparent structural layer used for layout,
+          // hit-testing and Ink effects. The page-plane's existing app-shell
+          // background remains visible behind the notification content.
+          type: MaterialType.transparency,
           child: SafeArea(
             child: Column(
               children: [
@@ -411,7 +409,6 @@ class _NotificationCenterPanelState
                     ],
                   ),
                 ),
-                Divider(height: 1, color: colors.divider),
                 Expanded(
                   child: _NotificationList(
                     feed: feed,
@@ -420,7 +417,6 @@ class _NotificationCenterPanelState
                     mutedForeground: mutedForeground,
                   ),
                 ),
-                Divider(height: 1, color: colors.divider),
                 SafeArea(
                   top: false,
                   child: TextButton.icon(
@@ -433,7 +429,7 @@ class _NotificationCenterPanelState
                     icon: const FinanceSuitIcon(FinanceSuitIcons.checkCircle),
                     label: Text(l10n.notificationMarkAllRead),
                     style: TextButton.styleFrom(
-                      foregroundColor: colors.info.icon,
+                      foregroundColor: colors.primary,
                       disabledForegroundColor: mutedForeground.withValues(
                         alpha: 0.48,
                       ),
