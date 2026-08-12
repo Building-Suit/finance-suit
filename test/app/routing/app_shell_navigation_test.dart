@@ -130,7 +130,7 @@ void main() {
         FinanceSuitNavigationBar.notchDepth;
     expect(
       (addRect.bottom - contourBottom).abs(),
-      inInclusiveRange(4, 8),
+      closeTo(9.44, 0.01),
       reason: 'the bowl leaves a small breathing gap below the Add action',
     );
     expect(workRect.right, lessThanOrEqualTo(addRect.left));
@@ -138,17 +138,17 @@ void main() {
   });
 
   test('derives the approved cradling notch from the Add button', () {
-    expect(FinanceSuitNavigationBar.centerButtonDiameter, 56);
+    expect(FinanceSuitNavigationBar.centerButtonDiameter, 52);
     expect(FinanceSuitNavigationBar.centerButtonTop, 4);
-    expect(FinanceSuitNavigationBar.notchWidthFactor, 1.6);
-    expect(FinanceSuitNavigationBar.notchDepthFactor, 0.5);
+    expect(FinanceSuitNavigationBar.notchWidthFactor, 1.85);
+    expect(FinanceSuitNavigationBar.notchDepthFactor, 0.72);
     expect(
       FinanceSuitNavigationBar.notchWidth,
-      FinanceSuitNavigationBar.centerButtonDiameter * 1.6,
+      FinanceSuitNavigationBar.centerButtonDiameter * 1.85,
     );
     expect(
       FinanceSuitNavigationBar.notchDepth,
-      FinanceSuitNavigationBar.centerButtonDiameter * 0.5,
+      FinanceSuitNavigationBar.centerButtonDiameter * 0.72,
     );
   });
 

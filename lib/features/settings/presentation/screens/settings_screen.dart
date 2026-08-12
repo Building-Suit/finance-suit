@@ -1,4 +1,3 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,17 +6,14 @@ import 'package:work_tracker/app/configuration/env.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/notifications/notifications_repository.dart';
-import 'package:work_tracker/core/notifications/push_notifications_service.dart';
 import 'package:work_tracker/core/security/biometric_login_controller.dart';
 import 'package:work_tracker/core/security/device_authenticator.dart';
 import 'package:work_tracker/core/security/device_privacy_controller.dart';
-import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/core/validation/validators.dart';
 import 'package:work_tracker/core/widgets/app_selection_field.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
 import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
-import 'package:work_tracker/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:work_tracker/features/commercial/domain/commercial_models.dart';
 import 'package:work_tracker/features/commercial/presentation/providers/commercial_providers.dart';
 import 'package:work_tracker/features/settings/data/settings_repository.dart';
@@ -25,8 +21,214 @@ import 'package:work_tracker/features/settings/presentation/providers/app_settin
 import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
+enum SettingsSection {
+  appearance,
+  security,
+  notifications,
+  profile,
+  automation,
+  account,
+  about,
+}
+
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
+
+  Future<void> _openSection(
+    BuildContext context,
+    SettingsSection section,
+  ) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => FractionallySizedBox(
+        heightFactor: 0.88,
+        child: SettingsSectionScreen(section: section, showAppBar: false),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final sections = [
+      (
+        section: SettingsSection.security,
+        icon: FinanceSuitIcons.fingerprint,
+        title: l10n.setSecurity,
+        subtitle: l10n.setSecuritySubtitle,
+      ),
+      (
+        section: SettingsSection.notifications,
+        icon: FinanceSuitIcons.notifications,
+        title: l10n.setNotificationsSection,
+        subtitle: l10n.setNotificationsSubtitle,
+      ),
+      (
+        section: SettingsSection.account,
+        icon: FinanceSuitIcons.settings,
+        title: l10n.setAccountSection,
+        subtitle: l10n.setAccountSubtitle,
+      ),
+    ];
+
+    return Scaffold(
+      appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.tabSettings),
+      body: FinanceSuitFocusedBody(
+        title: l10n.tabSettings,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+          children: [
+            _InlineAppearance(ref: ref),
+            const SizedBox(height: 8),
+            for (final item in sections) ...[
+              Card(
+                margin: EdgeInsets.zero,
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 2,
+                  ),
+                  leading: FinanceSuitIcon(item.icon),
+                  title: Text(item.title),
+                  subtitle: Text(item.subtitle),
+                  trailing: const FinanceSuitIcon(
+                    FinanceSuitIcons.chevronRight,
+                  ),
+                  onTap: () => _openSection(context, item.section),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+            _InlineAbout(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InlineAppearance extends ConsumerWidget {
+  const _InlineAppearance({required this.ref});
+  final WidgetRef ref;
+
+  @override
+  Widget build(BuildContext context, WidgetRef _) {
+    final l10n = AppLocalizations.of(context);
+    final mode = ref.watch(themeModeProvider);
+    final locale = ref.watch(appLocaleProvider);
+    return Card(
+      child: Column(
+        children: [
+          ListTile(
+            leading: const FinanceSuitIcon(FinanceSuitIcons.brightness),
+            title: Text(l10n.setTheme),
+            trailing: SizedBox(
+              width: 132,
+              child: AppSelectionField<ThemeMode>(
+                initialValue: mode,
+                decoration: const InputDecoration(
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                ),
+                onChanged: (v) {
+                  if (v != null) {
+                    ref.read(themeModeProvider.notifier).setMode(v);
+                  }
+                },
+                items: [
+                  DropdownMenuItem(
+                    value: ThemeMode.system,
+                    child: Text(l10n.setThemeSystem),
+                  ),
+                  DropdownMenuItem(
+                    value: ThemeMode.light,
+                    child: Text(l10n.setThemeLight),
+                  ),
+                  DropdownMenuItem(
+                    value: ThemeMode.dark,
+                    child: Text(l10n.setThemeDark),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          ListTile(
+            leading: const FinanceSuitIcon(FinanceSuitIcons.language),
+            title: Text(l10n.onbLanguage),
+            trailing: SizedBox(
+              width: 120,
+              child: AppSelectionField<String>(
+                initialValue: locale?.languageCode ?? 'en',
+                decoration: const InputDecoration(
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                ),
+                onChanged: (v) {
+                  if (v != null) {
+                    ref.read(appLocaleProvider.notifier).setLocale(Locale(v));
+                  }
+                },
+                items: const [
+                  DropdownMenuItem(value: 'en', child: Text('English')),
+                  DropdownMenuItem(value: 'ar', child: Text('العربية')),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InlineAbout extends StatelessWidget {
+  const _InlineAbout();
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Card(
+      child: Column(
+        children: [
+          ListTile(
+            leading: const FinanceSuitIcon(FinanceSuitIcons.lock),
+            title: Text(l10n.setPrivacyPolicy),
+            trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+            onTap: () => context.push(AppRoutes.privacyPolicy),
+          ),
+          ListTile(
+            leading: const FinanceSuitIcon(FinanceSuitIcons.receiptLong),
+            title: Text(l10n.setTerms),
+            trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+            onTap: () => context.push(AppRoutes.terms),
+          ),
+          ListTile(
+            leading: const FinanceSuitIcon(FinanceSuitIcons.info),
+            title: Text(l10n.setAppVersion),
+            subtitle: Text(Env.appVersion),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SettingsSectionScreen extends ConsumerWidget {
+  const SettingsSectionScreen({
+    super.key,
+    required this.section,
+    this.showAppBar = true,
+  });
+
+  final SettingsSection section;
+  final bool showAppBar;
 
   void _showDeviceAuthOutcome(BuildContext context, DeviceAuthOutcome outcome) {
     final l10n = AppLocalizations.of(context);
@@ -231,30 +433,6 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {
-    final l10n = AppLocalizations.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.setSignOutConfirmTitle),
-        content: Text(l10n.setSignOutConfirmBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(l10n.authLogout),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true) {
-      await ref.read(authActionProvider.notifier).signOut();
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
@@ -269,209 +447,252 @@ class SettingsScreen extends ConsumerWidget {
         biometricLogin != null &&
         !privacy.authenticating &&
         !biometricLogin.authenticating;
+    final sectionTitle = switch (section) {
+      SettingsSection.appearance => l10n.setAppearance,
+      SettingsSection.security => l10n.setSecurity,
+      SettingsSection.notifications => l10n.setNotificationsSection,
+      SettingsSection.profile => l10n.setProfileSection,
+      SettingsSection.automation => l10n.setAutomationSection,
+      SettingsSection.account => l10n.setAccountSection,
+      SettingsSection.about => l10n.setAboutSection,
+    };
 
     return Scaffold(
-      appBar: FinanceSuitAppBar.focused(semanticTitle: l10n.tabSettings),
+      appBar: showAppBar
+          ? FinanceSuitAppBar.focused(semanticTitle: sectionTitle)
+          : null,
       body: FinanceSuitFocusedBody(
-        title: l10n.tabSettings,
+        title: sectionTitle,
         child: ListView(
+          padding: const EdgeInsets.only(bottom: 24),
           children: [
-            _SectionHeader(title: l10n.setAppearance),
-            ListTile(
-              leading: const FinanceSuitIcon(FinanceSuitIcons.brightness),
-              title: Text(l10n.setTheme),
-              trailing: SizedBox(
-                width: 160,
-                child: AppSelectionField<ThemeMode>(
-                  initialValue: themeMode,
-                  decoration: const InputDecoration(isDense: true),
-                  onChanged: (mode) {
-                    if (mode != null) {
-                      ref.read(themeModeProvider.notifier).setMode(mode);
-                    }
-                  },
-                  items: [
-                    DropdownMenuItem(
-                      value: ThemeMode.system,
-                      child: Text(l10n.setThemeSystem),
-                    ),
-                    DropdownMenuItem(
-                      value: ThemeMode.light,
-                      child: Text(l10n.setThemeLight),
-                    ),
-                    DropdownMenuItem(
-                      value: ThemeMode.dark,
-                      child: Text(l10n.setThemeDark),
-                    ),
-                  ],
+            if (section == SettingsSection.appearance) ...[
+              ListTile(
+                leading: const FinanceSuitIcon(FinanceSuitIcons.brightness),
+                title: Text(l10n.setTheme),
+                trailing: SizedBox(
+                  width: 160,
+                  child: AppSelectionField<ThemeMode>(
+                    initialValue: themeMode,
+                    decoration: const InputDecoration(isDense: true),
+                    onChanged: (mode) {
+                      if (mode != null) {
+                        ref.read(themeModeProvider.notifier).setMode(mode);
+                      }
+                    },
+                    items: [
+                      DropdownMenuItem(
+                        value: ThemeMode.system,
+                        child: Text(l10n.setThemeSystem),
+                      ),
+                      DropdownMenuItem(
+                        value: ThemeMode.light,
+                        child: Text(l10n.setThemeLight),
+                      ),
+                      DropdownMenuItem(
+                        value: ThemeMode.dark,
+                        child: Text(l10n.setThemeDark),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            ListTile(
-              leading: const FinanceSuitIcon(FinanceSuitIcons.language),
-              title: Text(l10n.onbLanguage),
-              trailing: SizedBox(
-                width: 140,
-                child: AppSelectionField<String>(
-                  initialValue: locale?.languageCode ?? 'en',
-                  decoration: const InputDecoration(isDense: true),
-                  onChanged: (code) {
-                    if (code != null) {
-                      ref
-                          .read(appLocaleProvider.notifier)
-                          .setLocale(Locale(code));
-                    }
-                  },
-                  items: const [
-                    DropdownMenuItem(value: 'en', child: Text('English')),
-                    DropdownMenuItem(value: 'ar', child: Text('العربية')),
-                  ],
+              ListTile(
+                leading: const FinanceSuitIcon(FinanceSuitIcons.language),
+                title: Text(l10n.onbLanguage),
+                trailing: SizedBox(
+                  width: 140,
+                  child: AppSelectionField<String>(
+                    initialValue: locale?.languageCode ?? 'en',
+                    decoration: const InputDecoration(isDense: true),
+                    onChanged: (code) {
+                      if (code != null) {
+                        ref
+                            .read(appLocaleProvider.notifier)
+                            .setLocale(Locale(code));
+                      }
+                    },
+                    items: const [
+                      DropdownMenuItem(value: 'en', child: Text('English')),
+                      DropdownMenuItem(value: 'ar', child: Text('العربية')),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const Divider(),
-            _SectionHeader(title: l10n.setSecurity),
-            SwitchListTile.adaptive(
-              secondary: const FinanceSuitIcon(FinanceSuitIcons.visibilityOff),
-              title: Text(l10n.privacyMoneyTitle),
-              subtitle: Text(l10n.privacyMoneyHelp),
-              value: privacy?.moneyPrivacyEnabled ?? false,
-              onChanged: securityControlsEnabled
-                  ? (value) => _setMoneyPrivacy(context, ref, value)
-                  : null,
-            ),
-            SwitchListTile.adaptive(
-              secondary: const FinanceSuitIcon(FinanceSuitIcons.fingerprint),
-              title: Text(l10n.privacyAppLockTitle),
-              subtitle: Text(l10n.privacyAppLockHelp),
-              value: privacy?.appLockEnabled ?? false,
-              onChanged: securityControlsEnabled
-                  ? (value) => _setAppLock(context, ref, value)
-                  : null,
-            ),
-            SwitchListTile.adaptive(
-              secondary: const FinanceSuitIcon(FinanceSuitIcons.fingerprint),
-              title: Text(l10n.privacyBiometricLoginTitle),
-              subtitle: Text(l10n.privacyBiometricLoginHelp),
-              value: biometricLogin?.enabled ?? false,
-              onChanged: securityControlsEnabled
-                  ? (value) => _setBiometricLogin(context, ref, value)
-                  : null,
-            ),
-            const Divider(),
-            _SectionHeader(title: l10n.setNotificationsSection),
-            const _NotificationPreferencesSection(),
-            const Divider(),
-            _SectionHeader(title: l10n.setProfileSection),
-            profile.when(
-              data: (p) => ListTile(
-                leading: const FinanceSuitIcon(FinanceSuitIcons.person),
-                title: Text(l10n.setDisplayName),
-                subtitle: Text(p.displayName),
-                trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
-                onTap: () => _editDisplayName(context, ref, p.displayName),
+            ],
+            if (section == SettingsSection.security) ...[
+              SwitchListTile.adaptive(
+                secondary: const FinanceSuitIcon(
+                  FinanceSuitIcons.visibilityOff,
+                ),
+                title: Text(l10n.privacyMoneyTitle),
+                subtitle: Text(l10n.privacyMoneyHelp),
+                value: privacy?.moneyPrivacyEnabled ?? false,
+                onChanged: securityControlsEnabled
+                    ? (value) => _setMoneyPrivacy(context, ref, value)
+                    : null,
               ),
-              loading: () => ListTile(
-                leading: const FinanceSuitIcon(FinanceSuitIcons.person),
-                title: Text(l10n.setDisplayName),
-                subtitle: Text(l10n.commonLoading),
+              SwitchListTile.adaptive(
+                secondary: const FinanceSuitIcon(FinanceSuitIcons.fingerprint),
+                title: Text(l10n.privacyAppLockTitle),
+                subtitle: Text(l10n.privacyAppLockHelp),
+                value: privacy?.appLockEnabled ?? false,
+                onChanged: securityControlsEnabled
+                    ? (value) => _setAppLock(context, ref, value)
+                    : null,
               ),
-              error: (e, _) => ListTile(
-                leading: const FinanceSuitIcon(FinanceSuitIcons.person),
-                title: Text(l10n.setDisplayName),
-                subtitle: Text(l10n.commonError),
-                trailing: IconButton(
-                  icon: const FinanceSuitIcon(FinanceSuitIcons.refresh),
-                  onPressed: () => ref.invalidate(profileProvider),
+              SwitchListTile.adaptive(
+                secondary: const FinanceSuitIcon(FinanceSuitIcons.fingerprint),
+                title: Text(l10n.privacyBiometricLoginTitle),
+                subtitle: Text(l10n.privacyBiometricLoginHelp),
+                value: biometricLogin?.enabled ?? false,
+                onChanged: securityControlsEnabled
+                    ? (value) => _setBiometricLogin(context, ref, value)
+                    : null,
+              ),
+            ],
+            if (section == SettingsSection.notifications)
+              const _NotificationPreferencesSection(),
+            if (section == SettingsSection.profile) ...[
+              profile.when(
+                data: (p) => ListTile(
+                  leading: const FinanceSuitIcon(FinanceSuitIcons.person),
+                  title: Text(l10n.setDisplayName),
+                  subtitle: Text(p.displayName),
+                  trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
+                  onTap: () => _editDisplayName(context, ref, p.displayName),
+                ),
+                loading: () => ListTile(
+                  leading: const FinanceSuitIcon(FinanceSuitIcons.person),
+                  title: Text(l10n.setDisplayName),
+                  subtitle: Text(l10n.commonLoading),
+                ),
+                error: (e, _) => ListTile(
+                  leading: const FinanceSuitIcon(FinanceSuitIcons.person),
+                  title: Text(l10n.setDisplayName),
+                  subtitle: Text(l10n.commonError),
+                  trailing: IconButton(
+                    icon: const FinanceSuitIcon(FinanceSuitIcons.refresh),
+                    onPressed: () => ref.invalidate(profileProvider),
+                  ),
                 ),
               ),
-            ),
-            ListTile(
-              leading: const FinanceSuitIcon(FinanceSuitIcons.email),
-              title: Text(l10n.setChangeEmail),
-              trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
-              onTap: () => context.go('${AppRoutes.settings}/email'),
-            ),
-            ListTile(
-              leading: const FinanceSuitIcon(FinanceSuitIcons.password),
-              title: Text(l10n.setChangePassword),
-              trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
-              onTap: () => context.go('${AppRoutes.settings}/password'),
-            ),
-            ListTile(
-              leading: const FinanceSuitIcon(FinanceSuitIcons.star),
-              title: Text(l10n.planBilling),
-              subtitle: Text(_planSummary(l10n, entitlement)),
-              trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
-              onTap: () => context.go(AppRoutes.subscription),
-            ),
-            const Divider(),
-            _SectionHeader(title: l10n.setSalarySection),
-            ListTile(
-              leading: const FinanceSuitIcon(FinanceSuitIcons.payments),
-              title: Text(l10n.setSalarySection),
-              trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
-              onTap: () => context.go('${AppRoutes.settings}/salary'),
-            ),
-            ListTile(
-              leading: const FinanceSuitIcon(FinanceSuitIcons.trendingUp),
-              title: Text(l10n.incomeAutomationCenter),
-              subtitle: Text(l10n.incomeSourcesSubtitle),
-              trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
-              onTap: () => context.go('${AppRoutes.settings}/income-sources'),
-            ),
-            ListTile(
-              leading: const FinanceSuitIcon(FinanceSuitIcons.eventRepeat),
-              title: Text(l10n.recurringCenterTitle),
-              subtitle: Text(l10n.recurringCenterSubtitle),
-              trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
-              onTap: () => context.go('${AppRoutes.settings}/recurring'),
-            ),
-            const Divider(),
-            _SectionHeader(title: l10n.setAccountSection),
-            ListTile(
-              leading: FinanceSuitIcon(
-                FinanceSuitIcons.delete,
-                color: Theme.of(context).colorScheme.error,
+              ListTile(
+                leading: const FinanceSuitIcon(FinanceSuitIcons.email),
+                title: Text(l10n.setChangeEmail),
+                trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+                onTap: () => context.push('${AppRoutes.settings}/email'),
               ),
-              title: Text(
-                l10n.setDeleteAccount,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ListTile(
+                leading: const FinanceSuitIcon(FinanceSuitIcons.password),
+                title: Text(l10n.setChangePassword),
+                trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+                onTap: () => context.push('${AppRoutes.settings}/password'),
               ),
-              subtitle: Text(l10n.setDeleteAccountSubtitle),
-              trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
-              onTap: () => context.go('${AppRoutes.settings}/delete-account'),
-            ),
-            ListTile(
-              leading: FinanceSuitIcon(
-                FinanceSuitIcons.logout,
-                color: Theme.of(context).colorScheme.error,
+              ListTile(
+                leading: const FinanceSuitIcon(FinanceSuitIcons.star),
+                title: Text(l10n.planBilling),
+                subtitle: Text(_planSummary(l10n, entitlement)),
+                trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+                onTap: () => context.push(AppRoutes.subscription),
               ),
-              title: Text(
-                l10n.authLogout,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ],
+            if (section == SettingsSection.automation) ...[
+              ListTile(
+                leading: const FinanceSuitIcon(FinanceSuitIcons.payments),
+                title: Text(l10n.setSalarySection),
+                trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+                onTap: () => context.push('${AppRoutes.settings}/salary'),
               ),
-              onTap: () => _confirmSignOut(context, ref),
-            ),
-            const Divider(),
-            _SectionHeader(title: l10n.setAboutSection),
-            ListTile(
-              leading: const FinanceSuitIcon(FinanceSuitIcons.lock),
-              title: Text(l10n.setPrivacyPolicy),
-              trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
-              onTap: () => context.push(AppRoutes.privacyPolicy),
-            ),
-            ListTile(
-              leading: const FinanceSuitIcon(FinanceSuitIcons.receiptLong),
-              title: Text(l10n.setTerms),
-              trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
-              onTap: () => context.push(AppRoutes.terms),
-            ),
-            ListTile(
-              leading: const FinanceSuitIcon(FinanceSuitIcons.info),
-              title: Text(l10n.setAppVersion),
-              subtitle: Text(Env.appVersion),
-            ),
+              ListTile(
+                leading: const FinanceSuitIcon(FinanceSuitIcons.trendingUp),
+                title: Text(l10n.incomeAutomationCenter),
+                subtitle: Text(l10n.incomeSourcesSubtitle),
+                trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+                onTap: () =>
+                    context.push('${AppRoutes.settings}/income-sources'),
+              ),
+              ListTile(
+                leading: const FinanceSuitIcon(FinanceSuitIcons.eventRepeat),
+                title: Text(l10n.recurringCenterTitle),
+                subtitle: Text(l10n.recurringCenterSubtitle),
+                trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+                onTap: () => context.push('${AppRoutes.settings}/recurring'),
+              ),
+            ],
+            if (section == SettingsSection.account) ...[
+              profile.when(
+                data: (p) => ListTile(
+                  leading: const FinanceSuitIcon(FinanceSuitIcons.person),
+                  title: Text(l10n.setDisplayName),
+                  subtitle: Text(p.displayName),
+                  trailing: const FinanceSuitIcon(FinanceSuitIcons.edit),
+                  onTap: () => _editDisplayName(context, ref, p.displayName),
+                ),
+                loading: () => ListTile(
+                  leading: const FinanceSuitIcon(FinanceSuitIcons.person),
+                  title: Text(l10n.setDisplayName),
+                  subtitle: Text(l10n.commonLoading),
+                ),
+                error: (_, _) => ListTile(
+                  leading: const FinanceSuitIcon(FinanceSuitIcons.person),
+                  title: Text(l10n.setDisplayName),
+                  subtitle: Text(l10n.commonError),
+                ),
+              ),
+              ListTile(
+                leading: const FinanceSuitIcon(FinanceSuitIcons.email),
+                title: Text(l10n.setChangeEmail),
+                trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+                onTap: () => context.push('${AppRoutes.settings}/email'),
+              ),
+              ListTile(
+                leading: const FinanceSuitIcon(FinanceSuitIcons.password),
+                title: Text(l10n.setChangePassword),
+                trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+                onTap: () => context.push('${AppRoutes.settings}/password'),
+              ),
+              ListTile(
+                leading: const FinanceSuitIcon(FinanceSuitIcons.star),
+                title: Text(l10n.planBilling),
+                subtitle: Text(_planSummary(l10n, entitlement)),
+                trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+                onTap: () => context.push(AppRoutes.subscription),
+              ),
+              ListTile(
+                leading: FinanceSuitIcon(
+                  FinanceSuitIcons.delete,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                title: Text(
+                  l10n.setDeleteAccount,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+                subtitle: Text(l10n.setDeleteAccountSubtitle),
+                trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+                onTap: () =>
+                    context.push('${AppRoutes.settings}/delete-account'),
+              ),
+            ],
+            if (section == SettingsSection.about) ...[
+              ListTile(
+                leading: const FinanceSuitIcon(FinanceSuitIcons.lock),
+                title: Text(l10n.setPrivacyPolicy),
+                trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+                onTap: () => context.push(AppRoutes.privacyPolicy),
+              ),
+              ListTile(
+                leading: const FinanceSuitIcon(FinanceSuitIcons.receiptLong),
+                title: Text(l10n.setTerms),
+                trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+                onTap: () => context.push(AppRoutes.terms),
+              ),
+              ListTile(
+                leading: const FinanceSuitIcon(FinanceSuitIcons.info),
+                title: Text(l10n.setAppVersion),
+                subtitle: Text(Env.appVersion),
+              ),
+            ],
             const SizedBox(height: 24),
           ],
         ),
@@ -513,57 +734,6 @@ class _NotificationPreferencesSection extends ConsumerWidget {
     );
   }
 
-  Future<void> _enableNotifications(BuildContext context, WidgetRef ref) async {
-    final userId = ref.read(currentUserIdProvider);
-    if (userId == null) return;
-    await ref
-        .read(pushNotificationsServiceProvider)
-        .syncRegistration(
-          userId: userId,
-          openRoute: ref.read(appRouterProvider).go,
-          locale: Localizations.localeOf(context).toLanguageTag(),
-          forcePermissionRequest: true,
-        );
-    ref.invalidate(pushNotificationStatusProvider);
-  }
-
-  Future<void> _sendTestNotification(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    final result = await ref
-        .read(notificationsRepositoryProvider)
-        .sendDeveloperTestNotification();
-    if (!context.mounted) return;
-    final isArabic = Directionality.of(context) == TextDirection.rtl;
-    result.when(
-      ok: (delivery) {
-        if (delivery.sent > 0) {
-          AppToast.success(
-            context,
-            isArabic ? 'تم إرسال إشعار تجريبي' : 'Test notification sent',
-          );
-        } else if (delivery.failed > 0 || delivery.suppressed > 0) {
-          AppToast.warning(
-            context,
-            isArabic
-                ? 'تم إنشاء الاختبار لكن لم يتم تسليمه'
-                : 'Test queued, but delivery did not complete',
-          );
-        } else {
-          AppToast.info(
-            context,
-            isArabic
-                ? 'تم إنشاء الاختبار. انتظر لحظة ثم تحقق من الإشعارات'
-                : 'Test queued. Check notifications in a moment',
-          );
-        }
-      },
-      err: (failure) =>
-          AppToast.error(context, failureMessage(context, failure)),
-    );
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
@@ -571,89 +741,8 @@ class _NotificationPreferencesSection extends ConsumerWidget {
         ref.watch(notificationPreferencesProvider).value ??
         const NotificationPreferences();
     final loaded = ref.watch(notificationPreferencesProvider).hasValue;
-    final pushStatus = ref.watch(pushNotificationStatusProvider).value;
-    final osPermission = pushStatus?.permission;
-    final isArabic = Directionality.of(context) == TextDirection.rtl;
-    final osStatus = switch (osPermission) {
-      AuthorizationStatus.authorized || AuthorizationStatus.provisional =>
-        isArabic ? 'إشعارات النظام مفعّلة' : 'System notifications are allowed',
-      AuthorizationStatus.denied =>
-        isArabic ? 'إشعارات النظام متوقفة' : 'System notifications are blocked',
-      AuthorizationStatus.notDetermined =>
-        isArabic
-            ? 'لم يتم طلب إذن النظام بعد'
-            : 'System permission has not been requested',
-      null =>
-        isArabic
-            ? 'الإشعارات غير متاحة في هذا البناء'
-            : 'Notifications are unavailable in this build',
-    };
-    final registrationStatus = switch (pushStatus) {
-      PushNotificationStatus(firebaseAvailable: false) =>
-        isArabic
-            ? 'Firebase غير متاح في هذا البناء'
-            : 'Firebase is unavailable in this build',
-      PushNotificationStatus(registered: true, maskedToken: final token?) =>
-        isArabic
-            ? 'جاهز على هذا الجهاز ($token)'
-            : 'Ready on this device ($token)',
-      PushNotificationStatus(hasFcmToken: true) =>
-        isArabic
-            ? 'تم الاتصال ب Firebase، لكن التسليم لم يكتمل'
-            : 'Firebase is connected, but delivery setup is incomplete',
-      PushNotificationStatus(lastError: final error?) =>
-        isArabic
-            ? 'تعذر تفعيل التسليم: $error'
-            : 'Delivery setup failed: $error',
-      _ =>
-        isArabic
-            ? 'فعّل الإشعارات لإرسال التنبيهات إلى هذا الجهاز'
-            : 'Turn on notifications to send alerts to this device',
-    };
-    final canSendTest =
-        pushStatus?.registered == true &&
-        (osPermission == AuthorizationStatus.authorized ||
-            osPermission == AuthorizationStatus.provisional);
     return Column(
       children: [
-        ListTile(
-          key: const Key('notif-os-permission-status'),
-          leading: const FinanceSuitIcon(FinanceSuitIcons.eventAvailable),
-          title: Text(isArabic ? 'إشعارات الهاتف' : 'Phone notifications'),
-          subtitle: Text(osStatus),
-          trailing: TextButton(
-            onPressed: () => _enableNotifications(context, ref),
-            child: Text(isArabic ? 'تفعيل' : 'Enable'),
-          ),
-        ),
-        ListTile(
-          key: const Key('notif-device-registration-status'),
-          leading: const FinanceSuitIcon(FinanceSuitIcons.payments),
-          title: Text(isArabic ? 'تسليم التنبيهات' : 'Alert delivery'),
-          subtitle: Text(registrationStatus),
-          trailing: TextButton(
-            onPressed: () => _enableNotifications(context, ref),
-            child: Text(isArabic ? 'إعادة المحاولة' : 'Retry'),
-          ),
-        ),
-        ListTile(
-          key: const Key('notif-send-test'),
-          leading: const FinanceSuitIcon(FinanceSuitIcons.play),
-          title: Text(
-            isArabic ? 'إرسال إشعار تجريبي' : 'Send test notification',
-          ),
-          subtitle: Text(
-            isArabic
-                ? 'يتحقق من التسليم من الخادم إلى هذا الهاتف.'
-                : 'Checks delivery from the server to this phone.',
-          ),
-          trailing: TextButton(
-            onPressed: canSendTest
-                ? () => _sendTestNotification(context, ref)
-                : null,
-            child: Text(isArabic ? 'إرسال' : 'Send'),
-          ),
-        ),
         SwitchListTile.adaptive(
           key: const Key('notif-due-reminders'),
           secondary: const FinanceSuitIcon(FinanceSuitIcons.eventAvailable),
@@ -711,20 +800,6 @@ class _NotificationPreferencesSection extends ConsumerWidget {
                 ),
         ),
       ],
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-      child: Text(title, style: Theme.of(context).textTheme.labelLarge),
     );
   }
 }

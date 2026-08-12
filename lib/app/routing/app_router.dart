@@ -36,7 +36,6 @@ import 'package:work_tracker/features/finance/presentation/screens/recurring_rul
 import 'package:work_tracker/features/finance/presentation/screens/recurring_rules_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/transaction_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/transfer_form_screen.dart';
-import 'package:work_tracker/features/history/presentation/screens/history_screen.dart';
 import 'package:work_tracker/features/onboarding/presentation/providers/onboarding_status_provider.dart';
 import 'package:work_tracker/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:work_tracker/features/reports/presentation/screens/reports_screen.dart';
@@ -70,7 +69,6 @@ abstract final class AppRoutes {
   static const work = '/work';
   static const money = '/money';
   static const reports = '/reports';
-  static const history = '/history';
   static const settings = '/settings';
   static const subscription = '/settings/subscription';
 }
@@ -270,7 +268,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: AppRoutes.money,
-                    builder: (context, state) => const MoneyScreen(),
+                    builder: (context, state) => MoneyScreen(
+                      key: ValueKey(state.uri.queryParameters['tab']),
+                      initialTab:
+                          state.uri.queryParameters['tab'] == 'transactions'
+                          ? 1
+                          : 0,
+                    ),
                     routes: [
                       GoRoute(
                         path: 'accounts/new',
@@ -400,10 +404,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           // Pushed utility destinations retain their URLs and cover the bottom
           // navigation, while remaining inside the shared page-plane navigator.
-          GoRoute(
-            path: AppRoutes.history,
-            builder: (context, state) => const HistoryScreen(),
-          ),
           GoRoute(
             path: AppRoutes.settings,
             builder: (context, state) => const SettingsScreen(),

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
-import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
@@ -14,6 +12,7 @@ import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
+import 'package:work_tracker/features/finance/presentation/screens/category_form_screen.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 /// Manage expense / allowance / income categories: add, rename, archive.
@@ -134,14 +133,19 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
     result.when(ok: (_) => _invalidate(), err: _showFailure);
   }
 
-  void _addCategory(CategoryKind kind, {String? parentId}) {
-    final query = <String, String>{'kind': kind.dbValue};
-    if (parentId case final id?) query['parent'] = id;
-    context.push(
-      Uri(
-        path: '${AppRoutes.money}/categories/new',
-        queryParameters: query,
-      ).toString(),
+  Future<void> _addCategory(CategoryKind kind, {String? parentId}) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => FractionallySizedBox(
+        heightFactor: 0.88,
+        child: CategoryFormScreen(
+          initialKind: kind,
+          initialParentCategoryId: parentId,
+          showAppBar: false,
+        ),
+      ),
     );
   }
 
@@ -244,8 +248,13 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
                         start: 52,
                         end: 16,
                       ),
-                      leading: const FinanceSuitIcon(FinanceSuitIcons.add),
                       title: Text(l10n.catAddSubcategory),
+                      trailing: IconButton(
+                        tooltip: l10n.catAddSubcategory,
+                        icon: const FinanceSuitIcon(FinanceSuitIcons.add),
+                        onPressed: () =>
+                            _addCategory(kind, parentId: parent.id),
+                      ),
                       onTap: () => _addCategory(kind, parentId: parent.id),
                     ),
                 ],
@@ -287,10 +296,10 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
           children: [for (final kind in _kinds) _kindTab(kind, all)],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
+        tooltip: l10n.catNew,
         onPressed: () => _addCategory(_kinds[_tabController.index]),
-        icon: const FinanceSuitIcon(FinanceSuitIcons.add),
-        label: Text(l10n.catNew),
+        child: const FinanceSuitIcon(FinanceSuitIcons.add),
       ),
     );
   }

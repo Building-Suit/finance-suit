@@ -14,7 +14,6 @@ import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/facility_activity.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
-import 'package:work_tracker/features/finance/domain/home_due_obligation.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
@@ -812,28 +811,6 @@ class FinanceRepository {
       }
       final rows = await query.order('name', ascending: true);
       return rows.map(CreditFacilitySummary.fromJson).toList();
-    });
-  }
-
-  /// All Home obligations due this calendar month plus still-unpaid overdue
-  /// entries. The server contract keeps statement/installment accounting
-  /// canonical and materializes recurring occurrences idempotently.
-  Future<Result<HomeDueSummary>> fetchHomeCurrentMonthObligations(
-    PlainDate today,
-  ) {
-    return guard(() async {
-      final rows = await _db.rpc<List<dynamic>>(
-        'home_current_month_obligations',
-        params: {'p_today': today.toIso()},
-      );
-      final obligations = rows
-          .map(
-            (row) => HomeDueObligation.fromJson(
-              Map<String, dynamic>.from(row as Map),
-            ),
-          )
-          .toList(growable: false);
-      return HomeDueSummary(obligations);
     });
   }
 

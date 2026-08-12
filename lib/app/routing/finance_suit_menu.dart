@@ -111,7 +111,14 @@ abstract final class FinanceSuitMenu {
       return;
     }
     if (_currentTopLocation(router) == selectedRoute) return;
-    unawaited(router.push(selectedRoute));
+    // The Money destination is a StatefulShell branch. Use go() so the
+    // bottom navigation switches branches instead of pushing Money over the
+    // currently selected branch (which would leave Home highlighted).
+    if (selectedRoute.startsWith('${AppRoutes.money}?')) {
+      router.go(selectedRoute);
+    } else {
+      unawaited(router.push(selectedRoute));
+    }
   }
 
   /// Same confirmation flow as the Settings sign-out entry.
@@ -315,21 +322,6 @@ class _FinanceSuitMenuPanel extends StatelessWidget {
     final mutedForeground = foreground.withValues(alpha: 0.76);
     final groups = [
       (
-        heading: l10n.menuGroupGeneral,
-        items: [
-          (
-            icon: FinanceSuitIcons.settings,
-            label: l10n.tabSettings,
-            route: AppRoutes.settings,
-          ),
-          (
-            icon: FinanceSuitIcons.history,
-            label: l10n.historyTitle,
-            route: AppRoutes.history,
-          ),
-        ],
-      ),
-      (
         heading: l10n.menuGroupAutomation,
         items: [
           (
@@ -363,6 +355,11 @@ class _FinanceSuitMenuPanel extends StatelessWidget {
         heading: l10n.tabMoney,
         items: [
           (
+            icon: FinanceSuitIcons.payments,
+            label: l10n.setSalarySection,
+            route: '${AppRoutes.settings}/salary',
+          ),
+          (
             icon: FinanceSuitIcons.label,
             label: l10n.menuCategories,
             route: '${AppRoutes.money}/categories',
@@ -371,6 +368,11 @@ class _FinanceSuitMenuPanel extends StatelessWidget {
             icon: FinanceSuitIcons.bolt,
             label: l10n.macrosTitle,
             route: '${AppRoutes.money}/macros',
+          ),
+          (
+            icon: FinanceSuitIcons.history,
+            label: l10n.historyTitle,
+            route: '${AppRoutes.money}?tab=transactions',
           ),
         ],
       ),
@@ -415,20 +417,39 @@ class _FinanceSuitMenuPanel extends StatelessWidget {
                             4,
                           ),
                           child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               const FinanceSuitMark(
-                                size: 28,
+                                size: 42,
                                 semanticLabel: null,
                               ),
                               const SizedBox(width: 8),
                               Expanded(
-                                child: Text(
-                                  FinanceSuitBrand.name,
-                                  style: textTheme.titleMedium?.copyWith(
-                                    color: foreground,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      FinanceSuitBrand.name,
+                                      textAlign: TextAlign.start,
+                                      style: textTheme.titleMedium?.copyWith(
+                                        color: foreground,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Transform.translate(
+                                      offset: const Offset(0, -2),
+                                      child: Text(
+                                        l10n.menuBrandSubtitle,
+                                        textAlign: TextAlign.start,
+                                        style: textTheme.bodySmall?.copyWith(
+                                          color: mutedForeground,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -438,7 +459,7 @@ class _FinanceSuitMenuPanel extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsetsDirectional.fromSTEB(
                               16,
-                              12,
+                              24,
                               16,
                               0,
                             ),
@@ -464,6 +485,13 @@ class _FinanceSuitMenuPanel extends StatelessWidget {
                     ),
                   ),
                   _MenuLogoutSeparator(color: mutedForeground),
+                  ListTile(
+                    key: const Key('menu-item-/settings'),
+                    visualDensity: VisualDensity.compact,
+                    leading: const FinanceSuitIcon(FinanceSuitIcons.settings),
+                    title: Text(l10n.tabSettings),
+                    onTap: () => Navigator.of(context).pop(AppRoutes.settings),
+                  ),
                   ListTile(
                     key: const Key('menu-item-logout'),
                     iconColor: theme.colorScheme.error,

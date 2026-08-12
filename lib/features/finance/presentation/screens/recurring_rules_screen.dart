@@ -19,6 +19,7 @@ import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
+import 'package:work_tracker/features/finance/presentation/screens/recurring_rule_form_screen.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 /// Automation center for recurring outflows: pending occurrences waiting
@@ -26,6 +27,18 @@ import 'package:work_tracker/l10n/generated/app_localizations.dart';
 /// transfer twin of the income sources screen.
 class RecurringRulesScreen extends ConsumerWidget {
   const RecurringRulesScreen({super.key});
+
+  Future<void> _openNew(BuildContext context) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => const FractionallySizedBox(
+        heightFactor: 0.88,
+        child: RecurringRuleFormScreen(showAppBar: false),
+      ),
+    );
+  }
 
   Future<void> _accept(
     BuildContext context,
@@ -177,8 +190,7 @@ class RecurringRulesScreen extends ConsumerWidget {
                 icon: FinanceSuitIcons.eventRepeat,
                 message: l10n.recurringEmptyTitle,
                 actionLabel: l10n.recurringAddRule,
-                onAction: () =>
-                    context.push('${AppRoutes.settings}/recurring/new'),
+                onAction: () => _openNew(context),
               );
             }
             return RefreshIndicator(
@@ -227,11 +239,11 @@ class RecurringRulesScreen extends ConsumerWidget {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         key: const Key('recurring-add-rule'),
-        onPressed: () => context.push('${AppRoutes.settings}/recurring/new'),
-        icon: const FinanceSuitIcon(FinanceSuitIcons.add),
-        label: Text(l10n.recurringAddRule),
+        tooltip: l10n.recurringAddRule,
+        onPressed: () => _openNew(context),
+        child: const FinanceSuitIcon(FinanceSuitIcons.add),
       ),
     );
   }

@@ -19,7 +19,8 @@ class _FakeOnboardingNotifier extends OnboardingStatusNotifier {
 /// Structural checks of the central shell-chrome routing policy: the shell
 /// hosts exactly the four primary destinations, while one authenticated
 /// navigator owns the page-plane transform for primary and pushed routes.
-/// Deep-link URLs for Settings and History are unchanged.
+/// Settings remains a pushed utility destination while History is represented
+/// by the Money branch's Transactions tab.
 void main() {
   late ProviderContainer container;
   late GoRouter router;
@@ -75,7 +76,7 @@ void main() {
         'delete-account',
       ]),
     );
-    expect(topLevel.any((r) => r.path == '/history'), isTrue);
+    expect(topLevel.any((r) => r.path == '/history'), isFalse);
   });
 
   test('every nested branch route uses the shared authenticated navigator', () {
@@ -117,7 +118,6 @@ void main() {
       '/money/facilities/pay',
       '/money/facilities/some-account-id',
       '/reports',
-      '/history',
       '/settings',
       '/settings/salary',
       '/settings/income-sources',

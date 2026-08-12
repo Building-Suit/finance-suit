@@ -102,7 +102,7 @@ void main() {
   ];
 
   testWidgets(
-    'automation screen explains behavior, groups states, and has no FAB',
+    'automation screen explains behavior, groups states, and has a FAB',
     (tester) async {
       await tester.binding.setSurfaceSize(const Size(320, 480));
       addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -135,11 +135,9 @@ void main() {
         find.textContaining('Nothing changes your balance'),
         findsOneWidget,
       );
-      expect(
-        find.widgetWithText(FilledButton, 'Add automation'),
-        findsOneWidget,
-      );
-      expect(find.byType(FloatingActionButton), findsNothing);
+      expect(find.widgetWithText(FilledButton, 'Add automation'), findsNothing);
+      expect(find.byTooltip('Add automation'), findsOneWidget);
+      expect(find.byType(FloatingActionButton), findsOneWidget);
 
       await tester.dragUntilVisible(
         find.text('Income to approve'),
