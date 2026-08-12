@@ -47,14 +47,17 @@ class FinanceSuitNavigationBar extends StatelessWidget {
   @visibleForTesting
   static const double centerButtonDiameter = 56;
   @visibleForTesting
-  static const double centerButtonTop = 0;
+  // The action is intentionally seated into the bowl rather than floating
+  // above it. The values below keep a 4dp contour gap at the bowl's lowest
+  // point while leaving the button fully inside the navigation assembly.
+  static const double centerButtonTop = 4;
 
   /// The approved bowl is wider than the action so its shoulders remain
   /// visible instead of disappearing behind the circle.
   @visibleForTesting
-  static const double notchWidthFactor = 1.5;
+  static const double notchWidthFactor = 1.6;
   @visibleForTesting
-  static const double notchDepthFactor = 0.45;
+  static const double notchDepthFactor = 0.5;
   @visibleForTesting
   static const double notchWidth = centerButtonDiameter * notchWidthFactor;
   @visibleForTesting

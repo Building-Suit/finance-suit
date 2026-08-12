@@ -156,13 +156,18 @@ class NotificationFeedController extends Notifier<NotificationFeedState> {
   }
 }
 
-/// Right-side counterpart to [FinanceSuitMenu]. It reuses the menu's motion,
+/// Logical-end counterpart to [FinanceSuitMenu]. It reuses the menu's motion,
 /// scrim, width and focus semantics while presenting the user's own delivered
 /// notification history.
 abstract final class NotificationCenter {
   static final ValueNotifier<double> pageProgress = ValueNotifier<double>(0);
   static _NotificationCenterRoute? _activeRoute;
   static bool get isOpen => _activeRoute != null;
+
+  /// The notification center opens from the logical end edge. The page moves
+  /// away from that edge, so this resolves to left in LTR and right in RTL.
+  static double pagePlaneDirection(BuildContext context) =>
+      Directionality.of(context) == TextDirection.rtl ? 1 : -1;
 
   static Future<void> close() async {
     final route = _activeRoute;
@@ -302,10 +307,16 @@ class _NotificationCenterRoute extends PopupRoute<void> {
       animation: curved,
       builder: (context, panel) {
         final progress = curved.value.clamp(0.0, 1.0);
+        final towardEndEdge = Directionality.of(context) == TextDirection.rtl
+            ? -1.0
+            : 1.0;
         return Opacity(
           opacity: progress,
           child: Transform.translate(
-            offset: Offset((1 - progress) * FinanceSuitMenu.entryOffset, 0),
+            offset: Offset(
+              (1 - progress) * FinanceSuitMenu.entryOffset * towardEndEdge,
+              0,
+            ),
             child: panel,
           ),
         );
@@ -354,20 +365,20 @@ class _NotificationCenterPanelState
     final colors = context.suitColors;
     final l10n = AppLocalizations.of(context);
     final feed = ref.watch(notificationFeedProvider);
-    final foreground = colors.onBrandSurface;
-    final mutedForeground = foreground.withValues(alpha: 0.72);
+    final foreground = colors.textPrimary;
+    final mutedForeground = colors.textMuted;
     return Align(
-      alignment: Alignment.centerRight,
+      alignment: AlignmentDirectional.centerEnd,
       child: FractionallySizedBox(
         widthFactor: FinanceSuitMenu.panelWidthFraction,
         heightFactor: 1,
         child: Material(
           key: const Key('notification-center-panel'),
-          color: colors.brandSurface,
+          color: colors.surface,
           clipBehavior: Clip.antiAlias,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            bottomLeft: Radius.circular(24),
+          borderRadius: const BorderRadiusDirectional.only(
+            topStart: Radius.circular(24),
+            bottomStart: Radius.circular(24),
           ),
           child: SafeArea(
             child: Column(
@@ -400,7 +411,7 @@ class _NotificationCenterPanelState
                     ],
                   ),
                 ),
-                Divider(height: 1, color: foreground.withValues(alpha: 0.12)),
+                Divider(height: 1, color: colors.divider),
                 Expanded(
                   child: _NotificationList(
                     feed: feed,
@@ -409,7 +420,7 @@ class _NotificationCenterPanelState
                     mutedForeground: mutedForeground,
                   ),
                 ),
-                Divider(height: 1, color: foreground.withValues(alpha: 0.12)),
+                Divider(height: 1, color: colors.divider),
                 SafeArea(
                   top: false,
                   child: TextButton.icon(

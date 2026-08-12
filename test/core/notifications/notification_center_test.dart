@@ -46,6 +46,8 @@ void main() {
         ),
       ],
     );
+    final home = find.text('home-root');
+    final restingHomeCenter = tester.getCenter(home);
     final context = tester.element(
       find.byKey(const Key('finance-suit-menu-button')),
     );
@@ -58,6 +60,11 @@ void main() {
     );
     expect(panel.width, closeTo(screen.width * 0.675, 1));
     expect(panel.right, closeTo(screen.width, 1));
+    expect(tester.getCenter(home).dx, lessThan(restingHomeCenter.dx));
+    final panelMaterial = tester.widget<Material>(
+      find.byKey(const Key('notification-center-panel')),
+    );
+    expect(panelMaterial.color, Theme.of(context).colorScheme.surface);
     expect(find.byKey(const Key('notification-center-list')), findsOneWidget);
     expect(
       find.byKey(const Key('notification-center-settings')),
@@ -89,7 +96,7 @@ void main() {
     expect(find.byKey(const Key('notification-center-panel')), findsNothing);
   });
 
-  testWidgets('keeps the notification drawer on the physical right in RTL', (
+  testWidgets('opens the notification drawer from the logical end in RTL', (
     tester,
   ) async {
     await pumpShellApp(
@@ -103,20 +110,122 @@ void main() {
         ),
       ],
     );
+    final home = find.text('home-root');
+    final restingHomeCenter = tester.getCenter(home);
     final context = tester.element(
       find.byKey(const Key('finance-suit-menu-button')),
     );
     final opened = NotificationCenter.open(context);
     await tester.pumpAndSettle();
 
-    final screen = tester.getSize(find.byType(MaterialApp));
     final panel = tester.getRect(
       find.byKey(const Key('notification-center-panel')),
     );
-    expect(panel.right, closeTo(screen.width, 1));
+    expect(panel.left, closeTo(0, 1));
+    expect(tester.getCenter(home).dx, greaterThan(restingHomeCenter.dx));
+
+    final panelMaterial = tester.widget<Material>(
+      find.byKey(const Key('notification-center-panel')),
+    );
+    expect(panelMaterial.color, Theme.of(context).colorScheme.surface);
 
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
     await opened;
+  });
+
+  testWidgets('uses the semantic dark surface in dark mode', (tester) async {
+    await pumpShellApp(
+      tester,
+      buildShellTestRouter(),
+      themeMode: ThemeMode.dark,
+      extraOverrides: [
+        notificationHistoryLoaderProvider.overrideWithValue(
+          ({NotificationHistoryCursor? after, int limit = 20}) async =>
+              Ok(firstPage),
+        ),
+      ],
+    );
+    final context = tester.element(
+      find.byKey(const Key('finance-suit-menu-button')),
+    );
+    final opened = NotificationCenter.open(context);
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<Material>(find.byKey(const Key('notification-center-panel')))
+          .color,
+      Theme.of(context).colorScheme.surface,
+    );
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    await opened;
+  });
+
+  testWidgets('moves a pushed Settings route with the notification center', (
+    tester,
+  ) async {
+    final router = buildShellTestRouter(initialLocation: '/settings');
+    await pumpShellApp(
+      tester,
+      router,
+      extraOverrides: [
+        notificationHistoryLoaderProvider.overrideWithValue(
+          ({NotificationHistoryCursor? after, int limit = 20}) async =>
+              Ok(firstPage),
+        ),
+      ],
+    );
+    final page = find.text('settings-root');
+    final restingCenter = tester.getCenter(page);
+    final context = tester.element(page);
+    final opened = NotificationCenter.open(context);
+    await tester.pumpAndSettle();
+
+    expect(tester.getCenter(page).dx, lessThan(restingCenter.dx));
+    expect(find.byKey(const Key('notification-center-panel')), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    await opened;
+  });
+
+  testWidgets('moves every primary tab with the notification center', (
+    tester,
+  ) async {
+    await pumpShellApp(
+      tester,
+      buildShellTestRouter(),
+      extraOverrides: [
+        notificationHistoryLoaderProvider.overrideWithValue(
+          ({NotificationHistoryCursor? after, int limit = 20}) async =>
+              Ok(firstPage),
+        ),
+      ],
+    );
+
+    for (final tab in [
+      ('Home', 'home-root'),
+      ('Work', 'work-root'),
+      ('Money', 'money-root'),
+      ('Reports', 'reports-root'),
+    ]) {
+      await tester.tap(find.text(tab.$1).last);
+      await tester.pumpAndSettle();
+      final page = find.text(tab.$2).first;
+      final restingCenter = tester.getCenter(page);
+      final opened = NotificationCenter.open(tester.element(page));
+      await tester.pumpAndSettle();
+      expect(
+        tester.getCenter(page).dx,
+        lessThan(restingCenter.dx),
+        reason: '${tab.$1} should move with the shared page plane',
+      );
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      await opened;
+    }
   });
 }

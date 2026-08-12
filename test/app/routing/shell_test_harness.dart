@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/routing/app_shell.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
+import 'package:work_tracker/app/routing/finance_suit_menu.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/supabase/realtime_invalidation.dart';
 import 'package:work_tracker/features/finance/domain/transaction_macro.dart';
@@ -16,11 +17,17 @@ import 'package:work_tracker/l10n/generated/app_localizations.dart';
 /// stub screens so shell chrome can be tested without Supabase data.
 GoRouter buildShellTestRouter({String initialLocation = '/home'}) {
   final rootNavigatorKey = GlobalKey<NavigatorState>();
+  final appNavigatorKey = GlobalKey<NavigatorState>();
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: initialLocation,
     routes: [
-      StatefulShellRoute.indexedStack(
+      ShellRoute(
+        navigatorKey: appNavigatorKey,
+        builder: (context, state, child) =>
+            FinanceSuitMenuPagePlane(child: child),
+        routes: [
+          StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) => AppShell(
           navigationShell: navigationShell,
           currentLocation: state.uri.path,
@@ -44,25 +51,25 @@ GoRouter buildShellTestRouter({String initialLocation = '/home'}) {
                 routes: [
                   GoRoute(
                     path: 'entry/new',
-                    parentNavigatorKey: rootNavigatorKey,
+                    parentNavigatorKey: appNavigatorKey,
                     builder: (context, state) =>
                         const StubFocusedScreen(label: 'work-entry-form'),
                   ),
                   GoRoute(
                     path: 'holidays',
-                    parentNavigatorKey: rootNavigatorKey,
+                    parentNavigatorKey: appNavigatorKey,
                     builder: (context, state) =>
                         const StubFocusedScreen(label: 'holidays-screen'),
                   ),
                   GoRoute(
                     path: 'periods',
-                    parentNavigatorKey: rootNavigatorKey,
+                    parentNavigatorKey: appNavigatorKey,
                     builder: (context, state) =>
                         const StubFocusedScreen(label: 'salary-periods-screen'),
                   ),
                   GoRoute(
                     path: 'adjustments/new',
-                    parentNavigatorKey: rootNavigatorKey,
+                    parentNavigatorKey: appNavigatorKey,
                     builder: (context, state) => StubFocusedScreen(
                       label:
                           'salary-adjustment-form'
@@ -82,25 +89,25 @@ GoRouter buildShellTestRouter({String initialLocation = '/home'}) {
                 routes: [
                   GoRoute(
                     path: 'facilities/purchase',
-                    parentNavigatorKey: rootNavigatorKey,
+                    parentNavigatorKey: appNavigatorKey,
                     builder: (context, state) =>
                         const StubFocusedScreen(label: 'facility-purchase'),
                   ),
                   GoRoute(
                     path: 'facilities/pay',
-                    parentNavigatorKey: rootNavigatorKey,
+                    parentNavigatorKey: appNavigatorKey,
                     builder: (context, state) =>
                         const StubFocusedScreen(label: 'facility-pay'),
                   ),
                   GoRoute(
                     path: 'facilities/:id',
-                    parentNavigatorKey: rootNavigatorKey,
+                    parentNavigatorKey: appNavigatorKey,
                     builder: (context, state) =>
                         const StubFocusedScreen(label: 'facility-detail'),
                   ),
                   GoRoute(
                     path: 'tx/new',
-                    parentNavigatorKey: rootNavigatorKey,
+                    parentNavigatorKey: appNavigatorKey,
                     builder: (context, state) => StubFocusedScreen(
                       label:
                           'tx-form-${state.uri.queryParameters['kind'] ?? ''}',
@@ -108,19 +115,19 @@ GoRouter buildShellTestRouter({String initialLocation = '/home'}) {
                   ),
                   GoRoute(
                     path: 'transfer',
-                    parentNavigatorKey: rootNavigatorKey,
+                    parentNavigatorKey: appNavigatorKey,
                     builder: (context, state) =>
                         const StubFocusedScreen(label: 'transfer-form'),
                   ),
                   GoRoute(
                     path: 'categories',
-                    parentNavigatorKey: rootNavigatorKey,
+                    parentNavigatorKey: appNavigatorKey,
                     builder: (context, state) =>
                         const StubFocusedScreen(label: 'categories-screen'),
                     routes: [
                       GoRoute(
                         path: 'new',
-                        parentNavigatorKey: rootNavigatorKey,
+                    parentNavigatorKey: appNavigatorKey,
                         builder: (context, state) =>
                             const StubFocusedScreen(label: 'category-form'),
                       ),
@@ -128,13 +135,13 @@ GoRouter buildShellTestRouter({String initialLocation = '/home'}) {
                   ),
                   GoRoute(
                     path: 'macros',
-                    parentNavigatorKey: rootNavigatorKey,
+                    parentNavigatorKey: appNavigatorKey,
                     builder: (context, state) =>
                         const StubFocusedScreen(label: 'macros-screen'),
                     routes: [
                       GoRoute(
                         path: 'new',
-                        parentNavigatorKey: rootNavigatorKey,
+                    parentNavigatorKey: appNavigatorKey,
                         builder: (context, state) =>
                             const StubFocusedScreen(label: 'macro-form'),
                       ),
@@ -142,13 +149,13 @@ GoRouter buildShellTestRouter({String initialLocation = '/home'}) {
                   ),
                   GoRoute(
                     path: 'held/new',
-                    parentNavigatorKey: rootNavigatorKey,
+                    parentNavigatorKey: appNavigatorKey,
                     builder: (context, state) =>
                         const StubFocusedScreen(label: 'held-form'),
                   ),
                   GoRoute(
                     path: 'accounts/new',
-                    parentNavigatorKey: rootNavigatorKey,
+                    parentNavigatorKey: appNavigatorKey,
                     builder: (context, state) =>
                         const StubFocusedScreen(label: 'account-form'),
                   ),
@@ -166,13 +173,13 @@ GoRouter buildShellTestRouter({String initialLocation = '/home'}) {
             ],
           ),
         ],
-      ),
-      GoRoute(
+          ),
+          GoRoute(
         path: '/history',
         builder: (context, state) =>
             const StubFocusedScreen(label: 'history-screen'),
       ),
-      GoRoute(
+          GoRoute(
         path: '/settings',
         builder: (context, state) =>
             const StubFocusedScreen(label: 'settings-root'),
@@ -190,6 +197,8 @@ GoRouter buildShellTestRouter({String initialLocation = '/home'}) {
             ],
           ),
         ],
+          ),
+        ],
       ),
     ],
   );
@@ -203,6 +212,7 @@ Future<void> pumpShellApp(
   WidgetTester tester,
   GoRouter router, {
   Locale locale = const Locale('en'),
+  ThemeMode themeMode = ThemeMode.light,
   List<dynamic> extraOverrides = const [],
 }) async {
   await tester.pumpWidget(
@@ -214,6 +224,8 @@ Future<void> pumpShellApp(
       ],
       child: MaterialApp.router(
         theme: AppTheme.light(locale: locale),
+        darkTheme: AppTheme.dark(locale: locale),
+        themeMode: themeMode,
         locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,

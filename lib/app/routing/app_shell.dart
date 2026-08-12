@@ -231,11 +231,10 @@ class _AppShellState extends ConsumerState<AppShell> {
   Widget build(BuildContext context) {
     ref.watch(realtimeInvalidationProvider);
     final l10n = AppLocalizations.of(context);
-    return FinanceSuitMenuPagePlane(
-      child: PopScope(
-        canPop: false,
-        onPopInvokedWithResult: _handleRootBack,
-        child: Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: _handleRootBack,
+      child: Scaffold(
           extendBody: true,
           body: FinanceSuitHeaderScrollScope(
             isSolid: _headerIsSolid,
