@@ -118,6 +118,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonToday => 'Today';
 
   @override
+  String get notificationYesterday => 'Yesterday';
+
+  @override
+  String get notificationThisWeek => 'This week';
+
+  @override
+  String get notificationEarlier => 'Earlier';
+
+  @override
+  String get notificationEmpty => 'No notifications yet.';
+
+  @override
+  String get notificationMarkAllRead => 'Mark all as read';
+
+  @override
   String get commonSeeAll => 'See all';
 
   @override
