@@ -1,7 +1,7 @@
 name: work_tracker
 description: "Finance Suit — private salary, work, and cash-flow control."
 publish_to: 'none'
-version: 0.13.2+25
+version: 0.13.3+26
 
 environment:
   sdk: ^3.11.4

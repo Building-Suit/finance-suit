@@ -504,8 +504,8 @@ class _MenuLogoutSeparator extends StatelessWidget {
 /// Applies the Building Suit page-plane transform to the current page while
 /// the side menu is open: 60% travel away from the opening edge, 0.85
 /// scale, 40px corners, and a lateral shadow, all driven by the menu
-/// route's animation. Wraps the shell because the menu can only be opened
-/// from the four primary destinations.
+/// route's animation. It wraps the authenticated navigation subtree so every
+/// route with the shared header moves as one coherent surface.
 class FinanceSuitMenuPagePlane extends StatelessWidget {
   const FinanceSuitMenuPagePlane({super.key, required this.child});
 
@@ -526,7 +526,7 @@ class FinanceSuitMenuPagePlane extends StatelessWidget {
         if (progress == 0) return page!;
         final size = MediaQuery.sizeOf(context);
         final awayFromOpeningEdge = notificationProgress > menuProgress
-            ? -1.0
+            ? NotificationCenter.pagePlaneDirection(context)
             : Directionality.of(context) == TextDirection.rtl
             ? -1.0
             : 1.0;

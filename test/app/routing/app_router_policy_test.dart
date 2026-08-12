@@ -17,9 +17,9 @@ class _FakeOnboardingNotifier extends OnboardingStatusNotifier {
 }
 
 /// Structural checks of the central shell-chrome routing policy: the shell
-/// hosts exactly the four primary destinations, and every other
-/// authenticated route lives on the root navigator so it always covers the
-/// bottom navigation. Deep-link URLs for Settings and History are unchanged.
+/// hosts exactly the four primary destinations, while one authenticated
+/// navigator owns the page-plane transform for primary and pushed routes.
+/// Deep-link URLs for Settings and History are unchanged.
 void main() {
   late ProviderContainer container;
   late GoRouter router;
@@ -36,8 +36,11 @@ void main() {
 
   tearDown(() => container.dispose());
 
+  ShellRoute authenticatedRoute() =>
+      router.configuration.routes.whereType<ShellRoute>().single;
+
   StatefulShellRoute shellRoute() =>
-      router.configuration.routes.whereType<StatefulShellRoute>().single;
+      authenticatedRoute().routes.whereType<StatefulShellRoute>().single;
 
   Iterable<GoRoute> descendants(RouteBase route) sync* {
     for (final child in route.routes) {
@@ -57,7 +60,7 @@ void main() {
   });
 
   test('Settings is a pushed utility destination with unchanged URLs', () {
-    final topLevel = router.configuration.routes.whereType<GoRoute>();
+    final topLevel = authenticatedRoute().routes.whereType<GoRoute>();
     final settings = topLevel.singleWhere((r) => r.path == '/settings');
     final nested = descendants(settings).map((r) => r.path).toList();
     expect(
@@ -75,18 +78,18 @@ void main() {
     expect(topLevel.any((r) => r.path == '/history'), isTrue);
   });
 
-  test('every nested branch route is bound to the root navigator', () {
-    final rootKey = router.configuration.navigatorKey;
+  test('every nested branch route uses the shared authenticated navigator', () {
+    final appKey = authenticatedRoute().navigatorKey;
     for (final branch in shellRoute().branches) {
       final root = branch.routes.single as GoRoute;
       expect(root.parentNavigatorKey, isNull);
       for (final nested in descendants(root)) {
         expect(
           nested.parentNavigatorKey,
-          same(rootKey),
+          same(appKey),
           reason:
-              '${nested.path} must cover the shell so the bottom '
-              'navigation is hidden on non-primary routes',
+              '${nested.path} must cover the bottom navigation while '
+              'remaining inside the shared page-plane transform',
         );
       }
     }
