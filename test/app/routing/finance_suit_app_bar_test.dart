@@ -79,12 +79,14 @@ void main() {
 
     final surface = find.byKey(const Key('finance-suit-app-bar-surface'));
     final appWidth = tester.getSize(find.byType(MaterialApp)).width;
-    final surfaceRect = tester.getRect(surface);
-    final decoration =
-        tester.widget<DecoratedBox>(surface).decoration as BoxDecoration;
+    final container = tester.widget<AnimatedContainer>(surface);
+    final decoration = container.decoration as BoxDecoration;
 
-    expect(surfaceRect.left, 16);
-    expect(surfaceRect.right, appWidth - 16);
+    expect(
+      container.margin,
+      const EdgeInsetsDirectional.symmetric(horizontal: 16),
+    );
+    expect(appWidth, greaterThan(32));
     expect(decoration.borderRadius, BorderRadius.circular(16));
   });
 
@@ -112,14 +114,22 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        tester.widget<AnimatedPadding>(find.byType(AnimatedPadding)).padding,
+        tester
+            .widget<AnimatedContainer>(
+              find.byKey(const Key('finance-suit-app-bar-surface')),
+            )
+            .margin,
         const EdgeInsetsDirectional.symmetric(horizontal: 16),
       );
 
       isSolid.value = true;
       await tester.pump();
       expect(
-        tester.widget<AnimatedPadding>(find.byType(AnimatedPadding)).padding,
+        tester
+            .widget<AnimatedContainer>(
+              find.byKey(const Key('finance-suit-app-bar-surface')),
+            )
+            .margin,
         EdgeInsetsDirectional.zero,
       );
       // The safe-area surface is an immediate opaque paint, not an animated
@@ -149,15 +159,15 @@ void main() {
   ) async {
     await pumpBar(
       tester,
-      appBar: const FinanceSuitHomeAppBar(
+      appBar: const FinanceSuitAppBar.topLevel(
         semanticTitle: 'Home',
         isSolid: false,
       ),
     );
 
-    final surface = find.byKey(const Key('finance-suit-home-header-surface'));
+    final surface = find.byKey(const Key('finance-suit-app-bar-surface'));
     final safeAreaSurface = find.byKey(
-      const Key('finance-suit-home-header-safe-area-surface'),
+      const Key('finance-suit-header-safe-area-surface'),
     );
     final width = tester.getSize(find.byType(MaterialApp)).width;
     expect(
@@ -179,7 +189,10 @@ void main() {
 
     await pumpBar(
       tester,
-      appBar: const FinanceSuitHomeAppBar(semanticTitle: 'Home', isSolid: true),
+      appBar: const FinanceSuitAppBar.topLevel(
+        semanticTitle: 'Home',
+        isSolid: true,
+      ),
     );
     expect(
       tester.widget<AnimatedContainer>(surface).margin,
@@ -223,7 +236,7 @@ void main() {
   ) async {
     await pumpBar(
       tester,
-      appBar: const FinanceSuitHomeAppBar(
+      appBar: const FinanceSuitAppBar.topLevel(
         semanticTitle: 'Home',
         isSolid: false,
       ),
@@ -233,7 +246,7 @@ void main() {
     expect(
       tester
           .widget<AnimatedContainer>(
-            find.byKey(const Key('finance-suit-home-header-surface')),
+            find.byKey(const Key('finance-suit-app-bar-surface')),
           )
           .duration,
       Duration.zero,
@@ -254,14 +267,14 @@ void main() {
       limits: {},
       metadata: {},
     );
-    const appBar = FinanceSuitHomeAppBar(
+    const appBar = FinanceSuitAppBar.topLevel(
       semanticTitle: 'Home',
       isSolid: false,
       entitlement: entitlement,
     );
     await pumpBar(tester, appBar: appBar);
 
-    final surface = find.byKey(const Key('finance-suit-home-header-surface'));
+    final surface = find.byKey(const Key('finance-suit-app-bar-surface'));
     final strip = find.byKey(const Key('subscription-status-strip'));
     final surfaceRect = tester.getRect(surface);
     final stripRect = tester.getRect(strip);
@@ -274,7 +287,7 @@ void main() {
 
     await pumpBar(
       tester,
-      appBar: const FinanceSuitHomeAppBar(
+      appBar: const FinanceSuitAppBar.topLevel(
         semanticTitle: 'Home',
         isSolid: true,
         entitlement: entitlement,
@@ -292,7 +305,7 @@ void main() {
       0,
     );
     expect(
-      const FinanceSuitHomeAppBar(
+      const FinanceSuitAppBar.topLevel(
         semanticTitle: 'Home',
         isSolid: true,
         entitlement: entitlement,
@@ -310,7 +323,7 @@ void main() {
       await tester.binding.setSurfaceSize(Size(width, 800));
       await pumpBar(
         tester,
-        appBar: FinanceSuitHomeAppBar(
+        appBar: FinanceSuitAppBar.topLevel(
           semanticTitle: 'Home',
           isSolid: false,
           entitlement: EffectiveEntitlement.free(),
@@ -318,7 +331,7 @@ void main() {
       );
 
       final surfaceRect = tester.getRect(
-        find.byKey(const Key('finance-suit-home-header-surface')),
+        find.byKey(const Key('finance-suit-app-bar-surface')),
       );
       final stripRect = tester.getRect(
         find.byKey(const Key('subscription-status-strip')),
@@ -392,6 +405,45 @@ void main() {
     final title = tester.getCenter(find.text('Details'));
     final appBarBottom = tester.getRect(find.byType(AppBar)).bottom;
     expect(title.dy, greaterThan(appBarBottom));
+  });
+
+  testWidgets('focused routes use the same shared scroll motion', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: AppTheme.light(),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            appBar: const FinanceSuitAppBar.focused(semanticTitle: 'Expense'),
+            body: ListView.builder(
+              key: const Key('focused-route-scroll'),
+              itemCount: 30,
+              itemBuilder: (context, index) =>
+                  SizedBox(height: 48, child: Text('row $index')),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final surface = find.byKey(const Key('finance-suit-app-bar-surface'));
+    expect(
+      tester.widget<AnimatedContainer>(surface).margin,
+      const EdgeInsetsDirectional.symmetric(horizontal: 16),
+    );
+    await tester.drag(
+      find.byKey(const Key('focused-route-scroll')),
+      const Offset(0, -120),
+    );
+    await tester.pump(const Duration(milliseconds: 240));
+    expect(
+      tester.widget<AnimatedContainer>(surface).margin,
+      EdgeInsetsDirectional.zero,
+    );
   });
 
   testWidgets('announces the screen name as a semantic header', (tester) async {

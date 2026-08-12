@@ -78,7 +78,7 @@ GoRouter buildShellTestRouter({String initialLocation = '/home'}) {
               GoRoute(
                 path: '/money',
                 builder: (context, state) =>
-                    const StubPrimaryScreen(label: 'money-root'),
+                    const StubTabbedPrimaryScreen(label: 'money-root'),
                 routes: [
                   GoRoute(
                     path: 'facilities/purchase',
@@ -234,6 +234,41 @@ class StubPrimaryScreen extends StatefulWidget {
 
   @override
   State<StubPrimaryScreen> createState() => _StubPrimaryScreenState();
+}
+
+/// Reproduces Money's nested TabBarView -> vertical ListView scroll topology.
+class StubTabbedPrimaryScreen extends StatelessWidget {
+  const StubTabbedPrimaryScreen({super.key, required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        appBar: FinanceSuitAppBar.topLevel(
+          semanticTitle: label,
+          bottom: const TabBar(
+            tabs: [Text('Accounts'), Text('Transactions'), Text('Held')],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            for (var tab = 0; tab < 3; tab++)
+              ListView.builder(
+                key: Key('$label-scroll-$tab'),
+                itemCount: 30,
+                itemBuilder: (context, index) => SizedBox(
+                  height: 48,
+                  child: Text(index == 0 ? label : '$label-$tab-$index'),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _StubPrimaryScreenState extends State<StubPrimaryScreen> {

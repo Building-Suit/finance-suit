@@ -82,8 +82,7 @@ class _AppShellState extends ConsumerState<AppShell> {
   /// every tab on the same header state contract and prevents offstage tabs
   /// from owning stale header state.
   bool _onPageScroll(ScrollNotification notification) {
-    if (notification.depth != 0 ||
-        notification.metrics.axis != Axis.vertical ||
+    if (notification.metrics.axis != Axis.vertical ||
         (notification is! ScrollUpdateNotification &&
             notification is! ScrollEndNotification &&
             notification is! ScrollStartNotification &&
