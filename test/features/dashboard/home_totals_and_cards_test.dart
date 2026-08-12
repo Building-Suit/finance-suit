@@ -13,6 +13,7 @@ import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/dashboard/presentation/screens/home_screen.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
+import 'package:work_tracker/features/finance/domain/home_due_obligation.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
@@ -80,6 +81,49 @@ void main() {
     colorHex: colorHex,
   );
   final card = buildCard();
+  final homeDues = HomeDueSummary([
+    HomeDueObligation(
+      id: 'statement-1',
+      kind: HomeDueObligationKind.cardStatement,
+      sourceAccountId: 'card-1',
+      sourceName: 'Everyday Card',
+      maskedIdentifier: '4242',
+      relatedId: 'statement-1',
+      dueOn: PlainDate.today().addDays(2),
+      currencyCode: 'EGP',
+      remainingMinor: 100000,
+      minimumDueMinor: 25000,
+      paidMinor: 0,
+      status: 'upcoming',
+      title: 'Everyday Card — Statement due',
+      sortRank: 2,
+      details: const {
+        'items': [
+          {
+            'title': 'Groceries',
+            'occurred_on': '2026-08-01',
+            'amount_minor': 100000,
+          },
+        ],
+      },
+    ),
+    HomeDueObligation(
+      id: 'recurring-1',
+      kind: HomeDueObligationKind.recurringExpense,
+      sourceAccountId: 'wallet',
+      sourceName: 'Internet',
+      relatedId: 'rule-1',
+      dueOn: PlainDate.today().addDays(4),
+      currencyCode: 'EGP',
+      remainingMinor: 50000,
+      minimumDueMinor: 50000,
+      paidMinor: 0,
+      status: 'upcoming',
+      title: 'Internet — Recurring payment',
+      sortRank: 2,
+      details: const {'frequency': 'monthly'},
+    ),
+  ]);
 
   Future<void> pumpHome(
     WidgetTester tester, {
@@ -106,6 +150,9 @@ void main() {
           pendingRecurringProvider.overrideWith(
             (ref) async => const <PendingRecurring>[],
           ),
+          homeCurrentMonthObligationsProvider.overrideWith(
+            (ref) async => homeDues,
+          ),
           homeCashFlowSummaryProvider.overrideWith(
             (ref, range) async => const <CashFlowSummary>[],
           ),
@@ -129,6 +176,12 @@ void main() {
     }
   }
 
+  Future<void> revealCards(WidgetTester tester) => tester.dragUntilVisible(
+    find.byKey(const Key('home-credit-card-carousel')),
+    find.byKey(const Key('home-dashboard-scroll')),
+    const Offset(0, -180),
+  );
+
   testWidgets('the total balance ignores credit facilities', (tester) async {
     await pumpHome(tester);
 
@@ -144,6 +197,7 @@ void main() {
     tester,
   ) async {
     await pumpHome(tester);
+    await revealCards(tester);
 
     expect(find.byKey(const Key('home-credit-card-carousel')), findsOneWidget);
     expect(find.byKey(const Key('home-card-card-1')), findsOneWidget);
@@ -166,18 +220,31 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('cards sit between the balance and the cash flow', (
+  testWidgets('Next due sits between the balance and cards', (tester) async {
+    await pumpHome(tester);
+
+    // The card appears after the Balance/Next due content in the scroll flow.
+    expect(find.text('Next due').first, findsOneWidget);
+    await revealCards(tester);
+    expect(find.text('Cards'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Calculate opens the itemized Due impact bottom sheet', (
     tester,
   ) async {
     await pumpHome(tester);
+    await tester.tap(find.byKey(const Key('home-next-due-calculate')));
+    await tester.pumpAndSettle();
 
-    // Home reads money-I-have, then money-I-owe, then how it moved.
-    final balance = tester.getTopLeft(find.text('Balance')).dy;
-    final cards = tester.getTopLeft(find.text('Cards')).dy;
-    final cashFlow = tester.getTopLeft(find.text('Cash flow')).dy;
+    expect(find.text('Due impact'), findsOneWidget);
+    expect(find.text('Everyday Card — Statement due'), findsWidgets);
+    expect(find.text('Internet — Recurring payment'), findsWidgets);
+    expect(find.byKey(const Key('home-due-pay-from-account')), findsOneWidget);
 
-    expect(balance, lessThan(cards));
-    expect(cards, lessThan(cashFlow));
+    await tester.tap(find.byKey(const Key('home-due-detail-statement-1')));
+    await tester.pumpAndSettle();
+    expect(find.text('Groceries'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -200,6 +267,7 @@ void main() {
       tester,
       facility: buildCard(colorHex: FacilitySwatches.hexOf(chosen)),
     );
+    await revealCards(tester);
 
     expect(homeCardColor(tester), chosen);
     expect(tester.takeException(), isNull);
@@ -209,6 +277,7 @@ void main() {
     tester,
   ) async {
     await pumpHome(tester);
+    await revealCards(tester);
 
     expect(homeCardColor(tester), isNot(FacilitySwatches.values[5]));
     expect(tester.takeException(), isNull);
