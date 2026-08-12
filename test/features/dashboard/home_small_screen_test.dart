@@ -95,7 +95,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await pumpHome(tester);
-    final surface = find.byKey(const Key('finance-suit-home-header-surface'));
+    final surface = find.byKey(const Key('finance-suit-app-bar-surface'));
     final scrollView = find.byKey(const Key('home-dashboard-scroll'));
     expect(
       tester.widget<AnimatedContainer>(surface).margin,

@@ -256,7 +256,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
 
     Widget page(bool isHeaderSolid) => Scaffold(
-      appBar: FinanceSuitHomeAppBar(
+      appBar: FinanceSuitAppBar.topLevel(
         semanticTitle: l10n.tabHome,
         isSolid: isHeaderSolid,
         entitlement: entitlementAsync.value,

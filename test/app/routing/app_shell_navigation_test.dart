@@ -327,6 +327,42 @@ void main() {
     expect(find.text('work-root'), findsOneWidget);
   });
 
+  testWidgets('Money nested tab scrolling drives the shared header motion', (
+    tester,
+  ) async {
+    await pumpShellApp(tester, buildShellTestRouter());
+    await tester.tap(
+      find.descendant(of: navBar(), matching: find.text('Money')),
+    );
+    await tester.pumpAndSettle();
+
+    final surface = find.byKey(const Key('finance-suit-app-bar-surface'));
+    expect(
+      tester.widget<AnimatedContainer>(surface).margin,
+      const EdgeInsetsDirectional.symmetric(horizontal: 16),
+    );
+
+    await tester.drag(
+      find.byKey(const Key('money-root-scroll-0')),
+      const Offset(0, -160),
+    );
+    await tester.pump(const Duration(milliseconds: 240));
+    expect(
+      tester.widget<AnimatedContainer>(surface).margin,
+      EdgeInsetsDirectional.zero,
+    );
+
+    await tester.drag(
+      find.byKey(const Key('money-root-scroll-0')),
+      const Offset(0, 200),
+    );
+    await tester.pump(const Duration(milliseconds: 240));
+    expect(
+      tester.widget<AnimatedContainer>(surface).margin,
+      const EdgeInsetsDirectional.symmetric(horizontal: 16),
+    );
+  });
+
   testWidgets('hides the bar on pushed Settings and restores the tab', (
     tester,
   ) async {
