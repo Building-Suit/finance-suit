@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -512,14 +513,23 @@ class FinanceSuitMenuPagePlane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<double>(
-      valueListenable: FinanceSuitMenu.pageProgress,
+    return AnimatedBuilder(
+      animation: Listenable.merge([
+        FinanceSuitMenu.pageProgress,
+        NotificationCenter.pageProgress,
+      ]),
       child: child,
-      builder: (context, progress, page) {
+      builder: (context, page) {
+        final menuProgress = FinanceSuitMenu.pageProgress.value;
+        final notificationProgress = NotificationCenter.pageProgress.value;
+        final progress = math.max(menuProgress, notificationProgress);
         if (progress == 0) return page!;
         final size = MediaQuery.sizeOf(context);
-        final awayFromStartEdge =
-            Directionality.of(context) == TextDirection.rtl ? -1.0 : 1.0;
+        final awayFromOpeningEdge = notificationProgress > menuProgress
+            ? -1.0
+            : Directionality.of(context) == TextDirection.rtl
+            ? -1.0
+            : 1.0;
         final radius = Radius.circular(
           FinanceSuitMenu.pagePlaneRadius * progress,
         );
@@ -533,7 +543,7 @@ class FinanceSuitMenuPagePlane extends StatelessWidget {
             size.width *
                 FinanceSuitMenu.pagePlaneTravel *
                 progress *
-                awayFromStartEdge,
+                awayFromOpeningEdge,
             0,
           ),
           child: Transform.scale(
@@ -545,7 +555,7 @@ class FinanceSuitMenuPagePlane extends StatelessWidget {
                   BoxShadow(
                     color: shadowColor,
                     blurRadius: 24,
-                    offset: Offset(-8 * awayFromStartEdge, 8),
+                    offset: Offset(-8 * awayFromOpeningEdge, 8),
                   ),
                 ],
               ),

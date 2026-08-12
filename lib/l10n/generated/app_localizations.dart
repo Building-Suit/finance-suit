@@ -312,6 +312,36 @@ abstract class AppLocalizations {
   /// **'Today'**
   String get commonToday;
 
+  /// No description provided for @notificationYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get notificationYesterday;
+
+  /// No description provided for @notificationThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get notificationThisWeek;
+
+  /// No description provided for @notificationEarlier.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier'**
+  String get notificationEarlier;
+
+  /// No description provided for @notificationEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications yet.'**
+  String get notificationEmpty;
+
+  /// No description provided for @notificationMarkAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all as read'**
+  String get notificationMarkAllRead;
+
   /// No description provided for @commonSeeAll.
   ///
   /// In en, this message translates to:

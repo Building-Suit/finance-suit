@@ -118,6 +118,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonToday => 'اليوم';
 
   @override
+  String get notificationYesterday => 'أمس';
+
+  @override
+  String get notificationThisWeek => 'هذا الأسبوع';
+
+  @override
+  String get notificationEarlier => 'سابقًا';
+
+  @override
+  String get notificationEmpty => 'لا توجد إشعارات بعد.';
+
+  @override
+  String get notificationMarkAllRead => 'تحديد الكل كمقروء';
+
+  @override
   String get commonSeeAll => 'عرض الكل';
 
   @override

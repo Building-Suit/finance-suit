@@ -78,6 +78,7 @@ class NotificationHistoryItem {
     required this.reminderKind,
     required this.createdAt,
     required this.payload,
+    this.readAt,
   });
 
   factory NotificationHistoryItem.fromJson(Map<String, dynamic> json) =>
@@ -86,6 +87,10 @@ class NotificationHistoryItem {
         obligationType: json['obligation_type'] as String? ?? 'general',
         reminderKind: json['reminder_kind'] as String? ?? 'due_today',
         createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
+        readAt: switch (json['read_at']) {
+          final String value => DateTime.parse(value).toLocal(),
+          _ => null,
+        },
         payload: Map<String, dynamic>.from(
           (json['payload_snapshot'] as Map?) ?? const <String, dynamic>{},
         ),
@@ -96,6 +101,19 @@ class NotificationHistoryItem {
   final String reminderKind;
   final DateTime createdAt;
   final Map<String, dynamic> payload;
+  final DateTime? readAt;
+
+  bool get isUnread => readAt == null;
+
+  NotificationHistoryItem copyWith({DateTime? readAt}) =>
+      NotificationHistoryItem(
+        id: id,
+        obligationType: obligationType,
+        reminderKind: reminderKind,
+        createdAt: createdAt,
+        payload: payload,
+        readAt: readAt ?? this.readAt,
+      );
 }
 
 @immutable
@@ -225,7 +243,7 @@ class NotificationsRepository {
       var query = _db
           .from('notification_outbox')
           .select(
-            'id,obligation_type,reminder_kind,created_at,payload_snapshot',
+            'id,obligation_type,reminder_kind,created_at,payload_snapshot,read_at',
           )
           .eq('user_id', _userId)
           .eq('status', 'sent');
@@ -250,6 +268,29 @@ class NotificationsRepository {
             ? NotificationHistoryCursor(createdAt: last.createdAt, id: last.id)
             : null,
       );
+    });
+  }
+
+  Future<Result<void>> markHistoryRead(String id) {
+    return guard(() async {
+      await _db
+          .from('notification_outbox')
+          .update({'read_at': DateTime.now().toUtc().toIso8601String()})
+          .eq('id', id)
+          .eq('user_id', _userId)
+          .eq('status', 'sent')
+          .isFilter('read_at', null);
+    });
+  }
+
+  Future<Result<void>> markAllHistoryRead() {
+    return guard(() async {
+      await _db
+          .from('notification_outbox')
+          .update({'read_at': DateTime.now().toUtc().toIso8601String()})
+          .eq('user_id', _userId)
+          .eq('status', 'sent')
+          .isFilter('read_at', null);
     });
   }
 
