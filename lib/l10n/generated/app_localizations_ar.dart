@@ -2201,6 +2201,87 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get homeNextDueTitle => 'الاستحقاق التالي';
+
+  @override
+  String get homeCalculate => 'احسب';
+
+  @override
+  String get homeDueImpact => 'أثر الاستحقاقات';
+
+  @override
+  String get homeMinimumDue => 'الحد الأدنى المستحق';
+
+  @override
+  String get homeTotalDue => 'إجمالي المستحق';
+
+  @override
+  String get homeLateAfter => 'يتأخر بعد';
+
+  @override
+  String get homeWhatYouPayFor => 'ما الذي ستدفعه';
+
+  @override
+  String get homePayFromAccount => 'الدفع من حساب';
+
+  @override
+  String get homeCurrentBalance => 'الرصيد الحالي';
+
+  @override
+  String get homeAmountDeducted => 'المبلغ المخصوم';
+
+  @override
+  String get homeRemainingBalance => 'الرصيد المتبقي';
+
+  @override
+  String get homeNothingDueThisMonth => 'لا مستحقات هذا الشهر';
+
+  @override
+  String get homeUpcoming => 'قادم';
+
+  @override
+  String get homeLate => 'متأخر';
+
+  @override
+  String homeDueCount(int count) {
+    return 'يتضمن $count التزامات';
+  }
+
+  @override
+  String homeInsufficientFunds(String amount) {
+    return 'العجز: $amount';
+  }
+
+  @override
+  String get homeStatementDue => 'مستحق كشف الحساب';
+
+  @override
+  String get homeRecurringPayment => 'دفعة متكررة';
+
+  @override
+  String homeInstallmentOf(int current, int total) {
+    return 'القسط $current من $total';
+  }
+
+  @override
+  String homeScheduled(String date) {
+    return 'مجدول في $date';
+  }
+
+  @override
+  String get homePurchaseDate => 'تاريخ الشراء';
+
+  @override
+  String get homePlanRemaining => 'المتبقي من الخطة';
+
+  @override
+  String get homeMultipleCurrencies =>
+      'اختر حسابًا مطابقًا لكل عملة؛ لا يتم التحويل تلقائيًا.';
+
+  @override
+  String get homeNoMatchingAccount => 'لا يوجد حساب أصول نشط يطابق هذه العملة.';
+
+  @override
   String get reportsDebtTitle => 'الائتمان والأقساط';
 
   @override

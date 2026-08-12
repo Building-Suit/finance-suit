@@ -8,6 +8,7 @@ import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/dashboard/presentation/screens/home_screen.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
+import 'package:work_tracker/features/finance/domain/home_due_obligation.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/history/domain/history_models.dart';
@@ -37,6 +38,9 @@ void main() {
           ),
           pendingIncomeProvider.overrideWith(
             (ref) async => const <PendingIncome>[],
+          ),
+          homeCurrentMonthObligationsProvider.overrideWith(
+            (ref) async => HomeDueSummary(const []),
           ),
           homeCashFlowSummaryProvider.overrideWith(
             (ref, range) async => const [
@@ -76,6 +80,11 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await pumpHome(tester);
+    await tester.dragUntilVisible(
+      find.byType(GridView),
+      find.byKey(const Key('home-dashboard-scroll')),
+      const Offset(0, -160),
+    );
     expect(find.byType(GridView), findsWidgets);
     expect(tester.takeException(), isNull);
   });
