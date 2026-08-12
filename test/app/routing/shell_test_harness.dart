@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/routing/app_shell.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
+import 'package:work_tracker/app/routing/finance_suit_menu.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/supabase/realtime_invalidation.dart';
 import 'package:work_tracker/features/finance/domain/transaction_macro.dart';
@@ -16,176 +17,185 @@ import 'package:work_tracker/l10n/generated/app_localizations.dart';
 /// stub screens so shell chrome can be tested without Supabase data.
 GoRouter buildShellTestRouter({String initialLocation = '/home'}) {
   final rootNavigatorKey = GlobalKey<NavigatorState>();
+  final appNavigatorKey = GlobalKey<NavigatorState>();
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: initialLocation,
     routes: [
-      StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) => AppShell(
-          navigationShell: navigationShell,
-          currentLocation: state.uri.path,
-        ),
-        branches: [
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/home',
-                builder: (context, state) =>
-                    const StubPrimaryScreen(label: 'home-root'),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/work',
-                builder: (context, state) =>
-                    const StubPrimaryScreen(label: 'work-root'),
-                routes: [
-                  GoRoute(
-                    path: 'entry/new',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) =>
-                        const StubFocusedScreen(label: 'work-entry-form'),
-                  ),
-                  GoRoute(
-                    path: 'holidays',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) =>
-                        const StubFocusedScreen(label: 'holidays-screen'),
-                  ),
-                  GoRoute(
-                    path: 'periods',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) =>
-                        const StubFocusedScreen(label: 'salary-periods-screen'),
-                  ),
-                  GoRoute(
-                    path: 'adjustments/new',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => StubFocusedScreen(
-                      label:
-                          'salary-adjustment-form'
-                          '${state.uri.query.isEmpty ? '' : '?${state.uri.query}'}',
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/money',
-                builder: (context, state) =>
-                    const StubTabbedPrimaryScreen(label: 'money-root'),
-                routes: [
-                  GoRoute(
-                    path: 'facilities/purchase',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) =>
-                        const StubFocusedScreen(label: 'facility-purchase'),
-                  ),
-                  GoRoute(
-                    path: 'facilities/pay',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) =>
-                        const StubFocusedScreen(label: 'facility-pay'),
-                  ),
-                  GoRoute(
-                    path: 'facilities/:id',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) =>
-                        const StubFocusedScreen(label: 'facility-detail'),
-                  ),
-                  GoRoute(
-                    path: 'tx/new',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => StubFocusedScreen(
-                      label:
-                          'tx-form-${state.uri.queryParameters['kind'] ?? ''}',
-                    ),
-                  ),
-                  GoRoute(
-                    path: 'transfer',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) =>
-                        const StubFocusedScreen(label: 'transfer-form'),
-                  ),
-                  GoRoute(
-                    path: 'categories',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) =>
-                        const StubFocusedScreen(label: 'categories-screen'),
-                    routes: [
-                      GoRoute(
-                        path: 'new',
-                        parentNavigatorKey: rootNavigatorKey,
-                        builder: (context, state) =>
-                            const StubFocusedScreen(label: 'category-form'),
-                      ),
-                    ],
-                  ),
-                  GoRoute(
-                    path: 'macros',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) =>
-                        const StubFocusedScreen(label: 'macros-screen'),
-                    routes: [
-                      GoRoute(
-                        path: 'new',
-                        parentNavigatorKey: rootNavigatorKey,
-                        builder: (context, state) =>
-                            const StubFocusedScreen(label: 'macro-form'),
-                      ),
-                    ],
-                  ),
-                  GoRoute(
-                    path: 'held/new',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) =>
-                        const StubFocusedScreen(label: 'held-form'),
-                  ),
-                  GoRoute(
-                    path: 'accounts/new',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) =>
-                        const StubFocusedScreen(label: 'account-form'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/reports',
-                builder: (context, state) =>
-                    const StubPrimaryScreen(label: 'reports-root'),
-              ),
-            ],
-          ),
-        ],
-      ),
-      GoRoute(
-        path: '/history',
-        builder: (context, state) =>
-            const StubFocusedScreen(label: 'history-screen'),
-      ),
-      GoRoute(
-        path: '/settings',
-        builder: (context, state) =>
-            const StubFocusedScreen(label: 'settings-root'),
+      ShellRoute(
+        navigatorKey: appNavigatorKey,
+        builder: (context, state, child) =>
+            FinanceSuitMenuPagePlane(child: child),
         routes: [
+          StatefulShellRoute.indexedStack(
+            builder: (context, state, navigationShell) => AppShell(
+              navigationShell: navigationShell,
+              currentLocation: state.uri.path,
+            ),
+            branches: [
+              StatefulShellBranch(
+                routes: [
+                  GoRoute(
+                    path: '/home',
+                    builder: (context, state) =>
+                        const StubPrimaryScreen(label: 'home-root'),
+                  ),
+                ],
+              ),
+              StatefulShellBranch(
+                routes: [
+                  GoRoute(
+                    path: '/work',
+                    builder: (context, state) =>
+                        const StubPrimaryScreen(label: 'work-root'),
+                    routes: [
+                      GoRoute(
+                        path: 'entry/new',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) =>
+                            const StubFocusedScreen(label: 'work-entry-form'),
+                      ),
+                      GoRoute(
+                        path: 'holidays',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) =>
+                            const StubFocusedScreen(label: 'holidays-screen'),
+                      ),
+                      GoRoute(
+                        path: 'periods',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) => const StubFocusedScreen(
+                          label: 'salary-periods-screen',
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'adjustments/new',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) => StubFocusedScreen(
+                          label:
+                              'salary-adjustment-form'
+                              '${state.uri.query.isEmpty ? '' : '?${state.uri.query}'}',
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              StatefulShellBranch(
+                routes: [
+                  GoRoute(
+                    path: '/money',
+                    builder: (context, state) =>
+                        const StubTabbedPrimaryScreen(label: 'money-root'),
+                    routes: [
+                      GoRoute(
+                        path: 'facilities/purchase',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) =>
+                            const StubFocusedScreen(label: 'facility-purchase'),
+                      ),
+                      GoRoute(
+                        path: 'facilities/pay',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) =>
+                            const StubFocusedScreen(label: 'facility-pay'),
+                      ),
+                      GoRoute(
+                        path: 'facilities/:id',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) =>
+                            const StubFocusedScreen(label: 'facility-detail'),
+                      ),
+                      GoRoute(
+                        path: 'tx/new',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) => StubFocusedScreen(
+                          label:
+                              'tx-form-${state.uri.queryParameters['kind'] ?? ''}',
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'transfer',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) =>
+                            const StubFocusedScreen(label: 'transfer-form'),
+                      ),
+                      GoRoute(
+                        path: 'categories',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) =>
+                            const StubFocusedScreen(label: 'categories-screen'),
+                        routes: [
+                          GoRoute(
+                            path: 'new',
+                            parentNavigatorKey: appNavigatorKey,
+                            builder: (context, state) =>
+                                const StubFocusedScreen(label: 'category-form'),
+                          ),
+                        ],
+                      ),
+                      GoRoute(
+                        path: 'macros',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) =>
+                            const StubFocusedScreen(label: 'macros-screen'),
+                        routes: [
+                          GoRoute(
+                            path: 'new',
+                            parentNavigatorKey: appNavigatorKey,
+                            builder: (context, state) =>
+                                const StubFocusedScreen(label: 'macro-form'),
+                          ),
+                        ],
+                      ),
+                      GoRoute(
+                        path: 'held/new',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) =>
+                            const StubFocusedScreen(label: 'held-form'),
+                      ),
+                      GoRoute(
+                        path: 'accounts/new',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) =>
+                            const StubFocusedScreen(label: 'account-form'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              StatefulShellBranch(
+                routes: [
+                  GoRoute(
+                    path: '/reports',
+                    builder: (context, state) =>
+                        const StubPrimaryScreen(label: 'reports-root'),
+                  ),
+                ],
+              ),
+            ],
+          ),
           GoRoute(
-            path: 'income-sources',
+            path: '/history',
             builder: (context, state) =>
-                const StubFocusedScreen(label: 'automation-center'),
+                const StubFocusedScreen(label: 'history-screen'),
+          ),
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) =>
+                const StubFocusedScreen(label: 'settings-root'),
             routes: [
               GoRoute(
-                path: 'new',
+                path: 'income-sources',
                 builder: (context, state) =>
-                    const StubFocusedScreen(label: 'income-source-form'),
+                    const StubFocusedScreen(label: 'automation-center'),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    builder: (context, state) =>
+                        const StubFocusedScreen(label: 'income-source-form'),
+                  ),
+                ],
               ),
             ],
           ),
@@ -203,6 +213,7 @@ Future<void> pumpShellApp(
   WidgetTester tester,
   GoRouter router, {
   Locale locale = const Locale('en'),
+  ThemeMode themeMode = ThemeMode.light,
   List<dynamic> extraOverrides = const [],
 }) async {
   await tester.pumpWidget(
@@ -214,6 +225,8 @@ Future<void> pumpShellApp(
       ],
       child: MaterialApp.router(
         theme: AppTheme.light(locale: locale),
+        darkTheme: AppTheme.dark(locale: locale),
+        themeMode: themeMode,
         locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
