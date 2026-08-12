@@ -124,6 +124,16 @@ void main() {
     expect(moneyRect.left, greaterThanOrEqualTo(addRect.right));
   });
 
+  test('derives the wrap-around notch from the smaller Add button', () {
+    expect(FinanceSuitNavigationBar.centerButtonDiameter, 56);
+    expect(FinanceSuitNavigationBar.notchClearance, 8);
+    expect(
+      FinanceSuitNavigationBar.notchRadius,
+      FinanceSuitNavigationBar.centerButtonDiameter / 2 +
+          FinanceSuitNavigationBar.notchClearance,
+    );
+  });
+
   testWidgets('lays page content behind the transparent navigation wrapper', (
     tester,
   ) async {
