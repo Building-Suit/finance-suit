@@ -46,16 +46,28 @@ class FinanceSuitNavigationBar extends StatelessWidget {
   static const double surfaceHeight = 60;
   @visibleForTesting
   static const double centerButtonDiameter = 56;
+  @visibleForTesting
+  static const double centerButtonTop = 0;
 
-  /// The circular clearance between the Add button and its surrounding notch.
+  /// The approved bowl is wider than the action so its shoulders remain
+  /// visible instead of disappearing behind the circle.
   @visibleForTesting
-  static const double notchClearance = 8;
+  static const double notchWidthFactor = 1.5;
   @visibleForTesting
-  static const double notchRadius = centerButtonDiameter / 2 + notchClearance;
+  static const double notchDepthFactor = 0.45;
+  @visibleForTesting
+  static const double notchWidth = centerButtonDiameter * notchWidthFactor;
+  @visibleForTesting
+  static const double notchDepth = centerButtonDiameter * notchDepthFactor;
   static const double _contentClearanceAboveSurface = 76;
   static const double _centerGap = 80;
   static const double _indicatorMaxWidth = 64;
   static const double _indicatorHeight = 32;
+
+  /// The exact painted navigation contour, exposed for geometry regressions.
+  @visibleForTesting
+  static Path surfacePathFor(Size size) =>
+      _NavigationSurfacePainter.surfacePathFor(size);
 
   /// Space a scrolling page needs below its final interactive item when this
   /// overlay navigation is present. The visual wrapper stays transparent;
@@ -103,7 +115,7 @@ class FinanceSuitNavigationBar extends StatelessWidget {
                     ),
                   ),
                   Positioned(
-                    top: 8,
+                    top: centerButtonTop,
                     left: 0,
                     right: 0,
                     child: Center(
@@ -165,48 +177,25 @@ class _NavigationSurfacePainter extends CustomPainter {
   final Color borderColor;
   final Color shadowColor;
 
-  @override
-  void paint(Canvas canvas, Size size) {
+  static const _shape = _CenterActionNotchedShape();
+
+  static Path surfacePathFor(Size size) {
     const left = FinanceSuitNavigationBar.horizontalInset;
     const top = FinanceSuitNavigationBar.surfaceTop;
     const height = FinanceSuitNavigationBar.surfaceHeight;
-    const cornerRadius = 20.0;
-    // The notch is an exact circular U-curve: the 56dp action plus 8dp of
-    // clearance. The former two Bézier curves used unmatched control points,
-    // so their join formed a narrow, pointed tail underneath the button.
-    const notchRadius = FinanceSuitNavigationBar.notchRadius;
-    const circularBezierFactor = 0.55228475;
-    final right = size.width - left;
-    final bottom = top + height;
-    final center = size.width / 2;
-    final path = Path()
-      ..moveTo(left + cornerRadius, top)
-      ..lineTo(center - notchRadius, top)
-      ..cubicTo(
-        center - notchRadius,
-        top + notchRadius * circularBezierFactor,
-        center - notchRadius * circularBezierFactor,
-        top + notchRadius,
-        center,
-        top + notchRadius,
-      )
-      ..cubicTo(
-        center + notchRadius * circularBezierFactor,
-        top + notchRadius,
-        center + notchRadius,
-        top + notchRadius * circularBezierFactor,
-        center + notchRadius,
-        top,
-      )
-      ..lineTo(right - cornerRadius, top)
-      ..quadraticBezierTo(right, top, right, top + cornerRadius)
-      ..lineTo(right, bottom - cornerRadius)
-      ..quadraticBezierTo(right, bottom, right - cornerRadius, bottom)
-      ..lineTo(left + cornerRadius, bottom)
-      ..quadraticBezierTo(left, bottom, left, bottom - cornerRadius)
-      ..lineTo(left, top + cornerRadius)
-      ..quadraticBezierTo(left, top, left + cornerRadius, top)
-      ..close();
+    final host = Rect.fromLTWH(left, top, size.width - (left * 2), height);
+    final guest = Rect.fromLTWH(
+      (size.width - FinanceSuitNavigationBar.centerButtonDiameter) / 2,
+      FinanceSuitNavigationBar.centerButtonTop,
+      FinanceSuitNavigationBar.centerButtonDiameter,
+      FinanceSuitNavigationBar.centerButtonDiameter,
+    );
+    return _shape.getOuterPath(host, guest);
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = surfacePathFor(size);
 
     canvas.drawShadow(path, shadowColor, 8, false);
     canvas.drawPath(path, Paint()..color = surfaceColor);
@@ -223,6 +212,81 @@ class _NavigationSurfacePainter extends CustomPainter {
       surfaceColor != oldDelegate.surfaceColor ||
       borderColor != oldDelegate.borderColor ||
       shadowColor != oldDelegate.shadowColor;
+}
+
+/// A responsive, symmetric bowl around the measured center action.
+///
+/// Flutter's [CircularNotchedRectangle] follows the entire circular guest and
+/// produces a deep crater for this compact floating surface. The approved
+/// contour is deliberately wider and shallower, so its cubic shoulders begin
+/// and end tangent to the bar's top edge while leaving the four destination
+/// slots undisturbed.
+class _CenterActionNotchedShape extends NotchedShape {
+  const _CenterActionNotchedShape();
+
+  static const _cornerRadius = 20.0;
+
+  @override
+  Path getOuterPath(Rect host, Rect? guest) {
+    final center = guest?.center.dx ?? host.center.dx;
+    final diameter =
+        guest?.width ?? FinanceSuitNavigationBar.centerButtonDiameter;
+    final halfWidth = diameter * FinanceSuitNavigationBar.notchWidthFactor / 2;
+    final depth = diameter * FinanceSuitNavigationBar.notchDepthFactor;
+    final start = center - halfWidth;
+    final end = center + halfWidth;
+    final shoulderControl = halfWidth * 0.3;
+    final bowlControl = halfWidth * 0.52;
+
+    return Path()
+      ..moveTo(host.left + _cornerRadius, host.top)
+      ..lineTo(start, host.top)
+      ..cubicTo(
+        start + shoulderControl,
+        host.top,
+        center - bowlControl,
+        host.top + depth,
+        center,
+        host.top + depth,
+      )
+      ..cubicTo(
+        center + bowlControl,
+        host.top + depth,
+        end - shoulderControl,
+        host.top,
+        end,
+        host.top,
+      )
+      ..lineTo(host.right - _cornerRadius, host.top)
+      ..quadraticBezierTo(
+        host.right,
+        host.top,
+        host.right,
+        host.top + _cornerRadius,
+      )
+      ..lineTo(host.right, host.bottom - _cornerRadius)
+      ..quadraticBezierTo(
+        host.right,
+        host.bottom,
+        host.right - _cornerRadius,
+        host.bottom,
+      )
+      ..lineTo(host.left + _cornerRadius, host.bottom)
+      ..quadraticBezierTo(
+        host.left,
+        host.bottom,
+        host.left,
+        host.bottom - _cornerRadius,
+      )
+      ..lineTo(host.left, host.top + _cornerRadius)
+      ..quadraticBezierTo(
+        host.left,
+        host.top,
+        host.left + _cornerRadius,
+        host.top,
+      )
+      ..close();
+  }
 }
 
 class _FinanceSuitNavigationSlot extends StatelessWidget {
