@@ -161,7 +161,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('protected-money-redaction')), findsOneWidget);
+    expect(find.byType(ImageFiltered), findsOneWidget);
     expect(find.bySemanticsLabel('Hidden financial amount'), findsOneWidget);
     expect(find.bySemanticsLabel('12,345.67 EGP'), findsNothing);
 
@@ -169,7 +169,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(authenticator.authenticationCount, 1);
-    expect(find.byKey(const Key('protected-money-redaction')), findsNothing);
+    expect(find.byType(ImageFiltered), findsNothing);
     expect(find.text('12,345.67 EGP'), findsOneWidget);
     semantics.dispose();
   });
