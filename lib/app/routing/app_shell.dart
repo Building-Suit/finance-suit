@@ -54,11 +54,81 @@ class AppShell extends ConsumerStatefulWidget {
   ConsumerState<AppShell> createState() => _AppShellState();
 }
 
+/// Authenticated back policy at each primary route boundary.
+///
+/// Popup routes remain above this scope, so drawers, sheets, dialogs, and the
+/// keyboard keep normal first priority. Registering directly with the primary
+/// route's [ModalRoute] also ensures Android can deliver the very first Back
+/// gesture, before any navigation has occurred.
+class AuthenticatedBackScope extends StatefulWidget {
+  const AuthenticatedBackScope({
+    super.key,
+    required this.currentLocation,
+    required this.child,
+  });
+
+  final String currentLocation;
+  final Widget child;
+
+  @override
+  State<AuthenticatedBackScope> createState() => _AuthenticatedBackScopeState();
+}
+
+class _AuthenticatedBackScopeState extends State<AuthenticatedBackScope> {
+  static const _homeRoute = '/home';
+  Timer? _exitTimer;
+  bool _exitArmed = false;
+
+  void _resetExit() {
+    _exitArmed = false;
+    _exitTimer?.cancel();
+    _exitTimer = null;
+  }
+
+  @override
+  void didUpdateWidget(AuthenticatedBackScope oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentLocation != widget.currentLocation) _resetExit();
+  }
+
+  @override
+  void dispose() {
+    _exitTimer?.cancel();
+    super.dispose();
+  }
+
+  void _handleBack(bool didPop, Object? result) {
+    if (didPop) return;
+    if (widget.currentLocation != _homeRoute) {
+      _resetExit();
+      GoRouter.of(context).go(_homeRoute);
+      return;
+    }
+    if (_exitArmed) {
+      _resetExit();
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        SystemNavigator.pop();
+      }
+      return;
+    }
+    _exitArmed = true;
+    AppToast.warning(context, AppLocalizations.of(context).appBackAgainToClose);
+    _exitTimer = Timer(const Duration(seconds: 2), _resetExit);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: _handleBack,
+      child: widget.child,
+    );
+  }
+}
+
 class _AppShellState extends ConsumerState<AppShell> {
   StatefulNavigationShell get navigationShell => widget.navigationShell;
   String get currentLocation => widget.currentLocation;
-  Timer? _exitTimer;
-  bool _exitArmed = false;
   final ValueNotifier<bool> _headerIsSolid = ValueNotifier(false);
 
   static const _solidHeaderThreshold = 12.0;
@@ -72,7 +142,6 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   @override
   void dispose() {
-    _exitTimer?.cancel();
     _headerIsSolid.dispose();
     super.dispose();
   }
@@ -97,36 +166,6 @@ class _AppShellState extends ConsumerState<AppShell> {
       _headerIsSolid.value = shouldBeSolid;
     }
     return false;
-  }
-
-  void _resetExit() {
-    _exitArmed = false;
-    _exitTimer?.cancel();
-    _exitTimer = null;
-  }
-
-  /// The one back decision point for Android hardware/gesture back and the
-  /// platform PopScope path. Popup routes (drawers, sheets, dialogs) resolve
-  /// before this shell receives a pop, and pushed sub-pages retain real router
-  /// history above it. At a tab root we then follow the deliberate, no-loop
-  /// sequence: non-Home -> Home -> double back to exit.
-  void _handleRootBack(bool didPop, Object? result) {
-    if (didPop) return;
-    if (navigationShell.currentIndex != 0) {
-      _resetExit();
-      navigationShell.goBranch(0, initialLocation: true);
-      return;
-    }
-    if (_exitArmed) {
-      _resetExit();
-      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-        SystemNavigator.pop();
-      }
-      return;
-    }
-    _exitArmed = true;
-    AppToast.warning(context, AppLocalizations.of(context).appBackAgainToClose);
-    _exitTimer = Timer(const Duration(seconds: 2), _resetExit);
   }
 
   Future<void> _maybeOfferUpdate() async {
@@ -230,49 +269,44 @@ class _AppShellState extends ConsumerState<AppShell> {
   Widget build(BuildContext context) {
     ref.watch(realtimeInvalidationProvider);
     final l10n = AppLocalizations.of(context);
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: _handleRootBack,
-      child: Scaffold(
-        extendBody: true,
-        body: FinanceSuitHeaderScrollScope(
-          isSolid: _headerIsSolid,
-          child: NotificationListener<ScrollNotification>(
-            onNotification: _onPageScroll,
-            child: navigationShell,
+    return Scaffold(
+      extendBody: true,
+      body: FinanceSuitHeaderScrollScope(
+        isSolid: _headerIsSolid,
+        child: NotificationListener<ScrollNotification>(
+          onNotification: _onPageScroll,
+          child: navigationShell,
+        ),
+      ),
+      bottomNavigationBar: FinanceSuitNavigationBar(
+        selectedIndex: navigationShell.currentIndex,
+        onDestinationSelected: (index) {
+          _headerIsSolid.value = false;
+          navigationShell.goBranch(
+            index,
+            initialLocation: index == navigationShell.currentIndex,
+          );
+        },
+        onAddPressed: () => _openAddSheet(context, ref),
+        addLabel: l10n.globalAddLabel,
+        destinations: [
+          FinanceSuitNavDestination(
+            icon: FinanceSuitIcons.home,
+            label: l10n.tabHome,
           ),
-        ),
-        bottomNavigationBar: FinanceSuitNavigationBar(
-          selectedIndex: navigationShell.currentIndex,
-          onDestinationSelected: (index) {
-            _resetExit();
-            _headerIsSolid.value = false;
-            navigationShell.goBranch(
-              index,
-              initialLocation: index == navigationShell.currentIndex,
-            );
-          },
-          onAddPressed: () => _openAddSheet(context, ref),
-          addLabel: l10n.globalAddLabel,
-          destinations: [
-            FinanceSuitNavDestination(
-              icon: FinanceSuitIcons.home,
-              label: l10n.tabHome,
-            ),
-            FinanceSuitNavDestination(
-              icon: FinanceSuitIcons.work,
-              label: l10n.tabWork,
-            ),
-            FinanceSuitNavDestination(
-              icon: FinanceSuitIcons.accountBalanceWallet,
-              label: l10n.tabMoney,
-            ),
-            FinanceSuitNavDestination(
-              icon: FinanceSuitIcons.barChart,
-              label: l10n.tabReports,
-            ),
-          ],
-        ),
+          FinanceSuitNavDestination(
+            icon: FinanceSuitIcons.work,
+            label: l10n.tabWork,
+          ),
+          FinanceSuitNavDestination(
+            icon: FinanceSuitIcons.accountBalanceWallet,
+            label: l10n.tabMoney,
+          ),
+          FinanceSuitNavDestination(
+            icon: FinanceSuitIcons.barChart,
+            label: l10n.tabReports,
+          ),
+        ],
       ),
     );
   }

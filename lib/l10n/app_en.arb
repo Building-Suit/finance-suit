@@ -239,6 +239,7 @@
   "privacyUnlockButton": "Unlock with device security",
   "privacyUsePassword": "Use Finance Suit password instead",
   "authBiometricLogin": "Login with fingerprint or device security",
+  "authBiometricLoginSetupHelp": "Enable fingerprint login in Settings → Account → Login with fingerprint or device security.",
   "authBiometricLoginReason": "Confirm your identity to login to Finance Suit.",
   "authBiometricSessionExpired": "Secure quick login has expired. Login with your email and password, then enable it again in Settings.",
   "authBiometricLoginFailed": "Secure quick login failed. Try again or use your email and password.",
@@ -1033,6 +1034,17 @@
   "paymentReverseConfirmBody": "The money returns to the source account and the covered installments reopen.",
   "valPaymentAboveOutstanding": "The payment is larger than the amount owed",
   "homeCardsTitle": "Cards",
+  "homeDueCurrent": "Current due",
+  "homeDueThisMonth": "This month's due",
+  "homeDueNext": "Next month's due",
+  "homeDueCurrentWindow": "Overdue and due today",
+  "homeDueThrough": "Due through {date}",
+  "@homeDueThrough": {"placeholders": {"date": {"type": "String"}}},
+  "homeDueInMonth": "Due in {month}",
+  "@homeDueInMonth": {"placeholders": {"month": {"type": "String"}}},
+  "homeDueOn": "Due {date}",
+  "@homeDueOn": {"placeholders": {"date": {"type": "String"}}},
+  "homeDueNothing": "No payments are due through next month.",
   "homeCardOwed": "{amount} owed",
   "@homeCardOwed": {
     "placeholders": {
@@ -1053,7 +1065,7 @@
     }
   },
   "homeCardNothingDue": "Nothing due this month",
-  "homeDuesTitle": "Installments",
+  "homeDuesTitle": "Payments due",
   "homeDueNow": "{amount} due now",
   "@homeDueNow": {
     "placeholders": {

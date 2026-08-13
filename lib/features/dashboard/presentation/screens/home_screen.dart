@@ -20,6 +20,7 @@ import 'package:work_tracker/core/widgets/protected_money.dart';
 import 'package:work_tracker/features/commercial/presentation/providers/commercial_providers.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
+import 'package:work_tracker/features/finance/domain/home_due_obligation.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
@@ -195,6 +196,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ..invalidate(salarySettingsProvider);
     ref.invalidate(pendingIncomeProvider);
     ref.invalidate(pendingRecurringProvider);
+    ref.invalidate(homeUpcomingObligationsProvider);
   }
 
   String _rangeLabel(AppLocalizations l10n, DateRangePreset preset) {
@@ -216,6 +218,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final accountsAsync = ref.watch(accountBalancesProvider);
     final entitlementAsync = ref.watch(effectiveEntitlementProvider);
     final allAccountsAsync = ref.watch(allAccountBalancesProvider);
+    final homeDuesAsync = ref.watch(homeUpcomingObligationsProvider);
     final summaryAsync = ref.watch(homeCashFlowSummaryProvider(_range.range));
     final salarySettingsAsync = ref.watch(salarySettingsProvider);
     final salaryEnabled = salarySettingsAsync.value?.salaryEnabled == true;
@@ -239,6 +242,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       pendingIncomeAsync,
       accountsAsync,
       allAccountsAsync,
+      homeDuesAsync,
       summaryAsync,
       salarySettingsAsync,
       ?estimateAsync,
@@ -311,6 +315,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
             compactSection(
+              homeDuesAsync,
+              loading: const _SectionLoader(),
+              data: (summary) => _HomeDuesSection(summary: summary),
+            ),
+            compactSection(
               ref.watch(creditFacilitiesProvider),
               loading: const SizedBox.shrink(),
               data: (facilities) {
@@ -361,8 +370,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             _SectionHeader(
               title: l10n.homeRecentActivity,
               actionLabel: l10n.commonSeeAll,
-              onAction: () =>
-                  context.push('${AppRoutes.money}?tab=transactions'),
+              // Money is a StatefulShell branch. Switching with go() makes
+              // both the bottom destination and its Transactions tab active.
+              onAction: () => context.go('${AppRoutes.money}?tab=transactions'),
             ),
             compactSection(
               recentAsync,
@@ -918,6 +928,108 @@ class _BalanceSection extends StatelessWidget {
           if (index + 2 < visibleAccounts.length) const SizedBox(height: 8),
         ],
       ],
+    );
+  }
+}
+
+class _HomeDuesSection extends StatelessWidget {
+  const _HomeDuesSection({required this.summary});
+
+  final HomeDueSummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colors = context.suitColors;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SectionHeader(title: l10n.homeDuesTitle),
+        Card(
+          key: const Key('home-dues-card'),
+          margin: EdgeInsets.zero,
+          clipBehavior: Clip.antiAlias,
+          child: summary.isEmpty
+              ? ListTile(
+                  leading: FinanceSuitIcon(
+                    FinanceSuitIcons.checkCircle,
+                    color: colors.success.icon,
+                  ),
+                  title: Text(l10n.homeDueNothing),
+                )
+              : Column(
+                  children: [
+                    for (
+                      var index = 0;
+                      index < summary.periods.length;
+                      index++
+                    ) ...[
+                      _HomeDueTile(period: summary.periods[index]),
+                      if (index + 1 < summary.periods.length)
+                        const Divider(height: 1),
+                    ],
+                  ],
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HomeDueTile extends StatelessWidget {
+  const _HomeDueTile({required this.period});
+
+  final HomeDuePeriodSummary period;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final dates = MaterialLocalizations.of(context);
+    final colors = context.suitColors;
+    final label = switch (period.period) {
+      HomeDuePeriod.current => l10n.homeDueCurrent,
+      HomeDuePeriod.thisMonth => l10n.homeDueThisMonth,
+      HomeDuePeriod.nextMonth => l10n.homeDueNext,
+    };
+    final description = switch (period.period) {
+      HomeDuePeriod.current => l10n.homeDueCurrentWindow,
+      HomeDuePeriod.thisMonth => l10n.homeDueThrough(
+        dates.formatMediumDate(period.end.toDateTime()),
+      ),
+      HomeDuePeriod.nextMonth => l10n.homeDueInMonth(
+        dates.formatMonthYear(period.start!.toDateTime()),
+      ),
+    };
+    final tone = period.period == HomeDuePeriod.current
+        ? colors.error
+        : colors.warning;
+    return ListTile(
+      key: Key('home-due-${period.period.name}'),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      leading: FinanceSuitIcon(
+        period.period == HomeDuePeriod.current
+            ? FinanceSuitIcons.warning
+            : FinanceSuitIcons.calendarToday,
+        color: tone.icon,
+      ),
+      title: Text(label),
+      subtitle: Text(description),
+      trailing: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          for (final total in period.totals)
+            ProtectedMoneyText(
+              total.format(),
+              interactive: false,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: tone.text,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

@@ -67,6 +67,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     return AuthScaffold(
       title: l10n.authRegisterTitle,
+      showTitle: false,
+      brandSubtitle: 'by Building Suit',
       children: [
         Form(
           key: _formKey,

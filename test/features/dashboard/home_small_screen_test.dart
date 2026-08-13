@@ -5,10 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
+import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/dashboard/presentation/screens/home_screen.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
+import 'package:work_tracker/features/finance/domain/home_due_obligation.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
+import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/history/domain/history_models.dart';
 import 'package:work_tracker/features/history/presentation/providers/history_providers.dart';
@@ -37,6 +40,13 @@ void main() {
           ),
           pendingIncomeProvider.overrideWith(
             (ref) async => const <PendingIncome>[],
+          ),
+          pendingRecurringProvider.overrideWith(
+            (ref) async => const <PendingRecurring>[],
+          ),
+          homeUpcomingObligationsProvider.overrideWith(
+            (ref) async =>
+                HomeDueSummary(today: PlainDate.today(), items: const []),
           ),
           homeCashFlowSummaryProvider.overrideWith(
             (ref, range) async => const [
@@ -76,6 +86,12 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await pumpHome(tester);
+    await tester.fling(
+      find.byKey(const Key('home-dashboard-scroll')),
+      const Offset(0, -1200),
+      3000,
+    );
+    await tester.pumpAndSettle();
     expect(find.byType(GridView), findsWidgets);
     expect(tester.takeException(), isNull);
   });

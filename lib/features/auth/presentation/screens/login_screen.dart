@@ -82,6 +82,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  void _explainBiometricSetup() {
+    final l10n = AppLocalizations.of(context);
+    AppToast.info(context, l10n.authBiometricLoginSetupHelp);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -92,7 +97,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     return AuthScaffold(
       title: l10n.authLoginTitle,
-      subtitle: l10n.authLoginSubtitle,
+      showTitle: false,
+      brandSubtitle: 'by Building Suit',
       children: [
         Form(
           key: _formKey,
@@ -136,20 +142,46 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 8),
                 AuthErrorBanner(failure: _failure),
-                AuthSubmitButton(
-                  label: l10n.authLogin,
-                  busy: busy,
-                  onPressed: _submit,
+                Row(
+                  children: [
+                    Expanded(
+                      child: AuthSubmitButton(
+                        label: l10n.authLogin,
+                        busy: busy,
+                        onPressed: _submit,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Tooltip(
+                      message: l10n.authBiometricLogin,
+                      child: OutlinedButton(
+                        key: const Key('biometric-login-button'),
+                        onPressed: busy
+                            ? null
+                            : biometricLogin?.canSignIn == true
+                            ? _biometricSignIn
+                            : _explainBiometricSetup,
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size.square(48),
+                          maximumSize: const Size.square(48),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          side: BorderSide(
+                            color: biometricLogin?.canSignIn == true
+                                ? Theme.of(context).colorScheme.outline
+                                : Theme.of(context).disabledColor,
+                          ),
+                          foregroundColor: biometricLogin?.canSignIn == true
+                              ? null
+                              : Theme.of(context).disabledColor,
+                        ),
+                        child: const FinanceSuitIcon(
+                          FinanceSuitIcons.fingerprint,
+                          size: 26,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                if (biometricLogin?.canSignIn == true) ...[
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    key: const Key('biometric-login-button'),
-                    onPressed: busy ? null : _biometricSignIn,
-                    icon: const FinanceSuitIcon(FinanceSuitIcons.fingerprint),
-                    label: Text(l10n.authBiometricLogin),
-                  ),
-                ],
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: () => context.go(AppRoutes.register),

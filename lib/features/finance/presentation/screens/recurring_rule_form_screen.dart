@@ -62,6 +62,7 @@ class _RecurringRuleFormScreenState
   late PlainDate _startDate;
   late int _promptDays;
   late bool _isActive;
+  late bool _isForeignCurrency;
   String? _sourceAccountId;
   String? _destinationAccountId;
   String? _categoryId;
@@ -87,6 +88,7 @@ class _RecurringRuleFormScreenState
     _startDate = existing?.startDate ?? PlainDate.today();
     _promptDays = existing?.promptDaysBefore ?? 3;
     _isActive = existing?.isActive ?? true;
+    _isForeignCurrency = existing?.isForeignCurrency ?? false;
     _sourceAccountId = existing?.sourceAccountId;
     _destinationAccountId = existing?.destinationAccountId;
     _categoryId = existing?.categoryId;
@@ -153,6 +155,7 @@ class _RecurringRuleFormScreenState
           notes: notes.isEmpty ? null : notes,
           ruleId: _ruleId,
           isActive: _isActive,
+          isForeignCurrency: _isForeignCurrency,
         );
     if (!mounted) return;
     setState(() => _busy = false);
@@ -353,6 +356,19 @@ class _RecurringRuleFormScreenState
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ),
+                  if (sourceIsCard) ...[
+                    const SizedBox(height: 8),
+                    SwitchListTile(
+                      key: const Key('recurring-is-foreign-currency'),
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(l10n.txIsForeignCurrency),
+                      subtitle: Text(l10n.txIsForeignCurrencyHelp),
+                      value: _isForeignCurrency,
+                      onChanged: _busy
+                          ? null
+                          : (v) => setState(() => _isForeignCurrency = v),
+                    ),
+                  ],
                 ],
                 const SizedBox(height: 16),
                 AppSelectionField<RecurringFrequency>(

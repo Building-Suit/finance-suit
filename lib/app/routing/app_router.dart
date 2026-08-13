@@ -190,7 +190,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: AppRoutes.home,
-                    builder: (context, state) => const HomeScreen(),
+                    builder: (context, state) => AuthenticatedBackScope(
+                      currentLocation: state.uri.path,
+                      child: const HomeScreen(),
+                    ),
                   ),
                 ],
               ),
@@ -198,7 +201,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: AppRoutes.work,
-                    builder: (context, state) => const WorkScreen(),
+                    builder: (context, state) => AuthenticatedBackScope(
+                      currentLocation: state.uri.path,
+                      child: const WorkScreen(),
+                    ),
                     routes: [
                       GoRoute(
                         path: 'entry/new',
@@ -268,12 +274,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: AppRoutes.money,
-                    builder: (context, state) => MoneyScreen(
-                      key: ValueKey(state.uri.queryParameters['tab']),
-                      initialTab:
-                          state.uri.queryParameters['tab'] == 'transactions'
-                          ? 1
-                          : 0,
+                    builder: (context, state) => AuthenticatedBackScope(
+                      currentLocation: state.uri.path,
+                      child: MoneyScreen(
+                        key: ValueKey(state.uri.queryParameters['tab']),
+                        initialTab:
+                            state.uri.queryParameters['tab'] == 'transactions'
+                            ? 1
+                            : 0,
+                      ),
                     ),
                     routes: [
                       GoRoute(
@@ -396,7 +405,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: AppRoutes.reports,
-                    builder: (context, state) => const ReportsScreen(),
+                    builder: (context, state) => AuthenticatedBackScope(
+                      currentLocation: state.uri.path,
+                      child: const ReportsScreen(),
+                    ),
                   ),
                 ],
               ),

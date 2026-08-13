@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/branding/finance_suit_mark.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/widgets/app_text_form_field.dart';
+import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
@@ -13,55 +16,97 @@ class AuthScaffold extends StatelessWidget {
     super.key,
     required this.title,
     this.subtitle,
+    this.brandSubtitle,
+    this.showTitle = true,
     required this.children,
   });
 
   final String title;
   final String? subtitle;
+  final String? brandSubtitle;
+  final bool showTitle;
   final List<Widget> children;
+
+  static DateTime? _lastLoginBackAttempt;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Align(
-                    child: FinanceSuitMark(size: 72, semanticLabel: null),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    l10n.appTitle,
-                    style: theme.textTheme.titleLarge,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    title,
-                    style: theme.textTheme.headlineSmall,
-                    textAlign: TextAlign.center,
-                  ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 8),
+    final router = GoRouter.of(context);
+    final isLogin =
+        router.routerDelegate.currentConfiguration.uri.path == '/auth/login';
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (!isLogin) {
+          router.go('/auth/login');
+          return;
+        }
+        final now = DateTime.now();
+        final previous = AuthScaffold._lastLoginBackAttempt;
+        if (previous != null &&
+            now.difference(previous) <= const Duration(seconds: 2)) {
+          AuthScaffold._lastLoginBackAttempt = null;
+          SystemNavigator.pop();
+          return;
+        }
+        AuthScaffold._lastLoginBackAttempt = now;
+        AppToast.warning(context, l10n.appBackAgainToClose);
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Align(
+                      child: FinanceSuitMark(size: 72, semanticLabel: null),
+                    ),
+                    const SizedBox(height: 12),
                     Text(
-                      subtitle!,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      l10n.appTitle,
+                      style: theme.textTheme.titleLarge,
                       textAlign: TextAlign.center,
                     ),
+                    if (brandSubtitle != null)
+                      Transform.translate(
+                        offset: const Offset(0, -4),
+                        child: Text(
+                          brandSubtitle!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    if (showTitle) ...[
+                      const SizedBox(height: 24),
+                      Text(
+                        title,
+                        style: theme.textTheme.headlineSmall,
+                        textAlign: TextAlign.center,
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          subtitle!,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ],
+                    const SizedBox(height: 24),
+                    ...children,
                   ],
-                  const SizedBox(height: 24),
-                  ...children,
-                ],
+                ),
               ),
             ),
           ),

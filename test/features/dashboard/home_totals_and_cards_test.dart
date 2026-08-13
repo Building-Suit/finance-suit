@@ -13,6 +13,7 @@ import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/dashboard/presentation/screens/home_screen.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
+import 'package:work_tracker/features/finance/domain/home_due_obligation.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
@@ -100,6 +101,20 @@ void main() {
           creditFacilitiesProvider.overrideWith(
             (ref) async => [facility ?? card],
           ),
+          homeUpcomingObligationsProvider.overrideWith(
+            (ref) async => HomeDueSummary(
+              today: PlainDate.today(),
+              items: [
+                HomeDueObligation(
+                  id: 'statement-1',
+                  kind: 'card_statement',
+                  dueOn: PlainDate.today().addDays(6),
+                  currencyCode: 'EGP',
+                  remainingMinor: 100000,
+                ),
+              ],
+            ),
+          ),
           pendingIncomeProvider.overrideWith(
             (ref) async => const <PendingIncome>[],
           ),
@@ -162,7 +177,9 @@ void main() {
     const earliestOnly = Money(minor: 100000, currencyCode: 'EGP');
     expect(find.textContaining(owed.format()), findsOneWidget);
     expect(find.textContaining(upcoming.format()), findsOneWidget);
-    expect(find.textContaining(earliestOnly.format()), findsNothing);
+    // The card continues to show the accumulated month total, while the new
+    // dues section shows the exact earliest payment the user must make.
+    expect(find.textContaining(earliestOnly.format()), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -171,13 +188,30 @@ void main() {
   ) async {
     await pumpHome(tester);
 
-    // Home reads money-I-have, then money-I-owe, then how it moved.
-    final balance = tester.getTopLeft(find.text('Balance')).dy;
-    final cards = tester.getTopLeft(find.text('Cards')).dy;
-    final cashFlow = tester.getTopLeft(find.text('Cash flow')).dy;
+    // Home reads money-I-have, the next actionable payment, the complete
+    // borrowing inventory, then how money moved.
+    expect(find.text('Balance'), findsOneWidget);
+    expect(find.byKey(const Key('home-due-thisMonth')), findsOneWidget);
+    expect(find.byKey(const Key('home-credit-card-carousel')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
-    expect(balance, lessThan(cards));
-    expect(cards, lessThan(cashFlow));
+  testWidgets('dues are aggregated without naming an account', (tester) async {
+    await pumpHome(tester);
+
+    final dues = find.byKey(const Key('home-dues-card'));
+    expect(
+      find.descendant(of: dues, matching: find.text('Payments due')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: dues, matching: find.text('Everyday Card')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: dues, matching: find.textContaining('1,000.00')),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 

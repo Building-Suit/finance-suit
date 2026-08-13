@@ -8,6 +8,7 @@ import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/facility_activity.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
+import 'package:work_tracker/features/finance/domain/home_due_obligation.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
@@ -172,6 +173,22 @@ final creditFacilitiesProvider = FutureProvider<List<CreditFacilitySummary>>((
   return facilities;
 });
 
+/// Account-agnostic payable totals through the end of next month.
+///
+/// Applying card fees first makes generated fees part of their statement;
+/// the obligations RPC materializes pending recurring expenses itself.
+final homeUpcomingObligationsProvider = FutureProvider<HomeDueSummary>((
+  ref,
+) async {
+  ref.watch(currentUserIdProvider);
+  final repository = ref.watch(financeRepositoryProvider);
+  await repository.applyCreditCardFees();
+  final result = await repository.fetchHomeUpcomingObligations(
+    PlainDate.today(),
+  );
+  return result.when(ok: (summary) => summary, err: (failure) => throw failure);
+});
+
 /// Installment plans of one facility, newest first.
 final installmentPlansProvider = FutureProvider.family
     .autoDispose<List<InstallmentPlan>, String>((ref, accountId) async {
@@ -259,6 +276,7 @@ void invalidateFinanceData(WidgetRef ref) {
   ref.invalidate(facilityActivityProvider);
   ref.invalidate(planRevisionsProvider);
   ref.invalidate(feeRulesProvider);
+  ref.invalidate(homeUpcomingObligationsProvider);
 }
 
 void invalidateIncomeAutomation(WidgetRef ref) {
@@ -290,5 +308,6 @@ final pendingRecurringProvider = FutureProvider<List<PendingRecurring>>((
 void invalidateRecurringAutomation(WidgetRef ref) {
   ref
     ..invalidate(recurringRulesProvider)
-    ..invalidate(pendingRecurringProvider);
+    ..invalidate(pendingRecurringProvider)
+    ..invalidate(homeUpcomingObligationsProvider);
 }

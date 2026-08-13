@@ -655,6 +655,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authBiometricLogin => 'Login with fingerprint or device security';
 
   @override
+  String get authBiometricLoginSetupHelp =>
+      'Enable fingerprint login in Settings → Account → Login with fingerprint or device security.';
+
+  @override
   String get authBiometricLoginReason =>
       'Confirm your identity to login to Finance Suit.';
 
@@ -2209,6 +2213,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeCardsTitle => 'Cards';
 
   @override
+  String get homeDueCurrent => 'Current due';
+
+  @override
+  String get homeDueThisMonth => 'This month\'s due';
+
+  @override
+  String get homeDueNext => 'Next month\'s due';
+
+  @override
+  String get homeDueCurrentWindow => 'Overdue and due today';
+
+  @override
+  String homeDueThrough(String date) {
+    return 'Due through $date';
+  }
+
+  @override
+  String homeDueInMonth(String month) {
+    return 'Due in $month';
+  }
+
+  @override
+  String homeDueOn(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String get homeDueNothing => 'No payments are due through next month.';
+
+  @override
   String homeCardOwed(String amount) {
     return '$amount owed';
   }
@@ -2222,7 +2256,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeCardNothingDue => 'Nothing due this month';
 
   @override
-  String get homeDuesTitle => 'Installments';
+  String get homeDuesTitle => 'Payments due';
 
   @override
   String homeDueNow(String amount) {

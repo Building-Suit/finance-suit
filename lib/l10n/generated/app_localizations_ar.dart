@@ -653,6 +653,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authBiometricLogin => 'تسجيل الدخول بالبصمة أو أمان الجهاز';
 
   @override
+  String get authBiometricLoginSetupHelp =>
+      'فعّل تسجيل الدخول بالبصمة من الإعدادات ← الحساب ← تسجيل الدخول بالبصمة أو أمان الجهاز.';
+
+  @override
   String get authBiometricLoginReason =>
       'أكّد هويتك لتسجيل الدخول إلى Finance Suit.';
 
@@ -2198,6 +2202,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeCardsTitle => 'البطاقات';
 
   @override
+  String get homeDueCurrent => 'مستحق حاليًا';
+
+  @override
+  String get homeDueThisMonth => 'مستحق هذا الشهر';
+
+  @override
+  String get homeDueNext => 'مستحق الشهر القادم';
+
+  @override
+  String get homeDueCurrentWindow => 'متأخر أو مستحق اليوم';
+
+  @override
+  String homeDueThrough(String date) {
+    return 'مستحق حتى $date';
+  }
+
+  @override
+  String homeDueInMonth(String month) {
+    return 'مستحق في $month';
+  }
+
+  @override
+  String homeDueOn(String date) {
+    return 'مستحق في $date';
+  }
+
+  @override
+  String get homeDueNothing => 'لا توجد مدفوعات مستحقة حتى نهاية الشهر القادم.';
+
+  @override
   String homeCardOwed(String amount) {
     return 'مستحق عليك $amount';
   }
@@ -2211,7 +2245,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeCardNothingDue => 'لا مستحقات هذا الشهر';
 
   @override
-  String get homeDuesTitle => 'الأقساط';
+  String get homeDuesTitle => 'المدفوعات المستحقة';
 
   @override
   String homeDueNow(String amount) {

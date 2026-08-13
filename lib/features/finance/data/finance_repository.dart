@@ -14,6 +14,7 @@ import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/facility_activity.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
+import 'package:work_tracker/features/finance/domain/home_due_obligation.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
@@ -304,6 +305,7 @@ class FinanceRepository {
     String? notes,
     String? sourceId,
     bool isActive = true,
+    bool isForeignCurrency = false,
   }) {
     return guard(() async {
       return _db.rpc<String>(
@@ -324,6 +326,7 @@ class FinanceRepository {
           'p_notes': notes,
           'p_source_id': sourceId,
           'p_is_active': isActive,
+          'p_is_foreign_currency': isForeignCurrency,
           'p_include_extra_work_in_percentage': includeExtraWorkInPercentage,
           'p_extra_work_destination_account_id': extraWorkDestinationAccountId,
           'p_rollover_balance_enabled': rolloverBalanceEnabled,
@@ -811,6 +814,29 @@ class FinanceRepository {
       }
       final rows = await query.order('name', ascending: true);
       return rows.map(CreditFacilitySummary.fromJson).toList();
+    });
+  }
+
+  /// Every still-payable obligation through the end of next calendar month.
+  ///
+  /// The deployed RPC uses the month containing `p_today` as its horizon. We
+  /// request next month so Home can aggregate current, this-month, and
+  /// next-month totals from one canonical, de-duplicated result set.
+  Future<Result<HomeDueSummary>> fetchHomeUpcomingObligations(PlainDate today) {
+    return guard(() async {
+      final rows = await _db.rpc<List<dynamic>>(
+        'home_current_month_obligations',
+        params: {'p_today': today.addMonths(1).toIso()},
+      );
+      final obligations = rows
+          .map(
+            (row) => HomeDueObligation.fromJson(
+              Map<String, dynamic>.from(row as Map),
+            ),
+          )
+          .where((item) => item.remainingMinor > 0)
+          .toList(growable: false);
+      return HomeDueSummary(today: today, items: obligations);
     });
   }
 
@@ -1474,6 +1500,7 @@ class FinanceRepository {
     String? notes,
     String? ruleId,
     bool isActive = true,
+    bool isForeignCurrency = false,
   }) {
     return guard(() async {
       final id = await _db.rpc<String>(
@@ -1492,6 +1519,7 @@ class FinanceRepository {
           'p_notes': notes,
           'p_rule_id': ruleId,
           'p_is_active': isActive,
+          'p_is_foreign_currency': isForeignCurrency,
         },
       );
       return id;

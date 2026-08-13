@@ -1304,6 +1304,12 @@ abstract class AppLocalizations {
   /// **'Login with fingerprint or device security'**
   String get authBiometricLogin;
 
+  /// No description provided for @authBiometricLoginSetupHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable fingerprint login in Settings → Account → Login with fingerprint or device security.'**
+  String get authBiometricLoginSetupHelp;
+
   /// No description provided for @authBiometricLoginReason.
   ///
   /// In en, this message translates to:
@@ -4115,6 +4121,54 @@ abstract class AppLocalizations {
   /// **'Cards'**
   String get homeCardsTitle;
 
+  /// No description provided for @homeDueCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current due'**
+  String get homeDueCurrent;
+
+  /// No description provided for @homeDueThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month\'s due'**
+  String get homeDueThisMonth;
+
+  /// No description provided for @homeDueNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next month\'s due'**
+  String get homeDueNext;
+
+  /// No description provided for @homeDueCurrentWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue and due today'**
+  String get homeDueCurrentWindow;
+
+  /// No description provided for @homeDueThrough.
+  ///
+  /// In en, this message translates to:
+  /// **'Due through {date}'**
+  String homeDueThrough(String date);
+
+  /// No description provided for @homeDueInMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Due in {month}'**
+  String homeDueInMonth(String month);
+
+  /// No description provided for @homeDueOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date}'**
+  String homeDueOn(String date);
+
+  /// No description provided for @homeDueNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No payments are due through next month.'**
+  String get homeDueNothing;
+
   /// No description provided for @homeCardOwed.
   ///
   /// In en, this message translates to:
@@ -4136,7 +4190,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeDuesTitle.
   ///
   /// In en, this message translates to:
-  /// **'Installments'**
+  /// **'Payments due'**
   String get homeDuesTitle;
 
   /// No description provided for @homeDueNow.
