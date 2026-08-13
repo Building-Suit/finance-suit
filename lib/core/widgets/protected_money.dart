@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_tracker/core/security/device_authenticator.dart';
@@ -5,12 +7,10 @@ import 'package:work_tracker/core/security/device_privacy_controller.dart';
 import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
-/// Redacts financial content while money privacy is locked.
+/// Blurs financial content while money privacy is locked.
 ///
-/// The real content keeps its layout without being painted, and is excluded
-/// from accessibility while hidden. Using an opaque overlay instead of a
-/// backdrop blur avoids Android compositor artifacts in constrained financial
-/// cards. Tapping authenticates with biometrics or the device credential and
+/// The real content keeps its layout but is excluded from accessibility while
+/// hidden. Tapping authenticates with biometrics or the device credential and
 /// reveals all protected amounts until the app leaves the foreground.
 class ProtectedMoney extends ConsumerWidget {
   const ProtectedMoney({
@@ -45,28 +45,14 @@ class ProtectedMoney extends ConsumerWidget {
     if (!hidden) return child;
 
     final l10n = AppLocalizations.of(context);
-    final redacted = ExcludeSemantics(
-      child: Stack(
-        children: [
-          // This preserves the child's exact intrinsic size without painting
-          // its sensitive text or invoking a filtered compositor layer.
-          Opacity(opacity: 0, child: child),
-          Positioned.fill(
-            child: IgnorePointer(
-              child: DecoratedBox(
-                key: const Key('protected-money-redaction'),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-            ),
-          ),
-        ],
+    final blurred = ClipRect(
+      child: ImageFiltered(
+        imageFilter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: ExcludeSemantics(child: child),
       ),
     );
     if (!interactive) {
-      return Semantics(label: l10n.privacyHiddenAmountLabel, child: redacted);
+      return Semantics(label: l10n.privacyHiddenAmountLabel, child: blurred);
     }
     return Semantics(
       button: true,
@@ -76,7 +62,7 @@ class ProtectedMoney extends ConsumerWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => _reveal(context, ref),
-        child: redacted,
+        child: blurred,
       ),
     );
   }
