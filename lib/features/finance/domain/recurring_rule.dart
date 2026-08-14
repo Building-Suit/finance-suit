@@ -21,7 +21,9 @@ class RecurringRule {
     required this.promptDaysBefore,
     required this.sourceAccountId,
     required this.isActive,
+    this.isForeignCurrency = false,
     this.destinationAccountId,
+    this.destinationNetworkConnectionId,
     this.categoryId,
     this.notes,
   });
@@ -39,7 +41,10 @@ class RecurringRule {
       promptDaysBefore: (json['prompt_days_before'] as num).toInt(),
       sourceAccountId: json['source_account_id'] as String,
       isActive: json['is_active'] as bool,
+      isForeignCurrency: json['is_foreign_currency'] as bool? ?? false,
       destinationAccountId: json['destination_account_id'] as String?,
+      destinationNetworkConnectionId:
+          json['destination_network_connection_id'] as String?,
       categoryId: json['category_id'] as String?,
       notes: json['notes'] as String?,
     );
@@ -59,7 +64,13 @@ class RecurringRule {
   final int promptDaysBefore;
   final String sourceAccountId;
   final bool isActive;
+  final bool isForeignCurrency;
   final String? destinationAccountId;
+
+  /// Set instead of [destinationAccountId] when the transfer rule targets a
+  /// network contact: approving an occurrence then opens a pending network
+  /// transfer rather than booking a local ledger row.
+  final String? destinationNetworkConnectionId;
   final String? categoryId;
   final String? notes;
 

@@ -36,6 +36,8 @@ import 'package:work_tracker/features/finance/presentation/screens/recurring_rul
 import 'package:work_tracker/features/finance/presentation/screens/recurring_rules_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/transaction_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/transfer_form_screen.dart';
+import 'package:work_tracker/features/network/presentation/screens/network_screen.dart';
+import 'package:work_tracker/features/network/presentation/screens/network_search_screen.dart';
 import 'package:work_tracker/features/onboarding/presentation/providers/onboarding_status_provider.dart';
 import 'package:work_tracker/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:work_tracker/features/reports/presentation/screens/reports_screen.dart';
@@ -190,7 +192,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: AppRoutes.home,
-                    builder: (context, state) => const HomeScreen(),
+                    builder: (context, state) => AuthenticatedBackScope(
+                      currentLocation: state.uri.path,
+                      child: const HomeScreen(),
+                    ),
                   ),
                 ],
               ),
@@ -198,7 +203,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: AppRoutes.work,
-                    builder: (context, state) => const WorkScreen(),
+                    builder: (context, state) => AuthenticatedBackScope(
+                      currentLocation: state.uri.path,
+                      child: const WorkScreen(),
+                    ),
                     routes: [
                       GoRoute(
                         path: 'entry/new',
@@ -268,12 +276,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: AppRoutes.money,
-                    builder: (context, state) => MoneyScreen(
-                      key: ValueKey(state.uri.queryParameters['tab']),
-                      initialTab:
-                          state.uri.queryParameters['tab'] == 'transactions'
-                          ? 1
-                          : 0,
+                    builder: (context, state) => AuthenticatedBackScope(
+                      currentLocation: state.uri.path,
+                      child: MoneyScreen(
+                        key: ValueKey(state.uri.queryParameters['tab']),
+                        initialTab:
+                            state.uri.queryParameters['tab'] == 'transactions'
+                            ? 1
+                            : 0,
+                      ),
                     ),
                     routes: [
                       GoRoute(
@@ -375,6 +386,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                         ],
                       ),
                       GoRoute(
+                        path: 'network',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) => NetworkScreen(
+                          initialTab:
+                              switch (state.uri.queryParameters['tab']) {
+                                'requests' => 1,
+                                'transfers' => 2,
+                                _ => 0,
+                              },
+                        ),
+                        routes: [
+                          GoRoute(
+                            path: 'search',
+                            parentNavigatorKey: appNavigatorKey,
+                            builder: (context, state) =>
+                                const NetworkSearchScreen(),
+                          ),
+                        ],
+                      ),
+                      GoRoute(
                         path: 'held/new',
                         parentNavigatorKey: appNavigatorKey,
                         builder: (context, state) => HeldAmountFormScreen(
@@ -396,7 +427,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: AppRoutes.reports,
-                    builder: (context, state) => const ReportsScreen(),
+                    builder: (context, state) => AuthenticatedBackScope(
+                      currentLocation: state.uri.path,
+                      child: const ReportsScreen(),
+                    ),
                   ),
                 ],
               ),

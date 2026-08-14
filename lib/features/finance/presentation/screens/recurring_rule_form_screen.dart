@@ -21,9 +21,13 @@ import 'package:work_tracker/features/auth/presentation/widgets/auth_widgets.dar
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
+import 'package:work_tracker/features/finance/domain/money_destination.dart';
 import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/category_selector.dart';
+import 'package:work_tracker/features/finance/presentation/widgets/destination_selection_field.dart';
+import 'package:work_tracker/features/network/domain/network_models.dart';
+import 'package:work_tracker/features/network/presentation/providers/network_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 /// Choices for how many days ahead a pending occurrence appears.
@@ -62,8 +66,9 @@ class _RecurringRuleFormScreenState
   late PlainDate _startDate;
   late int _promptDays;
   late bool _isActive;
+  late bool _isForeignCurrency;
   String? _sourceAccountId;
-  String? _destinationAccountId;
+  MoneyDestination? _destination;
   String? _categoryId;
   AppFailure? _failure;
   bool _busy = false;
@@ -87,8 +92,16 @@ class _RecurringRuleFormScreenState
     _startDate = existing?.startDate ?? PlainDate.today();
     _promptDays = existing?.promptDaysBefore ?? 3;
     _isActive = existing?.isActive ?? true;
+    _isForeignCurrency = existing?.isForeignCurrency ?? false;
     _sourceAccountId = existing?.sourceAccountId;
-    _destinationAccountId = existing?.destinationAccountId;
+    _destination = switch ((
+      existing?.destinationAccountId,
+      existing?.destinationNetworkConnectionId,
+    )) {
+      (final String accountId, _) => OwnAccountDestination(accountId),
+      (_, final String connectionId) => NetworkContactDestination(connectionId),
+      _ => null,
+    };
     _categoryId = existing?.categoryId;
   }
 
@@ -124,7 +137,8 @@ class _RecurringRuleFormScreenState
     if (!_formKey.currentState!.validate()) return;
     if (_sourceAccountId == null) return;
     if (_kind == RecurringRuleKind.expense && _categoryId == null) return;
-    if (_kind == RecurringRuleKind.transfer && _destinationAccountId == null) {
+    final destination = _destination;
+    if (_kind == RecurringRuleKind.transfer && destination == null) {
       return;
     }
     final amount = Money.tryParse(
@@ -146,13 +160,21 @@ class _RecurringRuleFormScreenState
           startDate: _startDate,
           promptDaysBefore: _promptDays,
           sourceAccountId: _sourceAccountId!,
-          destinationAccountId: _kind == RecurringRuleKind.transfer
-              ? _destinationAccountId
+          destinationAccountId:
+              _kind == RecurringRuleKind.transfer &&
+                  destination is OwnAccountDestination
+              ? destination.accountId
+              : null,
+          destinationNetworkConnectionId:
+              _kind == RecurringRuleKind.transfer &&
+                  destination is NetworkContactDestination
+              ? destination.connectionId
               : null,
           categoryId: _kind == RecurringRuleKind.expense ? _categoryId : null,
           notes: notes.isEmpty ? null : notes,
           ruleId: _ruleId,
           isActive: _isActive,
+          isForeignCurrency: _isForeignCurrency,
         );
     if (!mounted) return;
     setState(() => _busy = false);
@@ -201,6 +223,11 @@ class _RecurringRuleFormScreenState
           (a) => a.accountId != _sourceAccountId && a.currencyCode == currency,
         )
         .toList();
+    // Connected people can receive recurring transfers; the pending network
+    // transfer created on approval carries the source account's currency.
+    final contacts = _kind == RecurringRuleKind.transfer
+        ? (ref.watch(networkContactsProvider).value ?? const [])
+        : const <NetworkContact>[];
 
     return Scaffold(
       appBar: widget.showAppBar
@@ -231,7 +258,7 @@ class _RecurringRuleFormScreenState
                   onChanged: (v) => setState(() {
                     _kind = v ?? RecurringRuleKind.expense;
                     _sourceAccountId = null;
-                    _destinationAccountId = null;
+                    _destination = null;
                   }),
                 ),
                 const SizedBox(height: 16),
@@ -302,7 +329,7 @@ class _RecurringRuleFormScreenState
                   ],
                   onChanged: (v) => setState(() {
                     _sourceAccountId = v;
-                    _destinationAccountId = null;
+                    _destination = null;
                   }),
                   validator: (v) => v == null
                       ? validationMessage(context, ValidationError.required)
@@ -310,34 +337,37 @@ class _RecurringRuleFormScreenState
                 ),
                 if (_kind == RecurringRuleKind.transfer) ...[
                   const SizedBox(height: 16),
-                  AppSelectionField<String>(
-                    key: ValueKey(
-                      'recurring-destination-$_destinationAccountId',
-                    ),
-                    initialValue:
-                        destinations.any(
-                          (a) => a.accountId == _destinationAccountId,
-                        )
-                        ? _destinationAccountId
-                        : null,
+                  DestinationSelectionField(
+                    key: ValueKey('recurring-destination-$_destination'),
+                    initialValue: switch (_destination) {
+                      OwnAccountDestination(:final accountId)
+                          when !destinations.any(
+                            (a) => a.accountId == accountId,
+                          ) =>
+                        null,
+                      NetworkContactDestination(:final connectionId)
+                          when !contacts.any(
+                            (c) => c.connectionId == connectionId,
+                          ) =>
+                        null,
+                      final value => value,
+                    },
                     decoration: InputDecoration(labelText: l10n.txToAccount),
-                    items: [
-                      for (final account in destinations)
-                        DropdownMenuItem(
-                          value: account.accountId,
-                          child: ProtectedMoney(
-                            interactive: false,
-                            child: Text(
-                              '${account.name} (${account.balance.format()})',
-                            ),
-                          ),
-                        ),
-                    ],
-                    onChanged: (v) => setState(() => _destinationAccountId = v),
-                    validator: (v) => v == null
+                    accounts: destinations,
+                    contacts: contacts,
+                    onChanged: (v) => setState(() => _destination = v),
+                    validator: (v) => v == null || v is DestinationPickerHeader
                         ? validationMessage(context, ValidationError.required)
                         : null,
                   ),
+                  if (_destination is NetworkContactDestination)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        l10n.networkLedgerDisclaimer,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
                 ] else ...[
                   const SizedBox(height: 8),
                   CategorySelector(
@@ -353,6 +383,19 @@ class _RecurringRuleFormScreenState
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ),
+                  if (sourceIsCard) ...[
+                    const SizedBox(height: 8),
+                    SwitchListTile(
+                      key: const Key('recurring-is-foreign-currency'),
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(l10n.txIsForeignCurrency),
+                      subtitle: Text(l10n.txIsForeignCurrencyHelp),
+                      value: _isForeignCurrency,
+                      onChanged: _busy
+                          ? null
+                          : (v) => setState(() => _isForeignCurrency = v),
+                    ),
+                  ],
                 ],
                 const SizedBox(height: 16),
                 AppSelectionField<RecurringFrequency>(

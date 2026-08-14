@@ -20,6 +20,7 @@ import 'package:work_tracker/core/widgets/protected_money.dart';
 import 'package:work_tracker/features/commercial/presentation/providers/commercial_providers.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
+import 'package:work_tracker/features/finance/domain/home_due_obligation.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
@@ -27,10 +28,13 @@ import 'package:work_tracker/features/finance/presentation/widgets/finance_widge
 import 'package:work_tracker/features/history/domain/history_models.dart';
 import 'package:work_tracker/features/history/presentation/providers/history_providers.dart';
 import 'package:work_tracker/features/history/presentation/widgets/history_item_tile.dart';
+import 'package:work_tracker/features/network/domain/network_models.dart';
+import 'package:work_tracker/features/network/presentation/providers/network_providers.dart';
 import 'package:work_tracker/features/reports/domain/report_models.dart';
 import 'package:work_tracker/features/reports/presentation/providers/report_providers.dart';
+import 'package:work_tracker/features/salary/data/salary_repository.dart';
+import 'package:work_tracker/features/salary/domain/salary_estimate.dart';
 import 'package:work_tracker/features/salary/presentation/providers/salary_providers.dart';
-import 'package:work_tracker/features/salary/presentation/widgets/estimate_breakdown.dart';
 import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
@@ -141,6 +145,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
   }
 
+  Future<void> _openCurrentSalaryPeriod() async {
+    final bounds = await ref.read(currentPeriodBoundsProvider.future);
+    final result = await ref
+        .read(salaryRepositoryProvider)
+        .ensurePeriod(bounds);
+    if (!mounted) return;
+    await result.when(
+      ok: (period) => context.push('${AppRoutes.work}/periods/${period.id}'),
+      err: (_) => context.push('${AppRoutes.work}/periods'),
+    );
+  }
+
   Future<void> _saveRange() async {
     final userId = ref.read(currentUserIdProvider);
     if (userId == null) return;
@@ -195,6 +211,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ..invalidate(salarySettingsProvider);
     ref.invalidate(pendingIncomeProvider);
     ref.invalidate(pendingRecurringProvider);
+    ref.invalidate(homeUpcomingObligationsProvider);
+    ref.invalidate(networkTransfersProvider);
   }
 
   String _rangeLabel(AppLocalizations l10n, DateRangePreset preset) {
@@ -216,6 +234,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final accountsAsync = ref.watch(accountBalancesProvider);
     final entitlementAsync = ref.watch(effectiveEntitlementProvider);
     final allAccountsAsync = ref.watch(allAccountBalancesProvider);
+    final homeDuesAsync = ref.watch(homeUpcomingObligationsProvider);
     final summaryAsync = ref.watch(homeCashFlowSummaryProvider(_range.range));
     final salarySettingsAsync = ref.watch(salarySettingsProvider);
     final salaryEnabled = salarySettingsAsync.value?.salaryEnabled == true;
@@ -239,6 +258,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       pendingIncomeAsync,
       accountsAsync,
       allAccountsAsync,
+      homeDuesAsync,
       summaryAsync,
       salarySettingsAsync,
       ?estimateAsync,
@@ -298,6 +318,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           context.push('${AppRoutes.settings}/recurring'),
                     ),
             ),
+            compactSection(
+              ref.watch(pendingIncomingNetworkTransfersProvider),
+              loading: const SizedBox.shrink(),
+              data: (items) => items.isEmpty
+                  ? const SizedBox.shrink()
+                  : _PendingNetworkSection(
+                      items: items,
+                      onOpen: () =>
+                          context.push('/money/network?tab=transfers'),
+                    ),
+            ),
             _SectionHeader(title: l10n.homeBalance),
             compactSection(
               accountsAsync,
@@ -309,6 +340,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     .where((account) => !account.hideFromHome)
                     .toList(),
               ),
+            ),
+            compactSection(
+              homeDuesAsync,
+              loading: const _SectionLoader(),
+              data: (summary) => _HomeDuesSection(summary: summary),
             ),
             compactSection(
               ref.watch(creditFacilitiesProvider),
@@ -329,7 +365,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       // pushing it over Home.
                       onAction: () => context.go(AppRoutes.money),
                     ),
-                    _CreditCardCarousel(facilities: cards),
+                    _CreditCardCarousel(
+                      facilities: cards,
+                      dueOverrides: {
+                        for (final obligation
+                            in homeDuesAsync.asData?.value.periods.expand(
+                                  (period) => period.obligations,
+                                ) ??
+                                const <HomeDueObligation>[])
+                          if (obligation.sourceAccountId != null)
+                            obligation.sourceAccountId!:
+                                obligation.remainingMinor,
+                      },
+                    ),
                   ],
                 );
               },
@@ -355,14 +403,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               compactSection(
                 estimateAsync!,
                 loading: const _SectionLoader(),
-                data: (estimate) => EstimateBreakdownCard(estimate: estimate),
+                data: (estimate) => _CompactSalaryCard(
+                  estimate: estimate,
+                  onTap: _openCurrentSalaryPeriod,
+                ),
               ),
             ],
             _SectionHeader(
               title: l10n.homeRecentActivity,
               actionLabel: l10n.commonSeeAll,
-              onAction: () =>
-                  context.push('${AppRoutes.money}?tab=transactions'),
+              // Money is a StatefulShell branch. Switching with go() makes
+              // both the bottom destination and its Transactions tab active.
+              onAction: () => context.go('${AppRoutes.money}?tab=transactions'),
             ),
             compactSection(
               recentAsync,
@@ -438,9 +490,13 @@ class _HomeDataStatusCard extends StatelessWidget {
 /// small red text, and everything falling due over the next month — summed
 /// across statements and installments, not just the earliest single due.
 class _CreditCardCarousel extends StatelessWidget {
-  const _CreditCardCarousel({required this.facilities});
+  const _CreditCardCarousel({
+    required this.facilities,
+    this.dueOverrides = const {},
+  });
 
   final List<CreditFacilitySummary> facilities;
+  final Map<String, int> dueOverrides;
 
   @override
   Widget build(BuildContext context) {
@@ -452,17 +508,20 @@ class _CreditCardCarousel extends StatelessWidget {
         padding: EdgeInsets.zero,
         itemCount: facilities.length,
         separatorBuilder: (context, index) => const SizedBox(width: 10),
-        itemBuilder: (context, index) =>
-            _CreditCardTile(facility: facilities[index]),
+        itemBuilder: (context, index) => _CreditCardTile(
+          facility: facilities[index],
+          dueOverrideMinor: dueOverrides[facilities[index].accountId],
+        ),
       ),
     );
   }
 }
 
 class _CreditCardTile extends StatelessWidget {
-  const _CreditCardTile({required this.facility});
+  const _CreditCardTile({required this.facility, this.dueOverrideMinor});
 
   final CreditFacilitySummary facility;
+  final int? dueOverrideMinor;
 
   @override
   Widget build(BuildContext context) {
@@ -526,16 +585,41 @@ class _CreditCardTile extends StatelessWidget {
                     color: palette.onSurface,
                   ),
                 ),
-                ProtectedMoneyText(
-                  '${facility.availableCredit.format()} / '
-                  '${facility.creditLimit.format()}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  interactive: false,
-                  style: textTheme.titleMedium?.copyWith(
-                    color: palette.onSurface,
-                    fontWeight: FontWeight.w700,
-                  ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Flexible(
+                      child: ProtectedMoneyText(
+                        facility.availableCredit.format(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        interactive: false,
+                        style: textTheme.titleMedium?.copyWith(
+                          color: palette.onSurface,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      ' / ',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: palette.onSurfaceMuted,
+                      ),
+                    ),
+                    Flexible(
+                      child: ProtectedMoneyText(
+                        facility.creditLimit.format(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        interactive: false,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: palette.onSurfaceMuted,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 if (owed)
                   ProtectedMoneyText(
@@ -552,12 +636,20 @@ class _CreditCardTile extends StatelessWidget {
                     ),
                   ),
                 const Spacer(),
-                if (facility.upcomingDueMinor > 0)
+                if ((dueOverrideMinor ?? facility.upcomingDueMinor) > 0)
                   ProtectedMoneyText(
                     facility.nextDueOn == null
-                        ? facility.upcomingDue.format()
+                        ? Money(
+                            minor:
+                                dueOverrideMinor ?? facility.upcomingDueMinor,
+                            currencyCode: facility.currencyCode,
+                          ).format()
                         : l10n.homeCardDueBy(
-                            facility.upcomingDue.format(),
+                            Money(
+                              minor:
+                                  dueOverrideMinor ?? facility.upcomingDueMinor,
+                              currencyCode: facility.currencyCode,
+                            ).format(),
                             facility.nextDueOn!.toIso(),
                           ),
                     key: Key('home-card-due-${facility.accountId}'),
@@ -662,6 +754,89 @@ class _PendingRecurringSection extends StatelessWidget {
                             : l10n.incomeUpcoming(
                                 first.occurrence.scheduledOn.toIso(),
                               ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: context.suitColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Incoming pending network transfers: money someone sent that only lands
+/// once the user accepts it on the Network page. Receiver-side only — the
+/// sender has nothing to approve here.
+class _PendingNetworkSection extends StatelessWidget {
+  const _PendingNetworkSection({required this.items, required this.onOpen});
+
+  final List<NetworkTransfer> items;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final warning = context.suitColors.warning;
+    final first = items.first;
+    return Card(
+      color: warning.background,
+      clipBehavior: Clip.antiAlias,
+      child: Semantics(
+        button: true,
+        label: l10n.homePendingNetworkTitle,
+        child: InkWell(
+          key: const Key('home-pending-network-summary'),
+          onTap: onOpen,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                FinanceSuitIcon(FinanceSuitIcons.people, color: warning.icon),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        l10n.homePendingNetworkTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: warning.text,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      if (items.length == 1)
+                        ProtectedMoneyText(
+                          l10n.networkSentYou(
+                            first.counterpartyAlias,
+                            first.amount.format(),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        )
+                      else
+                        Text(
+                          '${l10n.networkPendingCount(items.length)} · '
+                          '${first.counterpartyAlias}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      Text(
+                        l10n.networkPendingTransfer,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -922,6 +1097,308 @@ class _BalanceSection extends StatelessWidget {
   }
 }
 
+class _HomeDuesSection extends StatelessWidget {
+  const _HomeDuesSection({required this.summary});
+
+  final HomeDueSummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colors = context.suitColors;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SectionHeader(title: l10n.homeDuesTitle),
+        Card(
+          key: const Key('home-dues-card'),
+          margin: EdgeInsets.zero,
+          clipBehavior: Clip.antiAlias,
+          child: summary.isEmpty
+              ? ListTile(
+                  leading: FinanceSuitIcon(
+                    FinanceSuitIcons.checkCircle,
+                    color: colors.success.icon,
+                  ),
+                  title: Text(l10n.homeDueNothing),
+                )
+              : Column(
+                  children: [
+                    for (
+                      var index = 0;
+                      index < summary.periods.length;
+                      index++
+                    ) ...[
+                      _HomeDueTile(period: summary.periods[index]),
+                      if (index + 1 < summary.periods.length)
+                        const Divider(height: 1),
+                    ],
+                  ],
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HomeDueTile extends StatelessWidget {
+  const _HomeDueTile({required this.period});
+
+  final HomeDuePeriodSummary period;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final dates = MaterialLocalizations.of(context);
+    final colors = context.suitColors;
+    final label = switch (period.period) {
+      HomeDuePeriod.current => l10n.homeDueCurrent,
+      HomeDuePeriod.thisMonth => l10n.homeDueThisMonth,
+      HomeDuePeriod.nextMonth => l10n.homeDueNext,
+    };
+    final description = switch (period.period) {
+      HomeDuePeriod.current => l10n.homeDueCurrentWindow,
+      HomeDuePeriod.thisMonth => dates.formatMonthYear(period.end.toDateTime()),
+      HomeDuePeriod.nextMonth => dates.formatMonthYear(
+        period.start!.toDateTime(),
+      ),
+    };
+    final tone = period.period == HomeDuePeriod.current
+        ? colors.error
+        : colors.warning;
+    return ListTile(
+      key: Key('home-due-${period.period.name}'),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      onTap: () => _showDueBreakdown(context, period),
+      leading: FinanceSuitIcon(
+        period.period == HomeDuePeriod.current
+            ? FinanceSuitIcons.warning
+            : FinanceSuitIcons.calendarToday,
+        color: tone.icon,
+      ),
+      title: Text(label),
+      subtitle: Text(description),
+      trailing: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          for (final total in period.totals)
+            ProtectedMoneyText(
+              total.format(),
+              interactive: false,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: tone.text,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showDueBreakdown(BuildContext context, HomeDuePeriodSummary period) {
+    final dates = MaterialLocalizations.of(context);
+    final openIndex = ValueNotifier<int?>(null);
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      useRootNavigator: true,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.62,
+        minChildSize: 0.42,
+        maxChildSize: 0.9,
+        builder: (context, controller) => SafeArea(
+          child: ValueListenableBuilder<int?>(
+            valueListenable: openIndex,
+            builder: (context, expandedIndex, _) => ListView(
+              controller: controller,
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 104),
+              children: [
+                Text(
+                  'Due breakdown',
+                  style: Theme.of(sheetContext).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'These unpaid items are included in this total.',
+                  style: Theme.of(sheetContext).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 12),
+                for (var index = 0; index < period.obligations.length; index++)
+                  _DueObligationGroup(
+                    obligation: period.obligations[index],
+                    dates: dates,
+                    expanded: expandedIndex == index,
+                    onExpansionChanged: (value) {
+                      openIndex.value = value ? index : null;
+                    },
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DueObligationGroup extends StatelessWidget {
+  const _DueObligationGroup({
+    required this.obligation,
+    required this.dates,
+    required this.expanded,
+    required this.onExpansionChanged,
+  });
+  final HomeDueObligation obligation;
+  final MaterialLocalizations dates;
+  final bool expanded;
+  final ValueChanged<bool>? onExpansionChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final obligation = this.obligation;
+    final dates = this.dates;
+    final details = obligation.details;
+    final items = (details['items'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .toList();
+    final installments = (details['installments'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .toList();
+    final breakdown = Column(
+      children: [
+        if (items.isNotEmpty) ...[
+          const _DueSubsectionHeader(title: 'Other charges'),
+          for (final child in items)
+            _DueDetailRow(child: child, obligation: obligation, dates: dates),
+        ],
+        if (installments.isNotEmpty) ...[
+          const _DueSubsectionHeader(title: 'Installments'),
+          for (final child in installments)
+            _DueDetailRow(child: child, obligation: obligation, dates: dates),
+        ],
+        if (items.isEmpty && installments.isEmpty)
+          const ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.only(left: 20, right: 4),
+            title: Text('No item-level breakdown available'),
+          ),
+      ],
+    );
+    return Column(
+      key: ValueKey<String>('due-obligation-${obligation.id}'),
+      children: [
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          onTap: () => onExpansionChanged?.call(!expanded),
+          title: Text(
+            obligation.sourceName.isNotEmpty
+                ? obligation.sourceName
+                : _formatDueKind(obligation.kind),
+          ),
+          subtitle: Text(dates.formatMediumDate(obligation.dueOn.toDateTime())),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ProtectedMoneyText(
+                Money(
+                  minor: obligation.remainingMinor,
+                  currencyCode: obligation.currencyCode,
+                ).format(),
+                interactive: false,
+              ),
+              const SizedBox(width: 8),
+              AnimatedRotation(
+                turns: expanded ? 0.5 : 0,
+                duration: const Duration(milliseconds: 180),
+                child: const Icon(Icons.expand_more),
+              ),
+            ],
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOutCubic,
+          alignment: Alignment.topCenter,
+          clipBehavior: Clip.hardEdge,
+          child: expanded ? breakdown : const SizedBox.shrink(),
+        ),
+        const Divider(height: 1),
+      ],
+    );
+  }
+}
+
+class _DueSubsectionHeader extends StatelessWidget {
+  const _DueSubsectionHeader({required this.title});
+  final String title;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(20, 4, 0, 0),
+    child: Text(
+      title,
+      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+        color: Theme.of(context).colorScheme.primary,
+        fontWeight: FontWeight.w700,
+      ),
+    ),
+  );
+}
+
+class _DueDetailRow extends StatelessWidget {
+  const _DueDetailRow({
+    required this.child,
+    required this.obligation,
+    required this.dates,
+  });
+  final Map<String, dynamic> child;
+  final HomeDueObligation obligation;
+  final MaterialLocalizations dates;
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+    dense: true,
+    visualDensity: const VisualDensity(vertical: -2),
+    contentPadding: const EdgeInsets.only(left: 28, right: 0),
+    title: Text(child['title'] as String? ?? 'Due item'),
+    subtitle: Text(
+      [
+        if (child['sequence_number'] != null)
+          'Installment ${child['sequence_number']}'
+              '${(child['installment_count'] ?? obligation.details['installment_count']) is num ? '/${child['installment_count'] ?? obligation.details['installment_count']}' : ''}',
+        if (child['occurred_on'] != null)
+          dates.formatMediumDate(
+            DateTime.parse(child['occurred_on'] as String),
+          ),
+        if (child['due_on'] != null)
+          dates.formatMediumDate(DateTime.parse(child['due_on'] as String)),
+      ].join(' · '),
+    ),
+    trailing: ProtectedMoneyText(
+      Money(
+        minor: ((child['remaining_minor'] ?? child['amount_minor'] ?? 0) as num)
+            .toInt(),
+        currencyCode: obligation.currencyCode,
+      ).format(),
+      interactive: false,
+      style: Theme.of(context).textTheme.bodySmall,
+    ),
+  );
+}
+
+String _formatDueKind(String kind) => kind
+    .replaceAll('_', ' ')
+    .split(' ')
+    .map(
+      (word) =>
+          word.isEmpty ? word : '${word[0].toUpperCase()}${word.substring(1)}',
+    )
+    .join(' ');
+
 class _TotalBalanceCard extends StatelessWidget {
   const _TotalBalanceCard({required this.totals});
 
@@ -1051,12 +1528,14 @@ class _CashFlowSection extends StatelessWidget {
           children: [
             for (final summary in summaries) ...[
               GridView.count(
+                padding: EdgeInsets.zero,
                 crossAxisCount: compact ? 2 : 4,
-                mainAxisSpacing: 8,
+                mainAxisExtent: compact ? 82 : null,
+                mainAxisSpacing: 4,
                 crossAxisSpacing: 8,
                 // 1.45 clipped the metric text by a few pixels on 320px-wide
                 // phones; compact cells need the extra height.
-                childAspectRatio: compact ? 1.3 : 1.5,
+                childAspectRatio: compact ? 1.55 : 1.5,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
@@ -1103,9 +1582,9 @@ class _CashFlowSection extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               _BalanceStrip(summary: summary),
-              if (summary != summaries.last) const SizedBox(height: 12),
+              if (summary != summaries.last) const SizedBox(height: 8),
             ],
           ],
         );
@@ -1148,6 +1627,66 @@ class _BalanceStrip extends StatelessWidget {
   }
 }
 
+class _CompactSalaryCard extends StatelessWidget {
+  const _CompactSalaryCard({required this.estimate, required this.onTap});
+
+  final SalaryEstimate estimate;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    String money(int minor) =>
+        Money(minor: minor, currencyCode: estimate.currencyCode).format();
+
+    Widget row(String label, int minor, {TextStyle? style}) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Expanded(child: Text(label, style: style)),
+          ProtectedMoneyText(money(minor), interactive: false, style: style),
+        ],
+      ),
+    );
+
+    final adjustmentsMinor = estimate.totalMinor - estimate.baseSalaryMinor;
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(l10n.salBreakdown, style: textTheme.titleSmall),
+                  ),
+                  const Icon(Icons.chevron_right, size: 20),
+                ],
+              ),
+              const SizedBox(height: 4),
+              row(l10n.salBaseSalary, estimate.baseSalaryMinor),
+              row(l10n.salAdjustments, adjustmentsMinor),
+              const Divider(height: 10),
+              row(
+                l10n.salEstimatedTotal,
+                estimate.totalMinor,
+                style: textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _StripAmount extends StatelessWidget {
   const _StripAmount({required this.label, required this.money});
 
@@ -1158,7 +1697,7 @@ class _StripAmount extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1200,7 +1739,7 @@ class _MetricCard extends StatelessWidget {
     // rows instead of three.
     return Card(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,

@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
-import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/result/result.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/card_research.dart';
@@ -17,39 +16,27 @@ import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 class _MockFinanceRepository extends Mock implements FinanceRepository {}
 
-Map<String, dynamic> _wrapped(
-  dynamic value,
-  String status, {
-  String confidence = 'high',
-}) => {
+Map<String, dynamic> _wrapped(dynamic value, String status) => {
   'value': value,
   'status': status,
-  'confidence': value == null ? null : confidence,
+  'confidence': value == null ? null : 'high',
   'sourceIds': value == null ? <String>[] : ['s1'],
 };
 
-/// A resolved research result: verified product identity, a user-provided
-/// credit limit (only ever eligible because the sheet echoed it back), a
-/// verified due day/statement day, and a verified minimum-payment formula.
-Map<String, dynamic> _resolvedJson({
-  String name = 'CIB Platinum',
-  int? creditLimitMinor = 500000,
-}) => {
-  'requestId': 'ignored',
+Map<String, dynamic> _researchPayload({String name = 'CIB Platinum'}) => {
+  'requestId': 'catalog:version-1',
   'status': 'resolved',
   'candidates': <dynamic>[],
   'product': {
     'issuerName': _wrapped('CIB', 'verified'),
     'productName': _wrapped('Platinum', 'verified'),
-    'tier': _wrapped(null, 'unknown'),
+    'tier': _wrapped('Platinum', 'verified'),
     'network': _wrapped('visa', 'verified'),
     'currencyCode': _wrapped('EGP', 'verified'),
   },
   'accountForm': {
     'suggestedName': _wrapped(name, 'verified'),
-    'creditLimitMinor': creditLimitMinor == null
-        ? _wrapped(null, 'unknown')
-        : _wrapped(creditLimitMinor, 'user_provided'),
+    'creditLimitMinor': _wrapped(null, 'unknown'),
     'defaultDueDay': _wrapped(17, 'verified'),
     'statementDay': _wrapped(24, 'verified'),
     'minPaymentMethod': _wrapped('percent', 'verified'),
@@ -61,8 +48,8 @@ Map<String, dynamic> _resolvedJson({
   'sources': <dynamic>[
     {
       'id': 's1',
-      'url': 'https://cib.com.eg/tariff',
-      'title': 'CIB Tariff',
+      'url': 'https://www.cibeg.com/terms',
+      'title': 'CIB terms',
       'officialDomain': true,
       'publishedDate': null,
       'effectiveDate': null,
@@ -73,14 +60,29 @@ Map<String, dynamic> _resolvedJson({
   'unsupportedFindings': <dynamic>[],
 };
 
-Map<String, dynamic> _ambiguousJson() => {
-  'requestId': 'ignored',
-  'status': 'ambiguous',
-  'candidates': [
-    {'id': 'c1', 'label': 'Platinum'},
-    {'id': 'c2', 'label': 'Platinum Cashback'},
-  ],
-};
+CatalogResearchMatch _catalogMatch({
+  AccountType accountType = AccountType.creditCard,
+  String issuer = 'CIB',
+  String product = 'Platinum',
+}) => CatalogResearchMatch.fromJson({
+  'catalog_product_id': 'product-1',
+  'catalog_version_id': 'version-1',
+  'account_type': accountType.dbValue,
+  'country_code': 'EG',
+  'issuer_name': issuer,
+  'official_website': 'https://example.com',
+  'product_name': product,
+  'tier': 'Platinum',
+  'network': accountType == AccountType.creditCard ? 'visa' : null,
+  'currency_code': 'EGP',
+  'version_number': 1,
+  'research_payload': _researchPayload(name: '$issuer $product'),
+  'sources': <dynamic>[],
+  'verified_at': '2026-08-01T00:00:00Z',
+  'is_fresh': true,
+  'age_days': 13,
+  'match_quality': 100,
+});
 
 Future<GoRouter> _pump(
   WidgetTester tester, {
@@ -91,18 +93,16 @@ Future<GoRouter> _pump(
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
-
   final router = GoRouter(
     initialLocation: '/list',
     routes: [
       GoRoute(
         path: '/list',
-        builder: (context, state) =>
-            const Scaffold(body: Text('accounts list stub')),
+        builder: (_, _) => const Scaffold(body: Text('accounts list stub')),
       ),
       GoRoute(
         path: '/money/accounts/new',
-        builder: (context, state) => const AccountFormScreen(),
+        builder: (_, _) => const AccountFormScreen(),
       ),
     ],
   );
@@ -136,34 +136,6 @@ Future<void> _selectAccountType(
   await tester.pumpAndSettle();
 }
 
-Future<void> _fillIdentificationSheet(
-  WidgetTester tester, {
-  String issuer = 'CIB',
-  String product = 'Platinum',
-  String? creditLimit,
-}) async {
-  await tester.enterText(find.byKey(const Key('ai-research-issuer')), issuer);
-  await tester.tap(find.byKey(const Key('ai-research-country')));
-  await tester.pumpAndSettle();
-  await tester.enterText(find.byType(TextField).last, 'Egypt');
-  await tester.pumpAndSettle();
-  await tester.tap(find.text('Egypt (EG)').last);
-  await tester.pumpAndSettle();
-  await tester.enterText(find.byKey(const Key('ai-research-product')), product);
-  if (creditLimit != null) {
-    await tester.ensureVisible(
-      find.byKey(const Key('ai-research-credit-limit')),
-    );
-    await tester.enterText(
-      find.byKey(const Key('ai-research-credit-limit')),
-      creditLimit,
-    );
-  }
-  await tester.ensureVisible(find.byKey(const Key('ai-research-submit')));
-  await tester.tap(find.byKey(const Key('ai-research-submit')));
-  await tester.pumpAndSettle();
-}
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -188,167 +160,47 @@ void main() {
     );
   });
 
-  testWidgets('AI autofill button appears only for Credit Card/BNPL creation', (
+  testWidgets('catalog action appears only for Credit Card and BNPL creation', (
     tester,
   ) async {
     final repo = _MockFinanceRepository();
     await _pump(tester, repository: repo);
-
     expect(find.byKey(const Key('ai-autofill-button')), findsNothing);
     await _selectAccountType(tester, 'Current balance', 'Credit Card');
-    expect(find.byKey(const Key('ai-autofill-button')), findsOneWidget);
-
+    expect(find.text('Choose from catalog'), findsOneWidget);
     await _selectAccountType(tester, 'Credit Card', 'BNPL / Finance Company');
-    expect(find.byKey(const Key('ai-autofill-button')), findsOneWidget);
+    expect(find.text('Choose from catalog'), findsOneWidget);
   });
 
-  testWidgets('tapping the button opens a structured, non-chat sheet', (
+  testWidgets('catalog picker requires bank then product selection', (
     tester,
   ) async {
     final repo = _MockFinanceRepository();
-    await _pump(tester, repository: repo);
-    await _selectAccountType(tester, 'Current balance', 'Credit Card');
-
-    await tester.tap(find.byKey(const Key('ai-autofill-button')));
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const Key('ai-research-issuer')), findsOneWidget);
-    expect(find.byKey(const Key('ai-research-country')), findsOneWidget);
-    expect(find.byKey(const Key('ai-research-product')), findsOneWidget);
-    expect(find.byKey(const Key('ai-research-network')), findsOneWidget);
-    expect(find.byKey(const Key('ai-research-notes')), findsOneWidget);
-    expect(
-      find.text(
-        'Do not enter your full card number, CVV, PIN, password, or OTP.',
-      ),
-      findsOneWidget,
-    );
-    // Structured submit, not a chat "send" action.
-    expect(find.byKey(const Key('ai-research-submit')), findsOneWidget);
-    expect(find.text('Find and fill my card'), findsOneWidget);
-    expect(find.byIcon(Icons.send), findsNothing);
-  });
-
-  testWidgets(
-    'BNPL sheet swaps in BNPL-specific fields and hides card-only ones',
-    (tester) async {
-      final repo = _MockFinanceRepository();
-      await _pump(tester, repository: repo);
-      await _selectAccountType(
-        tester,
-        'Current balance',
-        'BNPL / Finance Company',
-      );
-
-      await tester.tap(find.byKey(const Key('ai-autofill-button')));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Find and fill my account'), findsOneWidget);
-      expect(find.byKey(const Key('ai-research-tenor')), findsOneWidget);
-      expect(find.byKey(const Key('ai-research-network')), findsNothing);
-      expect(find.byKey(const Key('ai-research-statement-day')), findsNothing);
-    },
-  );
-
-  testWidgets('shows a deterministic status line while research is in flight', (
-    tester,
-  ) async {
-    final repo = _MockFinanceRepository();
-    when(() => repo.researchCardProduct(any())).thenAnswer(
-      (_) => Future<Result<CardResearchResult>>.delayed(
-        const Duration(milliseconds: 500),
-        () => Ok(CardResearchResult.fromJson(_resolvedJson())),
-      ),
-    );
     when(
-      () => repo.saveCreditFacility(any()),
-    ).thenAnswer((_) async => const Ok('new-account-id'));
-    when(
-      () => repo.setHideFromHome(any(), hidden: any(named: 'hidden')),
-    ).thenAnswer((_) async => const Ok(null));
-
+      () => repo.browseCardCatalog(accountType: AccountType.creditCard),
+    ).thenAnswer((_) async => Ok([_catalogMatch()]));
     await _pump(tester, repository: repo);
     await _selectAccountType(tester, 'Current balance', 'Credit Card');
     await tester.tap(find.byKey(const Key('ai-autofill-button')));
     await tester.pumpAndSettle();
-    // Drive frames manually while the indeterminate spinner is visible —
-    // pumpAndSettle would spin forever against a repeating animation.
-    await tester.enterText(find.byKey(const Key('ai-research-issuer')), 'CIB');
-    await tester.tap(find.byKey(const Key('ai-research-country')));
+    expect(find.text('Product catalog'), findsOneWidget);
+    expect(find.text('CIB'), findsOneWidget);
+    expect(find.text('1 product'), findsOneWidget);
+    await tester.tap(find.text('CIB'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).last, 'Egypt');
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Egypt (EG)').last);
-    await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byKey(const Key('ai-research-product')),
-      'Platinum',
-    );
-    await tester.ensureVisible(find.byKey(const Key('ai-research-submit')));
-    await tester.tap(find.byKey(const Key('ai-research-submit')));
-    await tester.pump();
-
-    expect(find.text('Finding your product…'), findsOneWidget);
-    final button = tester.widget<OutlinedButton>(
-      find.byKey(const Key('ai-autofill-button')),
-    );
-    expect(button.onPressed, isNull);
-
-    await tester.pump(const Duration(milliseconds: 600));
-    await tester.pump();
-    await tester.pump();
+    expect(find.text('Platinum'), findsOneWidget);
   });
 
-  testWidgets(
-    'a resolved result fills the form and auto-submits through the existing Create path',
-    (tester) async {
-      final repo = _MockFinanceRepository();
-      when(() => repo.researchCardProduct(any())).thenAnswer(
-        (_) async => Ok(CardResearchResult.fromJson(_resolvedJson())),
-      );
-      when(
-        () => repo.saveCreditFacility(any()),
-      ).thenAnswer((_) async => const Ok('new-account-id'));
-      when(
-        () => repo.setHideFromHome(any(), hidden: any(named: 'hidden')),
-      ).thenAnswer((_) async => const Ok(null));
-
-      await _pump(tester, repository: repo);
-      await _selectAccountType(tester, 'Current balance', 'Credit Card');
-      await tester.tap(find.byKey(const Key('ai-autofill-button')));
-      await tester.pumpAndSettle();
-      await _fillIdentificationSheet(tester, creditLimit: '5000');
-
-      final captured = verify(
-        () => repo.saveCreditFacility(captureAny()),
-      ).captured;
-      expect(captured, hasLength(1));
-      final draft = captured.single as CreditFacilityDraft;
-      expect(draft.name, 'CIB Platinum');
-      expect(draft.creditLimitMinor, 500000);
-      expect(draft.defaultDueDay, 17);
-      expect(draft.statementDay, 24);
-      expect(draft.minPaymentMethod, MinPaymentMethod.percent);
-      expect(draft.minPaymentBasisPoints, 500);
-
-      // The screen popped back to the caller — the same outcome a manual
-      // Create tap produces.
-      expect(find.byType(AccountFormScreen), findsNothing);
-      expect(find.text('accounts list stub'), findsOneWidget);
-    },
-  );
-
-  testWidgets('a catalog result shows localized verification and date', (
+  testWidgets('selection fills the form but waits for user confirmation', (
     tester,
   ) async {
     final repo = _MockFinanceRepository();
-    final catalogResult =
-        CardResearchResult.fromJson(
-          _resolvedJson(creditLimitMinor: null),
-        ).withCatalogMetadata(
-          productId: 'product-1',
-          versionId: 'version-1',
-          verifiedAt: DateTime.utc(2026, 8, 1),
+    final match = _catalogMatch();
+    final result = CardResearchResult.fromJson(_researchPayload())
+        .withCatalogMetadata(
+          productId: match.productId,
+          versionId: match.versionId,
+          verifiedAt: match.verifiedAt,
           request: const CardResearchRequest(
             requestId: 'request-1',
             accountType: AccountType.creditCard,
@@ -358,175 +210,39 @@ void main() {
           ),
         );
     when(
+      () => repo.browseCardCatalog(accountType: AccountType.creditCard),
+    ).thenAnswer((_) async => Ok([match]));
+    when(
       () => repo.researchCardProduct(any()),
-    ).thenAnswer((_) async => Ok(catalogResult));
+    ).thenAnswer((_) async => Ok(result));
 
     await _pump(tester, repository: repo);
     await _selectAccountType(tester, 'Current balance', 'Credit Card');
     await tester.tap(find.byKey(const Key('ai-autofill-button')));
     await tester.pumpAndSettle();
-    await _fillIdentificationSheet(tester);
+    await tester.tap(find.text('CIB'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Platinum'));
+    await tester.pumpAndSettle();
 
+    final nameField = find.descendant(
+      of: find.byKey(const Key('account-name')),
+      matching: find.byType(EditableText),
+    );
+    expect(
+      tester.widget<EditableText>(nameField).controller.text,
+      'CIB Platinum',
+    );
     expect(find.byKey(const Key('catalog-verified-indicator')), findsOneWidget);
-    expect(
-      find.textContaining('Verified from Finance Suit catalog'),
-      findsOneWidget,
-    );
     verifyNever(() => repo.saveCreditFacility(any()));
-  });
-
-  testWidgets('an incomplete result fills what it can but never auto-submits', (
-    tester,
-  ) async {
-    final repo = _MockFinanceRepository();
-    when(() => repo.researchCardProduct(any())).thenAnswer(
-      (_) async => Ok(
-        CardResearchResult.fromJson(_resolvedJson(creditLimitMinor: null)),
-      ),
-    );
-
-    await _pump(tester, repository: repo);
-    await _selectAccountType(tester, 'Current balance', 'Credit Card');
-    await tester.tap(find.byKey(const Key('ai-autofill-button')));
-    await tester.pumpAndSettle();
-    // No credit limit provided in the sheet either — the field the AI
-    // can never safely guess (task spec section 33) stays empty.
-    await _fillIdentificationSheet(tester);
-
-    verifyNever(() => repo.saveCreditFacility(any()));
-    expect(
-      find.text(
-        'We filled what we could. Complete the highlighted fields to continue.',
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('CIB Platinum'), findsOneWidget);
     expect(find.byType(AccountFormScreen), findsOneWidget);
   });
 
-  testWidgets('a manually-entered name is never overwritten by AI autofill', (
-    tester,
-  ) async {
-    final repo = _MockFinanceRepository();
-    when(
-      () => repo.researchCardProduct(any()),
-    ).thenAnswer((_) async => Ok(CardResearchResult.fromJson(_resolvedJson())));
-    when(
-      () => repo.saveCreditFacility(captureAny()),
-    ).thenAnswer((_) async => const Ok('new-account-id'));
-    when(
-      () => repo.setHideFromHome(any(), hidden: any(named: 'hidden')),
-    ).thenAnswer((_) async => const Ok(null));
-
-    await _pump(tester, repository: repo);
-    await _selectAccountType(tester, 'Current balance', 'Credit Card');
-    await tester.enterText(
-      find.byKey(const Key('account-name')),
-      'My Own Card Name',
-    );
-    await tester.pump();
-
-    await tester.tap(find.byKey(const Key('ai-autofill-button')));
-    await tester.pumpAndSettle();
-    await _fillIdentificationSheet(tester, creditLimit: '5000');
-
-    final draft =
-        verify(() => repo.saveCreditFacility(captureAny())).captured.single
-            as CreditFacilityDraft;
-    expect(draft.name, 'My Own Card Name');
-  });
-
-  testWidgets(
-    'an ambiguous match offers a plain disambiguation choice, not a chat',
-    (tester) async {
-      final repo = _MockFinanceRepository();
-      when(() => repo.researchCardProduct(any())).thenAnswer((
-        invocation,
-      ) async {
-        final request =
-            invocation.positionalArguments[0] as CardResearchRequest;
-        if (request.selectedProductId == null) {
-          return Ok(CardResearchResult.fromJson(_ambiguousJson()));
-        }
-        return Ok(
-          CardResearchResult.fromJson(
-            _resolvedJson(name: 'CIB Platinum Cashback'),
-          ),
-        );
-      });
-      when(
-        () => repo.saveCreditFacility(captureAny()),
-      ).thenAnswer((_) async => const Ok('new-account-id'));
-      when(
-        () => repo.setHideFromHome(any(), hidden: any(named: 'hidden')),
-      ).thenAnswer((_) async => const Ok(null));
-
-      await _pump(tester, repository: repo);
-      await _selectAccountType(tester, 'Current balance', 'Credit Card');
-      await tester.tap(find.byKey(const Key('ai-autofill-button')));
-      await tester.pumpAndSettle();
-      await _fillIdentificationSheet(tester, creditLimit: '5000');
-
-      expect(find.text('Which one do you have?'), findsOneWidget);
-      expect(find.byKey(const Key('ai-research-candidate-c1')), findsOneWidget);
-      expect(find.byKey(const Key('ai-research-candidate-c2')), findsOneWidget);
-
-      await tester.tap(find.byKey(const Key('ai-research-candidate-c2')));
-      await tester.pumpAndSettle();
-
-      verify(() => repo.researchCardProduct(any())).called(2);
-      final draft =
-          verify(() => repo.saveCreditFacility(captureAny())).captured.single
-              as CreditFacilityDraft;
-      expect(draft.name, 'CIB Platinum Cashback');
-    },
-  );
-
-  testWidgets('a provider failure leaves the manual form fully usable', (
-    tester,
-  ) async {
-    final repo = _MockFinanceRepository();
-    when(
-      () => repo.researchCardProduct(any()),
-    ).thenAnswer((_) async => const Err(NetworkFailure()));
-
-    await _pump(tester, repository: repo);
-    await _selectAccountType(tester, 'Current balance', 'Credit Card');
-    await tester.tap(find.byKey(const Key('ai-autofill-button')));
-    await tester.pumpAndSettle();
-    await _fillIdentificationSheet(tester);
-
-    verifyNever(() => repo.saveCreditFacility(any()));
-    expect(
-      find.text(
-        "We couldn't find enough reliable information. You can continue filling the form manually.",
-      ),
-      findsOneWidget,
-    );
-    final button = tester.widget<OutlinedButton>(
-      find.byKey(const Key('ai-autofill-button')),
-    );
-    expect(button.onPressed, isNotNull);
-    expect(find.byKey(const Key('facility-credit-limit')), findsOneWidget);
-  });
-
-  testWidgets('renders correctly in Arabic RTL', (tester) async {
+  testWidgets('catalog entry point renders in Arabic RTL', (tester) async {
     final repo = _MockFinanceRepository();
     await _pump(tester, repository: repo, locale: const Locale('ar'));
     await _selectAccountType(tester, 'الرصيد الجاري', 'بطاقة ائتمان');
-
-    expect(find.byKey(const Key('ai-autofill-button')), findsOneWidget);
-    expect(find.text('دع الذكاء الاصطناعي يساعدك'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('fits a small phone viewport without overflow', (tester) async {
-    final repo = _MockFinanceRepository();
-    await _pump(tester, repository: repo, size: const Size(320, 640));
-    await _selectAccountType(tester, 'Current balance', 'Credit Card');
-    await tester.tap(find.byKey(const Key('ai-autofill-button')));
-    await tester.pumpAndSettle();
-
+    expect(find.text('اختر من الكتالوج'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

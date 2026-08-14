@@ -7,6 +7,8 @@ The app uses feature-first Flutter structure:
 - `lib/features/auth`: Supabase auth flows.
 - `lib/features/onboarding`: first-run profile, salary, account setup.
 - `lib/features/finance`: accounts, categories, transactions, transfers.
+- `lib/features/network`: Finance Suit Network — user search, add requests,
+  private aliases, and pending cross-user transfers.
 - `lib/features/work`: work entries and official holidays.
 - `lib/features/salary`: settings, salary math, periods, payments.
 - `lib/features/dashboard`: home dashboard.

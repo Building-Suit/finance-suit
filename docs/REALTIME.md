@@ -24,7 +24,13 @@ Subscribed tables:
 - `salary_periods`
 - `salary_adjustments`
 - `salary_settings`
+- `network_add_requests`
+- `network_connections`
+- `network_transfers`
 
-Each subscription is filtered by `user_id = auth.uid()`. Changes are debounced for 450 ms, then affected providers are invalidated and re-fetched.
+Each subscription is filtered by `user_id = auth.uid()`. The network tables
+are shared between two users, so they are watched once per party column
+(requester/recipient, user_a/user_b, sender/receiver) instead. Changes are
+debounced for 450 ms, then affected providers are invalidated and re-fetched.
 
 Known risk: delete payload filtering depends on Supabase Realtime delete payload behavior. Aggregates remain correct after manual refresh because server-side RLS and queries are authoritative.

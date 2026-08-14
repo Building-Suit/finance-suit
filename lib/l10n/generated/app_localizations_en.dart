@@ -527,7 +527,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setSecurity => 'Privacy and security';
 
   @override
-  String get setSecuritySubtitle => 'Privacy, app lock, and biometric login';
+  String get setSecuritySubtitle => 'Privacy, app lock and biometric';
 
   @override
   String get setNotificationsSubtitle => 'Alerts and reminder preferences';
@@ -542,7 +542,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setAutomationSubtitle => 'Salary, income, and recurring payments';
 
   @override
-  String get setAccountSubtitle => 'Sign out or delete your account';
+  String get setAccountSubtitle =>
+      'Change password, manage your plan, or delete your account';
 
   @override
   String get setAboutSubtitle => 'Legal documents and app information';
@@ -653,6 +654,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authBiometricLogin => 'Login with fingerprint or device security';
+
+  @override
+  String get authBiometricLoginSetupHelp =>
+      'Enable fingerprint login in Settings → Account → Login with fingerprint or device security.';
 
   @override
   String get authBiometricLoginReason =>
@@ -2209,6 +2214,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeCardsTitle => 'Cards';
 
   @override
+  String get homeDueCurrent => 'Current due';
+
+  @override
+  String get homeDueThisMonth => 'This month\'s due';
+
+  @override
+  String get homeDueNext => 'Next month\'s due';
+
+  @override
+  String get homeDueCurrentWindow => 'Overdue and due today';
+
+  @override
+  String homeDueThrough(String date) {
+    return 'Due through $date';
+  }
+
+  @override
+  String homeDueInMonth(String month) {
+    return 'Due in $month';
+  }
+
+  @override
+  String homeDueOn(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String get homeDueNothing => 'No payments are due through next month.';
+
+  @override
   String homeCardOwed(String amount) {
     return '$amount owed';
   }
@@ -2222,7 +2257,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeCardNothingDue => 'Nothing due this month';
 
   @override
-  String get homeDuesTitle => 'Installments';
+  String get homeDuesTitle => 'Payments due';
 
   @override
   String homeDueNow(String amount) {
@@ -3012,11 +3047,38 @@ class AppLocalizationsEn extends AppLocalizations {
       'For a partial acceptance the amount received must be less than the amount owed.';
 
   @override
-  String get aiAutofillButtonLabel => 'Let AI help do it';
+  String get aiAutofillButtonLabel => 'Choose from catalog';
 
   @override
   String get aiAutofillHelperText =>
-      'Tell us which card or finance product you have. Finance Suit can research its public fees and settings and fill this form for you.';
+      'Choose a bank or provider, then select your card or finance product. Its verified public settings will fill this form for you to review.';
+
+  @override
+  String get catalogPickerTitle => 'Product catalog';
+
+  @override
+  String get catalogSearchBankHint => 'Search banks and providers';
+
+  @override
+  String get catalogSearchProductHint => 'Search cards and products';
+
+  @override
+  String get catalogUnavailable =>
+      'The product catalog is unavailable right now.';
+
+  @override
+  String get catalogEmpty => 'No matching catalog products found.';
+
+  @override
+  String catalogProductCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count products',
+      one: '1 product',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get aiAutofillCautionText =>
@@ -3336,4 +3398,216 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get billingNotReady =>
       'Billing is not ready yet. Pro is included during Early Access.';
+
+  @override
+  String get networkTitle => 'Network';
+
+  @override
+  String get networkTabConnections => 'Connections';
+
+  @override
+  String get networkTabRequests => 'Requests';
+
+  @override
+  String get networkTabTransfers => 'Transfers';
+
+  @override
+  String get networkAddPerson => 'Add person';
+
+  @override
+  String get networkSearchHint => 'Search by name or email';
+
+  @override
+  String get networkSearchMinChars =>
+      'Type at least three characters, or a full email';
+
+  @override
+  String get networkSearchEmpty => 'No Finance Suit users match your search';
+
+  @override
+  String get networkActionAdd => 'Add';
+
+  @override
+  String get networkStateRequested => 'Requested';
+
+  @override
+  String get networkStateRespond => 'Respond';
+
+  @override
+  String get networkStateAdded => 'Added';
+
+  @override
+  String get networkAliasAdding => 'Adding:';
+
+  @override
+  String get networkAliasQuestion => 'What do you want to call this person?';
+
+  @override
+  String networkAliasQuestionFor(String name) {
+    return 'What do you want to call $name?';
+  }
+
+  @override
+  String get networkAliasHelper =>
+      'This is the name you will see in Finance Suit. They can choose a different name for you.';
+
+  @override
+  String get networkAliasLabel => 'Private name';
+
+  @override
+  String get networkRequestSent => 'Request sent';
+
+  @override
+  String get networkIncoming => 'Incoming';
+
+  @override
+  String get networkSent => 'Sent';
+
+  @override
+  String get networkWantsToAdd =>
+      'wants to add you to their Finance Suit network.';
+
+  @override
+  String get networkAccept => 'Accept';
+
+  @override
+  String get networkReject => 'Reject';
+
+  @override
+  String get networkConnectedToast => 'Added to your network';
+
+  @override
+  String get networkRequestRejectedToast => 'Request rejected';
+
+  @override
+  String get networkNoRequests => 'No requests';
+
+  @override
+  String get networkNoConnections =>
+      'Add people to send and receive transfers inside Finance Suit';
+
+  @override
+  String get networkNoTransfers => 'No network transfers yet';
+
+  @override
+  String get networkEditAlias => 'Edit name';
+
+  @override
+  String get networkViewTransfers => 'View transfers';
+
+  @override
+  String get networkRemove => 'Remove from network';
+
+  @override
+  String get networkRemoveConfirmTitle => 'Remove from network?';
+
+  @override
+  String networkRemoveConfirmBody(String name) {
+    return 'No new transfers will be possible with $name. History stays.';
+  }
+
+  @override
+  String get networkRemovedToast => 'Removed from network';
+
+  @override
+  String get networkContactLabel => 'Network contact';
+
+  @override
+  String get networkGroupMyAccounts => 'My accounts';
+
+  @override
+  String get networkGroupMyNetwork => 'My network';
+
+  @override
+  String networkTransferTo(String name) {
+    return 'To $name';
+  }
+
+  @override
+  String networkTransferFrom(String name) {
+    return 'From $name';
+  }
+
+  @override
+  String get networkStatusPending => 'Pending';
+
+  @override
+  String get networkStatusAccepted => 'Accepted';
+
+  @override
+  String get networkStatusRejected => 'Rejected';
+
+  @override
+  String get networkFilterAll => 'All';
+
+  @override
+  String get networkPendingTransfer => 'Pending transfer';
+
+  @override
+  String networkSentYou(String name, String amount) {
+    return '$name sent you $amount';
+  }
+
+  @override
+  String get networkReceiveInto => 'Receive into';
+
+  @override
+  String networkReceiveIntoHelper(String currency) {
+    return 'Pick one of your $currency accounts';
+  }
+
+  @override
+  String networkNoMatchingAccounts(String currency) {
+    return 'You need an active $currency account to receive this transfer';
+  }
+
+  @override
+  String get networkTransferAcceptedToast => 'Transfer received';
+
+  @override
+  String get networkTransferRejectedToast => 'Transfer rejected';
+
+  @override
+  String get networkTransferRequestSentToast =>
+      'Transfer request sent — waiting for them to accept';
+
+  @override
+  String get networkLedgerDisclaimer =>
+      'Recorded inside Finance Suit only. No real bank transfer is made.';
+
+  @override
+  String networkPendingCount(int count) {
+    return '$count waiting';
+  }
+
+  @override
+  String get homePendingNetworkTitle => 'Network transfers to review';
+
+  @override
+  String get errNetworkAlias => 'Choose a name between 1 and 80 characters';
+
+  @override
+  String get errNetworkAlreadyConnected =>
+      'This person is already in your network';
+
+  @override
+  String get errNetworkRequestPending =>
+      'A request between you two is already waiting';
+
+  @override
+  String get errNetworkTransferUnavailable =>
+      'This transfer can no longer be accepted. Ask the sender to review it.';
+
+  @override
+  String get errNetworkDestinationUnavailable =>
+      'Network destination is no longer available. Edit this automation.';
+
+  @override
+  String get errNetworkChooseOneDestination => 'Choose one destination';
+
+  @override
+  String get errNetworkLocked => 'Accepted network transfers cannot be edited';
+
+  @override
+  String get errNetworkSelfAdd => 'You cannot add yourself';
 }

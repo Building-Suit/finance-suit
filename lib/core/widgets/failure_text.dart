@@ -79,6 +79,15 @@ String _dbValidationMessage(AppLocalizations l10n, String raw) {
     'invalid_partial' => l10n.errInvalidPartial,
     'not_found_or_already_decided' => l10n.errAlreadyDecided,
     'already_decided' => l10n.errAlreadyDecided,
+    'invalid_alias' => l10n.errNetworkAlias,
+    'invalid_target' => l10n.errNetworkSelfAdd,
+    'already_connected' => l10n.errNetworkAlreadyConnected,
+    'request_already_pending' => l10n.errNetworkRequestPending,
+    'transfer_unavailable' => l10n.errNetworkTransferUnavailable,
+    'network_destination_unavailable' => l10n.errNetworkDestinationUnavailable,
+    'invalid_destination' => l10n.errNetworkChooseOneDestination,
+    'network_transaction_locked' => l10n.errNetworkLocked,
+    'not_authorized' => l10n.errNotAuthorized,
     _ => l10n.commonError,
   };
 }

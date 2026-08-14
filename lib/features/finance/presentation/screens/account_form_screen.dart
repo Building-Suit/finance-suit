@@ -26,6 +26,7 @@ import 'package:work_tracker/features/finance/domain/card_research.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/ai_card_research_sheet.dart';
+import 'package:work_tracker/features/finance/presentation/widgets/catalog_product_picker_sheet.dart';
 import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
@@ -437,12 +438,11 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
   }
 
   // ---------------------------------------------------------------------
-  // AI autofill: research -> map onto these same fields -> reuse _save().
+  // Catalog autofill: select a researched product, map it onto these fields,
+  // then leave the form open for review and explicit user confirmation.
   //
   // Event flow: researching -> (needsDisambiguation)? -> applyingAutofill
-  // -> autofillApplied -> validating -> readyToAutoSubmit -> submitting.
-  // readyToAutoSubmit is consumed exactly once per successful research
-  // result; later manual edits never re-arm it (task spec section 54).
+  // -> autofillApplied -> validating -> autofillApplied/incomplete.
   // ---------------------------------------------------------------------
 
   String _nextAiRequestId() =>
@@ -459,13 +459,25 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
 
   Future<void> _openAiResearch() async {
     if (_aiPhase == AiAutofillPhase.researching) return;
-    final input = await showAiCardResearchSheet(
+    final match = await showCatalogProductPickerSheet(
       context,
       accountType: _accountType,
-      currencyCode: _currencyCode,
     );
-    if (input == null || !mounted) return;
-    await _runAiResearch(input);
+    if (match == null || !mounted) return;
+    final identity = match.identity;
+    await _runAiResearch(
+      AiCardResearchSheetInput(
+        issuerName: identity.issuerName,
+        countryCode: identity.countryCode,
+        productName: identity.productName,
+        officialWebsite: identity.officialWebsite,
+        tier: identity.tier,
+        network: identity.network,
+        currencyCode: identity.currencyCode,
+      ),
+      selectedProductId: match.productId,
+      catalogMatches: [match],
+    );
   }
 
   Future<void> _runAiResearch(
@@ -616,9 +628,8 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
     _afterAutofillApplied();
   }
 
-  /// Runs the exact existing form validation after the batch settles, then
-  /// either arms the one-shot auto-submit or leaves the user on the
-  /// (partially filled) form with the normal validation errors visible.
+  /// Runs the existing validation after the batch settles, then always leaves
+  /// the populated form open so the user can accept or adjust it.
   void _afterAutofillApplied() {
     setState(() => _aiPhase = AiAutofillPhase.validating);
     final requestId = _aiRequestId;
@@ -633,21 +644,8 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
         );
         return;
       }
-      setState(() => _aiPhase = AiAutofillPhase.readyToAutoSubmit);
-      _autoSubmitOnce();
+      setState(() => _aiPhase = AiAutofillPhase.autofillApplied);
     });
-  }
-
-  /// Invokes the exact same `_save()` the manual Create button uses — no
-  /// duplicated submit logic and no simulated tap (task spec section 27-28).
-  Future<void> _autoSubmitOnce() async {
-    if (_aiPhase != AiAutofillPhase.readyToAutoSubmit || _busy) return;
-    setState(() => _aiPhase = AiAutofillPhase.submitting);
-    await _save();
-    if (!mounted) return;
-    if (_failure != null) {
-      setState(() => _aiPhase = AiAutofillPhase.failed);
-    }
   }
 
   Future<void> _setArchived(bool archived) async {
@@ -1514,8 +1512,7 @@ class _Swatch extends StatelessWidget {
   }
 }
 
-/// The "Let AI help do it" secondary action (task spec section 2): opens
-/// the identification sheet and shows a small deterministic status line
+/// Catalog entry point: opens the bank/product picker and shows a small status line
 /// while research/autofill is in flight. Manual fields stay fully usable
 /// the whole time — this never disables the rest of the form.
 class _AiAutofillEntryPoint extends StatelessWidget {
@@ -1561,7 +1558,7 @@ class _AiAutofillEntryPoint extends StatelessWidget {
             OutlinedButton.icon(
               key: const Key('ai-autofill-button'),
               onPressed: _busy ? null : onPressed,
-              icon: const Icon(Icons.auto_awesome_outlined),
+              icon: const Icon(Icons.manage_search_outlined),
               label: Text(l10n.aiAutofillButtonLabel),
             ),
             const SizedBox(height: 8),

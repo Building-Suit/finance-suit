@@ -542,7 +542,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setAutomationSubtitle => 'الراتب والدخل والمدفوعات المتكررة';
 
   @override
-  String get setAccountSubtitle => 'تسجيل الخروج أو حذف حسابك';
+  String get setAccountSubtitle =>
+      'تغيير كلمة المرور أو إدارة خطتك أو حذف حسابك';
 
   @override
   String get setAboutSubtitle => 'المستندات القانونية ومعلومات التطبيق';
@@ -651,6 +652,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get authBiometricLogin => 'تسجيل الدخول بالبصمة أو أمان الجهاز';
+
+  @override
+  String get authBiometricLoginSetupHelp =>
+      'فعّل تسجيل الدخول بالبصمة من الإعدادات ← الحساب ← تسجيل الدخول بالبصمة أو أمان الجهاز.';
 
   @override
   String get authBiometricLoginReason =>
@@ -2198,6 +2203,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeCardsTitle => 'البطاقات';
 
   @override
+  String get homeDueCurrent => 'مستحق حاليًا';
+
+  @override
+  String get homeDueThisMonth => 'مستحق هذا الشهر';
+
+  @override
+  String get homeDueNext => 'مستحق الشهر القادم';
+
+  @override
+  String get homeDueCurrentWindow => 'متأخر أو مستحق اليوم';
+
+  @override
+  String homeDueThrough(String date) {
+    return 'مستحق حتى $date';
+  }
+
+  @override
+  String homeDueInMonth(String month) {
+    return 'مستحق في $month';
+  }
+
+  @override
+  String homeDueOn(String date) {
+    return 'مستحق في $date';
+  }
+
+  @override
+  String get homeDueNothing => 'لا توجد مدفوعات مستحقة حتى نهاية الشهر القادم.';
+
+  @override
   String homeCardOwed(String amount) {
     return 'مستحق عليك $amount';
   }
@@ -2211,7 +2246,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeCardNothingDue => 'لا مستحقات هذا الشهر';
 
   @override
-  String get homeDuesTitle => 'الأقساط';
+  String get homeDuesTitle => 'المدفوعات المستحقة';
 
   @override
   String homeDueNow(String amount) {
@@ -2995,11 +3030,39 @@ class AppLocalizationsAr extends AppLocalizations {
       'في القبول الجزئي يجب أن يكون المبلغ المستلم أقل من المبلغ المستحق.';
 
   @override
-  String get aiAutofillButtonLabel => 'دع الذكاء الاصطناعي يساعدك';
+  String get aiAutofillButtonLabel => 'اختر من الكتالوج';
 
   @override
   String get aiAutofillHelperText =>
-      'أخبرنا بالبطاقة أو المنتج المالي الذي تملكه، وسيبحث Finance Suit عن رسومه وإعداداته العامة ويملأ هذا النموذج نيابةً عنك.';
+      'اختر البنك أو مقدم الخدمة، ثم اختر بطاقتك أو منتجك المالي. ستُملأ الإعدادات العامة الموثقة لتراجعها.';
+
+  @override
+  String get catalogPickerTitle => 'كتالوج المنتجات';
+
+  @override
+  String get catalogSearchBankHint => 'ابحث عن بنك أو مقدم خدمة';
+
+  @override
+  String get catalogSearchProductHint => 'ابحث عن بطاقة أو منتج';
+
+  @override
+  String get catalogUnavailable => 'كتالوج المنتجات غير متاح الآن.';
+
+  @override
+  String get catalogEmpty => 'لم يتم العثور على منتجات مطابقة.';
+
+  @override
+  String catalogProductCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منتجًا',
+      few: '$count منتجات',
+      two: 'منتجان',
+      one: 'منتج واحد',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get aiAutofillCautionText =>
@@ -3317,4 +3380,213 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get billingNotReady =>
       'الفوترة غير جاهزة بعد. برو متاح ضمن الوصول المبكر.';
+
+  @override
+  String get networkTitle => 'الشبكة';
+
+  @override
+  String get networkTabConnections => 'جهات الاتصال';
+
+  @override
+  String get networkTabRequests => 'الطلبات';
+
+  @override
+  String get networkTabTransfers => 'التحويلات';
+
+  @override
+  String get networkAddPerson => 'إضافة شخص';
+
+  @override
+  String get networkSearchHint => 'ابحث بالاسم أو البريد الإلكتروني';
+
+  @override
+  String get networkSearchMinChars =>
+      'اكتب ثلاثة أحرف على الأقل أو بريدًا إلكترونيًا كاملًا';
+
+  @override
+  String get networkSearchEmpty => 'لا يوجد مستخدمو Finance Suit مطابقون لبحثك';
+
+  @override
+  String get networkActionAdd => 'إضافة';
+
+  @override
+  String get networkStateRequested => 'تم الطلب';
+
+  @override
+  String get networkStateRespond => 'الرد';
+
+  @override
+  String get networkStateAdded => 'مضاف';
+
+  @override
+  String get networkAliasAdding => 'إضافة:';
+
+  @override
+  String get networkAliasQuestion => 'بماذا تريد تسمية هذا الشخص؟';
+
+  @override
+  String networkAliasQuestionFor(String name) {
+    return 'بماذا تريد تسمية $name؟';
+  }
+
+  @override
+  String get networkAliasHelper =>
+      'هذا هو الاسم الذي ستراه في Finance Suit. ويمكنه اختيار اسم مختلف لك.';
+
+  @override
+  String get networkAliasLabel => 'الاسم الخاص';
+
+  @override
+  String get networkRequestSent => 'تم إرسال الطلب';
+
+  @override
+  String get networkIncoming => 'الواردة';
+
+  @override
+  String get networkSent => 'المرسلة';
+
+  @override
+  String get networkWantsToAdd => 'يريد إضافتك إلى شبكته في Finance Suit.';
+
+  @override
+  String get networkAccept => 'قبول';
+
+  @override
+  String get networkReject => 'رفض';
+
+  @override
+  String get networkConnectedToast => 'تمت الإضافة إلى شبكتك';
+
+  @override
+  String get networkRequestRejectedToast => 'تم رفض الطلب';
+
+  @override
+  String get networkNoRequests => 'لا توجد طلبات';
+
+  @override
+  String get networkNoConnections =>
+      'أضف أشخاصًا لإرسال واستقبال التحويلات داخل Finance Suit';
+
+  @override
+  String get networkNoTransfers => 'لا توجد تحويلات شبكة بعد';
+
+  @override
+  String get networkEditAlias => 'تعديل الاسم';
+
+  @override
+  String get networkViewTransfers => 'عرض التحويلات';
+
+  @override
+  String get networkRemove => 'إزالة من الشبكة';
+
+  @override
+  String get networkRemoveConfirmTitle => 'إزالة من الشبكة؟';
+
+  @override
+  String networkRemoveConfirmBody(String name) {
+    return 'لن تكون التحويلات الجديدة ممكنة مع $name. يبقى السجل محفوظًا.';
+  }
+
+  @override
+  String get networkRemovedToast => 'تمت الإزالة من الشبكة';
+
+  @override
+  String get networkContactLabel => 'جهة اتصال بالشبكة';
+
+  @override
+  String get networkGroupMyAccounts => 'حساباتي';
+
+  @override
+  String get networkGroupMyNetwork => 'شبكتي';
+
+  @override
+  String networkTransferTo(String name) {
+    return 'إلى $name';
+  }
+
+  @override
+  String networkTransferFrom(String name) {
+    return 'من $name';
+  }
+
+  @override
+  String get networkStatusPending => 'قيد الانتظار';
+
+  @override
+  String get networkStatusAccepted => 'مقبول';
+
+  @override
+  String get networkStatusRejected => 'مرفوض';
+
+  @override
+  String get networkFilterAll => 'الكل';
+
+  @override
+  String get networkPendingTransfer => 'تحويل قيد الانتظار';
+
+  @override
+  String networkSentYou(String name, String amount) {
+    return '$name أرسل لك $amount';
+  }
+
+  @override
+  String get networkReceiveInto => 'الاستلام في';
+
+  @override
+  String networkReceiveIntoHelper(String currency) {
+    return 'اختر أحد حساباتك بعملة $currency';
+  }
+
+  @override
+  String networkNoMatchingAccounts(String currency) {
+    return 'تحتاج إلى حساب نشط بعملة $currency لاستلام هذا التحويل';
+  }
+
+  @override
+  String get networkTransferAcceptedToast => 'تم استلام التحويل';
+
+  @override
+  String get networkTransferRejectedToast => 'تم رفض التحويل';
+
+  @override
+  String get networkTransferRequestSentToast =>
+      'تم إرسال طلب التحويل — في انتظار قبوله';
+
+  @override
+  String get networkLedgerDisclaimer =>
+      'يُسجَّل داخل Finance Suit فقط. لا يتم تنفيذ أي تحويل بنكي حقيقي.';
+
+  @override
+  String networkPendingCount(int count) {
+    return '$count في الانتظار';
+  }
+
+  @override
+  String get homePendingNetworkTitle => 'تحويلات شبكة بانتظار المراجعة';
+
+  @override
+  String get errNetworkAlias => 'اختر اسمًا بين 1 و80 حرفًا';
+
+  @override
+  String get errNetworkAlreadyConnected => 'هذا الشخص موجود بالفعل في شبكتك';
+
+  @override
+  String get errNetworkRequestPending => 'يوجد طلب معلق بينكما بالفعل';
+
+  @override
+  String get errNetworkTransferUnavailable =>
+      'لم يعد قبول هذا التحويل ممكنًا. اطلب من المرسل مراجعته.';
+
+  @override
+  String get errNetworkDestinationUnavailable =>
+      'وجهة الشبكة لم تعد متاحة. عدّل هذه الأتمتة.';
+
+  @override
+  String get errNetworkChooseOneDestination => 'اختر وجهة واحدة';
+
+  @override
+  String get errNetworkLocked => 'لا يمكن تعديل تحويلات الشبكة المقبولة';
+
+  @override
+  String get errNetworkSelfAdd => 'لا يمكنك إضافة نفسك';
 }

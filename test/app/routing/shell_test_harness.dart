@@ -37,8 +37,10 @@ GoRouter buildShellTestRouter({String initialLocation = '/home'}) {
                 routes: [
                   GoRoute(
                     path: '/home',
-                    builder: (context, state) =>
-                        const StubPrimaryScreen(label: 'home-root'),
+                    builder: (context, state) => AuthenticatedBackScope(
+                      currentLocation: state.uri.path,
+                      child: const StubPrimaryScreen(label: 'home-root'),
+                    ),
                   ),
                 ],
               ),
@@ -46,8 +48,10 @@ GoRouter buildShellTestRouter({String initialLocation = '/home'}) {
                 routes: [
                   GoRoute(
                     path: '/work',
-                    builder: (context, state) =>
-                        const StubPrimaryScreen(label: 'work-root'),
+                    builder: (context, state) => AuthenticatedBackScope(
+                      currentLocation: state.uri.path,
+                      child: const StubPrimaryScreen(label: 'work-root'),
+                    ),
                     routes: [
                       GoRoute(
                         path: 'entry/new',
@@ -85,8 +89,10 @@ GoRouter buildShellTestRouter({String initialLocation = '/home'}) {
                 routes: [
                   GoRoute(
                     path: '/money',
-                    builder: (context, state) =>
-                        const StubTabbedPrimaryScreen(label: 'money-root'),
+                    builder: (context, state) => AuthenticatedBackScope(
+                      currentLocation: state.uri.path,
+                      child: const StubTabbedPrimaryScreen(label: 'money-root'),
+                    ),
                     routes: [
                       GoRoute(
                         path: 'facilities/purchase',
@@ -168,8 +174,10 @@ GoRouter buildShellTestRouter({String initialLocation = '/home'}) {
                 routes: [
                   GoRoute(
                     path: '/reports',
-                    builder: (context, state) =>
-                        const StubPrimaryScreen(label: 'reports-root'),
+                    builder: (context, state) => AuthenticatedBackScope(
+                      currentLocation: state.uri.path,
+                      child: const StubPrimaryScreen(label: 'reports-root'),
+                    ),
                   ),
                 ],
               ),

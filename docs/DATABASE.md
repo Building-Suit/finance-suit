@@ -18,7 +18,9 @@ schema. Module schemas are:
   (`credit_card_statement_cycles`, `credit_card_statement_items`,
   `credit_card_statement_allocations`), fee rules
   (`credit_card_fee_rules`, `credit_card_fee_charges`), account
-  balance views, and atomic transfer/income/facility RPCs
+  balance views, atomic transfer/income/facility RPCs, and the
+  Finance Suit Network tables (`network_add_requests`,
+  `network_connections`, `network_transfers`)
 - `app_work`: `official_holidays`, `work_entries`
 - `app_salary`: `salary_settings`, `salary_adjustments`, `salary_periods`,
   salary payment RPC
@@ -48,9 +50,13 @@ Important derived objects:
 All user-owned tables have RLS policies tied to `auth.uid()`.
 
 Global Credit Card / BNPL reference data lives in the versioned financial
-product catalog. It is RLS-locked against direct client writes and is separate
-from user facilities; see `docs/DATABASE_ARCHITECTURE.md` for its storage,
-curator RPCs, freshness rules, and Scheduled Task boundary.
+product catalog v2. Issuers, canonical products, issuer-country markets, and
+country-specific product variants are separate, while legacy immutable catalog
+history remains readable. It is RLS-locked against direct client access and is
+separate from user facilities; see `docs/DATABASE_ARCHITECTURE.md` for its
+storage, 25/50-item curator leasing, discovery RPC, provenance rules, and exact
+scheduled-task boundary. `docs/FINANCIAL_PRODUCT_CATALOG_COVERAGE_MATRIX.md`
+defines which fields are public, private, derived, or unsupported.
 
 `transaction_categories.parent_category_id` is nullable. Existing rows remain
 top-level categories and transactions continue to reference the same
@@ -173,3 +179,34 @@ accepted decision. The primary account keeps the integer rounding remainder.
 Salary occurrences additionally link the existing finalized salary period.
 Existing configured salary users receive a backfilled automation source, and
 salary settings stay synchronized with that source in both directions.
+
+Finance Suit Network: users connect through `network_add_requests` (one
+pending request per unordered user pair) into `network_connections`, which
+store two private directional aliases — what A calls B and what B calls A.
+The alias columns are not client-readable; `list_network_contacts` resolves
+the caller's side server-side. A connected person is a transfer destination
+identity, never an `accounts` row, so nothing about assets, balances, or
+reports changes by connecting. A network transfer
+(`network_transfers`) starts `pending` with zero ledger impact, and
+`reject_network_transfer` keeps it that way. `accept_network_transfer` is the
+only path that books money: it locks the shared row, revalidates the sender's
+funds and account state, and atomically creates two one-sided `transfer` rows
+— source-only on the sender, destination-only on the receiver — linked by
+`financial_transactions.network_transfer_id` and marked
+`is_network_transfer`. Those rows are blocked from the generic editors by a
+trigger, are transfers (never expense or income) in every report, and each
+side of the shared record exposes only that party's own account. Connecting
+changes no RLS on any private table; both parties see the shared request,
+connection, and transfer rows only.
+
+Automations reach the network through `destination_network_connection_id` on
+`recurring_rules` and `income_source_allocations`, and
+`extra_work_destination_network_connection_id` on `income_sources` (exactly
+one destination per rule; balance rollover keeps its own-savings semantics).
+Approving a recurring occurrence or accepting an income occurrence that
+routes to a contact creates the pending network transfer once — deterministic
+idempotency keys (`recurring:<occurrence>`, `income:<occurrence>:<allocation>`,
+`extra-work:<occurrence>`) make retries reuse it — and the sender's balance
+moves only when the receiver accepts into their own matching-currency asset
+account. A removed connection blocks new transfers and pending acceptances
+and surfaces `network_destination_unavailable` instead of rerouting.

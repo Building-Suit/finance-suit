@@ -14,6 +14,7 @@ import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/facility_activity.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
+import 'package:work_tracker/features/finance/domain/home_due_obligation.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
@@ -298,6 +299,7 @@ class FinanceRepository {
     required List<IncomeAllocation> allocations,
     bool includeExtraWorkInPercentage = true,
     String? extraWorkDestinationAccountId,
+    String? extraWorkDestinationNetworkConnectionId,
     bool rolloverBalanceEnabled = false,
     String? rolloverDestinationAccountId,
     String? categoryId,
@@ -307,7 +309,7 @@ class FinanceRepository {
   }) {
     return guard(() async {
       return _db.rpc<String>(
-        'save_income_source_v4',
+        'save_income_source_v5',
         params: {
           'p_name': name,
           'p_source_kind': kind.dbValue,
@@ -326,6 +328,8 @@ class FinanceRepository {
           'p_is_active': isActive,
           'p_include_extra_work_in_percentage': includeExtraWorkInPercentage,
           'p_extra_work_destination_account_id': extraWorkDestinationAccountId,
+          'p_extra_work_destination_network_connection_id':
+              extraWorkDestinationNetworkConnectionId,
           'p_rollover_balance_enabled': rolloverBalanceEnabled,
           'p_rollover_destination_account_id': rolloverDestinationAccountId,
         },
@@ -814,6 +818,32 @@ class FinanceRepository {
     });
   }
 
+  /// Every still-payable obligation through the end of next calendar month.
+  ///
+  /// The deployed RPC uses the month containing `p_today` as its horizon. We
+  /// request next month so Home can aggregate current, this-month, and
+  /// next-month totals from one canonical, de-duplicated result set.
+  Future<Result<HomeDueSummary>> fetchHomeUpcomingObligations(PlainDate today) {
+    return guard(() async {
+      final rawRows = await _db.rpc<dynamic>(
+        'home_current_month_obligations',
+        params: {'p_today': today.addMonths(1).toIso()},
+      );
+      // PostgREST can return null when the function has no rows; normalize it
+      // so the Home summary always receives a concrete list.
+      final rows = rawRows is List ? rawRows : const <dynamic>[];
+      final obligations = rows
+          .map(
+            (row) => HomeDueObligation.fromJson(
+              Map<String, dynamic>.from(row as Map),
+            ),
+          )
+          .where((item) => item.remainingMinor > 0)
+          .toList(growable: false);
+      return HomeDueSummary(today: today, items: obligations);
+    });
+  }
+
   /// Atomically creates or updates the liability account together with its
   /// facility settings through `save_credit_facility`.
   Future<Result<String>> saveCreditFacility(CreditFacilityDraft draft) {
@@ -899,6 +929,21 @@ class FinanceRepository {
       _logResearchEvent('catalog_stale');
       return _queueAndResearchLive(identity, request, reason: 'stale');
     }, timeout: const Duration(seconds: 60));
+  }
+
+  Future<Result<List<CatalogResearchMatch>>> browseCardCatalog({
+    required AccountType accountType,
+    String? countryCode,
+    String? query,
+  }) {
+    return guard(() async {
+      final rows = await _cardResearchDataSource.browseCatalog(
+        accountType: accountType,
+        countryCode: countryCode,
+        query: query,
+      );
+      return rows.map(CatalogResearchMatch.fromJson).toList(growable: false);
+    });
   }
 
   Future<CardResearchResult> _researchLive(CardResearchRequest request) async {
@@ -1470,14 +1515,16 @@ class FinanceRepository {
     required int promptDaysBefore,
     required String sourceAccountId,
     String? destinationAccountId,
+    String? destinationNetworkConnectionId,
     String? categoryId,
     String? notes,
     String? ruleId,
     bool isActive = true,
+    bool isForeignCurrency = false,
   }) {
     return guard(() async {
       final id = await _db.rpc<String>(
-        'save_recurring_rule',
+        'save_recurring_rule_v2',
         params: {
           'p_name': name,
           'p_rule_kind': kind.dbValue,
@@ -1488,10 +1535,12 @@ class FinanceRepository {
           'p_prompt_days_before': promptDaysBefore,
           'p_source_account_id': sourceAccountId,
           'p_destination_account_id': destinationAccountId,
+          'p_destination_network_connection_id': destinationNetworkConnectionId,
           'p_category_id': categoryId,
           'p_notes': notes,
           'p_rule_id': ruleId,
           'p_is_active': isActive,
+          'p_is_foreign_currency': isForeignCurrency,
         },
       );
       return id;

@@ -96,12 +96,14 @@ begin
             'plan_id', ds.plan_id,
             'title', ds.plan_title,
             'sequence_number', ds.sequence_number,
+            'installment_count', p.installment_count,
             'due_on', ds.due_on,
             'amount_minor', ds.amount_minor,
             'paid_minor', ds.paid_minor,
             'remaining_minor', ds.remaining_minor
           ) order by ds.sequence_number)
           from app_finance.installment_due_statuses ds
+          join app_finance.installment_plans p on p.id = ds.plan_id
           where ds.account_id = y.account_id
             and ds.due_on = y.due_on
             and ds.plan_status <> 'cancelled'
@@ -114,6 +116,26 @@ begin
       and y.total_remaining_minor > 0
       and y.due_on <= v_month_end
   ),
+  bnpl_ordinary_purchases as (
+    select
+      t.source_account_id as account_id,
+      sum(t.amount_minor)::bigint as amount_minor,
+      jsonb_agg(jsonb_build_object(
+        'id', t.id,
+        'title', coalesce(t.title, t.counterparty, 'Purchase'),
+        'occurred_on', t.occurred_on,
+        'amount_minor', t.amount_minor
+      ) order by t.occurred_on, t.id) as items
+    from app_finance.financial_transactions t
+    join app_finance.accounts a on a.id = t.source_account_id
+    left join app_finance.installment_plans p
+      on p.purchase_transaction_id = t.id and p.user_id = t.user_id
+    where t.user_id = v_user_id
+      and t.transaction_kind = 'expense'
+      and a.account_type = 'bnpl'
+      and p.id is null
+    group by t.source_account_id
+  ),
   bnpl_installments as (
     select
       ds.id as obligation_id,
@@ -124,8 +146,12 @@ begin
       ds.plan_id as related_id,
       ds.due_on,
       ds.currency_code,
-      ds.remaining_minor,
-      ds.remaining_minor as minimum_due_minor,
+      (ds.remaining_minor + case when ds.id = first_due.id
+        then coalesce(ordinary.amount_minor, 0) else 0 end)::bigint
+        as remaining_minor,
+      (ds.remaining_minor + case when ds.id = first_due.id
+        then coalesce(ordinary.amount_minor, 0) else 0 end)::bigint
+        as minimum_due_minor,
       ds.paid_minor,
       case
         when ds.due_on < p_today then 'overdue'
@@ -145,7 +171,17 @@ begin
         'financed_principal_minor', p.financed_principal_minor,
         'financing_fees_minor', p.financing_fees_minor,
         'plan_remaining_minor', ps.remaining_minor,
-        'category', cat.name
+        'category', cat.name,
+        'items', case when ds.id = first_due.id
+          then coalesce(ordinary.items, '[]'::jsonb) else '[]'::jsonb end,
+        'installments', jsonb_build_array(jsonb_build_object(
+          'id', ds.id,
+          'title', ds.plan_title,
+          'sequence_number', ds.sequence_number,
+          'installment_count', p.installment_count,
+          'due_on', ds.due_on,
+          'remaining_minor', ds.remaining_minor
+        ))
       ) as details
     from app_finance.installment_due_statuses ds
     join app_finance.installment_plans p on p.id = ds.plan_id
@@ -153,11 +189,50 @@ begin
     join app_finance.accounts a on a.id = ds.account_id
     join app_finance.credit_facility_settings s on s.account_id = ds.account_id
     left join app_finance.transaction_categories cat on cat.id = p.category_id
+    left join bnpl_ordinary_purchases ordinary on ordinary.account_id = ds.account_id
+    left join lateral (
+      select due.id
+      from app_finance.installment_due_statuses due
+      where due.account_id = ds.account_id
+        and due.plan_status <> 'cancelled'
+        and due.remaining_minor > 0
+      order by due.due_on, due.id
+      limit 1
+    ) first_due on true
     where ds.user_id = v_user_id
       and a.account_type = 'bnpl'
       and ds.plan_status <> 'cancelled'
       and ds.remaining_minor > 0
       and ds.due_on <= v_month_end
+  ),
+  bnpl_ordinary_only as (
+    select
+      gen_random_uuid() as obligation_id,
+      'bnpl_purchase'::text as obligation_kind,
+      ordinary.account_id as source_account_id,
+      a.name as source_name,
+      s.last_four_digits as masked_identifier,
+      null::uuid as related_id,
+      p_today as due_on,
+      a.currency_code,
+      ordinary.amount_minor as remaining_minor,
+      ordinary.amount_minor as minimum_due_minor,
+      0::bigint as paid_minor,
+      'due_today'::text as obligation_status,
+      a.name || ' — Purchases' as title,
+      1 as sort_rank,
+      jsonb_build_object('items', ordinary.items, 'installments', '[]'::jsonb)
+        as details
+    from bnpl_ordinary_purchases ordinary
+    join app_finance.accounts a on a.id = ordinary.account_id
+    join app_finance.credit_facility_settings s on s.account_id = a.id
+    where not exists (
+      select 1 from app_finance.installment_due_statuses due
+      where due.account_id = ordinary.account_id
+        and due.plan_status <> 'cancelled'
+        and due.remaining_minor > 0
+        and due.due_on <= v_month_end
+    )
   ),
   recurring_expenses as (
     select
@@ -193,11 +268,15 @@ begin
     left join app_finance.transaction_categories cat on cat.id = r.category_id
     where o.user_id = v_user_id
       and r.rule_kind = 'expense'
+      -- A card-funded recurring rule is a future card charge, not a direct
+      -- cash obligation. It becomes payable through its card statement.
+      and source.account_type <> 'credit_card'
       and o.status = 'pending'
       and o.scheduled_on <= v_month_end
   )
   select * from card_statements
   union all select * from bnpl_installments
+  union all select * from bnpl_ordinary_only
   union all select * from recurring_expenses
   order by sort_rank, due_on, source_name, obligation_id;
 end;
