@@ -1125,10 +1125,10 @@ class _DueObligationGroup extends StatelessWidget {
     final dates = this.dates;
     final details = obligation.details;
     final items = (details['items'] as List? ?? const [])
-        .whereType<Map>()
+        .whereType<Map<String, dynamic>>()
         .toList();
     final installments = (details['installments'] as List? ?? const [])
-        .whereType<Map>()
+        .whereType<Map<String, dynamic>>()
         .toList();
     final breakdown = Column(
       children: [
@@ -1217,7 +1217,7 @@ class _DueDetailRow extends StatelessWidget {
     required this.obligation,
     required this.dates,
   });
-  final Map child;
+  final Map<String, dynamic> child;
   final HomeDueObligation obligation;
   final MaterialLocalizations dates;
 
