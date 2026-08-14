@@ -154,7 +154,9 @@ abstract final class FinanceSuitIcons {
   );
   static const payments = FinanceSuitGlyph(HugeIconsStrokeRounded.payment01);
   static const pending = FinanceSuitGlyph(HugeIconsStrokeRounded.hourglass);
+  static const people = FinanceSuitGlyph(HugeIconsStrokeRounded.userGroup);
   static const person = FinanceSuitGlyph(HugeIconsStrokeRounded.user);
+  static const personAdd = FinanceSuitGlyph(HugeIconsStrokeRounded.userAdd01);
   static const play = FinanceSuitGlyph(HugeIconsStrokeRounded.play);
   static const priceChange = FinanceSuitGlyph(
     HugeIconsStrokeRounded.moneyExchange03,

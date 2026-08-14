@@ -81,7 +81,7 @@ abstract final class IncomeSplitCalculator {
       if (amount > 0) {
         rows.add(
           IncomeSplitPreviewRow(
-            destinationAccountId: rule.destinationAccountId,
+            destinationAccountId: rule.destinationKey,
             amountMinor: amount,
             rule: rule,
           ),

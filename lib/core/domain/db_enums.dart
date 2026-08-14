@@ -537,3 +537,41 @@ enum IncomeOccurrenceStatus {
   static IncomeOccurrenceStatus fromDb(String value) =>
       values.firstWhere((e) => e.dbValue == value);
 }
+
+enum NetworkAddRequestStatus {
+  pending('pending'),
+  accepted('accepted'),
+  rejected('rejected');
+
+  const NetworkAddRequestStatus(this.dbValue);
+  final String dbValue;
+
+  static NetworkAddRequestStatus fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+enum NetworkTransferStatus {
+  pending('pending'),
+  rejected('rejected'),
+  accepted('accepted');
+
+  const NetworkTransferStatus(this.dbValue);
+  final String dbValue;
+
+  static NetworkTransferStatus fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+enum NetworkTransferOrigin {
+  manual('manual'),
+  recurringRule('recurring_rule'),
+  incomeAllocation('income_allocation'),
+  extraWorkAllocation('extra_work_allocation'),
+  rolloverAllocation('rollover_allocation');
+
+  const NetworkTransferOrigin(this.dbValue);
+  final String dbValue;
+
+  static NetworkTransferOrigin fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}

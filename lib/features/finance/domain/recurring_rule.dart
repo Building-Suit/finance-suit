@@ -23,6 +23,7 @@ class RecurringRule {
     required this.isActive,
     this.isForeignCurrency = false,
     this.destinationAccountId,
+    this.destinationNetworkConnectionId,
     this.categoryId,
     this.notes,
   });
@@ -42,6 +43,8 @@ class RecurringRule {
       isActive: json['is_active'] as bool,
       isForeignCurrency: json['is_foreign_currency'] as bool? ?? false,
       destinationAccountId: json['destination_account_id'] as String?,
+      destinationNetworkConnectionId:
+          json['destination_network_connection_id'] as String?,
       categoryId: json['category_id'] as String?,
       notes: json['notes'] as String?,
     );
@@ -63,6 +66,11 @@ class RecurringRule {
   final bool isActive;
   final bool isForeignCurrency;
   final String? destinationAccountId;
+
+  /// Set instead of [destinationAccountId] when the transfer rule targets a
+  /// network contact: approving an occurrence then opens a pending network
+  /// transfer rather than booking a local ledger row.
+  final String? destinationNetworkConnectionId;
   final String? categoryId;
   final String? notes;
 

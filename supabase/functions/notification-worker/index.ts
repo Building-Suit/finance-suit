@@ -270,6 +270,61 @@ function compose(
       };
   }
 
+  if (type.startsWith("network_")) {
+    const name = String(
+      payload.counterparty_name ?? (ar ? "شخص ما" : "Someone"),
+    );
+    const amount = payload.amount_text ? String(payload.amount_text) : null;
+    switch (type) {
+      case "network_add_request":
+        return ar
+          ? {
+            title: "طلب إضافة جديد",
+            body: `${name} يريد إضافتك إلى شبكته في Finance Suit.`,
+          }
+          : {
+            title: "New add request",
+            body: `${name} wants to add you to their Finance Suit network.`,
+          };
+      case "network_add_request_accepted":
+        return ar
+          ? { title: "تم قبول الطلب", body: `${name} الآن في شبكتك.` }
+          : { title: "Request accepted", body: `${name} is now in your network.` };
+      case "network_transfer_pending":
+        return ar
+          ? {
+            title: "طلب تحويل جديد",
+            body: amount
+              ? `${name} أرسل لك ${amount}.`
+              : `${name} أرسل لك طلب تحويل.`,
+          }
+          : {
+            title: "New transfer request",
+            body: amount
+              ? `${name} sent you ${amount}.`
+              : `${name} sent you a transfer request.`,
+          };
+      case "network_transfer_accepted":
+        return ar
+          ? {
+            title: "تم قبول التحويل",
+            body: amount
+              ? `${name} قبل تحويلك بمبلغ ${amount}.`
+              : `${name} قبل تحويلك.`,
+          }
+          : {
+            title: "Transfer accepted",
+            body: amount
+              ? `${name} accepted your ${amount} transfer.`
+              : `${name} accepted your transfer.`,
+          };
+      default:
+        return ar
+          ? { title: "تم رفض التحويل", body: `${name} رفض تحويلك.` }
+          : { title: "Transfer declined", body: `${name} declined your transfer.` };
+    }
+  }
+
   if (type === "facility_payment_confirmation") {
     return ar
       ? {
@@ -681,6 +736,18 @@ async function stillEligible(
       .maybeSingle();
     return Number(data?.total_remaining_minor ?? 0) > 0 &&
       !["paid", "open"].includes(String(data?.obligation_status ?? ""));
+  }
+  if (
+    row.obligation_type === "network_transfer" &&
+    row.reminder_kind === "network_transfer_pending"
+  ) {
+    // A transfer decided before the push went out no longer needs one.
+    const { data } = await finance
+      .from("network_transfers")
+      .select("status")
+      .eq("id", row.obligation_id)
+      .maybeSingle();
+    return data?.status === "pending";
   }
   if (
     row.obligation_type === "installment_due" ||

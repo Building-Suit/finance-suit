@@ -18,9 +18,13 @@ import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/domain/income_split_preview.dart';
+import 'package:work_tracker/features/finance/domain/money_destination.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/category_selector.dart';
+import 'package:work_tracker/features/finance/presentation/widgets/destination_selection_field.dart';
+import 'package:work_tracker/features/network/domain/network_models.dart';
+import 'package:work_tracker/features/network/presentation/providers/network_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 class IncomeSourceFormScreen extends ConsumerStatefulWidget {
@@ -66,7 +70,7 @@ class _IncomeSourceFormScreenState
   bool _routeExtraWork = false;
   late bool _rolloverBalanceEnabled =
       widget.existing?.rolloverBalanceEnabled ?? false;
-  String? _extraWorkDestinationAccountId;
+  MoneyDestination? _extraWorkDestination;
   String? _rolloverDestinationAccountId;
   String? _primaryAccountId;
   String? _categoryId;
@@ -80,9 +84,15 @@ class _IncomeSourceFormScreenState
     super.initState();
     _primaryAccountId = widget.existing?.primaryAccountId;
     _categoryId = widget.existing?.categoryId;
-    _extraWorkDestinationAccountId =
-        widget.existing?.extraWorkDestinationAccountId;
-    _routeExtraWork = _extraWorkDestinationAccountId != null;
+    _extraWorkDestination = switch ((
+      widget.existing?.extraWorkDestinationAccountId,
+      widget.existing?.extraWorkDestinationNetworkConnectionId,
+    )) {
+      (final String accountId, _) => OwnAccountDestination(accountId),
+      (_, final String connectionId) => NetworkContactDestination(connectionId),
+      _ => null,
+    };
+    _routeExtraWork = _extraWorkDestination != null;
     _rolloverDestinationAccountId =
         widget.existing?.rolloverDestinationAccountId;
     for (final allocation
@@ -159,7 +169,9 @@ class _IncomeSourceFormScreenState
       _rules.add(
         _SplitRuleDraft(
           id: _newRuleId(),
-          destinationAccountId: eligible.firstOrNull?.accountId,
+          destination: eligible.firstOrNull == null
+              ? null
+              : OwnAccountDestination(eligible.first.accountId),
         ),
       );
     });
@@ -172,16 +184,28 @@ class _IncomeSourceFormScreenState
     AppLocalizations l10n,
     AccountBalance primary,
     List<AccountBalance> accounts,
+    List<NetworkContact> contacts,
   ) {
     final eligibleIds = _eligibleSplitAccounts(
       accounts,
     ).map((account) => account.accountId).toSet();
+    final connectionIds = contacts
+        .map((contact) => contact.connectionId)
+        .toSet();
     final allocations = <IncomeAllocation>[];
     var percentageIndex = 0;
     for (var index = 0; index < _rules.length; index++) {
       final rule = _rules[index];
-      final destination = rule.destinationAccountId;
-      if (destination == null || !eligibleIds.contains(destination)) {
+      final destination = rule.destination;
+      final valid = switch (destination) {
+        OwnAccountDestination(:final accountId) => eligibleIds.contains(
+          accountId,
+        ),
+        NetworkContactDestination(:final connectionId) =>
+          connectionIds.contains(connectionId),
+        _ => false,
+      };
+      if (!valid) {
         setState(
           () => _failure = ValidationFailure(
             l10n.incomeSplitInvalidAccount,
@@ -190,6 +214,12 @@ class _IncomeSourceFormScreenState
         );
         return null;
       }
+      final accountDestination = destination is OwnAccountDestination
+          ? destination.accountId
+          : null;
+      final networkDestination = destination is NetworkContactDestination
+          ? destination.connectionId
+          : null;
       final valueText = rule.valueController.text;
       switch (rule.method) {
         case IncomeAllocationMethod.percentage:
@@ -206,7 +236,8 @@ class _IncomeSourceFormScreenState
           }
           allocations.add(
             IncomeAllocation(
-              destinationAccountId: destination,
+              destinationAccountId: accountDestination,
+              destinationNetworkConnectionId: networkDestination,
               method: IncomeAllocationMethod.percentage,
               calculationBasis: percentageIndex == 1
                   ? IncomeAllocationCalculationBasis.original
@@ -228,7 +259,8 @@ class _IncomeSourceFormScreenState
           }
           allocations.add(
             IncomeAllocation(
-              destinationAccountId: destination,
+              destinationAccountId: accountDestination,
+              destinationNetworkConnectionId: networkDestination,
               method: IncomeAllocationMethod.fixed,
               fixedAmountMinor: fixedAmount,
               sortOrder: index,
@@ -251,7 +283,10 @@ class _IncomeSourceFormScreenState
     }
   }
 
-  Future<void> _save(List<AccountBalance> accounts) async {
+  Future<void> _save(
+    List<AccountBalance> accounts,
+    List<NetworkContact> contacts,
+  ) async {
     setState(() => _failure = null);
     if (!_formKey.currentState!.validate()) return;
     final primary = accounts
@@ -261,6 +296,7 @@ class _IncomeSourceFormScreenState
       AppLocalizations.of(context),
       primary,
       accounts,
+      contacts,
     );
     if (allocations == null) return;
     final hasPercentageRules = allocations.any(
@@ -277,7 +313,7 @@ class _IncomeSourceFormScreenState
         _kind == IncomeSourceKind.salary &&
             !includeExtraWorkInPercentage &&
             _routeExtraWork
-        ? _extraWorkDestinationAccountId
+        ? _extraWorkDestination
         : null;
     final rolloverDestination =
         _kind == IncomeSourceKind.salary && _rolloverBalanceEnabled
@@ -298,7 +334,14 @@ class _IncomeSourceFormScreenState
           categoryId: _kind == IncomeSourceKind.salary ? null : _categoryId,
           allocations: allocations,
           includeExtraWorkInPercentage: includeExtraWorkInPercentage,
-          extraWorkDestinationAccountId: extraDestination,
+          extraWorkDestinationAccountId:
+              extraDestination is OwnAccountDestination
+              ? extraDestination.accountId
+              : null,
+          extraWorkDestinationNetworkConnectionId:
+              extraDestination is NetworkContactDestination
+              ? extraDestination.connectionId
+              : null,
           rolloverBalanceEnabled:
               _kind == IncomeSourceKind.salary && _rolloverBalanceEnabled,
           rolloverDestinationAccountId: rolloverDestination,
@@ -349,12 +392,25 @@ class _IncomeSourceFormScreenState
         .firstOrNull;
     final eligibleSplitAccounts = _eligibleSplitAccounts(accounts);
     final eligibleRolloverAccounts = _eligibleRolloverAccounts(accounts);
+    final contactsAsync = ref.watch(networkContactsProvider);
+    final contacts = contactsAsync.value ?? const <NetworkContact>[];
+    // A destination that lost its eligibility (account archived, currency
+    // changed, contact removed from the network) is dropped instead of being
+    // silently kept in a broken state.
+    bool destinationEligible(MoneyDestination? destination) =>
+        switch (destination) {
+          OwnAccountDestination(:final accountId) => eligibleSplitAccounts.any(
+            (account) => account.accountId == accountId,
+          ),
+          NetworkContactDestination(:final connectionId) =>
+            !contactsAsync.hasValue ||
+                contacts.any((contact) => contact.connectionId == connectionId),
+          _ => false,
+        };
     if (accountsAsync.hasValue &&
-        !eligibleSplitAccounts.any(
-          (account) => account.accountId == _extraWorkDestinationAccountId,
-        ) &&
-        _extraWorkDestinationAccountId != null) {
-      _extraWorkDestinationAccountId = null;
+        _extraWorkDestination != null &&
+        !destinationEligible(_extraWorkDestination)) {
+      _extraWorkDestination = null;
     }
     if (accountsAsync.hasValue &&
         !eligibleRolloverAccounts.any(
@@ -566,6 +622,7 @@ class _IncomeSourceFormScreenState
                     index: index,
                     rule: _rules[index],
                     accounts: eligibleSplitAccounts,
+                    contacts: contacts,
                     currencyCode: primary?.currencyCode ?? 'EGP',
                     isFirstPercentage:
                         _rules
@@ -618,24 +675,16 @@ class _IncomeSourceFormScreenState
                       }),
                     ),
                     if (_routeExtraWork)
-                      AppSelectionField<String>(
-                        key: ValueKey(
-                          'extra-work-$_extraWorkDestinationAccountId',
-                        ),
-                        initialValue: _extraWorkDestinationAccountId,
+                      DestinationSelectionField(
+                        key: ValueKey('extra-work-$_extraWorkDestination'),
+                        initialValue: _extraWorkDestination,
                         decoration: InputDecoration(
                           labelText: l10n.incomeSplitExtraWorkAccount,
                         ),
-                        items: [
-                          for (final account in eligibleSplitAccounts)
-                            DropdownMenuItem(
-                              value: account.accountId,
-                              child: Text(account.name),
-                            ),
-                        ],
-                        onChanged: (value) => setState(
-                          () => _extraWorkDestinationAccountId = value,
-                        ),
+                        accounts: eligibleSplitAccounts,
+                        contacts: contacts,
+                        onChanged: (value) =>
+                            setState(() => _extraWorkDestination = value),
                         validator: (value) => value == null
                             ? validationMessage(
                                 context,
@@ -693,11 +742,18 @@ class _IncomeSourceFormScreenState
                     amountText: _amountController.text,
                     primary: primary,
                     accounts: accounts,
+                    contacts: contacts,
                     allocations: _draftPreviewAllocations(primary),
                     includeExtraWorkInPercentage: includeExtraWorkInPercentage,
-                    extraWorkDestinationAccountId: _routeExtraWork
-                        ? _extraWorkDestinationAccountId
-                        : null,
+                    extraWorkDestinationAccountId: !_routeExtraWork
+                        ? null
+                        : switch (_extraWorkDestination) {
+                            OwnAccountDestination(:final accountId) =>
+                              accountId,
+                            NetworkContactDestination(:final connectionId) =>
+                              connectionId,
+                            _ => null,
+                          },
                     rolloverBalanceEnabled: _rolloverBalanceEnabled,
                     rolloverDestinationAccountId: _rolloverDestinationAccountId,
                   ),
@@ -717,7 +773,7 @@ class _IncomeSourceFormScreenState
                   busy: _busy,
                   onPressed: accounts.isEmpty || salaryConflict
                       ? null
-                      : () => _save(accounts),
+                      : () => _save(accounts, contacts),
                 ),
                 const SizedBox(height: 24),
               ],
@@ -732,9 +788,16 @@ class _IncomeSourceFormScreenState
     var percentageIndex = 0;
     return [
       for (var index = 0; index < _rules.length; index++)
-        if (_rules[index].destinationAccountId != null)
+        if (_rules[index].destination != null)
           IncomeAllocation(
-            destinationAccountId: _rules[index].destinationAccountId!,
+            destinationAccountId: switch (_rules[index].destination) {
+              OwnAccountDestination(:final accountId) => accountId,
+              _ => null,
+            },
+            destinationNetworkConnectionId: switch (_rules[index].destination) {
+              NetworkContactDestination(:final connectionId) => connectionId,
+              _ => null,
+            },
             method: _rules[index].method,
             calculationBasis:
                 _rules[index].method == IncomeAllocationMethod.percentage &&
@@ -758,7 +821,7 @@ class _IncomeSourceFormScreenState
 class _SplitRuleDraft {
   _SplitRuleDraft({
     required this.id,
-    this.destinationAccountId,
+    this.destination,
     this.method = IncomeAllocationMethod.percentage,
     this.calculationBasis = IncomeAllocationCalculationBasis.original,
     String valueText = '',
@@ -767,7 +830,16 @@ class _SplitRuleDraft {
   factory _SplitRuleDraft.fromAllocation(IncomeAllocation allocation, int id) =>
       _SplitRuleDraft(
         id: id,
-        destinationAccountId: allocation.destinationAccountId,
+        destination: switch ((
+          allocation.destinationAccountId,
+          allocation.destinationNetworkConnectionId,
+        )) {
+          (final String accountId, _) => OwnAccountDestination(accountId),
+          (_, final String connectionId) => NetworkContactDestination(
+            connectionId,
+          ),
+          _ => null,
+        },
         method: allocation.method,
         calculationBasis: allocation.calculationBasis,
         valueText: allocation.method == IncomeAllocationMethod.percentage
@@ -778,7 +850,7 @@ class _SplitRuleDraft {
 
   final int id;
   final TextEditingController valueController;
-  String? destinationAccountId;
+  MoneyDestination? destination;
   IncomeAllocationMethod method;
   IncomeAllocationCalculationBasis calculationBasis;
 
@@ -791,6 +863,7 @@ class _SplitRuleCard extends StatelessWidget {
     required this.index,
     required this.rule,
     required this.accounts,
+    required this.contacts,
     required this.currencyCode,
     required this.isFirstPercentage,
     required this.methodLabel,
@@ -804,6 +877,7 @@ class _SplitRuleCard extends StatelessWidget {
   final int index;
   final _SplitRuleDraft rule;
   final List<AccountBalance> accounts;
+  final List<NetworkContact> contacts;
   final String currencyCode;
   final bool isFirstPercentage;
   final String Function(IncomeAllocationMethod method) methodLabel;
@@ -843,21 +917,16 @@ class _SplitRuleCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            AppSelectionField<String>(
-              key: ValueKey('${rule.id}-${rule.destinationAccountId}'),
-              initialValue: rule.destinationAccountId,
+            DestinationSelectionField(
+              key: ValueKey('${rule.id}-${rule.destination}'),
+              initialValue: rule.destination,
               decoration: InputDecoration(
                 labelText: l10n.incomeSplitDestinationAccount,
               ),
-              items: [
-                for (final account in accounts)
-                  DropdownMenuItem(
-                    value: account.accountId,
-                    child: Text(account.name),
-                  ),
-              ],
+              accounts: accounts,
+              contacts: contacts,
               onChanged: (value) {
-                rule.destinationAccountId = value;
+                rule.destination = value;
                 onChanged();
               },
             ),
@@ -944,6 +1013,7 @@ class _SplitPreview extends StatelessWidget {
     required this.amountText,
     required this.primary,
     required this.accounts,
+    required this.contacts,
     required this.allocations,
     required this.includeExtraWorkInPercentage,
     required this.extraWorkDestinationAccountId,
@@ -955,6 +1025,7 @@ class _SplitPreview extends StatelessWidget {
   final String amountText;
   final AccountBalance primary;
   final List<AccountBalance> accounts;
+  final List<NetworkContact> contacts;
   final List<IncomeAllocation> allocations;
   final bool includeExtraWorkInPercentage;
   final String? extraWorkDestinationAccountId;
@@ -979,6 +1050,9 @@ class _SplitPreview extends StatelessWidget {
     );
     final names = {
       for (final account in accounts) account.accountId: account.name,
+      // Network splits render under the caller's private alias — the pending
+      // transfer is created on acceptance, so no balance appears anywhere.
+      for (final contact in contacts) contact.connectionId: contact.localAlias,
     };
     String formatAmount(int minor) => Money(
       minor: minor,
