@@ -310,7 +310,7 @@ begin
       v_missing, 'app_finance.recurring_occurrences');
   end if;
   if to_regprocedure(
-    'app_finance.save_recurring_rule(text,app_finance.recurring_rule_kind,bigint,app_finance.recurring_frequency,smallint,date,smallint,uuid,uuid,uuid,text,uuid,boolean)'
+    'app_finance.save_recurring_rule(text,app_finance.recurring_rule_kind,bigint,app_finance.recurring_frequency,smallint,date,smallint,uuid,uuid,uuid,text,uuid,boolean,boolean)'
   ) is null then
     v_missing := array_append(v_missing, 'save_recurring_rule');
   end if;

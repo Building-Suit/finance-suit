@@ -123,13 +123,13 @@ void main() {
 
   group('format', () {
     test('formats with currency code', () {
-      expect(egp(1234567).format(locale: 'en'), 'EGP 12,345.67');
+      expect(egp(1234567).format(locale: 'en'), '12,345.67 EGP');
     });
 
     test('signed format', () {
-      expect(egp(10000).formatSigned(locale: 'en'), '+EGP 100.00');
-      expect(egp(-10000).formatSigned(locale: 'en'), '-EGP 100.00');
-      expect(egp(0).formatSigned(locale: 'en'), 'EGP 0.00');
+      expect(egp(10000).formatSigned(locale: 'en'), '+100.00 EGP');
+      expect(egp(-10000).formatSigned(locale: 'en'), '-100.00 EGP');
+      expect(egp(0).formatSigned(locale: 'en'), '0.00 EGP');
     });
   });
 
