@@ -28,6 +28,8 @@ import 'package:work_tracker/features/finance/presentation/widgets/finance_widge
 import 'package:work_tracker/features/history/domain/history_models.dart';
 import 'package:work_tracker/features/history/presentation/providers/history_providers.dart';
 import 'package:work_tracker/features/history/presentation/widgets/history_item_tile.dart';
+import 'package:work_tracker/features/network/domain/network_models.dart';
+import 'package:work_tracker/features/network/presentation/providers/network_providers.dart';
 import 'package:work_tracker/features/reports/domain/report_models.dart';
 import 'package:work_tracker/features/reports/presentation/providers/report_providers.dart';
 import 'package:work_tracker/features/salary/data/salary_repository.dart';
@@ -210,6 +212,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ref.invalidate(pendingIncomeProvider);
     ref.invalidate(pendingRecurringProvider);
     ref.invalidate(homeUpcomingObligationsProvider);
+    ref.invalidate(networkTransfersProvider);
   }
 
   String _rangeLabel(AppLocalizations l10n, DateRangePreset preset) {
@@ -313,6 +316,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       today: PlainDate.today(),
                       onOpen: () =>
                           context.push('${AppRoutes.settings}/recurring'),
+                    ),
+            ),
+            compactSection(
+              ref.watch(pendingIncomingNetworkTransfersProvider),
+              loading: const SizedBox.shrink(),
+              data: (items) => items.isEmpty
+                  ? const SizedBox.shrink()
+                  : _PendingNetworkSection(
+                      items: items,
+                      onOpen: () =>
+                          context.push('/money/network?tab=transfers'),
                     ),
             ),
             _SectionHeader(title: l10n.homeBalance),
@@ -740,6 +754,89 @@ class _PendingRecurringSection extends StatelessWidget {
                             : l10n.incomeUpcoming(
                                 first.occurrence.scheduledOn.toIso(),
                               ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: context.suitColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Incoming pending network transfers: money someone sent that only lands
+/// once the user accepts it on the Network page. Receiver-side only — the
+/// sender has nothing to approve here.
+class _PendingNetworkSection extends StatelessWidget {
+  const _PendingNetworkSection({required this.items, required this.onOpen});
+
+  final List<NetworkTransfer> items;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final warning = context.suitColors.warning;
+    final first = items.first;
+    return Card(
+      color: warning.background,
+      clipBehavior: Clip.antiAlias,
+      child: Semantics(
+        button: true,
+        label: l10n.homePendingNetworkTitle,
+        child: InkWell(
+          key: const Key('home-pending-network-summary'),
+          onTap: onOpen,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                FinanceSuitIcon(FinanceSuitIcons.people, color: warning.icon),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        l10n.homePendingNetworkTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: warning.text,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      if (items.length == 1)
+                        ProtectedMoneyText(
+                          l10n.networkSentYou(
+                            first.counterpartyAlias,
+                            first.amount.format(),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        )
+                      else
+                        Text(
+                          '${l10n.networkPendingCount(items.length)} · '
+                          '${first.counterpartyAlias}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      Text(
+                        l10n.networkPendingTransfer,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(

@@ -122,7 +122,7 @@ void main() {
   });
 
   group('format', () {
-    test('formats with currency code', () {
+    test('formats with the currency code after the amount', () {
       expect(egp(1234567).format(locale: 'en'), '12,345.67 EGP');
     });
 

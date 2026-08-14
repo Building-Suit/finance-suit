@@ -299,17 +299,17 @@ class FinanceRepository {
     required List<IncomeAllocation> allocations,
     bool includeExtraWorkInPercentage = true,
     String? extraWorkDestinationAccountId,
+    String? extraWorkDestinationNetworkConnectionId,
     bool rolloverBalanceEnabled = false,
     String? rolloverDestinationAccountId,
     String? categoryId,
     String? notes,
     String? sourceId,
     bool isActive = true,
-    bool isForeignCurrency = false,
   }) {
     return guard(() async {
       return _db.rpc<String>(
-        'save_income_source_v4',
+        'save_income_source_v5',
         params: {
           'p_name': name,
           'p_source_kind': kind.dbValue,
@@ -326,9 +326,10 @@ class FinanceRepository {
           'p_notes': notes,
           'p_source_id': sourceId,
           'p_is_active': isActive,
-          'p_is_foreign_currency': isForeignCurrency,
           'p_include_extra_work_in_percentage': includeExtraWorkInPercentage,
           'p_extra_work_destination_account_id': extraWorkDestinationAccountId,
+          'p_extra_work_destination_network_connection_id':
+              extraWorkDestinationNetworkConnectionId,
           'p_rollover_balance_enabled': rolloverBalanceEnabled,
           'p_rollover_destination_account_id': rolloverDestinationAccountId,
         },
@@ -1514,6 +1515,7 @@ class FinanceRepository {
     required int promptDaysBefore,
     required String sourceAccountId,
     String? destinationAccountId,
+    String? destinationNetworkConnectionId,
     String? categoryId,
     String? notes,
     String? ruleId,
@@ -1522,7 +1524,7 @@ class FinanceRepository {
   }) {
     return guard(() async {
       final id = await _db.rpc<String>(
-        'save_recurring_rule',
+        'save_recurring_rule_v2',
         params: {
           'p_name': name,
           'p_rule_kind': kind.dbValue,
@@ -1533,6 +1535,7 @@ class FinanceRepository {
           'p_prompt_days_before': promptDaysBefore,
           'p_source_account_id': sourceAccountId,
           'p_destination_account_id': destinationAccountId,
+          'p_destination_network_connection_id': destinationNetworkConnectionId,
           'p_category_id': categoryId,
           'p_notes': notes,
           'p_rule_id': ruleId,

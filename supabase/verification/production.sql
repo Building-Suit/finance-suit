@@ -315,6 +315,12 @@ begin
     v_missing := array_append(v_missing, 'save_recurring_rule');
   end if;
   if to_regprocedure(
+    'app_finance.save_recurring_rule(text,app_finance.recurring_rule_kind,bigint,app_finance.recurring_frequency,smallint,date,smallint,uuid,uuid,uuid,text,uuid,boolean)'
+  ) is not null then
+    raise exception
+      'Ambiguous 13-parameter save_recurring_rule overload remains';
+  end if;
+  if to_regprocedure(
     'app_finance.materialize_recurring_occurrences(date)'
   ) is null then
     v_missing := array_append(
@@ -383,6 +389,171 @@ begin
   end if;
   if to_regprocedure('app_reports.debt_summary(date,date)') is null then
     v_missing := array_append(v_missing, 'app_reports.debt_summary');
+  end if;
+
+  -- Finance Suit Network
+  if to_regclass('app_finance.network_add_requests') is null then
+    v_missing := array_append(v_missing, 'app_finance.network_add_requests');
+  end if;
+  if to_regclass('app_finance.network_connections') is null then
+    v_missing := array_append(v_missing, 'app_finance.network_connections');
+  end if;
+  if to_regclass('app_finance.network_transfers') is null then
+    v_missing := array_append(v_missing, 'app_finance.network_transfers');
+  end if;
+  if not exists (
+    select 1 from pg_type
+    where typnamespace = 'app_finance'::regnamespace
+      and typname = 'network_add_request_status'
+  ) then
+    v_missing := array_append(v_missing, 'network_add_request_status enum');
+  end if;
+  if not exists (
+    select 1 from pg_type
+    where typnamespace = 'app_finance'::regnamespace
+      and typname = 'network_transfer_status'
+  ) then
+    v_missing := array_append(v_missing, 'network_transfer_status enum');
+  end if;
+  if not exists (
+    select 1 from pg_type
+    where typnamespace = 'app_finance'::regnamespace
+      and typname = 'network_transfer_origin'
+  ) then
+    v_missing := array_append(v_missing, 'network_transfer_origin enum');
+  end if;
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'app_finance'
+      and table_name = 'financial_transactions'
+      and column_name = 'network_transfer_id'
+  ) then
+    v_missing := array_append(
+      v_missing, 'financial_transactions.network_transfer_id');
+  end if;
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'app_finance'
+      and table_name = 'financial_transactions'
+      and column_name = 'is_network_transfer'
+  ) then
+    v_missing := array_append(
+      v_missing, 'financial_transactions.is_network_transfer');
+  end if;
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'app_finance'
+      and table_name = 'recurring_rules'
+      and column_name = 'destination_network_connection_id'
+  ) then
+    v_missing := array_append(
+      v_missing, 'recurring_rules.destination_network_connection_id');
+  end if;
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'app_finance'
+      and table_name = 'income_source_allocations'
+      and column_name = 'destination_network_connection_id'
+  ) then
+    v_missing := array_append(
+      v_missing, 'income_source_allocations.destination_network_connection_id');
+  end if;
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'app_finance'
+      and table_name = 'income_sources'
+      and column_name = 'extra_work_destination_network_connection_id'
+  ) then
+    v_missing := array_append(
+      v_missing,
+      'income_sources.extra_work_destination_network_connection_id');
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'tx_direction_by_kind'
+      and conrelid = 'app_finance.financial_transactions'::regclass
+  ) then
+    v_missing := array_append(v_missing, 'tx_direction_by_kind');
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'network_transfers_state_fields'
+      and conrelid = 'app_finance.network_transfers'::regclass
+  ) then
+    v_missing := array_append(v_missing, 'network_transfers_state_fields');
+  end if;
+  if to_regprocedure('app_finance.search_network_users(text)') is null then
+    v_missing := array_append(v_missing, 'search_network_users');
+  end if;
+  if to_regprocedure(
+    'app_finance.send_network_add_request(uuid,text)'
+  ) is null then
+    v_missing := array_append(v_missing, 'send_network_add_request');
+  end if;
+  if to_regprocedure(
+    'app_finance.accept_network_add_request(uuid,text)'
+  ) is null then
+    v_missing := array_append(v_missing, 'accept_network_add_request');
+  end if;
+  if to_regprocedure(
+    'app_finance.reject_network_add_request(uuid)'
+  ) is null then
+    v_missing := array_append(v_missing, 'reject_network_add_request');
+  end if;
+  if to_regprocedure('app_finance.list_network_add_requests()') is null then
+    v_missing := array_append(v_missing, 'list_network_add_requests');
+  end if;
+  if to_regprocedure('app_finance.list_network_contacts()') is null then
+    v_missing := array_append(v_missing, 'list_network_contacts');
+  end if;
+  if to_regprocedure(
+    'app_finance.rename_network_contact(uuid,text)'
+  ) is null then
+    v_missing := array_append(v_missing, 'rename_network_contact');
+  end if;
+  if to_regprocedure(
+    'app_finance.remove_network_connection(uuid)'
+  ) is null then
+    v_missing := array_append(v_missing, 'remove_network_connection');
+  end if;
+  if to_regprocedure(
+    'app_finance.create_network_transfer_request(uuid,uuid,bigint,date,text,app_finance.network_transfer_origin,uuid,text)'
+  ) is null then
+    v_missing := array_append(v_missing, 'create_network_transfer_request');
+  end if;
+  if to_regprocedure(
+    'app_finance.accept_network_transfer(uuid,uuid)'
+  ) is null then
+    v_missing := array_append(v_missing, 'accept_network_transfer');
+  end if;
+  if to_regprocedure(
+    'app_finance.reject_network_transfer(uuid)'
+  ) is null then
+    v_missing := array_append(v_missing, 'reject_network_transfer');
+  end if;
+  if to_regprocedure('app_finance.list_network_transfers()') is null then
+    v_missing := array_append(v_missing, 'list_network_transfers');
+  end if;
+  if to_regprocedure(
+    'app_finance.save_recurring_rule_v2(text,app_finance.recurring_rule_kind,bigint,app_finance.recurring_frequency,smallint,date,smallint,uuid,uuid,uuid,uuid,text,uuid,boolean,boolean)'
+  ) is null then
+    v_missing := array_append(v_missing, 'save_recurring_rule_v2');
+  end if;
+  if to_regprocedure(
+    'app_finance.save_income_source_v5(text,app_finance.income_source_kind,bigint,text,smallint,date,smallint,uuid,uuid,jsonb,text,uuid,boolean,boolean,uuid,uuid,boolean,uuid)'
+  ) is null then
+    v_missing := array_append(v_missing, 'save_income_source_v5');
+  end if;
+  -- Network tables must not be broadly writable by clients.
+  if has_table_privilege(
+    'authenticated', 'app_finance.network_transfers', 'insert'
+  ) then
+    raise exception 'network_transfers must not be client-writable';
+  end if;
+  if has_table_privilege(
+    'authenticated', 'app_finance.network_connections', 'update'
+  ) then
+    raise exception 'network_connections must not be client-writable';
   end if;
 
   if cardinality(v_missing) > 0 then

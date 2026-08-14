@@ -6,8 +6,9 @@ import 'package:work_tracker/core/money/money.dart';
 @immutable
 class IncomeAllocation {
   const IncomeAllocation({
-    required this.destinationAccountId,
     required this.method,
+    this.destinationAccountId,
+    this.destinationNetworkConnectionId,
     this.id,
     this.calculationBasis = IncomeAllocationCalculationBasis.original,
     this.percentageBasisPoints,
@@ -18,7 +19,9 @@ class IncomeAllocation {
   factory IncomeAllocation.fromJson(Map<String, dynamic> json) =>
       IncomeAllocation(
         id: json['id'] as String?,
-        destinationAccountId: json['destination_account_id'] as String,
+        destinationAccountId: json['destination_account_id'] as String?,
+        destinationNetworkConnectionId:
+            json['destination_network_connection_id'] as String?,
         method: IncomeAllocationMethod.fromDb(
           json['allocation_method'] as String? ?? 'percentage',
         ),
@@ -32,7 +35,12 @@ class IncomeAllocation {
       );
 
   final String? id;
-  final String destinationAccountId;
+
+  /// Exactly one of [destinationAccountId] and
+  /// [destinationNetworkConnectionId] is set: a split lands either in an own
+  /// account or, as a pending network transfer, with a connected person.
+  final String? destinationAccountId;
+  final String? destinationNetworkConnectionId;
   final IncomeAllocationMethod method;
   final IncomeAllocationCalculationBasis calculationBasis;
   final int? percentageBasisPoints;
@@ -41,8 +49,15 @@ class IncomeAllocation {
 
   double get percentage => (percentageBasisPoints ?? 0) / 100;
 
+  bool get isNetworkDestination => destinationNetworkConnectionId != null;
+
+  /// Stable display/lookup key regardless of the destination shape.
+  String get destinationKey =>
+      destinationAccountId ?? destinationNetworkConnectionId ?? '';
+
   Map<String, dynamic> toPayload() => {
     'destination_account_id': destinationAccountId,
+    'destination_network_connection_id': destinationNetworkConnectionId,
     'allocation_method': method.dbValue,
     'calculation_basis': calculationBasis.dbValue,
     'percentage_basis_points': percentageBasisPoints,
@@ -66,6 +81,7 @@ class IncomeSource {
     required this.allocations,
     this.includeExtraWorkInPercentage = true,
     this.extraWorkDestinationAccountId,
+    this.extraWorkDestinationNetworkConnectionId,
     this.rolloverBalanceEnabled = false,
     this.rolloverDestinationAccountId,
     this.categoryId,
@@ -97,6 +113,8 @@ class IncomeSource {
           json['include_extra_work_in_percentage'] as bool? ?? true,
       extraWorkDestinationAccountId:
           json['extra_work_destination_account_id'] as String?,
+      extraWorkDestinationNetworkConnectionId:
+          json['extra_work_destination_network_connection_id'] as String?,
       rolloverBalanceEnabled:
           json['rollover_balance_enabled'] as bool? ?? false,
       rolloverDestinationAccountId:
@@ -119,6 +137,10 @@ class IncomeSource {
   final List<IncomeAllocation> allocations;
   final bool includeExtraWorkInPercentage;
   final String? extraWorkDestinationAccountId;
+
+  /// Set instead of [extraWorkDestinationAccountId] when the protected
+  /// extra-work pay routes to a network contact as a pending transfer.
+  final String? extraWorkDestinationNetworkConnectionId;
   final bool rolloverBalanceEnabled;
   final String? rolloverDestinationAccountId;
   final String? notes;

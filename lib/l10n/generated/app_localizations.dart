@@ -6232,6 +6232,378 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Billing is not ready yet. Pro is included during Early Access.'**
   String get billingNotReady;
+
+  /// No description provided for @networkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Network'**
+  String get networkTitle;
+
+  /// No description provided for @networkTabConnections.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections'**
+  String get networkTabConnections;
+
+  /// No description provided for @networkTabRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Requests'**
+  String get networkTabRequests;
+
+  /// No description provided for @networkTabTransfers.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfers'**
+  String get networkTabTransfers;
+
+  /// No description provided for @networkAddPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Add person'**
+  String get networkAddPerson;
+
+  /// No description provided for @networkSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name or email'**
+  String get networkSearchHint;
+
+  /// No description provided for @networkSearchMinChars.
+  ///
+  /// In en, this message translates to:
+  /// **'Type at least three characters, or a full email'**
+  String get networkSearchMinChars;
+
+  /// No description provided for @networkSearchEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No Finance Suit users match your search'**
+  String get networkSearchEmpty;
+
+  /// No description provided for @networkActionAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get networkActionAdd;
+
+  /// No description provided for @networkStateRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested'**
+  String get networkStateRequested;
+
+  /// No description provided for @networkStateRespond.
+  ///
+  /// In en, this message translates to:
+  /// **'Respond'**
+  String get networkStateRespond;
+
+  /// No description provided for @networkStateAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added'**
+  String get networkStateAdded;
+
+  /// No description provided for @networkAliasAdding.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding:'**
+  String get networkAliasAdding;
+
+  /// No description provided for @networkAliasQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you want to call this person?'**
+  String get networkAliasQuestion;
+
+  /// No description provided for @networkAliasQuestionFor.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you want to call {name}?'**
+  String networkAliasQuestionFor(String name);
+
+  /// No description provided for @networkAliasHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the name you will see in Finance Suit. They can choose a different name for you.'**
+  String get networkAliasHelper;
+
+  /// No description provided for @networkAliasLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Private name'**
+  String get networkAliasLabel;
+
+  /// No description provided for @networkRequestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Request sent'**
+  String get networkRequestSent;
+
+  /// No description provided for @networkIncoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Incoming'**
+  String get networkIncoming;
+
+  /// No description provided for @networkSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get networkSent;
+
+  /// No description provided for @networkWantsToAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'wants to add you to their Finance Suit network.'**
+  String get networkWantsToAdd;
+
+  /// No description provided for @networkAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get networkAccept;
+
+  /// No description provided for @networkReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get networkReject;
+
+  /// No description provided for @networkConnectedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to your network'**
+  String get networkConnectedToast;
+
+  /// No description provided for @networkRequestRejectedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Request rejected'**
+  String get networkRequestRejectedToast;
+
+  /// No description provided for @networkNoRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'No requests'**
+  String get networkNoRequests;
+
+  /// No description provided for @networkNoConnections.
+  ///
+  /// In en, this message translates to:
+  /// **'Add people to send and receive transfers inside Finance Suit'**
+  String get networkNoConnections;
+
+  /// No description provided for @networkNoTransfers.
+  ///
+  /// In en, this message translates to:
+  /// **'No network transfers yet'**
+  String get networkNoTransfers;
+
+  /// No description provided for @networkEditAlias.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit name'**
+  String get networkEditAlias;
+
+  /// No description provided for @networkViewTransfers.
+  ///
+  /// In en, this message translates to:
+  /// **'View transfers'**
+  String get networkViewTransfers;
+
+  /// No description provided for @networkRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from network'**
+  String get networkRemove;
+
+  /// No description provided for @networkRemoveConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from network?'**
+  String get networkRemoveConfirmTitle;
+
+  /// No description provided for @networkRemoveConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No new transfers will be possible with {name}. History stays.'**
+  String networkRemoveConfirmBody(String name);
+
+  /// No description provided for @networkRemovedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed from network'**
+  String get networkRemovedToast;
+
+  /// No description provided for @networkContactLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Network contact'**
+  String get networkContactLabel;
+
+  /// No description provided for @networkGroupMyAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'My accounts'**
+  String get networkGroupMyAccounts;
+
+  /// No description provided for @networkGroupMyNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'My network'**
+  String get networkGroupMyNetwork;
+
+  /// No description provided for @networkTransferTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To {name}'**
+  String networkTransferTo(String name);
+
+  /// No description provided for @networkTransferFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From {name}'**
+  String networkTransferFrom(String name);
+
+  /// No description provided for @networkStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get networkStatusPending;
+
+  /// No description provided for @networkStatusAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get networkStatusAccepted;
+
+  /// No description provided for @networkStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get networkStatusRejected;
+
+  /// No description provided for @networkFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get networkFilterAll;
+
+  /// No description provided for @networkPendingTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending transfer'**
+  String get networkPendingTransfer;
+
+  /// No description provided for @networkSentYou.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} sent you {amount}'**
+  String networkSentYou(String name, String amount);
+
+  /// No description provided for @networkReceiveInto.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive into'**
+  String get networkReceiveInto;
+
+  /// No description provided for @networkReceiveIntoHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick one of your {currency} accounts'**
+  String networkReceiveIntoHelper(String currency);
+
+  /// No description provided for @networkNoMatchingAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'You need an active {currency} account to receive this transfer'**
+  String networkNoMatchingAccounts(String currency);
+
+  /// No description provided for @networkTransferAcceptedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer received'**
+  String get networkTransferAcceptedToast;
+
+  /// No description provided for @networkTransferRejectedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer rejected'**
+  String get networkTransferRejectedToast;
+
+  /// No description provided for @networkTransferRequestSentToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer request sent — waiting for them to accept'**
+  String get networkTransferRequestSentToast;
+
+  /// No description provided for @networkLedgerDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded inside Finance Suit only. No real bank transfer is made.'**
+  String get networkLedgerDisclaimer;
+
+  /// No description provided for @networkPendingCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} waiting'**
+  String networkPendingCount(int count);
+
+  /// No description provided for @homePendingNetworkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Network transfers to review'**
+  String get homePendingNetworkTitle;
+
+  /// No description provided for @errNetworkAlias.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a name between 1 and 80 characters'**
+  String get errNetworkAlias;
+
+  /// No description provided for @errNetworkAlreadyConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'This person is already in your network'**
+  String get errNetworkAlreadyConnected;
+
+  /// No description provided for @errNetworkRequestPending.
+  ///
+  /// In en, this message translates to:
+  /// **'A request between you two is already waiting'**
+  String get errNetworkRequestPending;
+
+  /// No description provided for @errNetworkTransferUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This transfer can no longer be accepted. Ask the sender to review it.'**
+  String get errNetworkTransferUnavailable;
+
+  /// No description provided for @errNetworkDestinationUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Network destination is no longer available. Edit this automation.'**
+  String get errNetworkDestinationUnavailable;
+
+  /// No description provided for @errNetworkChooseOneDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose one destination'**
+  String get errNetworkChooseOneDestination;
+
+  /// No description provided for @errNetworkLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted network transfers cannot be edited'**
+  String get errNetworkLocked;
+
+  /// No description provided for @errNetworkSelfAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot add yourself'**
+  String get errNetworkSelfAdd;
 }
 
 class _AppLocalizationsDelegate

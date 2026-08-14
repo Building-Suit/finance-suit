@@ -374,6 +374,11 @@ class _FinanceSuitMenuPanel extends StatelessWidget {
             label: l10n.historyTitle,
             route: '${AppRoutes.money}?tab=transactions',
           ),
+          (
+            icon: FinanceSuitIcons.people,
+            label: l10n.networkTitle,
+            route: '${AppRoutes.money}/network',
+          ),
         ],
       ),
     ];

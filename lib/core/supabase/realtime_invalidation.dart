@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/history/presentation/providers/history_providers.dart';
+import 'package:work_tracker/features/network/presentation/providers/network_providers.dart';
 import 'package:work_tracker/features/reports/presentation/providers/report_providers.dart';
 import 'package:work_tracker/features/salary/presentation/providers/salary_providers.dart';
 import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
@@ -52,7 +53,10 @@ final realtimeInvalidationProvider = Provider<void>((ref) {
         ..invalidate(adjustmentsForRangeProvider)
         ..invalidate(estimateForRangeProvider)
         ..invalidate(currentEstimateProvider)
-        ..invalidate(salarySettingsProvider);
+        ..invalidate(salarySettingsProvider)
+        ..invalidate(networkContactsProvider)
+        ..invalidate(networkAddRequestsProvider)
+        ..invalidate(networkTransfersProvider);
     });
   }
 
@@ -95,6 +99,34 @@ final realtimeInvalidationProvider = Provider<void>((ref) {
       ),
       callback: (_) => scheduleInvalidation(),
     );
+  }
+  // Network rows are shared between two users, so each table is watched once
+  // per party column instead of by user_id.
+  const networkTables = [
+    (
+      table: 'network_add_requests',
+      columns: ['requester_user_id', 'recipient_user_id'],
+    ),
+    (table: 'network_connections', columns: ['user_a_id', 'user_b_id']),
+    (
+      table: 'network_transfers',
+      columns: ['sender_user_id', 'receiver_user_id'],
+    ),
+  ];
+  for (final tableSpec in networkTables) {
+    for (final column in tableSpec.columns) {
+      channel.onPostgresChanges(
+        event: PostgresChangeEvent.all,
+        schema: AppSchemas.finance,
+        table: tableSpec.table,
+        filter: PostgresChangeFilter(
+          type: PostgresChangeFilterType.eq,
+          column: column,
+          value: userId,
+        ),
+        callback: (_) => scheduleInvalidation(),
+      );
+    }
   }
   channel.subscribe();
 
