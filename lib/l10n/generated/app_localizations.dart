@@ -1091,7 +1091,7 @@ abstract class AppLocalizations {
   /// No description provided for @setSecuritySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Privacy, app lock, and biometric login'**
+  /// **'Privacy, app lock and biometric'**
   String get setSecuritySubtitle;
 
   /// No description provided for @setNotificationsSubtitle.
@@ -1121,7 +1121,7 @@ abstract class AppLocalizations {
   /// No description provided for @setAccountSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Sign out or delete your account'**
+  /// **'Change password, manage your plan, or delete your account'**
   String get setAccountSubtitle;
 
   /// No description provided for @setAboutSubtitle.

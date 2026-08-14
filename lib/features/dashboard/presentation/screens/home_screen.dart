@@ -536,16 +536,41 @@ class _CreditCardTile extends StatelessWidget {
                     color: palette.onSurface,
                   ),
                 ),
-                ProtectedMoneyText(
-                  '${facility.availableCredit.format()} / '
-                  '${facility.creditLimit.format()}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  interactive: false,
-                  style: textTheme.titleMedium?.copyWith(
-                    color: palette.onSurface,
-                    fontWeight: FontWeight.w700,
-                  ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Flexible(
+                      child: ProtectedMoneyText(
+                        facility.availableCredit.format(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        interactive: false,
+                        style: textTheme.titleMedium?.copyWith(
+                          color: palette.onSurface,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      ' / ',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: palette.onSurfaceMuted,
+                      ),
+                    ),
+                    Flexible(
+                      child: ProtectedMoneyText(
+                        facility.creditLimit.format(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        interactive: false,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: palette.onSurfaceMuted,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 if (owed)
                   ProtectedMoneyText(
@@ -1006,6 +1031,7 @@ class _HomeDueTile extends StatelessWidget {
     return ListTile(
       key: Key('home-due-${period.period.name}'),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      onTap: () => _showDueBreakdown(context, period),
       leading: FinanceSuitIcon(
         period.period == HomeDuePeriod.current
             ? FinanceSuitIcons.warning
@@ -1032,7 +1058,207 @@ class _HomeDueTile extends StatelessWidget {
       ),
     );
   }
+
+  void _showDueBreakdown(BuildContext context, HomeDuePeriodSummary period) {
+    final dates = MaterialLocalizations.of(context);
+    final openIndex = ValueNotifier<int?>(null);
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      useRootNavigator: true,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.62,
+        minChildSize: 0.42,
+        maxChildSize: 0.9,
+        builder: (context, controller) => SafeArea(
+          child: ValueListenableBuilder<int?>(
+            valueListenable: openIndex,
+            builder: (context, expandedIndex, _) => ListView(
+              controller: controller,
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 104),
+              children: [
+                Text(
+                  'Due breakdown',
+                  style: Theme.of(sheetContext).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'These unpaid items are included in this total.',
+                  style: Theme.of(sheetContext).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 12),
+                for (var index = 0; index < period.obligations.length; index++)
+                  _DueObligationGroup(
+                    obligation: period.obligations[index],
+                    dates: dates,
+                    expanded: expandedIndex == index,
+                    onExpansionChanged: (value) {
+                      openIndex.value = value ? index : null;
+                    },
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
+
+class _DueObligationGroup extends StatelessWidget {
+  const _DueObligationGroup({
+    required this.obligation,
+    required this.dates,
+    required this.expanded,
+    required this.onExpansionChanged,
+  });
+  final HomeDueObligation obligation;
+  final MaterialLocalizations dates;
+  final bool expanded;
+  final ValueChanged<bool>? onExpansionChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final obligation = this.obligation;
+    final dates = this.dates;
+    final details = obligation.details;
+    final items = (details['items'] as List? ?? const [])
+        .whereType<Map>()
+        .toList();
+    final installments = (details['installments'] as List? ?? const [])
+        .whereType<Map>()
+        .toList();
+    final breakdown = Column(
+      children: [
+        if (items.isNotEmpty) ...[
+          const _DueSubsectionHeader(title: 'Other charges'),
+          for (final child in items)
+            _DueDetailRow(child: child, obligation: obligation, dates: dates),
+        ],
+        if (installments.isNotEmpty) ...[
+          const _DueSubsectionHeader(title: 'Installments'),
+          for (final child in installments)
+            _DueDetailRow(child: child, obligation: obligation, dates: dates),
+        ],
+        if (items.isEmpty && installments.isEmpty)
+          const ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.only(left: 20, right: 4),
+            title: Text('No item-level breakdown available'),
+          ),
+      ],
+    );
+    return Column(
+      key: ValueKey<String>('due-obligation-${obligation.id}'),
+      children: [
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          onTap: () => onExpansionChanged?.call(!expanded),
+          title: Text(
+            obligation.sourceName.isNotEmpty
+                ? obligation.sourceName
+                : _formatDueKind(obligation.kind),
+          ),
+          subtitle: Text(dates.formatMediumDate(obligation.dueOn.toDateTime())),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ProtectedMoneyText(
+                Money(
+                  minor: obligation.remainingMinor,
+                  currencyCode: obligation.currencyCode,
+                ).format(),
+                interactive: false,
+              ),
+              const SizedBox(width: 8),
+              AnimatedRotation(
+                turns: expanded ? 0.5 : 0,
+                duration: const Duration(milliseconds: 180),
+                child: const Icon(Icons.expand_more),
+              ),
+            ],
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOutCubic,
+          alignment: Alignment.topCenter,
+          clipBehavior: Clip.hardEdge,
+          child: expanded ? breakdown : const SizedBox.shrink(),
+        ),
+        const Divider(height: 1),
+      ],
+    );
+  }
+}
+
+class _DueSubsectionHeader extends StatelessWidget {
+  const _DueSubsectionHeader({required this.title});
+  final String title;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(20, 4, 0, 0),
+    child: Text(
+      title,
+      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+        color: Theme.of(context).colorScheme.primary,
+        fontWeight: FontWeight.w700,
+      ),
+    ),
+  );
+}
+
+class _DueDetailRow extends StatelessWidget {
+  const _DueDetailRow({
+    required this.child,
+    required this.obligation,
+    required this.dates,
+  });
+  final Map child;
+  final HomeDueObligation obligation;
+  final MaterialLocalizations dates;
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+    dense: true,
+    visualDensity: const VisualDensity(vertical: -2),
+    contentPadding: const EdgeInsets.only(left: 28, right: 0),
+    title: Text(child['title'] as String? ?? 'Due item'),
+    subtitle: Text(
+      [
+        if (child['sequence_number'] != null)
+          'Installment ${child['sequence_number']}',
+        if (child['occurred_on'] != null)
+          dates.formatMediumDate(
+            DateTime.parse(child['occurred_on'] as String),
+          ),
+        if (child['due_on'] != null)
+          dates.formatMediumDate(DateTime.parse(child['due_on'] as String)),
+      ].join(' · '),
+    ),
+    trailing: ProtectedMoneyText(
+      Money(
+        minor: ((child['remaining_minor'] ?? child['amount_minor'] ?? 0) as num)
+            .toInt(),
+        currencyCode: obligation.currencyCode,
+      ).format(),
+      interactive: false,
+      style: Theme.of(context).textTheme.bodySmall,
+    ),
+  );
+}
+
+String _formatDueKind(String kind) => kind
+    .replaceAll('_', ' ')
+    .split(' ')
+    .map(
+      (word) =>
+          word.isEmpty ? word : '${word[0].toUpperCase()}${word.substring(1)}',
+    )
+    .join(' ');
 
 class _TotalBalanceCard extends StatelessWidget {
   const _TotalBalanceCard({required this.totals});

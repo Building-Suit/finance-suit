@@ -165,10 +165,8 @@ void main() {
 
     const available = Money(minor: 4700000, currencyCode: 'EGP');
     const limit = Money(minor: 5000000, currencyCode: 'EGP');
-    expect(
-      find.text('${available.format()} / ${limit.format()}'),
-      findsOneWidget,
-    );
+    expect(find.text(available.format()), findsOneWidget);
+    expect(find.text(limit.format()), findsOneWidget);
 
     // The owed line and the accumulated upcoming due, not the single
     // earliest installment.

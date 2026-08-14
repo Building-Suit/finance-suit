@@ -527,7 +527,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setSecurity => 'Privacy and security';
 
   @override
-  String get setSecuritySubtitle => 'Privacy, app lock, and biometric login';
+  String get setSecuritySubtitle => 'Privacy, app lock and biometric';
 
   @override
   String get setNotificationsSubtitle => 'Alerts and reminder preferences';
@@ -542,7 +542,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setAutomationSubtitle => 'Salary, income, and recurring payments';
 
   @override
-  String get setAccountSubtitle => 'Sign out or delete your account';
+  String get setAccountSubtitle =>
+      'Change password, manage your plan, or delete your account';
 
   @override
   String get setAboutSubtitle => 'Legal documents and app information';

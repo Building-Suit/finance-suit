@@ -13,26 +13,34 @@ class HomeDueObligation {
   const HomeDueObligation({
     required this.id,
     required this.kind,
+    this.sourceName = '',
     required this.dueOn,
     required this.currencyCode,
     required this.remainingMinor,
+    this.details = const <String, dynamic>{},
   });
 
   factory HomeDueObligation.fromJson(Map<String, dynamic> json) {
     return HomeDueObligation(
       id: json['obligation_id'] as String,
       kind: json['obligation_kind'] as String,
+      sourceName: json['source_name'] as String? ?? '',
       dueOn: PlainDate.parse(json['due_on'] as String),
       currencyCode: json['currency_code'] as String,
       remainingMinor: (json['remaining_minor'] as num).toInt(),
+      details: json['details'] is Map
+          ? Map<String, dynamic>.from(json['details'] as Map)
+          : const <String, dynamic>{},
     );
   }
 
   final String id;
   final String kind;
+  final String sourceName;
   final PlainDate dueOn;
   final String currencyCode;
   final int remainingMinor;
+  final Map<String, dynamic> details;
 }
 
 enum HomeDuePeriod { current, thisMonth, nextMonth }
@@ -44,13 +52,19 @@ class HomeDuePeriodSummary {
     required this.start,
     required this.end,
     required this.obligationCount,
+    List<HomeDueObligation>? obligations,
     required this.totals,
-  });
+  }) : _obligations = obligations;
 
   final HomeDuePeriod period;
   final PlainDate? start;
   final PlainDate end;
   final int obligationCount;
+  final List<HomeDueObligation>? _obligations;
+
+  /// Keeps hot-reloaded summaries safe when they were created before the
+  /// audit breakdown field was introduced.
+  List<HomeDueObligation> get obligations => _obligations ?? const [];
   final List<Money> totals;
 }
 
@@ -139,6 +153,7 @@ class HomeDueSummary {
       start: start,
       end: end,
       obligationCount: items.length,
+      obligations: List.unmodifiable(items),
       totals: totals,
     );
   }

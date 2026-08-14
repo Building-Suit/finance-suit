@@ -542,7 +542,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setAutomationSubtitle => 'الراتب والدخل والمدفوعات المتكررة';
 
   @override
-  String get setAccountSubtitle => 'تسجيل الخروج أو حذف حسابك';
+  String get setAccountSubtitle =>
+      'تغيير كلمة المرور أو إدارة خطتك أو حذف حسابك';
 
   @override
   String get setAboutSubtitle => 'المستندات القانونية ومعلومات التطبيق';

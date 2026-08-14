@@ -125,9 +125,16 @@ begin
       v_rule.destination_account_id, p_actual_amount_minor, p_paid_on, p_notes);
   elsif exists (select 1 from app_finance.accounts a where a.id = v_rule.source_account_id
     and a.account_type = 'credit_card') then
-    v_tx_id := app_finance.charge_credit_card(v_rule.source_account_id, v_rule.name,
-      v_rule.category_id, p_paid_on, p_actual_amount_minor, p_notes, null,
-      v_rule.is_foreign_currency);
+    v_tx_id := app_finance.charge_credit_card(
+      p_account_id => v_rule.source_account_id,
+      p_title => v_rule.name,
+      p_category_id => v_rule.category_id,
+      p_occurred_on => p_paid_on,
+      p_amount_minor => p_actual_amount_minor,
+      p_notes => p_notes,
+      p_charge_id => null,
+      p_is_foreign_currency => v_rule.is_foreign_currency
+    );
   else
     insert into app_finance.financial_transactions (
       user_id, transaction_kind, occurred_on, amount_minor, currency_code,

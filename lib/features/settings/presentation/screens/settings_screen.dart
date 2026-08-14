@@ -86,13 +86,20 @@ class SettingsScreen extends ConsumerWidget {
               Card(
                 margin: EdgeInsets.zero,
                 child: ListTile(
+                  visualDensity: const VisualDensity(vertical: -1),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
-                    vertical: 2,
+                    vertical: 0,
                   ),
                   leading: FinanceSuitIcon(item.icon),
                   title: Text(item.title),
-                  subtitle: Text(item.subtitle),
+                  subtitle: Text(
+                    item.subtitle,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                   trailing: const FinanceSuitIcon(
                     FinanceSuitIcons.chevronRight,
                   ),
@@ -122,6 +129,7 @@ class _InlineAppearance extends ConsumerWidget {
       child: Column(
         children: [
           ListTile(
+            visualDensity: const VisualDensity(vertical: -1),
             leading: const FinanceSuitIcon(FinanceSuitIcons.brightness),
             title: Text(l10n.setTheme),
             trailing: SizedBox(
@@ -158,6 +166,7 @@ class _InlineAppearance extends ConsumerWidget {
             ),
           ),
           ListTile(
+            visualDensity: const VisualDensity(vertical: -1),
             leading: const FinanceSuitIcon(FinanceSuitIcons.language),
             title: Text(l10n.onbLanguage),
             trailing: SizedBox(
@@ -578,12 +587,6 @@ class SettingsSectionScreen extends ConsumerWidget {
                 ),
               ),
               ListTile(
-                leading: const FinanceSuitIcon(FinanceSuitIcons.email),
-                title: Text(l10n.setChangeEmail),
-                trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
-                onTap: () => context.push('${AppRoutes.settings}/email'),
-              ),
-              ListTile(
                 leading: const FinanceSuitIcon(FinanceSuitIcons.password),
                 title: Text(l10n.setChangePassword),
                 trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
@@ -639,12 +642,6 @@ class SettingsSectionScreen extends ConsumerWidget {
                   title: Text(l10n.setDisplayName),
                   subtitle: Text(l10n.commonError),
                 ),
-              ),
-              ListTile(
-                leading: const FinanceSuitIcon(FinanceSuitIcons.email),
-                title: Text(l10n.setChangeEmail),
-                trailing: const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
-                onTap: () => context.push('${AppRoutes.settings}/email'),
               ),
               ListTile(
                 leading: const FinanceSuitIcon(FinanceSuitIcons.password),

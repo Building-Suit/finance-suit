@@ -824,10 +824,13 @@ class FinanceRepository {
   /// next-month totals from one canonical, de-duplicated result set.
   Future<Result<HomeDueSummary>> fetchHomeUpcomingObligations(PlainDate today) {
     return guard(() async {
-      final rows = await _db.rpc<List<dynamic>>(
+      final rawRows = await _db.rpc<dynamic>(
         'home_current_month_obligations',
         params: {'p_today': today.addMonths(1).toIso()},
       );
+      // PostgREST can return null when the function has no rows; normalize it
+      // so the Home summary always receives a concrete list.
+      final rows = rawRows is List ? rawRows : const <dynamic>[];
       final obligations = rows
           .map(
             (row) => HomeDueObligation.fromJson(

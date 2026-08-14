@@ -140,16 +140,17 @@ class Money implements Comparable<Money> {
     );
   }
 
-  /// Formats as e.g. `EGP 12,345.67` (or locale equivalent).
+  /// Formats as e.g. `12,345.67 EGP` (or locale equivalent).
   String format({String? locale, bool withSymbol = true}) {
     final majorValue = minor / minorUnitsPerMajor;
     final formatter = NumberFormat.currency(
       locale: locale,
       name: currencyCode,
-      symbol: withSymbol ? '$currencyCode ' : '',
+      symbol: '',
       decimalDigits: 2,
     );
-    return formatter.format(majorValue).trim();
+    final amount = formatter.format(majorValue).trim();
+    return withSymbol ? '$amount $currencyCode' : amount;
   }
 
   /// Signed format with explicit + / − prefix, for flows and adjustments.
