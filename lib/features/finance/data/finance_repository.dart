@@ -930,6 +930,21 @@ class FinanceRepository {
     }, timeout: const Duration(seconds: 60));
   }
 
+  Future<Result<List<CatalogResearchMatch>>> browseCardCatalog({
+    required AccountType accountType,
+    String? countryCode,
+    String? query,
+  }) {
+    return guard(() async {
+      final rows = await _cardResearchDataSource.browseCatalog(
+        accountType: accountType,
+        countryCode: countryCode,
+        query: query,
+      );
+      return rows.map(CatalogResearchMatch.fromJson).toList(growable: false);
+    });
+  }
+
   Future<CardResearchResult> _researchLive(CardResearchRequest request) async {
     _logResearchEvent('live_ai_fallback');
     final json = await _cardResearchDataSource.researchLive(request);

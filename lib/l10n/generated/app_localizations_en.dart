@@ -3047,11 +3047,38 @@ class AppLocalizationsEn extends AppLocalizations {
       'For a partial acceptance the amount received must be less than the amount owed.';
 
   @override
-  String get aiAutofillButtonLabel => 'Let AI help do it';
+  String get aiAutofillButtonLabel => 'Choose from catalog';
 
   @override
   String get aiAutofillHelperText =>
-      'Tell us which card or finance product you have. Finance Suit can research its public fees and settings and fill this form for you.';
+      'Choose a bank or provider, then select your card or finance product. Its verified public settings will fill this form for you to review.';
+
+  @override
+  String get catalogPickerTitle => 'Product catalog';
+
+  @override
+  String get catalogSearchBankHint => 'Search banks and providers';
+
+  @override
+  String get catalogSearchProductHint => 'Search cards and products';
+
+  @override
+  String get catalogUnavailable =>
+      'The product catalog is unavailable right now.';
+
+  @override
+  String get catalogEmpty => 'No matching catalog products found.';
+
+  @override
+  String catalogProductCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count products',
+      one: '1 product',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get aiAutofillCautionText =>

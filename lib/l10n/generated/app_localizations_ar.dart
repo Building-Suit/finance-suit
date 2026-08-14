@@ -3030,11 +3030,39 @@ class AppLocalizationsAr extends AppLocalizations {
       'في القبول الجزئي يجب أن يكون المبلغ المستلم أقل من المبلغ المستحق.';
 
   @override
-  String get aiAutofillButtonLabel => 'دع الذكاء الاصطناعي يساعدك';
+  String get aiAutofillButtonLabel => 'اختر من الكتالوج';
 
   @override
   String get aiAutofillHelperText =>
-      'أخبرنا بالبطاقة أو المنتج المالي الذي تملكه، وسيبحث Finance Suit عن رسومه وإعداداته العامة ويملأ هذا النموذج نيابةً عنك.';
+      'اختر البنك أو مقدم الخدمة، ثم اختر بطاقتك أو منتجك المالي. ستُملأ الإعدادات العامة الموثقة لتراجعها.';
+
+  @override
+  String get catalogPickerTitle => 'كتالوج المنتجات';
+
+  @override
+  String get catalogSearchBankHint => 'ابحث عن بنك أو مقدم خدمة';
+
+  @override
+  String get catalogSearchProductHint => 'ابحث عن بطاقة أو منتج';
+
+  @override
+  String get catalogUnavailable => 'كتالوج المنتجات غير متاح الآن.';
+
+  @override
+  String get catalogEmpty => 'لم يتم العثور على منتجات مطابقة.';
+
+  @override
+  String catalogProductCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منتجًا',
+      few: '$count منتجات',
+      two: 'منتجان',
+      one: 'منتج واحد',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get aiAutofillCautionText =>
