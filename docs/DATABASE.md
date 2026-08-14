@@ -50,9 +50,13 @@ Important derived objects:
 All user-owned tables have RLS policies tied to `auth.uid()`.
 
 Global Credit Card / BNPL reference data lives in the versioned financial
-product catalog. It is RLS-locked against direct client writes and is separate
-from user facilities; see `docs/DATABASE_ARCHITECTURE.md` for its storage,
-curator RPCs, freshness rules, and Scheduled Task boundary.
+product catalog v2. Issuers, canonical products, issuer-country markets, and
+country-specific product variants are separate, while legacy immutable catalog
+history remains readable. It is RLS-locked against direct client access and is
+separate from user facilities; see `docs/DATABASE_ARCHITECTURE.md` for its
+storage, 25/50-item curator leasing, discovery RPC, provenance rules, and exact
+scheduled-task boundary. `docs/FINANCIAL_PRODUCT_CATALOG_COVERAGE_MATRIX.md`
+defines which fields are public, private, derived, or unsupported.
 
 `transaction_categories.parent_category_id` is nullable. Existing rows remain
 top-level categories and transactions continue to reference the same

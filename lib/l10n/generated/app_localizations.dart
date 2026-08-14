@@ -5594,14 +5594,50 @@ abstract class AppLocalizations {
   /// No description provided for @aiAutofillButtonLabel.
   ///
   /// In en, this message translates to:
-  /// **'Let AI help do it'**
+  /// **'Choose from catalog'**
   String get aiAutofillButtonLabel;
 
   /// No description provided for @aiAutofillHelperText.
   ///
   /// In en, this message translates to:
-  /// **'Tell us which card or finance product you have. Finance Suit can research its public fees and settings and fill this form for you.'**
+  /// **'Choose a bank or provider, then select your card or finance product. Its verified public settings will fill this form for you to review.'**
   String get aiAutofillHelperText;
+
+  /// No description provided for @catalogPickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Product catalog'**
+  String get catalogPickerTitle;
+
+  /// No description provided for @catalogSearchBankHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search banks and providers'**
+  String get catalogSearchBankHint;
+
+  /// No description provided for @catalogSearchProductHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search cards and products'**
+  String get catalogSearchProductHint;
+
+  /// No description provided for @catalogUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The product catalog is unavailable right now.'**
+  String get catalogUnavailable;
+
+  /// No description provided for @catalogEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching catalog products found.'**
+  String get catalogEmpty;
+
+  /// No description provided for @catalogProductCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 product} other{{count} products}}'**
+  String catalogProductCount(int count);
 
   /// No description provided for @aiAutofillCautionText.
   ///

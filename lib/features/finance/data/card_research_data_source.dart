@@ -1,8 +1,15 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/finance/domain/card_research.dart';
 
 abstract interface class CardResearchDataSource {
+  Future<List<Map<String, dynamic>>> browseCatalog({
+    required AccountType accountType,
+    String? countryCode,
+    String? query,
+  });
+
   Future<List<Map<String, dynamic>>> searchCatalog(
     CatalogProductIdentity identity,
   );
@@ -19,6 +26,25 @@ class SupabaseCardResearchDataSource implements CardResearchDataSource {
   const SupabaseCardResearchDataSource(this._client);
 
   final SupabaseClient _client;
+
+  @override
+  Future<List<Map<String, dynamic>>> browseCatalog({
+    required AccountType accountType,
+    String? countryCode,
+    String? query,
+  }) async {
+    final rows = await _client
+        .schema(AppSchemas.finance)
+        .rpc<List<dynamic>>(
+          'catalog_browse',
+          params: {
+            'p_account_type': accountType.dbValue,
+            'p_country_code': countryCode,
+            'p_query': query,
+          },
+        );
+    return rows.map((row) => Map<String, dynamic>.from(row as Map)).toList();
+  }
 
   @override
   Future<List<Map<String, dynamic>>> searchCatalog(

@@ -145,7 +145,8 @@ class ResearchSource {
     url: json['url'] as String,
     title: json['title'] as String,
     officialDomain: json['officialDomain'] as bool? ?? false,
-    publishedDate: json['publishedDate'] as String?,
+    publishedDate:
+        (json['publicationDate'] ?? json['publishedDate']) as String?,
     effectiveDate: json['effectiveDate'] as String?,
   );
 
@@ -411,9 +412,15 @@ class ResearchedTenorRate {
       ResearchedTenorRate(
         fromMonths: (json['fromMonths'] as num).toInt(),
         toMonths: (json['toMonths'] as num).toInt(),
-        ratePercentBasisPoints: (json['ratePercentBasisPoints'] as num).toInt(),
-        method: InterestMethod.fromDb(json['method'] as String),
-        period: InterestRatePeriod.fromDb(json['period'] as String),
+        ratePercentBasisPoints:
+            ((json['ratePercentBasisPoints'] ?? json['rateBasisPoints']) as num)
+                .toInt(),
+        method: InterestMethod.fromDb(
+          (json['method'] ?? json['interestMethod']) as String,
+        ),
+        period: InterestRatePeriod.fromDb(
+          (json['period'] ?? json['ratePeriod']) as String,
+        ),
         status: ResearchFieldStatus.fromWire(json['status'] as String?),
         sourceIds:
             (json['sourceIds'] as List?)?.cast<String>() ?? const <String>[],
@@ -467,6 +474,13 @@ class CardResearchResult {
     final product = json['product'] as Map<String, dynamic>? ?? const {};
     final accountForm =
         json['accountForm'] as Map<String, dynamic>? ?? const {};
+    final installments =
+        json['installments'] as Map<String, dynamic>? ?? const {};
+    final feeRows = (json['fees'] ?? json['rules']) as List? ?? const [];
+    final tenorRows =
+        (installments['tenors'] ?? json['installmentTenors']) as List? ??
+        const [];
+    final conflictRows = (json['conflicts'] as List?) ?? const [];
     return CardResearchResult(
       requestId: json['requestId'] as String,
       status: ResearchStatus.fromWire(json['status'] as String?),
@@ -524,20 +538,22 @@ class CardResearchResult {
         accountForm['minPaymentBasisPoints'] as Map<String, dynamic>?,
         (v) => (v as num?)?.toInt(),
       ),
-      rules:
-          (json['rules'] as List?)
-              ?.map(
-                (r) => ResearchedFeeRule.fromJson(r as Map<String, dynamic>),
-              )
-              .toList() ??
-          const [],
-      installmentTenors:
-          (json['installmentTenors'] as List?)
-              ?.map(
-                (t) => ResearchedTenorRate.fromJson(t as Map<String, dynamic>),
-              )
-              .toList() ??
-          const [],
+      // Catalog v2 covers more fee and installment concepts than the current
+      // account editor. Preserve temporary compatibility by carrying only
+      // rows the existing enums/form can represent; Prompt 2 owns the full
+      // model and UI expansion.
+      rules: feeRows
+          .whereType<Map<Object?, Object?>>()
+          .map((row) => Map<String, dynamic>.from(row))
+          .where(_isLegacyCompatibleFee)
+          .map(ResearchedFeeRule.fromJson)
+          .toList(growable: false),
+      installmentTenors: tenorRows
+          .whereType<Map<Object?, Object?>>()
+          .map((row) => Map<String, dynamic>.from(row))
+          .where(_isLegacyCompatibleTenor)
+          .map(ResearchedTenorRate.fromJson)
+          .toList(growable: false),
       sources:
           (json['sources'] as List?)
               ?.map((s) => ResearchSource.fromJson(s as Map<String, dynamic>))
@@ -546,13 +562,19 @@ class CardResearchResult {
       unresolvedRequiredFields:
           (json['unresolvedRequiredFields'] as List?)?.cast<String>() ??
           const [],
-      conflicts:
-          (json['conflicts'] as List?)
-              ?.map(
-                (c) => CardResearchConflict.fromJson(c as Map<String, dynamic>),
-              )
-              .toList() ??
-          const [],
+      // v2 conflicts compare public sources; the legacy UI compares user
+      // input with official values. Do not mislabel public-source conflicts
+      // as user conflicts while that screen is being upgraded.
+      conflicts: conflictRows
+          .whereType<Map<Object?, Object?>>()
+          .map((row) => Map<String, dynamic>.from(row))
+          .where(
+            (row) =>
+                row.containsKey('userValue') &&
+                row.containsKey('officialValue'),
+          )
+          .map(CardResearchConflict.fromJson)
+          .toList(growable: false),
       unsupportedFindings:
           (json['unsupportedFindings'] as List?)
               ?.map(
@@ -561,6 +583,33 @@ class CardResearchResult {
               .toList() ??
           const [],
     );
+  }
+
+  static bool _isLegacyCompatibleFee(Map<String, dynamic> row) {
+    final feeType = row['feeType'];
+    final calculationType = row['calculationType'];
+    final frequency = row['frequency'];
+    return feeType is String &&
+        CardFeeType.values.any((value) => value.dbValue == feeType) &&
+        calculationType is String &&
+        CardRuleCalculationType.values.any(
+          (value) => value.dbValue == calculationType,
+        ) &&
+        frequency is String &&
+        FeeFrequency.values.any((value) => value.dbValue == frequency);
+  }
+
+  static bool _isLegacyCompatibleTenor(Map<String, dynamic> row) {
+    final rate = row['ratePercentBasisPoints'] ?? row['rateBasisPoints'];
+    final method = row['method'] ?? row['interestMethod'];
+    final period = row['period'] ?? row['ratePeriod'];
+    return row['fromMonths'] is num &&
+        row['toMonths'] is num &&
+        rate is num &&
+        method is String &&
+        InterestMethod.values.any((value) => value.dbValue == method) &&
+        period is String &&
+        InterestRatePeriod.values.any((value) => value.dbValue == period);
   }
 
   final String requestId;

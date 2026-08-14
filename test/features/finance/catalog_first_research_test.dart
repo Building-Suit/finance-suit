@@ -105,6 +105,13 @@ class _FakeCardResearchDataSource implements CardResearchDataSource {
   final List<(CatalogProductIdentity, String)> queued = [];
 
   @override
+  Future<List<Map<String, dynamic>>> browseCatalog({
+    required AccountType accountType,
+    String? countryCode,
+    String? query,
+  }) async => rows;
+
+  @override
   Future<List<Map<String, dynamic>>> searchCatalog(
     CatalogProductIdentity identity,
   ) async {
@@ -286,5 +293,83 @@ void main() {
 
     expect(params, hasLength(7));
     expect(params, isNot(contains('p_official_website')));
+  });
+
+  test('temporary adapter reads safe v2 fee and installment fields', () {
+    final payload = _payload()
+      ..remove('rules')
+      ..remove('installmentTenors')
+      ..['fees'] = [
+        {
+          'feeType': 'annual_membership',
+          'calculationType': 'fixed',
+          'frequency': 'annually',
+          'fixedAmountMinor': 75000,
+          'percentBasisPoints': null,
+          'percentBasis': null,
+          'minimumMinor': null,
+          'maximumMinor': null,
+          'lookbackCycles': null,
+          'status': 'verified',
+          'confidence': 'high',
+          'sourceIds': ['official'],
+        },
+        {
+          // Valid in catalog v2, intentionally deferred from the legacy form.
+          'feeType': 'issuance',
+          'calculationType': 'fixed',
+          'frequency': 'once',
+          'status': 'verified',
+          'confidence': 'high',
+          'sourceIds': ['official'],
+        },
+      ]
+      ..['installments'] = {
+        'tenors': [
+          {
+            'fromMonths': 3,
+            'toMonths': 12,
+            'rateBasisPoints': 150,
+            'interestMethod': 'flat',
+            'ratePeriod': 'monthly',
+            'status': 'verified',
+            'sourceIds': ['official'],
+          },
+        ],
+      }
+      ..['conflicts'] = [
+        {
+          'field': 'fees.annual_membership',
+          'status': 'conflicting',
+          'competingValues': [
+            {
+              'value': 50000,
+              'sourceIds': ['official'],
+            },
+            {
+              'value': 75000,
+              'sourceIds': ['official'],
+            },
+          ],
+        },
+      ]
+      ..['sources'] = [
+        {
+          'id': 'official',
+          'url': 'https://www.cibeg.com/cards/platinum',
+          'title': 'CIB Platinum',
+          'officialDomain': true,
+          'publicationDate': '2026-08-01',
+        },
+      ];
+
+    final result = CardResearchResult.fromJson(payload);
+
+    expect(result.rules, hasLength(1));
+    expect(result.rules.single.feeType, CardFeeType.annualMembership);
+    expect(result.installmentTenors, hasLength(1));
+    expect(result.installmentTenors.single.ratePercentBasisPoints, 150);
+    expect(result.conflicts, isEmpty);
+    expect(result.sources.single.publishedDate, '2026-08-01');
   });
 }

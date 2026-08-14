@@ -1,103 +1,129 @@
 # Database Architecture
 
-## Financial product catalog
+## Financial product catalog v2
 
-The global financial product catalog is public reference data for Credit Card
-and BNPL products. It does not represent a user's facility and cannot create an
-account. `app_finance.save_credit_facility` remains the only authoritative
-Credit Card / BNPL account-creation path.
+The global financial-product catalog is public reference data for Credit Card
+and BNPL products. It never represents a customer's facility and cannot create
+or update an account. `app_finance.save_credit_facility` remains the only
+authoritative Credit Card / BNPL account-creation path.
 
-The catalog is stored in five layers:
+### Identity and market layers
 
-- `financial_product_catalog` holds one normalized, case/whitespace-insensitive
-  identity per global product.
-- `financial_product_catalog_versions` holds immutable, content-hashed research
-  versions. A changed result supersedes the current version; an unchanged check
-  updates only the product's `last_checked_at`.
-- `financial_product_catalog_sources` stores deduplicated source provenance for
-  each version.
-- `financial_product_catalog_aliases` stores trusted, exact normalized issuer
-  and product alias pairs. An alias is scoped to the canonical product's
-  account type and country and can map to only one canonical product.
-- `catalog_research_queue` and `catalog_research_runs` provide atomic leases,
-  retry state, and category-only curator/heartbeat audit records. Raw worker
-  errors are never persisted because they may echo user data or credentials.
+Catalog identity is normalized without destroying the historical v1 rows:
 
-`catalog_configuration` centralizes the 30-day freshness window, five-item
-curator batch, 30-minute lease, three-attempt retry limit, and authenticated
-enqueue rate limit. Stale active products are queued for research and are never
-presented as freshly verified. Retired products are excluded from automatic
-search matches. A later Flutter catalog-first integration may fall back to the
-existing `ai-card-research` Edge Function when no fresh result is available;
-that app integration is outside this backend migration.
+- `catalog_issuers` is one issuer/provider, independent of country.
+- `catalog_canonical_products` is one branded Credit Card or BNPL program
+  beneath an issuer.
+- `catalog_issuer_markets` is the issuer's presence in one ISO 3166-1 alpha-2
+  country.
+- `financial_product_catalog` is the country-specific product-market variant.
+  Its historical name is retained for app compatibility and it now references
+  the canonical product.
+- `financial_product_catalog_versions` and
+  `financial_product_catalog_sources` retain immutable public product terms and
+  their provenance.
+- `catalog_issuer_market_versions` and
+  `catalog_issuer_market_sources` version only rules whose source establishes
+  issuer-wide scope in that country.
+- `catalog_version_verifications` records freshness checks even when normalized
+  content is unchanged.
+- `catalog_research_queue` supplies transactional, expiring, retry-bounded
+  leases. Discovery candidates deduplicate by normalized account type, country,
+  issuer, product, tier, network, and currency.
 
-### Approved RPC boundary
+The same product in two countries is two market variants. The same product
+name from two issuers is two canonical products. An issuer's headquarters is
+never used to infer product availability.
 
-Authenticated app users may call only `catalog_search`,
-`enqueue_catalog_research`, and `get_catalog_research_contract`. Catalog table
-DML is denied. `enqueue_catalog_research` is the app-user path: it requires
-`auth.uid()`, rate-limits by user, restricts user-selectable reasons, and records
-the caller in `requested_by`. `enqueue_catalog_research_automation` is the
-trusted unattended curator/initial-seed path: it has no JWT dependency, records
-`requested_by` as null, and is executable only by `service_role` or the database
-owner. Both wrappers share the same private identity validation, normalization,
-deduplication, and queue insertion helper.
+### Public catalog versus private account data
 
-Supabase Management and ChatGPT Scheduled Task SQL executes with
-`current_user = postgres` while `auth.uid()` is null. Those callers must use
-`enqueue_catalog_research_automation`; they must never use the authenticated
-app-user enqueue RPC. Curator, lease, failure, heartbeat, stale-enqueue, and
-operational summary RPCs are likewise restricted to trusted automation/database
-administration. All functions revoke PostgreSQL's unsafe default `PUBLIC`
-execute access, catalog tables have RLS enabled with no client mutation
-policies, and Flutter must never carry the service-role key.
+Contract `finance-card-catalog-v2` covers sourced public identity, product
+metadata, official appearance, payment-cycle rules, grace semantics,
+minimum-payment formulas, fees, purchase interest, installment programs, BNPL
+terms, eligibility requirements, advertised public limits, rewards, benefits,
+and digital features.
 
-`upsert_catalog_research_result` is the sole curator research-result write
-interface. It
-checks `finance-card-catalog-v1`, validates the existing AI research enums and
-source references, requires official provenance for verified values, computes
-the content hash inside Postgres, and atomically completes the leased work. It
-cannot call or mutate accounts, balances, transactions, statements,
-installments, or `save_credit_facility`.
+Private or derived values are forbidden: PAN/card numbers, last four digits,
+CVV/CVC, PIN, OTP, credentials, a customer's approved limit, balances,
+transactions, statement data, current due, notes, personal eligibility
+decisions, and customer-specific rates. The legacy
+`accountForm.creditLimitMinor` key remains only as the exact unknown wrapper so
+old Flutter parsing cannot mistake an advertised maximum for a personal limit.
 
-The catalog rejects PAN/card numbers, CVV/CVC, PIN, OTP, passwords, authentication
-tokens, provider keys, user notes, personal limits and balances, transactions,
-statements, and personal due amounts. `user_provided` is not a valid global
-catalog field status. New v1 research must include all five product wrappers
-(`issuerName`, `productName`, `tier`, `network`, and `currencyCode`) and all
-seven account-form wrappers (`suggestedName`, `creditLimitMinor`,
-`defaultDueDay`, `statementDay`, `minPaymentMethod`, `minPaymentFixedMinor`, and
-`minPaymentBasisPoints`), even when a value is unknown. `suggestedName` belongs
-only to `accountForm`, and `creditLimitMinor` must always be the exact global
-unknown wrapper. The contract and validator obtain these lists from one private
-definition. Existing immutable versions retain their historical payload shape.
+Official catalog appearance is also separate from
+`credit_facility_settings.color_hex`. Catalog color can be declared by an
+official source or explicitly marked as derived from an official asset. The
+user's selected account color remains authoritative and catalog refresh never
+overwrites it.
 
-`resolve_catalog_research_alias` is the separate trusted write path for a
-leased identity that is an alias of an active canonical product. It derives the
-alias from the queue item, verifies account type and country, completes the
-lease without creating a product version, and records a sanitized curator run.
-Exact alias pairs score confidently in `catalog_search`; canonical matching and
-the Flutter acceptance threshold are unchanged. User input is never promoted
-automatically.
+### Payment-cycle semantics and inheritance
 
-### Scheduled Task operations
+Payment dates remain rules rather than fabricated day numbers. Supported due
+rules include fixed day, days after statement, statement-defined,
+issuer-assigned, customer-assigned, and variable. Only a verified exact
+`fixed_day_of_month` rule is eligible to initialize `defaultDueDay`.
 
-Connected curator Scheduled Tasks use only the following approved SQL surface.
-They must
-never issue direct DML or DDL:
+Statement cycles are modeled independently. Grace periods distinguish exact,
+"up to", range, none, and unknown. An advertised maximum can never initialize
+exact account grace days. Minimum-payment formulas preserve method, percentage
+basis, fixed/floor components, and statement inclusions.
+
+Resolution precedence is:
+
+1. a sourced product-market override;
+2. a sourced issuer-market default;
+3. explicit unknown.
+
+`not_applicable` is an explicit product override and does not fall through.
+Rules are never inherited merely because two products share an issuer.
+
+### Provenance and immutable history
+
+Every non-unknown researched claim references one or more sources. Verified
+claims require at least one official-domain source. Sources preserve ID, URL,
+title, publisher, source type, official status, publication/revision/effective
+dates, checked time, and an optional content hash; copied page bodies are not
+stored.
+
+Content hashing recursively removes volatile verification timestamps and sorts
+JSON arrays. Property order, source order, and a fresh checked timestamp do not
+create a fake business-data version. Changed content creates a new version and
+supersedes, but never rewrites, the prior version. Unchanged content records a
+new immutable verification event and updates market freshness.
+
+### Discovery, leasing, and approved RPC boundary
+
+The scheduled global curator may execute only:
 
 ```sql
 select app_finance.catalog_status_summary();
 select app_finance.get_catalog_research_contract();
 select app_finance.enqueue_due_catalog_research();
-select app_finance.enqueue_catalog_research_automation(...);
-select app_finance.get_catalog_research_work(5);
-select app_finance.resolve_catalog_research_alias('queue-uuid'::uuid, 'product-uuid'::uuid);
-select app_finance.upsert_catalog_research_result('{...}'::jsonb);
-select app_finance.fail_catalog_research_work('queue-uuid'::uuid, 'provider timeout');
+select * from app_finance.enqueue_catalog_discovery_candidates('[...]'::jsonb, 0);
+select * from app_finance.get_catalog_research_work(25);
+select * from app_finance.upsert_catalog_research_result('{...}'::jsonb);
+select app_finance.fail_catalog_research_work('queue-id'::uuid, 'sanitized reason');
 ```
 
-`enqueue_catalog_research_automation` is a separate trusted administrative
-surface for explicit initial-seed or curator enqueue operations. It is not part
-of the recurring Scheduled Task loop. Management SQL may invoke it as
-`postgres`; app users, `anon`, and `authenticated` cannot.
+Discovery accepts batches of 1–50 public identity objects. Leasing defaults to
+25 and hard-clamps at 50, uses `FOR UPDATE SKIP LOCKED`, expires abandoned work,
+increments attempts, and enforces the existing maximum-attempt policy.
+`upsert_catalog_research_result(jsonb)` is the sole scheduled-agent write path.
+The database, not the agent, resolves issuer/canonical/market identity and
+decides between a changed version and unchanged verification.
+
+Legacy app-user `catalog_search` and `enqueue_catalog_research` remain during
+the Flutter transition. Legacy automation enqueue, alias resolution, heartbeat,
+and direct catalog search are deliberately outside the scheduled v2 service-role
+surface.
+
+All catalog tables have RLS enabled and no client write policies. Direct table
+privileges are revoked from `anon`, `authenticated`, and `service_role`; narrow
+functions use explicit empty `search_path`, bounded inputs, validated JSON, and
+no user-controlled SQL identifiers. Flutter must never carry a service-role
+key.
+
+The field-by-field ownership decision is recorded in
+`FINANCIAL_PRODUCT_CATALOG_COVERAGE_MATRIX.md`. The temporary Flutter adapter and
+the required Prompt 2 changes are recorded in
+`FINANCIAL_PRODUCT_CATALOG_V2_APP_HANDOFF.md`.
