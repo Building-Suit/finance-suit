@@ -96,12 +96,14 @@ begin
             'plan_id', ds.plan_id,
             'title', ds.plan_title,
             'sequence_number', ds.sequence_number,
+            'installment_count', p.installment_count,
             'due_on', ds.due_on,
             'amount_minor', ds.amount_minor,
             'paid_minor', ds.paid_minor,
             'remaining_minor', ds.remaining_minor
           ) order by ds.sequence_number)
           from app_finance.installment_due_statuses ds
+          join app_finance.installment_plans p on p.id = ds.plan_id
           where ds.account_id = y.account_id
             and ds.due_on = y.due_on
             and ds.plan_status <> 'cancelled'
@@ -176,6 +178,7 @@ begin
           'id', ds.id,
           'title', ds.plan_title,
           'sequence_number', ds.sequence_number,
+          'installment_count', p.installment_count,
           'due_on', ds.due_on,
           'remaining_minor', ds.remaining_minor
         ))

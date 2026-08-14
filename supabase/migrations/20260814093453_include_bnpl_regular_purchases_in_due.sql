@@ -79,6 +79,7 @@ begin
                 'id', b.obligation_id,
                 'title', coalesce(b.details->>'plan_title', b.title),
                 'sequence_number', b.details->>'sequence_number',
+                'installment_count', b.details->'installment_count',
                 'due_on', b.due_on,
                 'remaining_minor', b.remaining_minor
               ))

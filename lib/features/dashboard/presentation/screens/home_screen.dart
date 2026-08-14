@@ -30,8 +30,9 @@ import 'package:work_tracker/features/history/presentation/providers/history_pro
 import 'package:work_tracker/features/history/presentation/widgets/history_item_tile.dart';
 import 'package:work_tracker/features/reports/domain/report_models.dart';
 import 'package:work_tracker/features/reports/presentation/providers/report_providers.dart';
+import 'package:work_tracker/features/salary/data/salary_repository.dart';
+import 'package:work_tracker/features/salary/domain/salary_estimate.dart';
 import 'package:work_tracker/features/salary/presentation/providers/salary_providers.dart';
-import 'package:work_tracker/features/salary/presentation/widgets/estimate_breakdown.dart';
 import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
@@ -140,6 +141,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         range: rangeForPreset(preset, PlainDate.today()),
       );
     });
+  }
+
+  Future<void> _openCurrentSalaryPeriod() async {
+    final bounds = await ref.read(currentPeriodBoundsProvider.future);
+    final result = await ref
+        .read(salaryRepositoryProvider)
+        .ensurePeriod(bounds);
+    if (!mounted) return;
+    await result.when(
+      ok: (period) => context.push('${AppRoutes.work}/periods/${period.id}'),
+      err: (_) => context.push('${AppRoutes.work}/periods'),
+    );
   }
 
   Future<void> _saveRange() async {
@@ -338,7 +351,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       // pushing it over Home.
                       onAction: () => context.go(AppRoutes.money),
                     ),
-                    _CreditCardCarousel(facilities: cards),
+                    _CreditCardCarousel(
+                      facilities: cards,
+                      dueOverrides: {
+                        for (final obligation
+                            in homeDuesAsync.asData?.value.periods.expand(
+                                  (period) => period.obligations,
+                                ) ??
+                                const <HomeDueObligation>[])
+                          if (obligation.sourceAccountId != null)
+                            obligation.sourceAccountId!:
+                                obligation.remainingMinor,
+                      },
+                    ),
                   ],
                 );
               },
@@ -364,7 +389,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               compactSection(
                 estimateAsync!,
                 loading: const _SectionLoader(),
-                data: (estimate) => EstimateBreakdownCard(estimate: estimate),
+                data: (estimate) => _CompactSalaryCard(
+                  estimate: estimate,
+                  onTap: _openCurrentSalaryPeriod,
+                ),
               ),
             ],
             _SectionHeader(
@@ -448,9 +476,13 @@ class _HomeDataStatusCard extends StatelessWidget {
 /// small red text, and everything falling due over the next month — summed
 /// across statements and installments, not just the earliest single due.
 class _CreditCardCarousel extends StatelessWidget {
-  const _CreditCardCarousel({required this.facilities});
+  const _CreditCardCarousel({
+    required this.facilities,
+    this.dueOverrides = const {},
+  });
 
   final List<CreditFacilitySummary> facilities;
+  final Map<String, int> dueOverrides;
 
   @override
   Widget build(BuildContext context) {
@@ -462,17 +494,20 @@ class _CreditCardCarousel extends StatelessWidget {
         padding: EdgeInsets.zero,
         itemCount: facilities.length,
         separatorBuilder: (context, index) => const SizedBox(width: 10),
-        itemBuilder: (context, index) =>
-            _CreditCardTile(facility: facilities[index]),
+        itemBuilder: (context, index) => _CreditCardTile(
+          facility: facilities[index],
+          dueOverrideMinor: dueOverrides[facilities[index].accountId],
+        ),
       ),
     );
   }
 }
 
 class _CreditCardTile extends StatelessWidget {
-  const _CreditCardTile({required this.facility});
+  const _CreditCardTile({required this.facility, this.dueOverrideMinor});
 
   final CreditFacilitySummary facility;
+  final int? dueOverrideMinor;
 
   @override
   Widget build(BuildContext context) {
@@ -587,12 +622,20 @@ class _CreditCardTile extends StatelessWidget {
                     ),
                   ),
                 const Spacer(),
-                if (facility.upcomingDueMinor > 0)
+                if ((dueOverrideMinor ?? facility.upcomingDueMinor) > 0)
                   ProtectedMoneyText(
                     facility.nextDueOn == null
-                        ? facility.upcomingDue.format()
+                        ? Money(
+                            minor:
+                                dueOverrideMinor ?? facility.upcomingDueMinor,
+                            currencyCode: facility.currencyCode,
+                          ).format()
                         : l10n.homeCardDueBy(
-                            facility.upcomingDue.format(),
+                            Money(
+                              minor:
+                                  dueOverrideMinor ?? facility.upcomingDueMinor,
+                              currencyCode: facility.currencyCode,
+                            ).format(),
                             facility.nextDueOn!.toIso(),
                           ),
                     key: Key('home-card-due-${facility.accountId}'),
@@ -1018,11 +1061,9 @@ class _HomeDueTile extends StatelessWidget {
     };
     final description = switch (period.period) {
       HomeDuePeriod.current => l10n.homeDueCurrentWindow,
-      HomeDuePeriod.thisMonth => l10n.homeDueThrough(
-        dates.formatMediumDate(period.end.toDateTime()),
-      ),
-      HomeDuePeriod.nextMonth => l10n.homeDueInMonth(
-        dates.formatMonthYear(period.start!.toDateTime()),
+      HomeDuePeriod.thisMonth => dates.formatMonthYear(period.end.toDateTime()),
+      HomeDuePeriod.nextMonth => dates.formatMonthYear(
+        period.start!.toDateTime(),
       ),
     };
     final tone = period.period == HomeDuePeriod.current
@@ -1230,7 +1271,8 @@ class _DueDetailRow extends StatelessWidget {
     subtitle: Text(
       [
         if (child['sequence_number'] != null)
-          'Installment ${child['sequence_number']}',
+          'Installment ${child['sequence_number']}'
+              '${(child['installment_count'] ?? obligation.details['installment_count']) is num ? '/${child['installment_count'] ?? obligation.details['installment_count']}' : ''}',
         if (child['occurred_on'] != null)
           dates.formatMediumDate(
             DateTime.parse(child['occurred_on'] as String),
@@ -1389,12 +1431,14 @@ class _CashFlowSection extends StatelessWidget {
           children: [
             for (final summary in summaries) ...[
               GridView.count(
+                padding: EdgeInsets.zero,
                 crossAxisCount: compact ? 2 : 4,
-                mainAxisSpacing: 8,
+                mainAxisExtent: compact ? 82 : null,
+                mainAxisSpacing: 4,
                 crossAxisSpacing: 8,
                 // 1.45 clipped the metric text by a few pixels on 320px-wide
                 // phones; compact cells need the extra height.
-                childAspectRatio: compact ? 1.3 : 1.5,
+                childAspectRatio: compact ? 1.55 : 1.5,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
@@ -1441,9 +1485,9 @@ class _CashFlowSection extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               _BalanceStrip(summary: summary),
-              if (summary != summaries.last) const SizedBox(height: 12),
+              if (summary != summaries.last) const SizedBox(height: 8),
             ],
           ],
         );
@@ -1486,6 +1530,66 @@ class _BalanceStrip extends StatelessWidget {
   }
 }
 
+class _CompactSalaryCard extends StatelessWidget {
+  const _CompactSalaryCard({required this.estimate, required this.onTap});
+
+  final SalaryEstimate estimate;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    String money(int minor) =>
+        Money(minor: minor, currencyCode: estimate.currencyCode).format();
+
+    Widget row(String label, int minor, {TextStyle? style}) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Expanded(child: Text(label, style: style)),
+          ProtectedMoneyText(money(minor), interactive: false, style: style),
+        ],
+      ),
+    );
+
+    final adjustmentsMinor = estimate.totalMinor - estimate.baseSalaryMinor;
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(l10n.salBreakdown, style: textTheme.titleSmall),
+                  ),
+                  const Icon(Icons.chevron_right, size: 20),
+                ],
+              ),
+              const SizedBox(height: 4),
+              row(l10n.salBaseSalary, estimate.baseSalaryMinor),
+              row(l10n.salAdjustments, adjustmentsMinor),
+              const Divider(height: 10),
+              row(
+                l10n.salEstimatedTotal,
+                estimate.totalMinor,
+                style: textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _StripAmount extends StatelessWidget {
   const _StripAmount({required this.label, required this.money});
 
@@ -1496,7 +1600,7 @@ class _StripAmount extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1538,7 +1642,7 @@ class _MetricCard extends StatelessWidget {
     // rows instead of three.
     return Card(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,

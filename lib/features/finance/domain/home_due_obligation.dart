@@ -13,6 +13,7 @@ class HomeDueObligation {
   const HomeDueObligation({
     required this.id,
     required this.kind,
+    this.sourceAccountId,
     this.sourceName = '',
     required this.dueOn,
     required this.currencyCode,
@@ -24,6 +25,7 @@ class HomeDueObligation {
     return HomeDueObligation(
       id: json['obligation_id'] as String,
       kind: json['obligation_kind'] as String,
+      sourceAccountId: json['source_account_id'] as String?,
       sourceName: json['source_name'] as String? ?? '',
       dueOn: PlainDate.parse(json['due_on'] as String),
       currencyCode: json['currency_code'] as String,
@@ -36,6 +38,7 @@ class HomeDueObligation {
 
   final String id;
   final String kind;
+  final String? sourceAccountId;
   final String sourceName;
   final PlainDate dueOn;
   final String currencyCode;

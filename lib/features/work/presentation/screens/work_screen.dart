@@ -238,6 +238,7 @@ class _CalendarGrid extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: GridView.count(
+        padding: EdgeInsets.zero,
         crossAxisCount: 7,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
