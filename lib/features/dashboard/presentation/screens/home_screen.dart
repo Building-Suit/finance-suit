@@ -26,6 +26,7 @@ import 'package:work_tracker/features/finance/domain/installment_responsibility.
 import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/providers/responsibility_providers.dart';
+import 'package:work_tracker/features/finance/presentation/widgets/facility_due_breakdown_widgets.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/finance_widgets.dart';
 import 'package:work_tracker/features/history/domain/history_models.dart';
 import 'package:work_tracker/features/history/presentation/providers/history_providers.dart';
@@ -1309,12 +1310,12 @@ class _HomeDueTile extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 104),
               children: [
                 Text(
-                  'Due breakdown',
+                  AppLocalizations.of(sheetContext).dueBreakdownTitle,
                   style: Theme.of(sheetContext).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'These unpaid items are included in this total.',
+                  AppLocalizations.of(sheetContext).dueBreakdownIncludedNote,
                   style: Theme.of(sheetContext).textTheme.bodySmall,
                 ),
                 const SizedBox(height: 12),
@@ -1350,34 +1351,43 @@ class _DueObligationGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final obligation = this.obligation;
     final dates = this.dates;
-    final details = obligation.details;
-    final items = (details['items'] as List? ?? const [])
-        .whereType<Map<String, dynamic>>()
-        .toList();
-    final installments = (details['installments'] as List? ?? const [])
-        .whereType<Map<String, dynamic>>()
-        .toList();
-    final breakdown = Column(
-      children: [
-        if (items.isNotEmpty) ...[
-          const _DueSubsectionHeader(title: 'Other charges'),
-          for (final child in items)
-            _DueDetailRow(child: child, obligation: obligation, dates: dates),
+    // The server ships the same typed component payload the facility Due
+    // Breakdown uses, so paid rows arrive checked and struck through here
+    // too instead of silently disappearing from the list.
+    final components = obligation.components;
+    final groups = groupDueComponents(components);
+    final breakdown = Padding(
+      padding: const EdgeInsetsDirectional.only(start: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (components.isNotEmpty && obligation.paidMinor > 0)
+            DueBreakdownTotals(
+              totalDueMinor: obligation.totalDueMinor,
+              paidMinor: obligation.paidMinor,
+              remainingMinor: obligation.remainingMinor,
+              currencyCode: obligation.currencyCode,
+            ),
+          for (final group in DueComponentGroup.values)
+            if (groups[group] case final grouped?) ...[
+              _DueSubsectionHeader(title: dueComponentGroupLabel(l10n, group)),
+              for (final component in grouped)
+                DueBreakdownRow(
+                  component: component,
+                  currencyCode: obligation.currencyCode,
+                ),
+            ],
+          if (components.isEmpty)
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.dueBreakdownNoDetails),
+            ),
         ],
-        if (installments.isNotEmpty) ...[
-          const _DueSubsectionHeader(title: 'Installments'),
-          for (final child in installments)
-            _DueDetailRow(child: child, obligation: obligation, dates: dates),
-        ],
-        if (items.isEmpty && installments.isEmpty)
-          const ListTile(
-            dense: true,
-            contentPadding: EdgeInsets.only(left: 20, right: 4),
-            title: Text('No item-level breakdown available'),
-          ),
-      ],
+      ),
     );
     return Column(
       key: ValueKey<String>('due-obligation-${obligation.id}'),
@@ -1429,54 +1439,13 @@ class _DueSubsectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(20, 4, 0, 0),
+    padding: const EdgeInsets.only(top: 8, bottom: 2),
     child: Text(
       title,
       style: Theme.of(context).textTheme.labelMedium?.copyWith(
         color: Theme.of(context).colorScheme.primary,
         fontWeight: FontWeight.w700,
       ),
-    ),
-  );
-}
-
-class _DueDetailRow extends StatelessWidget {
-  const _DueDetailRow({
-    required this.child,
-    required this.obligation,
-    required this.dates,
-  });
-  final Map<String, dynamic> child;
-  final HomeDueObligation obligation;
-  final MaterialLocalizations dates;
-
-  @override
-  Widget build(BuildContext context) => ListTile(
-    dense: true,
-    visualDensity: const VisualDensity(vertical: -2),
-    contentPadding: const EdgeInsets.only(left: 28, right: 0),
-    title: Text(child['title'] as String? ?? 'Due item'),
-    subtitle: Text(
-      [
-        if (child['sequence_number'] != null)
-          'Installment ${child['sequence_number']}'
-              '${(child['installment_count'] ?? obligation.details['installment_count']) is num ? '/${child['installment_count'] ?? obligation.details['installment_count']}' : ''}',
-        if (child['occurred_on'] != null)
-          dates.formatMediumDate(
-            DateTime.parse(child['occurred_on'] as String),
-          ),
-        if (child['due_on'] != null)
-          dates.formatMediumDate(DateTime.parse(child['due_on'] as String)),
-      ].join(' · '),
-    ),
-    trailing: ProtectedMoneyText(
-      Money(
-        minor: ((child['remaining_minor'] ?? child['amount_minor'] ?? 0) as num)
-            .toInt(),
-        currencyCode: obligation.currencyCode,
-      ).format(),
-      interactive: false,
-      style: Theme.of(context).textTheme.bodySmall,
     ),
   );
 }

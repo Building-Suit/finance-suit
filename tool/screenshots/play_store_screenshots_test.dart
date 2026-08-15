@@ -181,38 +181,72 @@ final _dues = HomeDueSummary(
       dueOn: _today.addDays(6),
       currencyCode: 'EGP',
       remainingMinor: 261078,
+      paidMinor: 38903,
       details: {
         'items': [
           {
+            'id': 'item-openai',
+            'kind': 'purchase',
             'title': 'OpenAI',
             'occurred_on': _today.addDays(-20).toIso(),
+            'amount_minor': 99999,
+            'paid_minor': 0,
             'remaining_minor': 99999,
+            'payment_status': 'unpaid',
           },
           {
+            'id': 'item-netflix',
+            'kind': 'purchase',
+            'title': 'Netflix',
+            'occurred_on': _today.addDays(-24).toIso(),
+            'amount_minor': 24999,
+            'paid_minor': 24999,
+            'remaining_minor': 0,
+            'payment_status': 'paid',
+          },
+          {
+            'id': 'item-insurance',
+            'kind': 'fee',
             'title': 'Solidarity insurance',
             'occurred_on': _today.addDays(-12).toIso(),
+            'amount_minor': 2500,
+            'paid_minor': 0,
             'remaining_minor': 2500,
+            'payment_status': 'unpaid',
           },
           {
+            'id': 'item-interest',
+            'kind': 'fee',
             'title': 'Monthly interest',
             'occurred_on': _today.addDays(-9).toIso(),
+            'amount_minor': 10996,
+            'paid_minor': 0,
             'remaining_minor': 10996,
+            'payment_status': 'unpaid',
           },
         ],
         'installments': [
           {
+            'id': 'due-araby',
             'title': 'Al Araby installment',
             'sequence_number': 4,
             'installment_count': 12,
             'due_on': _today.addDays(6).toIso(),
+            'amount_minor': 104994,
+            'paid_minor': 0,
             'remaining_minor': 104994,
+            'payment_status': 'unpaid',
           },
           {
+            'id': 'due-samsung',
             'title': 'Samsung Monitor',
             'sequence_number': 2,
             'installment_count': 6,
             'due_on': _today.addDays(6).toIso(),
+            'amount_minor': 55187,
+            'paid_minor': 12598,
             'remaining_minor': 42589,
+            'payment_status': 'partially_paid',
           },
         ],
       },
@@ -1108,6 +1142,11 @@ void main() {
     );
     await settle(tester);
     if (find.byType(DraggableScrollableSheet).evaluate().isNotEmpty) {
+      await tester.tap(
+        find.byKey(const ValueKey('due-obligation-statement-1')),
+        warnIfMissed: false,
+      );
+      await settle(tester);
       await _capture(tester, '02-home-due-breakdown');
       router.pop();
       await settle(tester);

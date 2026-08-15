@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/money/money.dart';
+import 'package:work_tracker/features/finance/domain/facility_payment_component.dart';
 
 /// A canonical unpaid obligation returned by
 /// `app_finance.home_current_month_obligations`.
@@ -18,6 +19,7 @@ class HomeDueObligation {
     required this.dueOn,
     required this.currencyCode,
     required this.remainingMinor,
+    this.paidMinor = 0,
     this.details = const <String, dynamic>{},
   });
 
@@ -30,6 +32,7 @@ class HomeDueObligation {
       dueOn: PlainDate.parse(json['due_on'] as String),
       currencyCode: json['currency_code'] as String,
       remainingMinor: (json['remaining_minor'] as num).toInt(),
+      paidMinor: (json['paid_minor'] as num?)?.toInt() ?? 0,
       details: json['details'] is Map
           ? Map<String, dynamic>.from(json['details'] as Map)
           : const <String, dynamic>{},
@@ -43,7 +46,65 @@ class HomeDueObligation {
   final PlainDate dueOn;
   final String currencyCode;
   final int remainingMinor;
+
+  /// Amount already paid toward this obligation (statement and installment
+  /// obligations only; zero for recurring expenses).
+  final int paidMinor;
   final Map<String, dynamic> details;
+
+  int get totalDueMinor => paidMinor + remainingMinor;
+
+  /// The obligation's item-level breakdown as typed components with their
+  /// server-side paid state, mapped from the `details` payload so the Home
+  /// sheet renders exactly like the facility Due Breakdown. Entries from
+  /// servers that predate paid state default to unpaid.
+  List<FacilityPaymentComponent> get components {
+    FacilityPaymentComponent? fromMap(
+      Map<String, dynamic> raw, {
+      required bool isInstallment,
+    }) {
+      final amount =
+          (raw['amount_minor'] as num?)?.toInt() ??
+          (raw['remaining_minor'] as num?)?.toInt();
+      final id = raw['id'] as String?;
+      if (amount == null || id == null) return null;
+      final paid = (raw['paid_minor'] as num?)?.toInt() ?? 0;
+      final on = (raw['due_on'] ?? raw['occurred_on']) as String?;
+      return FacilityPaymentComponent.fromJson({
+        'component_type': isInstallment ? 'installment_due' : 'statement_item',
+        'component_id': id,
+        'plan_id': raw['plan_id'],
+        'title': raw['title'],
+        'activity_kind': isInstallment
+            ? 'installment_due'
+            : raw['kind'] == 'fee'
+            ? 'fee_charge'
+            : 'ordinary_expense',
+        'sequence_number': raw['sequence_number'],
+        'installment_count':
+            raw['installment_count'] ?? details['installment_count'],
+        'occurred_on': on,
+        'amount_minor': amount,
+        'paid_minor': paid,
+        'remaining_minor':
+            (raw['remaining_minor'] as num?)?.toInt() ?? (amount - paid),
+        'payment_status': raw['payment_status'] as String? ?? 'unpaid',
+        'scope': 'current',
+      });
+    }
+
+    List<Map<String, dynamic>> entries(String key) =>
+        (details[key] as List? ?? const [])
+            .whereType<Map<dynamic, dynamic>>()
+            .map(Map<String, dynamic>.from)
+            .toList();
+
+    return [
+      for (final raw in entries('installments'))
+        ?fromMap(raw, isInstallment: true),
+      for (final raw in entries('items')) ?fromMap(raw, isInstallment: false),
+    ];
+  }
 }
 
 enum HomeDuePeriod { current, thisMonth, nextMonth }

@@ -1100,6 +1100,8 @@
     }
   },
   "dueBreakdownTitle": "Due breakdown",
+  "dueBreakdownIncludedNote": "Everything included in this total, with what you already paid.",
+  "dueBreakdownNoDetails": "No item-level breakdown available",
   "dueBreakdownTotalDue": "Total due",
   "dueBreakdownPaid": "Paid",
   "dueBreakdownLeftToPay": "Left to pay",
