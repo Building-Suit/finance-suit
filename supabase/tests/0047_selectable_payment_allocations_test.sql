@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(58);
+select plan(60);
 
 -- ---------------------------------------------------------------------------
 -- Users
@@ -554,6 +554,33 @@ select results_eq(
       and (inst ->> 'sequence_number')::integer = 1$$,
   $$values ('partially_paid'::text, 20000::bigint)$$,
   'the Home BNPL due entry carries its partial paid state'
+);
+
+-- A due settled in full stays visible on Home as 'paid' while its due date
+-- has not passed, instead of vanishing the moment it is paid.
+select lives_ok(
+  $$select app_finance.pay_credit_facility_v2(
+      (select id from app_finance.accounts where name = 'Item Valu'),
+      '00000000-0000-0000-0000-000000047a01',
+      50000, date '2026-04-01',
+      jsonb_build_array(jsonb_build_object('type', 'installment_due',
+        'id', (select id from app_finance.installment_dues
+          where plan_id = '00000000-0000-0000-0000-000000047e02'
+            and sequence_number = 2),
+        'amount_minor', 50000)),
+      null, '00000000-0000-0000-0000-000000047907')$$,
+  'settling a whole due on its due date succeeds'
+);
+select results_eq(
+  $$select o.obligation_status, o.remaining_minor,
+      inst ->> 'payment_status'
+    from app_finance.home_current_month_obligations(date '2026-04-01') o,
+      jsonb_array_elements(o.details -> 'installments') inst
+    where o.obligation_id = (select id from app_finance.installment_dues
+      where plan_id = '00000000-0000-0000-0000-000000047e02'
+        and sequence_number = 2)$$,
+  $$values ('paid'::text, 0::bigint, 'paid'::text)$$,
+  'the settled due stays on Home as paid with zero remaining'
 );
 
 -- ---------------------------------------------------------------------------

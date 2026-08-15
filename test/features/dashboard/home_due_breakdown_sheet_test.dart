@@ -88,7 +88,10 @@ void main() {
     },
   });
 
-  Future<void> pumpHome(WidgetTester tester) async {
+  Future<void> pumpHome(
+    WidgetTester tester, {
+    List<HomeDueObligation>? obligations,
+  }) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(
@@ -107,7 +110,7 @@ void main() {
           homeUpcomingObligationsProvider.overrideWith(
             (ref) async => HomeDueSummary(
               today: PlainDate.today(),
-              items: [statementObligation],
+              items: obligations ?? [statementObligation],
             ),
           ),
           pendingIncomeProvider.overrideWith(
@@ -184,6 +187,58 @@ void main() {
     expect(find.text('Installments'), findsOneWidget);
     expect(find.text('Fees & interest'), findsOneWidget);
     expect(find.text('Purchases'), findsOneWidget);
+  });
+
+  testWidgets('a fully settled due stays visible as paid', (tester) async {
+    final settledObligation = HomeDueObligation.fromJson({
+      'obligation_id': 'settled-1',
+      'obligation_kind': 'card_statement',
+      'source_name': 'Visa Gold',
+      'due_on': PlainDate.today().addDays(6).toIso(),
+      'currency_code': 'EGP',
+      'remaining_minor': 0,
+      'paid_minor': 200000,
+      'details': {
+        'items': [
+          {
+            'id': 'item-1',
+            'kind': 'purchase',
+            'title': 'OpenAI',
+            'amount_minor': 200000,
+            'paid_minor': 200000,
+            'remaining_minor': 0,
+            'payment_status': 'paid',
+          },
+        ],
+        'installments': <Map<String, dynamic>>[],
+      },
+    });
+    await pumpHome(tester, obligations: [settledObligation]);
+
+    // The tile stays on Home flipped to a paid state instead of vanishing.
+    await tester.dragUntilVisible(
+      find.byKey(const Key('home-due-thisMonth')),
+      find.byType(Scrollable).first,
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Paid in full'), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const Key('home-due-thisMonth')),
+      warnIfMissed: false,
+    );
+    await tester.pumpAndSettle();
+
+    // The obligation header is checked and struck through, and its paid
+    // component is still listed.
+    final header = tester.widget<Text>(find.text('Visa Gold'));
+    expect(header.style?.decoration, TextDecoration.lineThrough);
+    expect(find.text('Paid in full'), findsWidgets);
+    await tester.tap(find.byKey(const ValueKey('due-obligation-settled-1')));
+    await tester.pumpAndSettle();
+    final item = tester.widget<Text>(find.text('OpenAI'));
+    expect(item.style?.decoration, TextDecoration.lineThrough);
   });
 
   testWidgets('legacy payloads without paid state still render as unpaid', (

@@ -839,7 +839,9 @@ class FinanceRepository {
               Map<String, dynamic>.from(row as Map),
             ),
           )
-          .where((item) => item.remainingMinor > 0)
+          // Settled dues stay listed (checked in the breakdown) as long as
+          // the server considers them current; only empty rows drop out.
+          .where((item) => item.remainingMinor > 0 || item.paidMinor > 0)
           .toList(growable: false);
       return HomeDueSummary(today: today, items: obligations);
     });

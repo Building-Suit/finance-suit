@@ -1255,37 +1255,52 @@ class _HomeDueTile extends StatelessWidget {
         period.start!.toDateTime(),
       ),
     };
-    final tone = period.period == HomeDuePeriod.current
+    // Every obligation in the window settled: the tile stays, but flips to
+    // a paid state instead of disappearing or showing a zero amount.
+    final settled = period.totals.isEmpty;
+    final tone = settled
+        ? colors.success
+        : period.period == HomeDuePeriod.current
         ? colors.error
         : colors.warning;
     return ListTile(
       key: Key('home-due-${period.period.name}'),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
       onTap: () => _showDueBreakdown(context, period),
-      leading: FinanceSuitIcon(
-        period.period == HomeDuePeriod.current
-            ? FinanceSuitIcons.warning
-            : FinanceSuitIcons.calendarToday,
-        color: tone.icon,
-      ),
+      leading: settled
+          ? Icon(Icons.check_circle, color: tone.icon)
+          : FinanceSuitIcon(
+              period.period == HomeDuePeriod.current
+                  ? FinanceSuitIcons.warning
+                  : FinanceSuitIcons.calendarToday,
+              color: tone.icon,
+            ),
       title: Text(label),
       subtitle: Text(description),
-      trailing: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          for (final total in period.totals)
-            ProtectedMoneyText(
-              total.format(),
-              interactive: false,
+      trailing: settled
+          ? Text(
+              l10n.paymentRowPaid,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 color: tone.text,
                 fontWeight: FontWeight.w700,
               ),
+            )
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (final total in period.totals)
+                  ProtectedMoneyText(
+                    total.format(),
+                    interactive: false,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: tone.text,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+              ],
             ),
-        ],
-      ),
     );
   }
 
@@ -1389,28 +1404,49 @@ class _DueObligationGroup extends StatelessWidget {
         ],
       ),
     );
+    // A settled obligation keeps its row, checked and struck through, the
+    // same way the facility Due Breakdown keeps paid components visible.
+    final settled = obligation.remainingMinor == 0 && obligation.paidMinor > 0;
+    final muted = Theme.of(context).colorScheme.onSurfaceVariant;
     return Column(
       key: ValueKey<String>('due-obligation-${obligation.id}'),
       children: [
         ListTile(
           contentPadding: EdgeInsets.zero,
           onTap: () => onExpansionChanged?.call(!expanded),
+          leading: settled
+              ? Icon(Icons.check_circle, size: 20, color: muted)
+              : null,
           title: Text(
             obligation.sourceName.isNotEmpty
                 ? obligation.sourceName
                 : _formatDueKind(obligation.kind),
+            style: settled
+                ? TextStyle(
+                    color: muted,
+                    decoration: TextDecoration.lineThrough,
+                  )
+                : null,
           ),
           subtitle: Text(dates.formatMediumDate(obligation.dueOn.toDateTime())),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ProtectedMoneyText(
-                Money(
-                  minor: obligation.remainingMinor,
-                  currencyCode: obligation.currencyCode,
-                ).format(),
-                interactive: false,
-              ),
+              if (settled)
+                Text(
+                  l10n.paymentRowPaid,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: muted),
+                )
+              else
+                ProtectedMoneyText(
+                  Money(
+                    minor: obligation.remainingMinor,
+                    currencyCode: obligation.currencyCode,
+                  ).format(),
+                  interactive: false,
+                ),
               const SizedBox(width: 8),
               AnimatedRotation(
                 turns: expanded ? 0.5 : 0,
