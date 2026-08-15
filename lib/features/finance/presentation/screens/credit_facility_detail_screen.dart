@@ -24,9 +24,11 @@ import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/facility_activity.dart';
+import 'package:work_tracker/features/finance/domain/facility_payment_component.dart';
 import 'package:work_tracker/features/finance/domain/installment_responsibility.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/providers/responsibility_providers.dart';
+import 'package:work_tracker/features/finance/presentation/widgets/facility_due_breakdown_widgets.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/finance_widgets.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/responsibility_widgets.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
@@ -216,7 +218,7 @@ class CreditFacilityDetailScreen extends ConsumerWidget {
         );
         if (context.mounted) invalidateFinanceData(ref);
       case FacilityActivityAction.reversePayment:
-        await _reversePayment(context, ref, item);
+        await _showPaymentDetail(context, ref, item);
       case FacilityActivityAction.explainSettled:
         AppToast.warning(context, l10n.facilityActivitySettled);
       case FacilityActivityAction.explainFee:
@@ -262,6 +264,84 @@ class CreditFacilityDetailScreen extends ConsumerWidget {
       err: (failure) =>
           AppToast.error(context, failureMessage(context, failure)),
     );
+  }
+
+  /// Payment detail sheet: the transfer plus the exact persisted
+  /// Applied-to allocations — never a guess from the current due order.
+  Future<void> _showPaymentDetail(
+    BuildContext context,
+    WidgetRef ref,
+    FacilityActivityItem payment,
+  ) async {
+    final reverse = await showModalBottomSheet<bool>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        final l10n = AppLocalizations.of(sheetContext);
+        final theme = Theme.of(sheetContext);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      l10n.facilityRepaymentLabel,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                    AppMoneyText(
+                      money: payment.amount,
+                      style: theme.textTheme.titleMedium,
+                      sign: AppMoneySign.never,
+                    ),
+                  ],
+                ),
+                Text(
+                  payment.occurredOn.toIso(),
+                  style: theme.textTheme.bodySmall,
+                ),
+                const SizedBox(height: 12),
+                Text(l10n.paymentAppliedTo, style: theme.textTheme.titleSmall),
+                const SizedBox(height: 4),
+                Flexible(
+                  child: Consumer(
+                    builder: (context, ref, _) =>
+                        AsyncView<List<FacilityPaymentAllocationDetail>>(
+                          value: ref.watch(
+                            paymentAllocationsProvider(payment.transactionId),
+                          ),
+                          onRetry: () => ref.invalidate(
+                            paymentAllocationsProvider(payment.transactionId),
+                          ),
+                          data: (allocations) => ListView(
+                            shrinkWrap: true,
+                            children: [
+                              for (final allocation in allocations)
+                                _AppliedToRow(allocation: allocation),
+                            ],
+                          ),
+                        ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton(
+                  key: const Key('payment-detail-reverse'),
+                  onPressed: () => Navigator.of(sheetContext).pop(true),
+                  child: Text(l10n.paymentReverse),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    if (reverse == true && context.mounted) {
+      await _reversePayment(context, ref, payment);
+    }
   }
 
   @override
@@ -402,6 +482,28 @@ class _FacilityDetailBody extends ConsumerWidget {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            l10n.dueBreakdownTitle,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          AsyncView<FacilityDueBreakdown>(
+            value: ref.watch(
+              facilityDueBreakdownProvider((
+                accountId: summary.accountId,
+                asOfIso: null,
+              )),
+            ),
+            onRetry: () => ref.invalidate(facilityDueBreakdownProvider),
+            data: (breakdown) => Card(
+              key: const Key('facility-due-breakdown'),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: DueBreakdownList(breakdown: breakdown),
+              ),
+            ),
           ),
           if (summary.accountType == AccountType.creditCard &&
               summary.statementDay != null) ...[
@@ -2086,6 +2188,63 @@ class _NoExpenseCategoriesNotice extends StatelessWidget {
               icon: const FinanceSuitIcon(FinanceSuitIcons.addCircle),
               label: Text(l10n.feeRuleAddCategoryAction),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AppliedToRow extends StatelessWidget {
+  const _AppliedToRow({required this.allocation});
+
+  final FacilityPaymentAllocationDetail allocation;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    var title = allocation.title?.trim() ?? '';
+    if (title.isEmpty) {
+      title = allocation.componentType == 'statement_cycle'
+          ? l10n.paymentAppliedToStatement
+          : l10n.txExpense;
+    }
+    final subtitle = [
+      if (allocation.sequenceNumber != null) '${allocation.sequenceNumber}',
+      if (allocation.detailOn != null) allocation.detailOn!.toIso(),
+    ].join(' · ');
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.bodyMedium,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (subtitle.isNotEmpty)
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          ProtectedMoneyText(
+            Money(
+              minor: allocation.amountMinor,
+              currencyCode: allocation.currencyCode,
+            ).format(),
+            style: theme.textTheme.bodyMedium,
+            interactive: false,
           ),
         ],
       ),

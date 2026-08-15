@@ -7,6 +7,7 @@ import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/facility_activity.dart';
+import 'package:work_tracker/features/finance/domain/facility_payment_component.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/home_due_obligation.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
@@ -229,6 +230,37 @@ final statementSummariesProvider = FutureProvider.family
       return result.when(ok: (s) => s, err: (failure) => throw failure);
     });
 
+/// Authoritative Due Breakdown of one facility as of a business date.
+/// The record key carries the payment date so changing it on the Pay
+/// screen refetches eligible components.
+final facilityDueBreakdownProvider = FutureProvider.family
+    .autoDispose<FacilityDueBreakdown, ({String accountId, String? asOfIso})>((
+      ref,
+      args,
+    ) async {
+      ref.watch(currentUserIdProvider);
+      final result = await ref
+          .watch(financeRepositoryProvider)
+          .fetchFacilityDueBreakdown(
+            args.accountId,
+            asOf: args.asOfIso == null ? null : PlainDate.parse(args.asOfIso!),
+          );
+      return result.when(ok: (b) => b, err: (failure) => throw failure);
+    });
+
+/// The persisted Applied-to rows of one facility payment.
+final paymentAllocationsProvider = FutureProvider.family
+    .autoDispose<List<FacilityPaymentAllocationDetail>, String>((
+      ref,
+      paymentTransactionId,
+    ) async {
+      ref.watch(currentUserIdProvider);
+      final result = await ref
+          .watch(financeRepositoryProvider)
+          .fetchPaymentAllocations(paymentTransactionId);
+      return result.when(ok: (a) => a, err: (failure) => throw failure);
+    });
+
 /// Every facility including archived ones, for the Money account list —
 /// an archived card keeps its debt visible until it is settled.
 final allCreditFacilitiesProvider = FutureProvider<List<CreditFacilitySummary>>(
@@ -276,6 +308,8 @@ void invalidateFinanceData(WidgetRef ref) {
   ref.invalidate(facilityActivityProvider);
   ref.invalidate(planRevisionsProvider);
   ref.invalidate(feeRulesProvider);
+  ref.invalidate(facilityDueBreakdownProvider);
+  ref.invalidate(paymentAllocationsProvider);
   ref.invalidate(homeUpcomingObligationsProvider);
 }
 
