@@ -210,3 +210,34 @@ idempotency keys (`recurring:<occurrence>`, `income:<occurrence>:<allocation>`,
 moves only when the receiver accepts into their own matching-currency asset
 account. A removed connection blocks new transfers and pending acceptances
 and surfaces `network_destination_unavailable` instead of rerouting.
+
+Installment responsibility: `installment_responsibility_links` lets an owner
+link one active plan to the person who reimburses them — a private
+`custom_name` (accepted immediately, no account needed) or a network contact
+derived from an active `network_connections` row, who must accept first.
+Linking never moves money and never transfers the facility liability: the
+plan, its dues, and `pay_credit_facility` stay entirely the owner's. A
+network request stores a server-built sanitized `request_snapshot` (terms,
+remaining schedule aggregates, a `terms_fingerprint` of the remaining dues)
+as consent evidence; acceptance re-verifies the fingerprint so materially
+changed terms (restructures) can never be accepted silently, and an accepted
+link whose terms later change blocks new reimbursements until re-consent.
+Responsibility starts at `responsibility_from_sequence` — the first unpaid,
+non-presettled due — so paid history is never reassigned, and one live link
+per plan is enforced by a partial unique index. Unlink soft-removes
+(`removed_at`); history rows and reimbursements stay. The linked user reads
+only the narrow RPC DTOs (`get_shared_installment_link_details`,
+`list_my_linked_installments`) — plan, due, account, and transaction RLS is
+not broadened at all.
+
+Reimbursements (`installment_reimbursements`) are per-due, capped across all
+links so a reassigned plan can never collect the same due twice, and are
+always transfers, never income. A network reimbursement rides the existing
+network transfer rail (`origin_kind = 'installment_reimbursement'`): pending
+moves nothing, the owner's acceptance books the two one-sided legs, and a
+trigger settles the reimbursement row server-side. A custom reimbursement is
+recorded by the owner through `record_custom_installment_reimbursement`,
+which books a protected one-sided destination-only transfer inflow
+(`is_reimbursement_inflow`) into one of the owner's asset accounts. Neither
+path touches `installment_payment_allocations` or the facility outstanding —
+paying the bank remains a separate, explicit facility payment.

@@ -325,6 +325,54 @@ function compose(
     }
   }
 
+  if (type.startsWith("installment_link_")) {
+    const name = String(
+      payload.counterparty_name ?? (ar ? "شخص ما" : "Someone"),
+    );
+    const planTitle = payload.plan_title ? String(payload.plan_title) : null;
+    switch (type) {
+      case "installment_link_request":
+        return ar
+          ? {
+            title: "طلب ربط قسط",
+            body: `${name} يريد ربط قسط بك. راجع التفاصيل قبل القبول.`,
+          }
+          : {
+            title: "Installment link request",
+            body:
+              `${name} wants to link an installment to you. Review the details before accepting.`,
+          };
+      case "installment_link_accepted":
+        return ar
+          ? {
+            title: "تم قبول ربط القسط",
+            body: planTitle
+              ? `${name} قبل ربط قسط ${planTitle}.`
+              : `${name} قبل ربط القسط.`,
+          }
+          : {
+            title: "Installment link accepted",
+            body: planTitle
+              ? `${name} accepted the ${planTitle} installment link.`
+              : `${name} accepted the installment link.`,
+          };
+      default:
+        return ar
+          ? {
+            title: "تم رفض ربط القسط",
+            body: planTitle
+              ? `${name} رفض ربط قسط ${planTitle}.`
+              : `${name} رفض ربط القسط.`,
+          }
+          : {
+            title: "Installment link declined",
+            body: planTitle
+              ? `${name} declined the ${planTitle} installment link.`
+              : `${name} declined the installment link.`,
+          };
+    }
+  }
+
   if (type === "facility_payment_confirmation") {
     return ar
       ? {

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
+import 'package:work_tracker/features/finance/presentation/providers/responsibility_providers.dart';
 import 'package:work_tracker/features/history/presentation/providers/history_providers.dart';
 import 'package:work_tracker/features/network/presentation/providers/network_providers.dart';
 import 'package:work_tracker/features/reports/presentation/providers/report_providers.dart';
@@ -56,7 +57,11 @@ final realtimeInvalidationProvider = Provider<void>((ref) {
         ..invalidate(salarySettingsProvider)
         ..invalidate(networkContactsProvider)
         ..invalidate(networkAddRequestsProvider)
-        ..invalidate(networkTransfersProvider);
+        ..invalidate(networkTransfersProvider)
+        ..invalidate(responsibilitySummariesProvider)
+        ..invalidate(planResponsibilityLinksProvider)
+        ..invalidate(myLinkedInstallmentsProvider)
+        ..invalidate(sharedLinkDetailsProvider);
     });
   }
 
@@ -111,6 +116,14 @@ final realtimeInvalidationProvider = Provider<void>((ref) {
     (
       table: 'network_transfers',
       columns: ['sender_user_id', 'receiver_user_id'],
+    ),
+    (
+      table: 'installment_responsibility_links',
+      columns: ['user_id', 'responsible_user_id'],
+    ),
+    (
+      table: 'installment_reimbursements',
+      columns: ['user_id', 'responsible_user_id'],
     ),
   ];
   for (final tableSpec in networkTables) {

@@ -567,11 +567,72 @@ enum NetworkTransferOrigin {
   recurringRule('recurring_rule'),
   incomeAllocation('income_allocation'),
   extraWorkAllocation('extra_work_allocation'),
-  rolloverAllocation('rollover_allocation');
+  rolloverAllocation('rollover_allocation'),
+  installmentReimbursement('installment_reimbursement');
 
   const NetworkTransferOrigin(this.dbValue);
   final String dbValue;
 
   static NetworkTransferOrigin fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+enum ResponsibilityLinkType {
+  custom('custom'),
+  network('network');
+
+  const ResponsibilityLinkType(this.dbValue);
+  final String dbValue;
+
+  static ResponsibilityLinkType fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+enum ResponsibilityLinkStatus {
+  pending('pending'),
+  accepted('accepted'),
+  rejected('rejected');
+
+  const ResponsibilityLinkStatus(this.dbValue);
+  final String dbValue;
+
+  static ResponsibilityLinkStatus fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+enum ReimbursementMethod {
+  networkTransfer('network_transfer'),
+  manualExternal('manual_external');
+
+  const ReimbursementMethod(this.dbValue);
+  final String dbValue;
+
+  static ReimbursementMethod fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+enum ReimbursementStatus {
+  pending('pending'),
+  received('received'),
+  rejected('rejected');
+
+  const ReimbursementStatus(this.dbValue);
+  final String dbValue;
+
+  static ReimbursementStatus fromDb(String value) =>
+      values.firstWhere((e) => e.dbValue == value);
+}
+
+/// Derived reimbursement position of one linked due.
+enum DueReimbursementStatus {
+  notPaid('not_paid'),
+  pending('pending'),
+  partial('partial'),
+  received('received');
+
+  const DueReimbursementStatus(this.dbValue);
+  final String dbValue;
+
+  static DueReimbursementStatus fromDb(String value) =>
       values.firstWhere((e) => e.dbValue == value);
 }

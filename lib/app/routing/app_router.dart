@@ -29,6 +29,7 @@ import 'package:work_tracker/features/finance/presentation/screens/held_amount_f
 import 'package:work_tracker/features/finance/presentation/screens/income_source_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/income_sources_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/installment_purchase_screen.dart';
+import 'package:work_tracker/features/finance/presentation/screens/linked_installment_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/macro_form_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/macros_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/money_screen.dart';
@@ -393,6 +394,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                               switch (state.uri.queryParameters['tab']) {
                                 'requests' => 1,
                                 'transfers' => 2,
+                                'linked' => 3,
                                 _ => 0,
                               },
                         ),
@@ -404,6 +406,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                                 const NetworkSearchScreen(),
                           ),
                         ],
+                      ),
+                      GoRoute(
+                        path: 'linked/:linkId',
+                        parentNavigatorKey: appNavigatorKey,
+                        builder: (context, state) => LinkedInstallmentScreen(
+                          linkId: state.pathParameters['linkId']!,
+                        ),
                       ),
                       GoRoute(
                         path: 'held/new',
