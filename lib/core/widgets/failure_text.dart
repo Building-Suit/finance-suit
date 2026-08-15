@@ -88,6 +88,17 @@ String _dbValidationMessage(AppLocalizations l10n, String raw) {
     'invalid_destination' => l10n.errNetworkChooseOneDestination,
     'network_transaction_locked' => l10n.errNetworkLocked,
     'not_authorized' => l10n.errNotAuthorized,
+    'already_linked' => l10n.errAlreadyLinked,
+    'plan_not_linkable' => l10n.errPlanNotLinkable,
+    'plan_linked' => l10n.errPlanLinked,
+    'invalid_name' => l10n.errResponsibilityName,
+    'invalid_link' => l10n.errLinkNotActive,
+    'link_not_active' => l10n.errLinkNotActive,
+    'terms_changed' => l10n.errTermsChanged,
+    'due_not_linked' => l10n.errDueNotLinked,
+    'reimbursement_exceeds_due' => l10n.errReimbursementExceedsDue,
+    'reimbursement_pending' => l10n.errReimbursementPending,
+    'reimbursement_transaction_locked' => l10n.errReimbursementLocked,
     _ => l10n.commonError,
   };
 }

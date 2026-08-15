@@ -3589,4 +3589,259 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get errNetworkSelfAdd => 'لا يمكنك إضافة نفسك';
+
+  @override
+  String get respWhoForTitle => 'لمن هذا القسط؟';
+
+  @override
+  String get respForMe => 'لي';
+
+  @override
+  String get respForSomeoneElse => 'لشخص آخر';
+
+  @override
+  String get respCustomPerson => 'شخص خاص';
+
+  @override
+  String get respNetworkContact => 'شبكة Finance Suit';
+
+  @override
+  String get respCustomNameLabel => 'الاسم';
+
+  @override
+  String get respCustomNameHelper =>
+      'خاص ومحلي — أنت فقط من يرى هذا الاسم. لا حاجة لحساب Finance Suit.';
+
+  @override
+  String get respSharedNoteLabel => 'ملاحظة مشتركة (اختياري)';
+
+  @override
+  String get respSharedNoteHelper => 'يمكن للشخص المسؤول رؤية هذه الملاحظة.';
+
+  @override
+  String get respNetworkContactLabel => 'جهة اتصال الشبكة';
+
+  @override
+  String get respNetworkConsentHint =>
+      'سيراجع تفاصيل القسط ويجب أن يقبل قبل أن يصبح الربط فعالًا.';
+
+  @override
+  String get respNoContacts =>
+      'لا يوجد أحد في شبكتك بعد. أضف شخصًا إلى شبكتك أولًا.';
+
+  @override
+  String get respManageNetwork => 'إدارة الشبكة';
+
+  @override
+  String get respExplainerGeneric =>
+      'الشخص المسؤول يسدّد لك قيمة هذا القسط. تبقى بطاقتك الائتمانية / خدمة التقسيط ملكك.';
+
+  @override
+  String respRecipientExplainer(String name) {
+    return 'أنت مسؤول عن السداد لـ $name عن هذا القسط. تبقى بطاقته الائتمانية / خدمة التقسيط ملكه.';
+  }
+
+  @override
+  String get respLinkAction => 'اربط بشخص';
+
+  @override
+  String get respOpenAction => 'مسؤولية القسط';
+
+  @override
+  String get respLinkOngoingScope =>
+      'سيتم ربط الأقساط المتبقية غير المدفوعة. الأقساط المدفوعة سابقًا تبقى كما هي.';
+
+  @override
+  String respLinkedTo(String name) {
+    return 'مرتبط بـ $name';
+  }
+
+  @override
+  String respWaitingForAcceptance(String name) {
+    return '$name · في انتظار القبول';
+  }
+
+  @override
+  String respRejectedLink(String name) {
+    return '$name رفض الربط';
+  }
+
+  @override
+  String get respUnlink => 'إلغاء الربط';
+
+  @override
+  String get respUnlinkConfirmTitle => 'إلغاء ربط المسؤولية؟';
+
+  @override
+  String get respUnlinkConfirmBody =>
+      'تنتهي المسؤولية المستقبلية ويتوقف الوصول المشترك. تبقى التسديدات المسجلة في سجلك.';
+
+  @override
+  String get respUnlinkedToast => 'تم إلغاء ربط المسؤولية';
+
+  @override
+  String get respLinkRemoved => 'تمت إزالة هذا الربط';
+
+  @override
+  String get respLinkedToast => 'تم ربط القسط';
+
+  @override
+  String get respLinkRequestSentToast => 'تم إرسال طلب الربط';
+
+  @override
+  String get respAcceptedToast => 'تم قبول ربط القسط';
+
+  @override
+  String get respRejectedToast => 'تم رفض ربط القسط';
+
+  @override
+  String get respLinkedInstallmentsTab => 'مرتبطة';
+
+  @override
+  String get respLinkedInstallmentsTitle => 'الأقساط المرتبطة';
+
+  @override
+  String get respNoLinkedInstallments => 'لا توجد أقساط مرتبطة بك.';
+
+  @override
+  String get respReviewAction => 'مراجعة';
+
+  @override
+  String get respReviewBeforeAccepting => 'راجع التفاصيل قبل القبول.';
+
+  @override
+  String respWantsToLink(String name) {
+    return '$name يريد ربط قسط بك';
+  }
+
+  @override
+  String get homePendingLinkedTitle => 'طلبات ربط أقساط';
+
+  @override
+  String respOwnerLabel(String name) {
+    return 'المالك: $name';
+  }
+
+  @override
+  String respYourResponsibilityRemaining(String amount) {
+    return 'مسؤوليتك: $amount متبقية';
+  }
+
+  @override
+  String respNextInstallment(String amount, String date) {
+    return 'القسط التالي: $amount في $date';
+  }
+
+  @override
+  String get respTermsChangedBanner =>
+      'تغيّر هذا القسط بعد إرسال الطلب. راجع التفاصيل المحدّثة قبل القبول.';
+
+  @override
+  String get respConsentHint =>
+      'القبول يؤكد المسؤولية فقط. لا تنتقل أي أموال حتى يُرسل التسديد ويُقبل.';
+
+  @override
+  String get respTermsSection => 'شروط القسط';
+
+  @override
+  String get respScheduleSection => 'الجدول';
+
+  @override
+  String get respReimbursementSection => 'التسديد';
+
+  @override
+  String respReimbursementReceivedTotal(String received, String expected) {
+    return 'تم تسديد $received من $expected';
+  }
+
+  @override
+  String get respTermInterest => 'فائدة التقسيط';
+
+  @override
+  String get respTermRate => 'معدل الفائدة';
+
+  @override
+  String get respTermAlreadyPaid => 'أقساط مدفوعة بالفعل';
+
+  @override
+  String get respTermRemainingCount => 'الأقساط المتبقية';
+
+  @override
+  String get respTermRemainingTotal => 'الإجمالي المتبقي';
+
+  @override
+  String get respTermNextDue => 'الاستحقاق التالي';
+
+  @override
+  String get respTermFinalDue => 'الاستحقاق الأخير';
+
+  @override
+  String get respDueStatusNotPaid => 'غير مدفوع';
+
+  @override
+  String get respDueStatusPending => 'قيد الانتظار';
+
+  @override
+  String get respDueStatusPartial => 'جزئي';
+
+  @override
+  String get respDueStatusReceived => 'مستلم';
+
+  @override
+  String get respSendReimbursement => 'إرسال تسديد';
+
+  @override
+  String get respRecordReimbursement => 'تسجيل تسديد';
+
+  @override
+  String get respReimbursementSentToast => 'تم إرسال التسديد';
+
+  @override
+  String get respReimbursementRecordedToast => 'تم تسجيل التسديد';
+
+  @override
+  String get respAmountLabel => 'المبلغ';
+
+  @override
+  String get respReceivedOnLabel => 'تاريخ الاستلام';
+
+  @override
+  String get respReceiveIntoLabel => 'الاستلام في';
+
+  @override
+  String get respPayFromLabel => 'الدفع من';
+
+  @override
+  String get respNoteLabel => 'ملاحظة (اختياري)';
+
+  @override
+  String get errAlreadyLinked => 'هذا القسط مرتبط بالفعل بشخص مسؤول';
+
+  @override
+  String get errPlanNotLinkable => 'لا يمكن ربط هذا القسط';
+
+  @override
+  String get errPlanLinked =>
+      'هذه الخطة لها سجل مسؤولية ولا يمكن إعادة كتابتها. ألغِ الربط أو أعد الهيكلة بدلًا من ذلك.';
+
+  @override
+  String get errResponsibilityName => 'اختر اسمًا بين 1 و80 حرفًا';
+
+  @override
+  String get errLinkNotActive => 'ربط المسؤولية هذا غير فعال';
+
+  @override
+  String get errTermsChanged => 'تغيّر هذا القسط. راجع الشروط المحدّثة أولًا.';
+
+  @override
+  String get errDueNotLinked => 'هذا القسط خارج نطاق المسؤولية المرتبطة';
+
+  @override
+  String get errReimbursementExceedsDue => 'المبلغ أكبر من المسؤولية المتبقية';
+
+  @override
+  String get errReimbursementPending => 'قم بحل التسديد المعلق أولًا';
+
+  @override
+  String get errReimbursementLocked => 'لا يمكن تعديل التسديدات المسجلة مباشرة';
 }

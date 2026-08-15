@@ -22,8 +22,10 @@ import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/home_due_obligation.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
+import 'package:work_tracker/features/finance/domain/installment_responsibility.dart';
 import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
+import 'package:work_tracker/features/finance/presentation/providers/responsibility_providers.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/finance_widgets.dart';
 import 'package:work_tracker/features/history/domain/history_models.dart';
 import 'package:work_tracker/features/history/presentation/providers/history_providers.dart';
@@ -327,6 +329,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       items: items,
                       onOpen: () =>
                           context.push('/money/network?tab=transfers'),
+                    ),
+            ),
+            compactSection(
+              ref.watch(pendingLinkedInstallmentRequestsProvider),
+              loading: const SizedBox.shrink(),
+              data: (items) => items.isEmpty
+                  ? const SizedBox.shrink()
+                  : _PendingLinkedInstallmentSection(
+                      items: items,
+                      onOpen: () => context.push('/money/network?tab=linked'),
                     ),
             ),
             _SectionHeader(title: l10n.homeBalance),
@@ -837,6 +849,85 @@ class _PendingNetworkSection extends StatelessWidget {
                         ),
                       Text(
                         l10n.networkPendingTransfer,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: context.suitColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const FinanceSuitIcon(FinanceSuitIcons.chevronRight),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Installment link requests waiting for this user's consent — clearly an
+/// installment they are asked to be responsible for, never their own bill.
+class _PendingLinkedInstallmentSection extends StatelessWidget {
+  const _PendingLinkedInstallmentSection({
+    required this.items,
+    required this.onOpen,
+  });
+
+  final List<LinkedInstallment> items;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final warning = context.suitColors.warning;
+    final first = items.first;
+    return Card(
+      color: warning.background,
+      clipBehavior: Clip.antiAlias,
+      child: Semantics(
+        button: true,
+        label: l10n.homePendingLinkedTitle,
+        child: InkWell(
+          key: const Key('home-pending-linked-summary'),
+          onTap: onOpen,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                FinanceSuitIcon(
+                  FinanceSuitIcons.creditCard,
+                  color: warning.icon,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        l10n.homePendingLinkedTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: warning.text,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        items.length == 1
+                            ? l10n.respWantsToLink(first.ownerName)
+                            : '${l10n.networkPendingCount(items.length)} · '
+                                  '${first.ownerName}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      Text(
+                        l10n.respReviewBeforeAccepting,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(

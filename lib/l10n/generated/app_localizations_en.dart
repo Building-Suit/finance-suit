@@ -3610,4 +3610,268 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errNetworkSelfAdd => 'You cannot add yourself';
+
+  @override
+  String get respWhoForTitle => 'Who is this installment for?';
+
+  @override
+  String get respForMe => 'Me';
+
+  @override
+  String get respForSomeoneElse => 'Someone else';
+
+  @override
+  String get respCustomPerson => 'Custom person';
+
+  @override
+  String get respNetworkContact => 'Finance Suit Network';
+
+  @override
+  String get respCustomNameLabel => 'Name';
+
+  @override
+  String get respCustomNameHelper =>
+      'Private and local — only you can see this name. No Finance Suit account is needed.';
+
+  @override
+  String get respSharedNoteLabel => 'Shared note (optional)';
+
+  @override
+  String get respSharedNoteHelper =>
+      'The responsible person can see this note.';
+
+  @override
+  String get respNetworkContactLabel => 'Network contact';
+
+  @override
+  String get respNetworkConsentHint =>
+      'They will review the installment details and must accept before the link becomes active.';
+
+  @override
+  String get respNoContacts =>
+      'No one is in your network yet. Add someone to your network first.';
+
+  @override
+  String get respManageNetwork => 'Manage Network';
+
+  @override
+  String get respExplainerGeneric =>
+      'The responsible person reimburses you for this installment. Your Credit Card / BNPL remains yours.';
+
+  @override
+  String respRecipientExplainer(String name) {
+    return 'You are responsible for reimbursing $name for this installment. Their Credit Card / BNPL remains theirs.';
+  }
+
+  @override
+  String get respLinkAction => 'Link to someone';
+
+  @override
+  String get respOpenAction => 'Installment responsibility';
+
+  @override
+  String get respLinkOngoingScope =>
+      'This will link the remaining unpaid installments. Previously paid installments will stay unchanged.';
+
+  @override
+  String respLinkedTo(String name) {
+    return 'Linked to $name';
+  }
+
+  @override
+  String respWaitingForAcceptance(String name) {
+    return '$name · Waiting for acceptance';
+  }
+
+  @override
+  String respRejectedLink(String name) {
+    return '$name rejected the link';
+  }
+
+  @override
+  String get respUnlink => 'Unlink';
+
+  @override
+  String get respUnlinkConfirmTitle => 'Unlink responsibility?';
+
+  @override
+  String get respUnlinkConfirmBody =>
+      'Future responsibility ends and shared access stops. Recorded reimbursements stay in your history.';
+
+  @override
+  String get respUnlinkedToast => 'Responsibility unlinked';
+
+  @override
+  String get respLinkRemoved => 'This link was removed';
+
+  @override
+  String get respLinkedToast => 'Installment linked';
+
+  @override
+  String get respLinkRequestSentToast => 'Link request sent';
+
+  @override
+  String get respAcceptedToast => 'Installment link accepted';
+
+  @override
+  String get respRejectedToast => 'Installment link rejected';
+
+  @override
+  String get respLinkedInstallmentsTab => 'Linked';
+
+  @override
+  String get respLinkedInstallmentsTitle => 'Linked installments';
+
+  @override
+  String get respNoLinkedInstallments => 'No installments are linked to you.';
+
+  @override
+  String get respReviewAction => 'Review';
+
+  @override
+  String get respReviewBeforeAccepting =>
+      'Review the details before accepting.';
+
+  @override
+  String respWantsToLink(String name) {
+    return '$name wants to link an installment to you';
+  }
+
+  @override
+  String get homePendingLinkedTitle => 'Installment link requests';
+
+  @override
+  String respOwnerLabel(String name) {
+    return 'Owner: $name';
+  }
+
+  @override
+  String respYourResponsibilityRemaining(String amount) {
+    return 'Your responsibility: $amount remaining';
+  }
+
+  @override
+  String respNextInstallment(String amount, String date) {
+    return 'Next installment: $amount on $date';
+  }
+
+  @override
+  String get respTermsChangedBanner =>
+      'This installment changed after the request was sent. Review the updated details before accepting.';
+
+  @override
+  String get respConsentHint =>
+      'Accepting only confirms the responsibility. No money moves until a reimbursement is sent and accepted.';
+
+  @override
+  String get respTermsSection => 'Installment terms';
+
+  @override
+  String get respScheduleSection => 'Schedule';
+
+  @override
+  String get respReimbursementSection => 'Reimbursement';
+
+  @override
+  String respReimbursementReceivedTotal(String received, String expected) {
+    return 'Reimbursed $received of $expected';
+  }
+
+  @override
+  String get respTermInterest => 'Installment interest';
+
+  @override
+  String get respTermRate => 'Interest rate';
+
+  @override
+  String get respTermAlreadyPaid => 'Installments already paid';
+
+  @override
+  String get respTermRemainingCount => 'Remaining installments';
+
+  @override
+  String get respTermRemainingTotal => 'Remaining total';
+
+  @override
+  String get respTermNextDue => 'Next due';
+
+  @override
+  String get respTermFinalDue => 'Final due';
+
+  @override
+  String get respDueStatusNotPaid => 'Not paid';
+
+  @override
+  String get respDueStatusPending => 'Pending';
+
+  @override
+  String get respDueStatusPartial => 'Partial';
+
+  @override
+  String get respDueStatusReceived => 'Received';
+
+  @override
+  String get respSendReimbursement => 'Send reimbursement';
+
+  @override
+  String get respRecordReimbursement => 'Record reimbursement';
+
+  @override
+  String get respReimbursementSentToast => 'Reimbursement sent';
+
+  @override
+  String get respReimbursementRecordedToast => 'Reimbursement recorded';
+
+  @override
+  String get respAmountLabel => 'Amount';
+
+  @override
+  String get respReceivedOnLabel => 'Received on';
+
+  @override
+  String get respReceiveIntoLabel => 'Receive into';
+
+  @override
+  String get respPayFromLabel => 'Pay from';
+
+  @override
+  String get respNoteLabel => 'Note (optional)';
+
+  @override
+  String get errAlreadyLinked =>
+      'This installment already has a responsible person';
+
+  @override
+  String get errPlanNotLinkable => 'This installment cannot be linked';
+
+  @override
+  String get errPlanLinked =>
+      'This plan has responsibility history and cannot be rewritten. Unlink or restructure instead.';
+
+  @override
+  String get errResponsibilityName =>
+      'Choose a name between 1 and 80 characters';
+
+  @override
+  String get errLinkNotActive => 'This responsibility link is not active';
+
+  @override
+  String get errTermsChanged =>
+      'This installment changed. Review the updated terms first.';
+
+  @override
+  String get errDueNotLinked =>
+      'This installment is outside the linked responsibility';
+
+  @override
+  String get errReimbursementExceedsDue =>
+      'Amount is larger than the remaining responsibility';
+
+  @override
+  String get errReimbursementPending =>
+      'Resolve the pending reimbursement first';
+
+  @override
+  String get errReimbursementLocked =>
+      'Recorded reimbursements cannot be edited directly';
 }

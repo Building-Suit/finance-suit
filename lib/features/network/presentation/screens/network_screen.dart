@@ -8,6 +8,8 @@ import 'package:work_tracker/core/widgets/app_toast.dart';
 import 'package:work_tracker/core/widgets/async_view.dart';
 import 'package:work_tracker/core/widgets/failure_text.dart';
 import 'package:work_tracker/core/widgets/protected_money.dart';
+import 'package:work_tracker/features/finance/presentation/providers/responsibility_providers.dart';
+import 'package:work_tracker/features/finance/presentation/widgets/responsibility_widgets.dart';
 import 'package:work_tracker/features/network/data/network_repository.dart';
 import 'package:work_tracker/features/network/domain/network_models.dart';
 import 'package:work_tracker/features/network/presentation/providers/network_providers.dart';
@@ -28,9 +30,9 @@ class NetworkScreen extends ConsumerStatefulWidget {
 class _NetworkScreenState extends ConsumerState<NetworkScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController = TabController(
-    length: 3,
+    length: 4,
     vsync: this,
-    initialIndex: widget.initialTab.clamp(0, 2),
+    initialIndex: widget.initialTab.clamp(0, 3),
   );
 
   @override
@@ -56,10 +58,13 @@ class _NetworkScreenState extends ConsumerState<NetworkScreen>
           children: [
             TabBar(
               controller: _tabController,
+              tabAlignment: TabAlignment.start,
+              isScrollable: true,
               tabs: [
                 Tab(text: l10n.networkTabConnections),
                 Tab(text: l10n.networkTabRequests),
                 Tab(text: l10n.networkTabTransfers),
+                Tab(text: l10n.respLinkedInstallmentsTab),
               ],
             ),
             Expanded(
@@ -71,6 +76,7 @@ class _NetworkScreenState extends ConsumerState<NetworkScreen>
                   ),
                   const _RequestsTab(),
                   const _TransfersTab(),
+                  const _LinkedInstallmentsTab(),
                 ],
               ),
             ),
@@ -523,6 +529,90 @@ class _NetworkTransferCard extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Linked installments
+// ---------------------------------------------------------------------------
+
+/// Installments other people linked to this user: pending requests to
+/// review first, then accepted responsibilities with their remaining state.
+class _LinkedInstallmentsTab extends ConsumerWidget {
+  const _LinkedInstallmentsTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final linked = ref.watch(myLinkedInstallmentsProvider);
+    return AsyncView(
+      value: linked,
+      onRetry: () => ref.invalidate(myLinkedInstallmentsProvider),
+      data: (items) {
+        if (items.isEmpty) {
+          return EmptyStateView(
+            icon: FinanceSuitIcons.creditCard,
+            message: l10n.respNoLinkedInstallments,
+          );
+        }
+        return RefreshIndicator(
+          onRefresh: () async => invalidateResponsibilityData(ref),
+          child: ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final link = items[index];
+              return Card(
+                key: Key('linked-installment-${link.linkId}'),
+                child: ListTile(
+                  leading: const FinanceSuitIcon(FinanceSuitIcons.creditCard),
+                  title: Text(
+                    link.planTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(l10n.respOwnerLabel(link.ownerName)),
+                      if (link.isPending)
+                        Text(l10n.respReviewBeforeAccepting)
+                      else ...[
+                        ProtectedMoneyText(
+                          l10n.respYourResponsibilityRemaining(
+                            link.remainingTotal.format(),
+                          ),
+                          interactive: false,
+                        ),
+                        if (link.nextDueOn != null &&
+                            link.nextDueAmount != null)
+                          ProtectedMoneyText(
+                            l10n.respNextInstallment(
+                              link.nextDueAmount!.format(),
+                              link.nextDueOn!.toIso(),
+                            ),
+                            interactive: false,
+                          ),
+                      ],
+                    ],
+                  ),
+                  isThreeLine: true,
+                  trailing: link.isPending
+                      ? FilledButton(
+                          key: Key('linked-review-${link.linkId}'),
+                          onPressed: () =>
+                              context.push('/money/linked/${link.linkId}'),
+                          child: Text(l10n.respReviewAction),
+                        )
+                      : ResponsibilityStatusChip(status: link.status),
+                  onTap: () => context.push('/money/linked/${link.linkId}'),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

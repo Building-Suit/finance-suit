@@ -24,8 +24,11 @@ import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/facility_activity.dart';
+import 'package:work_tracker/features/finance/domain/installment_responsibility.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
+import 'package:work_tracker/features/finance/presentation/providers/responsibility_providers.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/finance_widgets.dart';
+import 'package:work_tracker/features/finance/presentation/widgets/responsibility_widgets.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 /// Focused detail for one credit card or BNPL facility: debt summary,
@@ -535,11 +538,15 @@ class _FacilityDetailBody extends ConsumerWidget {
                   ),
                 );
               }
+              final respSummaries =
+                  ref.watch(responsibilitySummariesProvider).value ??
+                  const <String, InstallmentResponsibilitySummary>{};
               return Column(
                 children: [
                   for (final plan in plans)
                     _PlanCard(
                       plan: plan,
+                      responsibility: respSummaries[plan.id],
                       onCancel:
                           plan.status == InstallmentPlanStatus.active &&
                               plan.paidMinor == 0
@@ -552,6 +559,21 @@ class _FacilityDetailBody extends ConsumerWidget {
                       onShowRevisions: plan.revision > 1
                           ? () => onShowRevisions(plan)
                           : null,
+                      onLink:
+                          plan.status == InstallmentPlanStatus.active &&
+                              respSummaries[plan.id] == null
+                          ? () => showResponsibilityLinkSheet(
+                              context,
+                              ref,
+                              planId: plan.id,
+                            )
+                          : null,
+                      onOpenResponsibility: respSummaries[plan.id] == null
+                          ? null
+                          : () => context.push(
+                              '/money/linked/'
+                              '${respSummaries[plan.id]!.linkId}',
+                            ),
                     ),
                 ],
               );
@@ -827,17 +849,23 @@ class _DueTile extends StatelessWidget {
 class _PlanCard extends StatelessWidget {
   const _PlanCard({
     required this.plan,
+    this.responsibility,
     this.onCancel,
     this.onEdit,
     this.onRestructure,
     this.onShowRevisions,
+    this.onLink,
+    this.onOpenResponsibility,
   });
 
   final InstallmentPlan plan;
+  final InstallmentResponsibilitySummary? responsibility;
   final VoidCallback? onCancel;
   final VoidCallback? onEdit;
   final VoidCallback? onRestructure;
   final VoidCallback? onShowRevisions;
+  final VoidCallback? onLink;
+  final VoidCallback? onOpenResponsibility;
 
   @override
   Widget build(BuildContext context) {
@@ -853,7 +881,9 @@ class _PlanCard extends StatelessWidget {
         onCancel != null ||
         onEdit != null ||
         onRestructure != null ||
-        onShowRevisions != null;
+        onShowRevisions != null ||
+        onLink != null ||
+        onOpenResponsibility != null;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -898,6 +928,18 @@ class _PlanCard extends StatelessWidget {
                           value: onShowRevisions!,
                           child: Text(l10n.planRevisionsAction),
                         ),
+                      if (onLink != null)
+                        PopupMenuItem(
+                          key: Key('plan-link-${plan.id}'),
+                          value: onLink!,
+                          child: Text(l10n.respLinkAction),
+                        ),
+                      if (onOpenResponsibility != null)
+                        PopupMenuItem(
+                          key: Key('plan-responsibility-${plan.id}'),
+                          value: onOpenResponsibility!,
+                          child: Text(l10n.respOpenAction),
+                        ),
                       if (onCancel != null)
                         PopupMenuItem(
                           key: Key('plan-cancel-${plan.id}'),
@@ -908,6 +950,21 @@ class _PlanCard extends StatelessWidget {
                   ),
               ],
             ),
+            if (responsibility != null) ...[
+              const SizedBox(height: 4),
+              InkWell(
+                key: Key('plan-resp-chip-${plan.id}'),
+                onTap: onOpenResponsibility,
+                child: Text(
+                  responsibilityStatusLabel(l10n, responsibility!),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: responsibility!.isRejected
+                        ? theme.colorScheme.error
+                        : theme.colorScheme.primary,
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 4),
             ProtectedMoneyText(
               l10n.planPaidOfTotal(
