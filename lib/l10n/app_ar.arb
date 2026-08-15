@@ -1029,6 +1029,89 @@
     }
   },
   "paymentNothingOwed": "لا توجد مديونية حاليًا.",
+  "paymentMinimumChip": "الحد الأدنى للسداد",
+  "paymentMinimumHint": "حد أدنى {amount}",
+  "@paymentMinimumHint": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentChooseWhatToPay": "اختر ما تريد سداده",
+  "paymentCustomSelection": "مخصص",
+  "paymentGroupInstallments": "الأقساط",
+  "paymentGroupFeesInterest": "الرسوم والفوائد",
+  "paymentGroupPurchases": "المشتريات",
+  "paymentGroupNextDue": "القسط التالي (لم يستحق بعد)",
+  "paymentAdditionalBalance": "رصيد التسهيل الإضافي",
+  "paymentRowPaid": "مسدد بالكامل",
+  "paymentRowPartial": "مسدد {paid} / {total}",
+  "@paymentRowPartial": {
+    "placeholders": {
+      "paid": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentRowPayPartial": "سداد {paid} / {total}",
+  "@paymentRowPayPartial": {
+    "placeholders": {
+      "paid": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentRowRemaining": "متبقي {amount}",
+  "@paymentRowRemaining": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentRowPayAmount": "مبلغ السداد",
+  "paymentEditRowAmount": "تعديل مبلغ {title}",
+  "@paymentEditRowAmount": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentInstallmentSubtitle": "قسط {number} من {count} · {date}",
+  "@paymentInstallmentSubtitle": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dueBreakdownTitle": "تفاصيل المستحقات",
+  "dueBreakdownTotalDue": "إجمالي المستحق",
+  "dueBreakdownPaid": "المسدد",
+  "dueBreakdownLeftToPay": "المتبقي للسداد",
+  "dueBreakdownPartiallyPaid": "مسدد جزئيًا",
+  "dueBreakdownEmpty": "لا توجد مستحقات حالية.",
+  "paymentAppliedTo": "طُبقت على",
+  "paymentAppliedToStatement": "رصيد كشف الحساب",
+  "valAllocationTotalMismatch": "يجب أن يساوي مجموع العناصر المختارة مبلغ الدفعة",
+  "valAllocationSelectionRequired": "اختر عنصرًا واحدًا على الأقل للسداد",
+  "errAllocationNotPayable": "أحد العناصر المختارة غير مستحق السداد حاليًا",
+  "errAllocationTargetPaid": "أحد العناصر المختارة مسدد بالفعل",
+  "errPaymentConflict": "سُجلت هذه الدفعة من قبل باختيار مختلف",
   "paymentReverse": "عكس الدفعة",
   "paymentReverseConfirmTitle": "عكس هذه الدفعة؟",
   "paymentReverseConfirmBody": "سيعود المبلغ إلى حساب المصدر وتُفتح الأقساط المغطاة من جديد.",

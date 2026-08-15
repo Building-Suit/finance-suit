@@ -4091,6 +4091,180 @@ abstract class AppLocalizations {
   /// **'Nothing is owed right now.'**
   String get paymentNothingOwed;
 
+  /// No description provided for @paymentMinimumChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum payment'**
+  String get paymentMinimumChip;
+
+  /// No description provided for @paymentMinimumHint.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} minimum'**
+  String paymentMinimumHint(String amount);
+
+  /// No description provided for @paymentChooseWhatToPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what to pay'**
+  String get paymentChooseWhatToPay;
+
+  /// No description provided for @paymentCustomSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get paymentCustomSelection;
+
+  /// No description provided for @paymentGroupInstallments.
+  ///
+  /// In en, this message translates to:
+  /// **'Installments'**
+  String get paymentGroupInstallments;
+
+  /// No description provided for @paymentGroupFeesInterest.
+  ///
+  /// In en, this message translates to:
+  /// **'Fees & interest'**
+  String get paymentGroupFeesInterest;
+
+  /// No description provided for @paymentGroupPurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchases'**
+  String get paymentGroupPurchases;
+
+  /// No description provided for @paymentGroupNextDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Next installment (not yet due)'**
+  String get paymentGroupNextDue;
+
+  /// No description provided for @paymentAdditionalBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional facility balance'**
+  String get paymentAdditionalBalance;
+
+  /// No description provided for @paymentRowPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid in full'**
+  String get paymentRowPaid;
+
+  /// No description provided for @paymentRowPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid {paid} / {total}'**
+  String paymentRowPartial(String paid, String total);
+
+  /// No description provided for @paymentRowPayPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay {paid} / {total}'**
+  String paymentRowPayPartial(String paid, String total);
+
+  /// No description provided for @paymentRowRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} left'**
+  String paymentRowRemaining(String amount);
+
+  /// No description provided for @paymentRowPayAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay amount'**
+  String get paymentRowPayAmount;
+
+  /// No description provided for @paymentEditRowAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit amount for {title}'**
+  String paymentEditRowAmount(String title);
+
+  /// No description provided for @paymentInstallmentSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment {number} of {count} · {date}'**
+  String paymentInstallmentSubtitle(int number, int count, String date);
+
+  /// No description provided for @dueBreakdownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Due breakdown'**
+  String get dueBreakdownTitle;
+
+  /// No description provided for @dueBreakdownTotalDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Total due'**
+  String get dueBreakdownTotalDue;
+
+  /// No description provided for @dueBreakdownPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get dueBreakdownPaid;
+
+  /// No description provided for @dueBreakdownLeftToPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Left to pay'**
+  String get dueBreakdownLeftToPay;
+
+  /// No description provided for @dueBreakdownPartiallyPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Partially paid'**
+  String get dueBreakdownPartiallyPaid;
+
+  /// No description provided for @dueBreakdownEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is currently due.'**
+  String get dueBreakdownEmpty;
+
+  /// No description provided for @paymentAppliedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Applied to'**
+  String get paymentAppliedTo;
+
+  /// No description provided for @paymentAppliedToStatement.
+  ///
+  /// In en, this message translates to:
+  /// **'Statement balance'**
+  String get paymentAppliedToStatement;
+
+  /// No description provided for @valAllocationTotalMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected items must add up to the payment amount'**
+  String get valAllocationTotalMismatch;
+
+  /// No description provided for @valAllocationSelectionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose at least one item to pay'**
+  String get valAllocationSelectionRequired;
+
+  /// No description provided for @errAllocationNotPayable.
+  ///
+  /// In en, this message translates to:
+  /// **'One of the selected items is not currently payable'**
+  String get errAllocationNotPayable;
+
+  /// No description provided for @errAllocationTargetPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'One of the selected items is already paid'**
+  String get errAllocationTargetPaid;
+
+  /// No description provided for @errPaymentConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'This payment was already recorded with a different selection'**
+  String get errPaymentConflict;
+
   /// No description provided for @paymentReverse.
   ///
   /// In en, this message translates to:

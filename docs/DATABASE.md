@@ -16,7 +16,8 @@ schema. Module schemas are:
   `installment_dues`, `installment_payment_allocations`,
   `installment_plan_revisions`, credit-card statement tables
   (`credit_card_statement_cycles`, `credit_card_statement_items`,
-  `credit_card_statement_allocations`), fee rules
+  `credit_card_statement_allocations`,
+  `credit_card_statement_item_allocations`), fee rules
   (`credit_card_fee_rules`, `credit_card_fee_charges`), account
   balance views, atomic transfer/income/facility RPCs, and the
   Finance Suit Network tables (`network_add_requests`,
@@ -89,8 +90,38 @@ ledger rows are blocked by triggers and only the facility RPCs
 `set_credit_facility_status`, `charge_credit_card`,
 `apply_credit_card_fees`, `create_installment_plan`,
 `update_installment_plan`, `restructure_installment_plan`,
-`pay_credit_facility`, `reverse_facility_payment`,
-`cancel_installment_plan`) mutate them.
+`pay_credit_facility`, `pay_credit_facility_v2`,
+`reverse_facility_payment`, `cancel_installment_plan`) mutate them.
+
+Selectable payment allocation: `pay_credit_facility_v2` takes a typed
+allocation array (`installment_due` / `statement_item` /
+`facility_balance` entries) whose amounts must total exactly the payment
+amount; every target must be currently payable (closed unpaid statements
+per the waterfall rule, dues due on or before the payment date or on a
+payable statement's due date, or — only when nothing is currently due —
+the single next upcoming due date). Statement items get item-level rows
+in `credit_card_statement_item_allocations` while a cycle-level
+aggregate (the exact per-cycle sum of those item rows) is still written
+to `credit_card_statement_allocations` for legacy consumers.
+`credit_card_statement_summaries` keeps reading ONLY the cycle-level
+table for paid state; `credit_card_statement_item_statuses` reads ONLY
+the item-level table — the two are never added together. The v1
+waterfall also records its implied item split (`allocation_origin =
+'system'`). Historical cycle allocations were backfilled to item rows
+(`allocation_origin = 'legacy_inferred'`) by deterministically replaying
+the legacy oldest-first order; cycles whose aggregate could not be
+proven to fit their items keep only the cycle-level truth and surface as
+one `statement_cycle` row in the `facility_payment_allocations` detail
+view. `facility_due_breakdown(account, as_of)` is the single DTO for the
+Pay-screen checklist and the persistent Due Breakdown, including
+`minimum_due_minor` / `minimum_remaining_minor` (qualifying payments =
+exactly the statement's `total_paid_minor`; money parked on other cycles
+or future dues never satisfies the minimum) and
+`additional_balance_minor` for outstanding money that is not part of the
+current due (unbilled charges, future principal) — never faked as due
+components. `p_payment_id` idempotency in v2 compares the stored
+allocation set: an identical retry returns the stored payment, a
+conflicting reuse raises `payment_conflict`.
 
 Partial income acceptance: when less money arrives than was owed,
 `accept_income_occurrence_partial` books the received part like a normal

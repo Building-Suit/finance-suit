@@ -12,6 +12,7 @@ import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
 import 'package:work_tracker/features/finance/domain/card_research.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/facility_activity.dart';
+import 'package:work_tracker/features/finance/domain/facility_payment_component.dart';
 import 'package:work_tracker/features/finance/domain/financial_transaction.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/home_due_obligation.dart';
@@ -1113,6 +1114,52 @@ class FinanceRepository {
         params: draft.toJson(),
       );
       return id;
+    });
+  }
+
+  /// Atomic facility repayment with explicit typed allocations. The server
+  /// enforces that the allocation total equals the payment amount and that
+  /// every target is a currently payable component.
+  Future<Result<String>> payCreditFacilityV2(FacilityPaymentV2Draft draft) {
+    return guard(() async {
+      final id = await _db.rpc<String>(
+        'pay_credit_facility_v2',
+        params: draft.toJson(),
+      );
+      return id;
+    });
+  }
+
+  /// Authoritative Due Breakdown DTO: current payable components with their
+  /// exact server-side paid state plus the configured minimum payment.
+  Future<Result<FacilityDueBreakdown>> fetchFacilityDueBreakdown(
+    String accountId, {
+    PlainDate? asOf,
+  }) {
+    return guard(() async {
+      final json = await _db.rpc<Map<String, dynamic>>(
+        'facility_due_breakdown',
+        params: {'p_account_id': accountId, 'p_as_of': asOf?.toIso()},
+      );
+      return FacilityDueBreakdown.fromJson(json);
+    });
+  }
+
+  /// The persisted "Applied to" rows of one facility payment.
+  Future<Result<List<FacilityPaymentAllocationDetail>>> fetchPaymentAllocations(
+    String paymentTransactionId,
+  ) {
+    return guard(() async {
+      final rows = await _db
+          .from('facility_payment_allocations')
+          .select()
+          .eq('user_id', _userId)
+          .eq('payment_transaction_id', paymentTransactionId)
+          .order('component_type')
+          .order('detail_on', ascending: true);
+      return [
+        for (final row in rows) FacilityPaymentAllocationDetail.fromJson(row),
+      ];
     });
   }
 
