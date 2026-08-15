@@ -25,6 +25,9 @@ import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/category_selector.dart';
+import 'package:work_tracker/features/finance/presentation/widgets/responsibility_widgets.dart';
+import 'package:work_tracker/features/network/domain/network_models.dart';
+import 'package:work_tracker/features/network/presentation/providers/network_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
 /// Focused form for financing a purchase through a credit card or BNPL
@@ -64,6 +67,8 @@ class _InstallmentPurchaseScreenState
   final _bankOutstandingController = TextEditingController();
   final _reconciliationNotesController = TextEditingController();
   final _notesController = TextEditingController();
+  final _respNameController = TextEditingController();
+  final _respNoteController = TextEditingController();
 
   /// Client-generated so a save retry cannot create a second plan.
   final String _newPlanId = newClientUuid();
@@ -71,6 +76,9 @@ class _InstallmentPurchaseScreenState
   String? _facilityId;
   String? _categoryId;
   String? _downAccountId;
+  bool _forSomeoneElse = false;
+  ResponsibilityLinkType _respType = ResponsibilityLinkType.custom;
+  String? _respConnectionId;
   bool _hasDownPayment = false;
   bool _importRunning = false;
   bool _currentInstallmentPosted = false;
@@ -191,6 +199,8 @@ class _InstallmentPurchaseScreenState
     _bankOutstandingController.dispose();
     _reconciliationNotesController.dispose();
     _notesController.dispose();
+    _respNameController.dispose();
+    _respNoteController.dispose();
     super.dispose();
   }
 
@@ -331,15 +341,45 @@ class _InstallmentPurchaseScreenState
         ? await repo.updateInstallmentPlan(widget.planId!, draft)
         : await repo.createInstallmentPlan(draft);
     if (!mounted) return;
+    if (!result.isOk) {
+      setState(() {
+        _busy = false;
+        _failure = result.failureOrNull;
+      });
+      return;
+    }
+    // The installment is created regardless of the responsibility link: a
+    // failed link never rolls back a booked purchase, it can simply be
+    // retried from the plan afterwards.
+    if (!_isEdit && _forSomeoneElse) {
+      await createResponsibilityLink(
+        context,
+        ref,
+        planId: _newPlanId,
+        target: _responsibilityTarget(),
+      );
+      if (!mounted) return;
+    }
     setState(() => _busy = false);
-    result.when(
-      ok: (_) {
-        invalidateFinanceData(ref);
-        AppToast.success(context, AppLocalizations.of(context).setSaved);
-        context.pushReplacement('/money/facilities/${facility.accountId}');
-      },
-      err: (failure) => setState(() => _failure = failure),
-    );
+    invalidateFinanceData(ref);
+    AppToast.success(context, AppLocalizations.of(context).setSaved);
+    context.pushReplacement('/money/facilities/${facility.accountId}');
+  }
+
+  ResponsibilityTarget _responsibilityTarget() {
+    final note = _respNoteController.text.trim().isEmpty
+        ? null
+        : _respNoteController.text.trim();
+    return switch (_respType) {
+      ResponsibilityLinkType.custom => CustomResponsibilityTarget(
+        name: _respNameController.text.trim(),
+        note: note,
+      ),
+      ResponsibilityLinkType.network => NetworkResponsibilityTarget(
+        connectionId: _respConnectionId!,
+        note: note,
+      ),
+    };
   }
 
   @override
@@ -1018,6 +1058,10 @@ class _InstallmentPurchaseScreenState
                 return e == null ? null : validationMessage(context, e);
               },
             ),
+            if (!_isEdit) ...[
+              const SizedBox(height: 16),
+              _buildResponsibilitySection(context, l10n),
+            ],
             const SizedBox(height: 16),
             _PreviewCard(
               facility: facility,
@@ -1054,6 +1098,135 @@ class _InstallmentPurchaseScreenState
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// "Who is this installment for?" — the plan is always the owner's; a
+  /// custom person or network contact only becomes responsible for
+  /// reimbursing them.
+  Widget _buildResponsibilitySection(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) {
+    final theme = Theme.of(context);
+    final contacts =
+        ref.watch(networkContactsProvider).value ?? const <NetworkContact>[];
+    return _SectionCard(
+      title: l10n.respWhoForTitle,
+      subtitle: l10n.respExplainerGeneric,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SwitchListTile.adaptive(
+            key: const Key('purchase-for-someone'),
+            contentPadding: EdgeInsets.zero,
+            title: Text(l10n.respForSomeoneElse),
+            subtitle: _forSomeoneElse ? null : Text(l10n.respForMe),
+            value: _forSomeoneElse,
+            onChanged: _busy
+                ? null
+                : (v) => setState(() => _forSomeoneElse = v),
+          ),
+          if (_forSomeoneElse) ...[
+            SegmentedButton<ResponsibilityLinkType>(
+              key: const Key('purchase-resp-type'),
+              segments: [
+                ButtonSegment(
+                  value: ResponsibilityLinkType.custom,
+                  label: Text(l10n.respCustomPerson),
+                ),
+                ButtonSegment(
+                  value: ResponsibilityLinkType.network,
+                  label: Text(l10n.respNetworkContact),
+                ),
+              ],
+              selected: {_respType},
+              onSelectionChanged: _busy
+                  ? null
+                  : (selection) => setState(() => _respType = selection.first),
+            ),
+            const SizedBox(height: 16),
+            if (_respType == ResponsibilityLinkType.custom)
+              AppTextFormField(
+                key: const Key('purchase-resp-name'),
+                controller: _respNameController,
+                textCapitalization: TextCapitalization.words,
+                decoration: InputDecoration(
+                  labelText: l10n.respCustomNameLabel,
+                  helperText: l10n.respCustomNameHelper,
+                  helperMaxLines: 3,
+                ),
+                validator: (v) =>
+                    _forSomeoneElse &&
+                        _respType == ResponsibilityLinkType.custom &&
+                        (v == null || v.trim().isEmpty)
+                    ? l10n.errResponsibilityName
+                    : null,
+              )
+            else if (contacts.isEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(l10n.respNoContacts, style: theme.textTheme.bodyMedium),
+                  const SizedBox(height: 8),
+                  OutlinedButton(
+                    key: const Key('purchase-resp-manage-network'),
+                    onPressed: () => context.push('/money/network'),
+                    child: Text(l10n.respManageNetwork),
+                  ),
+                ],
+              )
+            else ...[
+              AppSelectionField<String>(
+                key: const Key('purchase-resp-contact'),
+                initialValue:
+                    contacts.any((c) => c.connectionId == _respConnectionId)
+                    ? _respConnectionId
+                    : null,
+                decoration: InputDecoration(
+                  labelText: l10n.respNetworkContactLabel,
+                ),
+                items: [
+                  for (final contact in contacts)
+                    DropdownMenuItem(
+                      value: contact.connectionId,
+                      child: Text(
+                        contact.localAlias,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                ],
+                onChanged: (v) => setState(() => _respConnectionId = v),
+                validator: (v) =>
+                    _forSomeoneElse &&
+                        _respType == ResponsibilityLinkType.network &&
+                        v == null
+                    ? l10n.valRequired
+                    : null,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                l10n.respNetworkConsentHint,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
+            AppTextFormField(
+              key: const Key('purchase-resp-note'),
+              controller: _respNoteController,
+              decoration: InputDecoration(
+                labelText: l10n.respSharedNoteLabel,
+                helperText: _respType == ResponsibilityLinkType.network
+                    ? l10n.respSharedNoteHelper
+                    : null,
+                helperMaxLines: 3,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

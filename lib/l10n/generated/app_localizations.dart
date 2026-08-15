@@ -6604,6 +6604,462 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You cannot add yourself'**
   String get errNetworkSelfAdd;
+
+  /// No description provided for @respWhoForTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Who is this installment for?'**
+  String get respWhoForTitle;
+
+  /// No description provided for @respForMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get respForMe;
+
+  /// No description provided for @respForSomeoneElse.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone else'**
+  String get respForSomeoneElse;
+
+  /// No description provided for @respCustomPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom person'**
+  String get respCustomPerson;
+
+  /// No description provided for @respNetworkContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Finance Suit Network'**
+  String get respNetworkContact;
+
+  /// No description provided for @respCustomNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get respCustomNameLabel;
+
+  /// No description provided for @respCustomNameHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Private and local — only you can see this name. No Finance Suit account is needed.'**
+  String get respCustomNameHelper;
+
+  /// No description provided for @respSharedNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared note (optional)'**
+  String get respSharedNoteLabel;
+
+  /// No description provided for @respSharedNoteHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'The responsible person can see this note.'**
+  String get respSharedNoteHelper;
+
+  /// No description provided for @respNetworkContactLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Network contact'**
+  String get respNetworkContactLabel;
+
+  /// No description provided for @respNetworkConsentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'They will review the installment details and must accept before the link becomes active.'**
+  String get respNetworkConsentHint;
+
+  /// No description provided for @respNoContacts.
+  ///
+  /// In en, this message translates to:
+  /// **'No one is in your network yet. Add someone to your network first.'**
+  String get respNoContacts;
+
+  /// No description provided for @respManageNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Network'**
+  String get respManageNetwork;
+
+  /// No description provided for @respExplainerGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'The responsible person reimburses you for this installment. Your Credit Card / BNPL remains yours.'**
+  String get respExplainerGeneric;
+
+  /// No description provided for @respRecipientExplainer.
+  ///
+  /// In en, this message translates to:
+  /// **'You are responsible for reimbursing {name} for this installment. Their Credit Card / BNPL remains theirs.'**
+  String respRecipientExplainer(String name);
+
+  /// No description provided for @respLinkAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to someone'**
+  String get respLinkAction;
+
+  /// No description provided for @respOpenAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment responsibility'**
+  String get respOpenAction;
+
+  /// No description provided for @respLinkOngoingScope.
+  ///
+  /// In en, this message translates to:
+  /// **'This will link the remaining unpaid installments. Previously paid installments will stay unchanged.'**
+  String get respLinkOngoingScope;
+
+  /// No description provided for @respLinkedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked to {name}'**
+  String respLinkedTo(String name);
+
+  /// No description provided for @respWaitingForAcceptance.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · Waiting for acceptance'**
+  String respWaitingForAcceptance(String name);
+
+  /// No description provided for @respRejectedLink.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} rejected the link'**
+  String respRejectedLink(String name);
+
+  /// No description provided for @respUnlink.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get respUnlink;
+
+  /// No description provided for @respUnlinkConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink responsibility?'**
+  String get respUnlinkConfirmTitle;
+
+  /// No description provided for @respUnlinkConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Future responsibility ends and shared access stops. Recorded reimbursements stay in your history.'**
+  String get respUnlinkConfirmBody;
+
+  /// No description provided for @respUnlinkedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Responsibility unlinked'**
+  String get respUnlinkedToast;
+
+  /// No description provided for @respLinkRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'This link was removed'**
+  String get respLinkRemoved;
+
+  /// No description provided for @respLinkedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment linked'**
+  String get respLinkedToast;
+
+  /// No description provided for @respLinkRequestSentToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Link request sent'**
+  String get respLinkRequestSentToast;
+
+  /// No description provided for @respAcceptedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment link accepted'**
+  String get respAcceptedToast;
+
+  /// No description provided for @respRejectedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment link rejected'**
+  String get respRejectedToast;
+
+  /// No description provided for @respLinkedInstallmentsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked'**
+  String get respLinkedInstallmentsTab;
+
+  /// No description provided for @respLinkedInstallmentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked installments'**
+  String get respLinkedInstallmentsTitle;
+
+  /// No description provided for @respNoLinkedInstallments.
+  ///
+  /// In en, this message translates to:
+  /// **'No installments are linked to you.'**
+  String get respNoLinkedInstallments;
+
+  /// No description provided for @respReviewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get respReviewAction;
+
+  /// No description provided for @respReviewBeforeAccepting.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the details before accepting.'**
+  String get respReviewBeforeAccepting;
+
+  /// No description provided for @respWantsToLink.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} wants to link an installment to you'**
+  String respWantsToLink(String name);
+
+  /// No description provided for @homePendingLinkedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment link requests'**
+  String get homePendingLinkedTitle;
+
+  /// No description provided for @respOwnerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner: {name}'**
+  String respOwnerLabel(String name);
+
+  /// No description provided for @respYourResponsibilityRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Your responsibility: {amount} remaining'**
+  String respYourResponsibilityRemaining(String amount);
+
+  /// No description provided for @respNextInstallment.
+  ///
+  /// In en, this message translates to:
+  /// **'Next installment: {amount} on {date}'**
+  String respNextInstallment(String amount, String date);
+
+  /// No description provided for @respTermsChangedBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'This installment changed after the request was sent. Review the updated details before accepting.'**
+  String get respTermsChangedBanner;
+
+  /// No description provided for @respConsentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepting only confirms the responsibility. No money moves until a reimbursement is sent and accepted.'**
+  String get respConsentHint;
+
+  /// No description provided for @respTermsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment terms'**
+  String get respTermsSection;
+
+  /// No description provided for @respScheduleSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get respScheduleSection;
+
+  /// No description provided for @respReimbursementSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Reimbursement'**
+  String get respReimbursementSection;
+
+  /// No description provided for @respReimbursementReceivedTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Reimbursed {received} of {expected}'**
+  String respReimbursementReceivedTotal(String received, String expected);
+
+  /// No description provided for @respTermInterest.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment interest'**
+  String get respTermInterest;
+
+  /// No description provided for @respTermRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest rate'**
+  String get respTermRate;
+
+  /// No description provided for @respTermAlreadyPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Installments already paid'**
+  String get respTermAlreadyPaid;
+
+  /// No description provided for @respTermRemainingCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining installments'**
+  String get respTermRemainingCount;
+
+  /// No description provided for @respTermRemainingTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining total'**
+  String get respTermRemainingTotal;
+
+  /// No description provided for @respTermNextDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Next due'**
+  String get respTermNextDue;
+
+  /// No description provided for @respTermFinalDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Final due'**
+  String get respTermFinalDue;
+
+  /// No description provided for @respDueStatusNotPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Not paid'**
+  String get respDueStatusNotPaid;
+
+  /// No description provided for @respDueStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get respDueStatusPending;
+
+  /// No description provided for @respDueStatusPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Partial'**
+  String get respDueStatusPartial;
+
+  /// No description provided for @respDueStatusReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Received'**
+  String get respDueStatusReceived;
+
+  /// No description provided for @respSendReimbursement.
+  ///
+  /// In en, this message translates to:
+  /// **'Send reimbursement'**
+  String get respSendReimbursement;
+
+  /// No description provided for @respRecordReimbursement.
+  ///
+  /// In en, this message translates to:
+  /// **'Record reimbursement'**
+  String get respRecordReimbursement;
+
+  /// No description provided for @respReimbursementSentToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Reimbursement sent'**
+  String get respReimbursementSentToast;
+
+  /// No description provided for @respReimbursementRecordedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Reimbursement recorded'**
+  String get respReimbursementRecordedToast;
+
+  /// No description provided for @respAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get respAmountLabel;
+
+  /// No description provided for @respReceivedOnLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Received on'**
+  String get respReceivedOnLabel;
+
+  /// No description provided for @respReceiveIntoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive into'**
+  String get respReceiveIntoLabel;
+
+  /// No description provided for @respPayFromLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay from'**
+  String get respPayFromLabel;
+
+  /// No description provided for @respNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get respNoteLabel;
+
+  /// No description provided for @errAlreadyLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'This installment already has a responsible person'**
+  String get errAlreadyLinked;
+
+  /// No description provided for @errPlanNotLinkable.
+  ///
+  /// In en, this message translates to:
+  /// **'This installment cannot be linked'**
+  String get errPlanNotLinkable;
+
+  /// No description provided for @errPlanLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'This plan has responsibility history and cannot be rewritten. Unlink or restructure instead.'**
+  String get errPlanLinked;
+
+  /// No description provided for @errResponsibilityName.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a name between 1 and 80 characters'**
+  String get errResponsibilityName;
+
+  /// No description provided for @errLinkNotActive.
+  ///
+  /// In en, this message translates to:
+  /// **'This responsibility link is not active'**
+  String get errLinkNotActive;
+
+  /// No description provided for @errTermsChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'This installment changed. Review the updated terms first.'**
+  String get errTermsChanged;
+
+  /// No description provided for @errDueNotLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'This installment is outside the linked responsibility'**
+  String get errDueNotLinked;
+
+  /// No description provided for @errReimbursementExceedsDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount is larger than the remaining responsibility'**
+  String get errReimbursementExceedsDue;
+
+  /// No description provided for @errReimbursementPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolve the pending reimbursement first'**
+  String get errReimbursementPending;
+
+  /// No description provided for @errReimbursementLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded reimbursements cannot be edited directly'**
+  String get errReimbursementLocked;
 }
 
 class _AppLocalizationsDelegate
