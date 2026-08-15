@@ -8,6 +8,7 @@ import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
+import 'package:work_tracker/features/finance/domain/facility_payment_component.dart';
 import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/recurring_rule.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
@@ -18,6 +19,7 @@ import 'package:work_tracker/features/finance/presentation/screens/credit_facili
 import 'package:work_tracker/features/finance/presentation/screens/facility_payment_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/installment_purchase_screen.dart';
 import 'package:work_tracker/features/finance/presentation/screens/money_screen.dart';
+import 'package:work_tracker/features/finance/presentation/widgets/facility_due_breakdown_widgets.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/finance_widgets.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
@@ -138,6 +140,80 @@ final _upcomingDue = InstallmentDue.fromJson(const {
   'due_status': 'upcoming',
 });
 
+final _breakdown = FacilityDueBreakdown.fromJson(const {
+  'account_id': 'facility-1',
+  'account_type': 'credit_card',
+  'currency_code': 'EGP',
+  'as_of': '2026-08-10',
+  'outstanding_minor': 238000,
+  'total_due_minor': 23000,
+  'paid_minor': 7500,
+  'remaining_minor': 15500,
+  'additional_balance_minor': 222500,
+  'minimum_due_minor': 5000,
+  'minimum_remaining_minor': 2500,
+  'components': [
+    {
+      'component_type': 'installment_due',
+      'component_id': 'due-1',
+      'plan_id': 'plan-1',
+      'title': 'Fridge',
+      'activity_kind': 'installment_due',
+      'sequence_number': 2,
+      'installment_count': 12,
+      'occurred_on': '2026-08-01',
+      'amount_minor': 10000,
+      'paid_minor': 0,
+      'remaining_minor': 10000,
+      'payment_status': 'unpaid',
+      'scope': 'current',
+    },
+    {
+      'component_type': 'statement_item',
+      'component_id': 'item-1',
+      'cycle_id': 'cycle-1',
+      'transaction_id': 'tx-1',
+      'title': 'OpenAI',
+      'activity_kind': 'ordinary_expense',
+      'occurred_on': '2026-07-20',
+      'amount_minor': 5000,
+      'paid_minor': 0,
+      'remaining_minor': 5000,
+      'payment_status': 'unpaid',
+      'scope': 'current',
+    },
+    {
+      'component_type': 'statement_item',
+      'component_id': 'item-2',
+      'cycle_id': 'cycle-1',
+      'transaction_id': 'tx-2',
+      'title': 'Solidarity insurance',
+      'activity_kind': 'fee_charge',
+      'fee_type': 'insurance',
+      'occurred_on': '2026-07-21',
+      'amount_minor': 3000,
+      'paid_minor': 2500,
+      'remaining_minor': 500,
+      'payment_status': 'partially_paid',
+      'scope': 'current',
+    },
+    {
+      'component_type': 'statement_item',
+      'component_id': 'item-3',
+      'cycle_id': 'cycle-1',
+      'transaction_id': 'tx-3',
+      'title': 'Netflix',
+      'activity_kind': 'ordinary_expense',
+      'occurred_on': '2026-07-22',
+      'amount_minor': 5000,
+      'paid_minor': 5000,
+      'remaining_minor': 0,
+      'payment_status': 'paid',
+      'scope': 'current',
+    },
+  ],
+});
+
 const _expenseCategory = TransactionCategory(
   id: 'cat-1',
   name: 'Shopping',
@@ -181,6 +257,10 @@ List<dynamic> _baseOverrides({
     ),
     feeRulesProvider.overrideWith(
       (ref, accountId) async => const <CardFeeRule>[],
+    ),
+    facilityDueBreakdownProvider.overrideWith((ref, args) async => _breakdown),
+    paymentAllocationsProvider.overrideWith(
+      (ref, transactionId) async => const <FacilityPaymentAllocationDetail>[],
     ),
   ];
 }
@@ -356,6 +436,9 @@ void main() {
     testWidgets('detail screen lists fees and opens the fee dialog', (
       tester,
     ) async {
+      tester.view.physicalSize = const Size(800, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
       await _pump(
         tester,
         const CreditFacilityDetailScreen(accountId: 'facility-1'),
@@ -453,27 +536,28 @@ void main() {
 
   group('facility payment form', () {
     testWidgets(
-      'filters sources to same-currency assets and previews allocation',
+      'filters sources to same-currency assets and shows the checklist',
       (tester) async {
+        tester.view.physicalSize = const Size(800, 2400);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
         await _pump(
           tester,
           const FacilityPaymentScreen(accountId: 'facility-1'),
         );
 
-        // Quick chips prefill the amount from the facility summary.
-        await tester.tap(find.byKey(const Key('payment-chip-due-now')));
-        await tester.pumpAndSettle();
-        expect(find.text('180.00'), findsOneWidget);
-
-        final preview = find.byKey(const Key('payment-allocation-preview'));
-        expect(preview, findsOneWidget);
+        // The three presets and the selectable checklist are present; only
+        // actual current components appear — no future installments.
+        expect(find.byKey(const Key('payment-chip-next')), findsOneWidget);
+        expect(find.byKey(const Key('payment-chip-minimum')), findsOneWidget);
+        expect(find.byKey(const Key('payment-chip-full')), findsOneWidget);
+        final checklist = find.byKey(const Key('payment-checklist'));
+        expect(checklist, findsOneWidget);
         expect(
-          find.descendant(
-            of: preview,
-            matching: find.textContaining('2026-08-01'),
-          ),
+          find.byKey(const ValueKey('payment-row-installment_due:due-1')),
           findsOneWidget,
         );
+        expect(find.textContaining('2026-09-10'), findsNothing);
 
         // Source picker: EGP asset yes, USD asset no, and the facility
         // itself appears only in the facility selector above.
@@ -484,6 +568,172 @@ void main() {
         expect(find.textContaining('Visa Card ('), findsOneWidget);
       },
     );
+
+    testWidgets('selection drives the Amount field', (tester) async {
+      tester.view.physicalSize = const Size(800, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await _pump(tester, const FacilityPaymentScreen(accountId: 'facility-1'));
+
+      final amountField = find.byKey(const Key('payment-amount'));
+      final dueRow = find.byKey(
+        const ValueKey('payment-row-installment_due:due-1'),
+      );
+      final itemRow = find.byKey(
+        const ValueKey('payment-row-statement_item:item-1'),
+      );
+
+      await tester.tap(dueRow);
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<TextFormField>(amountField).controller!.text,
+        '100.00',
+      );
+
+      await tester.tap(itemRow);
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<TextFormField>(amountField).controller!.text,
+        '150.00',
+      );
+
+      await tester.tap(dueRow);
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<TextFormField>(amountField).controller!.text,
+        '50.00',
+      );
+    });
+
+    testWidgets('minimum preset selects exactly the server minimum', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await _pump(tester, const FacilityPaymentScreen(accountId: 'facility-1'));
+
+      await tester.tap(find.byKey(const Key('payment-chip-minimum')));
+      await tester.pumpAndSettle();
+      // minimum_remaining_minor = 2500 → 25.00, allocated as a visible
+      // partial amount on the oldest installment due.
+      expect(
+        tester
+            .widget<TextFormField>(find.byKey(const Key('payment-amount')))
+            .controller!
+            .text,
+        '25.00',
+      );
+      expect(find.textContaining('Pay 25.00'), findsOneWidget);
+    });
+
+    testWidgets('full outstanding includes the explicit balance row', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await _pump(tester, const FacilityPaymentScreen(accountId: 'facility-1'));
+
+      await tester.tap(find.byKey(const Key('payment-chip-full')));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<TextFormField>(find.byKey(const Key('payment-amount')))
+            .controller!
+            .text,
+        '2,380.00',
+      );
+      expect(
+        find.byKey(const ValueKey('payment-row-facility-balance')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a fully paid item is not selectable again', (tester) async {
+      tester.view.physicalSize = const Size(800, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await _pump(tester, const FacilityPaymentScreen(accountId: 'facility-1'));
+
+      // Netflix is paid: rendered as a static breakdown row, no checkbox.
+      expect(
+        find.byKey(const ValueKey('payment-row-statement_item:item-3')),
+        findsNothing,
+      );
+      expect(find.text('Netflix'), findsOneWidget);
+    });
+
+    testWidgets('renders in Arabic at 320x480 without overflow', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 480);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await _pump(
+        tester,
+        const FacilityPaymentScreen(accountId: 'facility-1'),
+        locale: const Locale('ar'),
+      );
+      expect(find.byKey(const Key('payment-checklist')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('due breakdown', () {
+    testWidgets('shows totals with paid, partial, and unpaid states', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            theme: AppTheme.light(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: DueBreakdownList(breakdown: _breakdown),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Total due'), findsOneWidget);
+      expect(find.text('Paid'), findsOneWidget);
+      expect(find.text('Left to pay'), findsOneWidget);
+
+      // Fully paid rows stay visible, muted and struck through.
+      final netflix = tester.widget<Text>(find.text('Netflix'));
+      expect(netflix.style?.decoration, TextDecoration.lineThrough);
+
+      // Partial rows show paid/total and remaining, never struck through.
+      final insurance = tester.widget<Text>(find.text('Solidarity insurance'));
+      expect(insurance.style?.decoration, isNot(TextDecoration.lineThrough));
+      expect(find.textContaining('Paid 25.00'), findsOneWidget);
+      expect(find.textContaining('left'), findsOneWidget);
+
+      // Unpaid rows are plain.
+      final openai = tester.widget<Text>(find.text('OpenAI'));
+      expect(openai.style?.decoration, isNot(TextDecoration.lineThrough));
+    });
+
+    testWidgets('facility detail embeds the due breakdown card', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await _pump(
+        tester,
+        const CreditFacilityDetailScreen(accountId: 'facility-1'),
+      );
+      expect(find.byKey(const Key('facility-due-breakdown')), findsOneWidget);
+    });
   });
 
   group('facility detail', () {

@@ -33,6 +33,8 @@ final realtimeInvalidationProvider = Provider<void>((ref) {
         ..invalidate(creditFacilitiesProvider)
         ..invalidate(installmentPlansProvider)
         ..invalidate(installmentDuesProvider)
+        ..invalidate(facilityDueBreakdownProvider)
+        ..invalidate(paymentAllocationsProvider)
         ..invalidate(incomeSourcesProvider)
         ..invalidate(pendingIncomeProvider)
         ..invalidate(historyPageProvider)
@@ -81,6 +83,10 @@ final realtimeInvalidationProvider = Provider<void>((ref) {
     (schema: AppSchemas.finance, table: 'credit_card_statement_cycles'),
     (schema: AppSchemas.finance, table: 'credit_card_statement_items'),
     (schema: AppSchemas.finance, table: 'credit_card_statement_allocations'),
+    (
+      schema: AppSchemas.finance,
+      table: 'credit_card_statement_item_allocations',
+    ),
     (schema: AppSchemas.finance, table: 'credit_card_fee_rules'),
     (schema: AppSchemas.finance, table: 'credit_card_fee_charges'),
     (schema: AppSchemas.finance, table: 'income_sources'),

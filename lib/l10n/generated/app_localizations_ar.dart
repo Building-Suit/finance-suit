@@ -2187,6 +2187,108 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paymentNothingOwed => 'لا توجد مديونية حاليًا.';
 
   @override
+  String get paymentMinimumChip => 'الحد الأدنى للسداد';
+
+  @override
+  String paymentMinimumHint(String amount) {
+    return 'حد أدنى $amount';
+  }
+
+  @override
+  String get paymentChooseWhatToPay => 'اختر ما تريد سداده';
+
+  @override
+  String get paymentCustomSelection => 'مخصص';
+
+  @override
+  String get paymentGroupInstallments => 'الأقساط';
+
+  @override
+  String get paymentGroupFeesInterest => 'الرسوم والفوائد';
+
+  @override
+  String get paymentGroupPurchases => 'المشتريات';
+
+  @override
+  String get paymentGroupNextDue => 'القسط التالي (لم يستحق بعد)';
+
+  @override
+  String get paymentAdditionalBalance => 'رصيد التسهيل الإضافي';
+
+  @override
+  String get paymentRowPaid => 'مسدد بالكامل';
+
+  @override
+  String paymentRowPartial(String paid, String total) {
+    return 'مسدد $paid / $total';
+  }
+
+  @override
+  String paymentRowPayPartial(String paid, String total) {
+    return 'سداد $paid / $total';
+  }
+
+  @override
+  String paymentRowRemaining(String amount) {
+    return 'متبقي $amount';
+  }
+
+  @override
+  String get paymentRowPayAmount => 'مبلغ السداد';
+
+  @override
+  String paymentEditRowAmount(String title) {
+    return 'تعديل مبلغ $title';
+  }
+
+  @override
+  String paymentInstallmentSubtitle(int number, int count, String date) {
+    return 'قسط $number من $count · $date';
+  }
+
+  @override
+  String get dueBreakdownTitle => 'تفاصيل المستحقات';
+
+  @override
+  String get dueBreakdownTotalDue => 'إجمالي المستحق';
+
+  @override
+  String get dueBreakdownPaid => 'المسدد';
+
+  @override
+  String get dueBreakdownLeftToPay => 'المتبقي للسداد';
+
+  @override
+  String get dueBreakdownPartiallyPaid => 'مسدد جزئيًا';
+
+  @override
+  String get dueBreakdownEmpty => 'لا توجد مستحقات حالية.';
+
+  @override
+  String get paymentAppliedTo => 'طُبقت على';
+
+  @override
+  String get paymentAppliedToStatement => 'رصيد كشف الحساب';
+
+  @override
+  String get valAllocationTotalMismatch =>
+      'يجب أن يساوي مجموع العناصر المختارة مبلغ الدفعة';
+
+  @override
+  String get valAllocationSelectionRequired =>
+      'اختر عنصرًا واحدًا على الأقل للسداد';
+
+  @override
+  String get errAllocationNotPayable =>
+      'أحد العناصر المختارة غير مستحق السداد حاليًا';
+
+  @override
+  String get errAllocationTargetPaid => 'أحد العناصر المختارة مسدد بالفعل';
+
+  @override
+  String get errPaymentConflict => 'سُجلت هذه الدفعة من قبل باختيار مختلف';
+
+  @override
   String get paymentReverse => 'عكس الدفعة';
 
   @override

@@ -2197,6 +2197,110 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentNothingOwed => 'Nothing is owed right now.';
 
   @override
+  String get paymentMinimumChip => 'Minimum payment';
+
+  @override
+  String paymentMinimumHint(String amount) {
+    return '$amount minimum';
+  }
+
+  @override
+  String get paymentChooseWhatToPay => 'Choose what to pay';
+
+  @override
+  String get paymentCustomSelection => 'Custom';
+
+  @override
+  String get paymentGroupInstallments => 'Installments';
+
+  @override
+  String get paymentGroupFeesInterest => 'Fees & interest';
+
+  @override
+  String get paymentGroupPurchases => 'Purchases';
+
+  @override
+  String get paymentGroupNextDue => 'Next installment (not yet due)';
+
+  @override
+  String get paymentAdditionalBalance => 'Additional facility balance';
+
+  @override
+  String get paymentRowPaid => 'Paid in full';
+
+  @override
+  String paymentRowPartial(String paid, String total) {
+    return 'Paid $paid / $total';
+  }
+
+  @override
+  String paymentRowPayPartial(String paid, String total) {
+    return 'Pay $paid / $total';
+  }
+
+  @override
+  String paymentRowRemaining(String amount) {
+    return '$amount left';
+  }
+
+  @override
+  String get paymentRowPayAmount => 'Pay amount';
+
+  @override
+  String paymentEditRowAmount(String title) {
+    return 'Edit amount for $title';
+  }
+
+  @override
+  String paymentInstallmentSubtitle(int number, int count, String date) {
+    return 'Installment $number of $count · $date';
+  }
+
+  @override
+  String get dueBreakdownTitle => 'Due breakdown';
+
+  @override
+  String get dueBreakdownTotalDue => 'Total due';
+
+  @override
+  String get dueBreakdownPaid => 'Paid';
+
+  @override
+  String get dueBreakdownLeftToPay => 'Left to pay';
+
+  @override
+  String get dueBreakdownPartiallyPaid => 'Partially paid';
+
+  @override
+  String get dueBreakdownEmpty => 'Nothing is currently due.';
+
+  @override
+  String get paymentAppliedTo => 'Applied to';
+
+  @override
+  String get paymentAppliedToStatement => 'Statement balance';
+
+  @override
+  String get valAllocationTotalMismatch =>
+      'The selected items must add up to the payment amount';
+
+  @override
+  String get valAllocationSelectionRequired =>
+      'Choose at least one item to pay';
+
+  @override
+  String get errAllocationNotPayable =>
+      'One of the selected items is not currently payable';
+
+  @override
+  String get errAllocationTargetPaid =>
+      'One of the selected items is already paid';
+
+  @override
+  String get errPaymentConflict =>
+      'This payment was already recorded with a different selection';
+
+  @override
   String get paymentReverse => 'Reverse payment';
 
   @override

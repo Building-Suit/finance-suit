@@ -1029,6 +1029,89 @@
     }
   },
   "paymentNothingOwed": "Nothing is owed right now.",
+  "paymentMinimumChip": "Minimum payment",
+  "paymentMinimumHint": "{amount} minimum",
+  "@paymentMinimumHint": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentChooseWhatToPay": "Choose what to pay",
+  "paymentCustomSelection": "Custom",
+  "paymentGroupInstallments": "Installments",
+  "paymentGroupFeesInterest": "Fees & interest",
+  "paymentGroupPurchases": "Purchases",
+  "paymentGroupNextDue": "Next installment (not yet due)",
+  "paymentAdditionalBalance": "Additional facility balance",
+  "paymentRowPaid": "Paid in full",
+  "paymentRowPartial": "Paid {paid} / {total}",
+  "@paymentRowPartial": {
+    "placeholders": {
+      "paid": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentRowPayPartial": "Pay {paid} / {total}",
+  "@paymentRowPayPartial": {
+    "placeholders": {
+      "paid": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentRowRemaining": "{amount} left",
+  "@paymentRowRemaining": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentRowPayAmount": "Pay amount",
+  "paymentEditRowAmount": "Edit amount for {title}",
+  "@paymentEditRowAmount": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentInstallmentSubtitle": "Installment {number} of {count} · {date}",
+  "@paymentInstallmentSubtitle": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dueBreakdownTitle": "Due breakdown",
+  "dueBreakdownTotalDue": "Total due",
+  "dueBreakdownPaid": "Paid",
+  "dueBreakdownLeftToPay": "Left to pay",
+  "dueBreakdownPartiallyPaid": "Partially paid",
+  "dueBreakdownEmpty": "Nothing is currently due.",
+  "paymentAppliedTo": "Applied to",
+  "paymentAppliedToStatement": "Statement balance",
+  "valAllocationTotalMismatch": "The selected items must add up to the payment amount",
+  "valAllocationSelectionRequired": "Choose at least one item to pay",
+  "errAllocationNotPayable": "One of the selected items is not currently payable",
+  "errAllocationTargetPaid": "One of the selected items is already paid",
+  "errPaymentConflict": "This payment was already recorded with a different selection",
   "paymentReverse": "Reverse payment",
   "paymentReverseConfirmTitle": "Reverse this payment?",
   "paymentReverseConfirmBody": "The money returns to the source account and the covered installments reopen.",
