@@ -1379,7 +1379,7 @@ class _DueObligationGroup extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (components.isNotEmpty && obligation.paidMinor > 0)
+          if (components.isNotEmpty)
             DueBreakdownTotals(
               totalDueMinor: obligation.totalDueMinor,
               paidMinor: obligation.paidMinor,

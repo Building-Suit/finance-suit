@@ -241,6 +241,51 @@ void main() {
     expect(item.style?.decoration, TextDecoration.lineThrough);
   });
 
+  testWidgets('totals show even before anything is paid', (tester) async {
+    final untouched = HomeDueObligation.fromJson({
+      'obligation_id': 'fresh-1',
+      'obligation_kind': 'card_statement',
+      'source_name': 'CIB',
+      'due_on': PlainDate.today().addDays(6).toIso(),
+      'currency_code': 'EGP',
+      'remaining_minor': 542308,
+      'paid_minor': 0,
+      'details': {
+        'items': [
+          {
+            'id': 'item-1',
+            'kind': 'fee',
+            'title': 'Insurance',
+            'amount_minor': 2500,
+            'paid_minor': 0,
+            'remaining_minor': 2500,
+            'payment_status': 'unpaid',
+          },
+        ],
+        'installments': <Map<String, dynamic>>[],
+      },
+    });
+    await pumpHome(tester, obligations: [untouched]);
+    await tester.dragUntilVisible(
+      find.byKey(const Key('home-due-thisMonth')),
+      find.byType(Scrollable).first,
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const Key('home-due-thisMonth')),
+      warnIfMissed: false,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('due-obligation-fresh-1')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Total due'), findsOneWidget);
+    expect(find.text('Paid'), findsOneWidget);
+    expect(find.text('Left to pay'), findsOneWidget);
+    expect(find.text('Fees & interest'), findsOneWidget);
+  });
+
   testWidgets('legacy payloads without paid state still render as unpaid', (
     tester,
   ) async {
