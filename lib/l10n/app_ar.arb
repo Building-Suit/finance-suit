@@ -1431,17 +1431,10 @@
   "feeRuleNoCategoriesTitle": "تحتاج إلى فئة مصروفات أولًا",
   "feeRuleNoCategoriesBody": "تُسجَّل الرسوم كمصروفات، لذا اختر فئة أو أنشئ واحدة قبل حفظ هذا الرسم.",
   "feeRuleAddCategoryAction": "إضافة فئة مصروفات",
-  "feeRulePercentOfBasis": "{percent}% من {basis}",
-  "@feeRulePercentOfBasis": {
-    "placeholders": {
-      "percent": {
-        "type": "String"
-      },
-      "basis": {
-        "type": "String"
-      }
-    }
-  },
+  "feeRulePercentRate": "{percent}٪",
+  "@feeRulePercentRate": {"placeholders": {"percent": {"type": "String"}}},
+  "feeRuleOfBasis": "من {basis}",
+  "@feeRuleOfBasis": {"placeholders": {"basis": {"type": "String"}}},
   "valFeePercent": "أدخل نسبة بين 0.01 و1,000.",
   "errCategoryInUse": "لا يزال هذا التصنيف مستخدمًا في سجلات أو له تصنيفات فرعية. أرشِفه بدلًا من ذلك أو أزل ما يستخدمه أولًا.",
   "errAlreadyDecided": "تم التعامل مع هذا العنصر بالفعل.",
