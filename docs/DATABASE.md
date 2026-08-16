@@ -121,7 +121,23 @@ or future dues never satisfies the minimum) and
 current due (unbilled charges, future principal) — never faked as due
 components. `p_payment_id` idempotency in v2 compares the stored
 allocation set: an identical retry returns the stored payment, a
-conflicting reuse raises `payment_conflict`. The Home due-breakdown DTO
+conflicting reuse raises `payment_conflict`.
+
+Calendar-month dues: `facility_month_due_breakdown(account, month_start)`
+returns the dues that fall inside one calendar month — installment dues by
+`due_on`, statement items by the `due_on` of their cycle — with the same
+component shape as `facility_due_breakdown`, which by contrast answers
+"what is payable now" and deliberately accumulates every earlier unpaid
+period. `pay_credit_facility_v3(..., p_month_start, ...)` is the
+month-scoped repayment: same ledger effect, allocation persistence, locking
+and idempotency as v2, but every component must be due inside the explicit
+target month and that month must be the current or next calendar month. It
+is what lets a user prepay next month while this month is still unpaid;
+paying early never moves a due date, and the due's remaining amount still
+gates any later payment, so a prepaid due can never be charged twice. v2
+keeps its exact contract and payable-now eligibility for existing callers.
+
+The Home due-breakdown DTO
 (`home_current_month_obligations`) ships the same item-level paid state:
 every `details.items` entry carries `paid_minor` / `remaining_minor` /
 `payment_status` from the item allocations, and installment entries

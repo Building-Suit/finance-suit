@@ -29,6 +29,7 @@ import 'package:work_tracker/features/finance/domain/installment_responsibility.
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/providers/responsibility_providers.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/facility_due_breakdown_widgets.dart';
+import 'package:work_tracker/features/finance/presentation/widgets/facility_due_month_carousel.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/finance_widgets.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/responsibility_widgets.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
@@ -489,22 +490,7 @@ class _FacilityDetailBody extends ConsumerWidget {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
-          AsyncView<FacilityDueBreakdown>(
-            value: ref.watch(
-              facilityDueBreakdownProvider((
-                accountId: summary.accountId,
-                asOfIso: null,
-              )),
-            ),
-            onRetry: () => ref.invalidate(facilityDueBreakdownProvider),
-            data: (breakdown) => Card(
-              key: const Key('facility-due-breakdown'),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: DueBreakdownList(breakdown: breakdown),
-              ),
-            ),
-          ),
+          _FacilityDueMonthSection(accountId: summary.accountId),
           if (summary.accountType == AccountType.creditCard &&
               summary.statementDay != null) ...[
             const SizedBox(height: 16),
@@ -2248,6 +2234,69 @@ class _AppliedToRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// The month carousel plus the detailed breakdown of whichever month is
+/// active. Each month is fetched by its own provider key, so they resolve —
+/// and fail — independently.
+class _FacilityDueMonthSection extends ConsumerStatefulWidget {
+  const _FacilityDueMonthSection({required this.accountId});
+
+  final String accountId;
+
+  @override
+  ConsumerState<_FacilityDueMonthSection> createState() =>
+      _FacilityDueMonthSectionState();
+}
+
+class _FacilityDueMonthSectionState
+    extends ConsumerState<_FacilityDueMonthSection> {
+  final List<FacilityDueMonth> _months = FacilityDueMonth.payable();
+  int _activeIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final active = _months[_activeIndex];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FacilityDueMonthCarousel(
+          accountId: widget.accountId,
+          months: _months,
+          activeIndex: _activeIndex,
+          onMonthChanged: (index) => setState(() => _activeIndex = index),
+          onPayMonth: (month) => context.push(
+            '${AppRoutes.money}/facilities/pay'
+            '?accountId=${widget.accountId}&month=${month.key}',
+          ),
+        ),
+        const SizedBox(height: 8),
+        AsyncView<FacilityDueBreakdown>(
+          key: ValueKey('facility-due-breakdown-month-${active.key}'),
+          value: ref.watch(
+            facilityMonthDueBreakdownProvider((
+              accountId: widget.accountId,
+              monthStartIso: active.key,
+            )),
+          ),
+          onRetry: () => ref.invalidate(facilityMonthDueBreakdownProvider),
+          data: (breakdown) => Card(
+            key: const Key('facility-due-breakdown-active-month'),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: DueBreakdownList(
+                breakdown: breakdown,
+                // The carousel card above already carries the three totals.
+                showTotals: false,
+                emptyMessage: l10n.dueMonthNoDues,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

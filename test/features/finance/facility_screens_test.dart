@@ -259,6 +259,9 @@ List<dynamic> _baseOverrides({
       (ref, accountId) async => const <CardFeeRule>[],
     ),
     facilityDueBreakdownProvider.overrideWith((ref, args) async => _breakdown),
+    facilityMonthDueBreakdownProvider.overrideWith(
+      (ref, args) async => _breakdown,
+    ),
     paymentAllocationsProvider.overrideWith(
       (ref, transactionId) async => const <FacilityPaymentAllocationDetail>[],
     ),
@@ -722,7 +725,7 @@ void main() {
       expect(openai.style?.decoration, isNot(TextDecoration.lineThrough));
     });
 
-    testWidgets('facility detail embeds the due breakdown card', (
+    testWidgets('facility detail embeds the month due carousel', (
       tester,
     ) async {
       tester.view.physicalSize = const Size(800, 2400);
@@ -732,7 +735,11 @@ void main() {
         tester,
         const CreditFacilityDetailScreen(accountId: 'facility-1'),
       );
-      expect(find.byKey(const Key('facility-due-breakdown')), findsOneWidget);
+      expect(find.byKey(const Key('facility-due-carousel')), findsOneWidget);
+      expect(
+        find.byKey(const Key('facility-due-breakdown-active-month')),
+        findsOneWidget,
+      );
     });
   });
 

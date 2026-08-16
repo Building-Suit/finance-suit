@@ -1147,6 +1147,38 @@ class FinanceRepository {
     });
   }
 
+  /// Month-scoped repayment: the server verifies every component is due
+  /// inside [FacilityPaymentV3Draft.monthStart], which must be the current or
+  /// next calendar month.
+  Future<Result<String>> payCreditFacilityV3(FacilityPaymentV3Draft draft) {
+    return guard(() async {
+      final id = await _db.rpc<String>(
+        'pay_credit_facility_v3',
+        params: draft.toJson(),
+      );
+      return id;
+    });
+  }
+
+  /// The dues that fall inside one calendar month. Unlike
+  /// [fetchFacilityDueBreakdown] this never accumulates earlier periods, so
+  /// next month can be shown and prepaid in isolation.
+  Future<Result<FacilityDueBreakdown>> fetchFacilityMonthDueBreakdown(
+    String accountId, {
+    required PlainDate monthStart,
+  }) {
+    return guard(() async {
+      final json = await _db.rpc<Map<String, dynamic>>(
+        'facility_month_due_breakdown',
+        params: {
+          'p_account_id': accountId,
+          'p_month_start': monthStart.toIso(),
+        },
+      );
+      return FacilityDueBreakdown.fromJson(json);
+    });
+  }
+
   /// The persisted "Applied to" rows of one facility payment.
   Future<Result<List<FacilityPaymentAllocationDetail>>> fetchPaymentAllocations(
     String paymentTransactionId,

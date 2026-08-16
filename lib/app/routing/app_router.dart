@@ -314,6 +314,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                         parentNavigatorKey: appNavigatorKey,
                         builder: (context, state) => FacilityPaymentScreen(
                           accountId: state.uri.queryParameters['accountId'],
+                          monthStartIso: state.uri.queryParameters['month'],
                         ),
                       ),
                       GoRoute(

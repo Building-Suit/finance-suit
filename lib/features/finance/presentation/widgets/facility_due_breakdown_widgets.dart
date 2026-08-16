@@ -248,9 +248,19 @@ class DueBreakdownRow extends StatelessWidget {
 
 /// The persistent Due Breakdown list: totals plus grouped component rows.
 class DueBreakdownList extends StatelessWidget {
-  const DueBreakdownList({super.key, required this.breakdown});
+  const DueBreakdownList({
+    super.key,
+    required this.breakdown,
+    this.showTotals = true,
+    this.emptyMessage,
+  });
 
   final FacilityDueBreakdown breakdown;
+
+  /// The month carousel already shows Total due / Paid / Left to pay, so the
+  /// detail below it opts out instead of repeating them.
+  final bool showTotals;
+  final String? emptyMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -259,14 +269,17 @@ class DueBreakdownList extends StatelessWidget {
     if (breakdown.components.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Text(l10n.dueBreakdownEmpty, style: theme.textTheme.bodyMedium),
+        child: Text(
+          emptyMessage ?? l10n.dueBreakdownEmpty,
+          style: theme.textTheme.bodyMedium,
+        ),
       );
     }
     final groups = groupDueComponents(breakdown.components);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DueBreakdownTotals.fromBreakdown(breakdown),
+        if (showTotals) DueBreakdownTotals.fromBreakdown(breakdown),
         for (final group in DueComponentGroup.values)
           if (groups[group] case final components?) ...[
             Padding(

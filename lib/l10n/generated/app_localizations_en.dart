@@ -2257,6 +2257,35 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get dueMonthCurrent => 'Current month';
+
+  @override
+  String get dueMonthNext => 'Next month';
+
+  @override
+  String get dueMonthMakePayments => 'Make payments';
+
+  @override
+  String get dueMonthNoDues => 'No dues this month';
+
+  @override
+  String dueMonthPayTitle(String month) {
+    return 'Pay $month dues';
+  }
+
+  @override
+  String dueMonthSemanticCard(String period, String month, String amount) {
+    return '$period, $month. Left to pay $amount';
+  }
+
+  @override
+  String get errAllocationOutOfPeriod =>
+      'One of the selected items is not due in the month you are paying';
+
+  @override
+  String get errInvalidPeriod => 'Only this month and next month can be paid';
+
+  @override
   String get dueBreakdownTitle => 'Due breakdown';
 
   @override

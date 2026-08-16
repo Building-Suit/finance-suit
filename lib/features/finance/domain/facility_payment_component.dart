@@ -140,6 +140,8 @@ class FacilityDueBreakdown {
     required this.components,
     this.minimumDueMinor,
     this.minimumRemainingMinor,
+    this.monthStart,
+    this.monthEnd,
   });
 
   factory FacilityDueBreakdown.fromJson(Map<String, dynamic> json) {
@@ -156,6 +158,12 @@ class FacilityDueBreakdown {
           (json['additional_balance_minor'] as num?)?.toInt() ?? 0,
       minimumDueMinor: (json['minimum_due_minor'] as num?)?.toInt(),
       minimumRemainingMinor: (json['minimum_remaining_minor'] as num?)?.toInt(),
+      monthStart: json['month_start'] == null
+          ? null
+          : PlainDate.parse(json['month_start'] as String),
+      monthEnd: json['month_end'] == null
+          ? null
+          : PlainDate.parse(json['month_end'] as String),
       components: [
         for (final c in (json['components'] as List<dynamic>? ?? const []))
           FacilityPaymentComponent.fromJson(c as Map<String, dynamic>),
@@ -176,7 +184,15 @@ class FacilityDueBreakdown {
   /// Null when the facility has no minimum-payment concept (e.g. BNPL).
   final int? minimumDueMinor;
   final int? minimumRemainingMinor;
+
+  /// Set only by the month-scoped breakdown: the calendar month this payload
+  /// describes. Null for the payable-now breakdown, which spans periods.
+  final PlainDate? monthStart;
+  final PlainDate? monthEnd;
   final List<FacilityPaymentComponent> components;
+
+  bool get isFullyPaid => remainingMinor == 0 && totalDueMinor > 0;
+  bool get hasNoDues => totalDueMinor == 0;
 
   bool get supportsMinimumPayment =>
       minimumRemainingMinor != null && minimumRemainingMinor! > 0;
@@ -236,6 +252,89 @@ class FacilityPaymentV2Draft {
     'p_notes': notes,
     'p_payment_id': paymentId,
   };
+}
+
+/// Payload for `app_finance.pay_credit_facility_v3`: the same allocation
+/// contract as v2 plus the explicit calendar month being paid, so next
+/// month's dues can be prepaid while this month is still open.
+@immutable
+class FacilityPaymentV3Draft {
+  const FacilityPaymentV3Draft({
+    required this.accountId,
+    required this.sourceAccountId,
+    required this.amountMinor,
+    required this.paidOn,
+    required this.monthStart,
+    required this.allocations,
+    this.notes,
+    this.paymentId,
+  });
+
+  final String accountId;
+  final String sourceAccountId;
+  final int amountMinor;
+  final PlainDate paidOn;
+
+  /// First day of the calendar month whose dues this payment settles.
+  final PlainDate monthStart;
+  final List<FacilityAllocationEntry> allocations;
+  final String? notes;
+
+  /// Client-generated id makes retries idempotent server-side.
+  final String? paymentId;
+
+  Map<String, dynamic> toJson() => {
+    'p_account_id': accountId,
+    'p_source_account_id': sourceAccountId,
+    'p_amount_minor': amountMinor,
+    'p_paid_on': paidOn.toIso(),
+    'p_month_start': monthStart.toIso(),
+    'p_allocations': [for (final a in allocations) a.toJson()],
+    'p_notes': notes,
+    'p_payment_id': paymentId,
+  };
+}
+
+/// Which of the two payable calendar months a due card represents.
+enum FacilityDuePeriod { currentMonth, nextMonth }
+
+/// The calendar month a due card and its payment are scoped to.
+///
+/// Month arithmetic is calendar based — never "today + 30 days" — so
+/// December rolls into January of the next year and February keeps its own
+/// length. The start day is normalized to the first of the month so two
+/// logically identical requests always produce the same provider key.
+@immutable
+class FacilityDueMonth {
+  const FacilityDueMonth({required this.period, required this.start});
+
+  factory FacilityDueMonth.forPeriod(
+    FacilityDuePeriod period, {
+    PlainDate? today,
+  }) {
+    final anchor = today ?? PlainDate.today();
+    final monthStart = PlainDate(anchor.year, anchor.month, 1);
+    return FacilityDueMonth(
+      period: period,
+      start: period == FacilityDuePeriod.currentMonth
+          ? monthStart
+          : monthStart.addMonths(1),
+    );
+  }
+
+  /// Both payable months, current first — the only periods the product
+  /// exposes for payment.
+  static List<FacilityDueMonth> payable({PlainDate? today}) => [
+    for (final period in FacilityDuePeriod.values)
+      FacilityDueMonth.forPeriod(period, today: today),
+  ];
+
+  final FacilityDuePeriod period;
+  final PlainDate start;
+
+  PlainDate get end => start.addMonths(1).addDays(-1);
+  String get key => start.toIso();
+  bool get isCurrentMonth => period == FacilityDuePeriod.currentMonth;
 }
 
 /// A row of `app_finance.facility_payment_allocations`: what one recorded

@@ -136,6 +136,23 @@ begin
     v_missing := array_append(
       v_missing, 'app_finance.facility_due_breakdown');
   end if;
+  if not exists (
+    select 1 from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'app_finance'
+      and p.proname = 'facility_month_due_breakdown'
+  ) then
+    v_missing := array_append(
+      v_missing, 'app_finance.facility_month_due_breakdown');
+  end if;
+  if not exists (
+    select 1 from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'app_finance' and p.proname = 'pay_credit_facility_v3'
+  ) then
+    v_missing := array_append(
+      v_missing, 'app_finance.pay_credit_facility_v3');
+  end if;
   if to_regclass('app_finance.credit_card_fee_rules') is null then
     v_missing := array_append(
       v_missing, 'app_finance.credit_card_fee_rules');

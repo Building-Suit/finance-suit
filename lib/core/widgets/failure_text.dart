@@ -69,6 +69,8 @@ String _dbValidationMessage(AppLocalizations l10n, String raw) {
     'allocation_total_mismatch' => l10n.valAllocationTotalMismatch,
     'allocation_selection_required' => l10n.valAllocationSelectionRequired,
     'allocation_not_payable' => l10n.errAllocationNotPayable,
+    'allocation_out_of_period' => l10n.errAllocationOutOfPeriod,
+    'invalid_period' => l10n.errInvalidPeriod,
     'allocation_target_paid' => l10n.errAllocationTargetPaid,
     'payment_conflict' => l10n.errPaymentConflict,
     'invalid_allocations' => l10n.errAllocationInvalid,

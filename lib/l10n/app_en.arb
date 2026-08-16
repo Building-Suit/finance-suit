@@ -1099,6 +1099,34 @@
       }
     }
   },
+  "dueMonthCurrent": "Current month",
+  "dueMonthNext": "Next month",
+  "dueMonthMakePayments": "Make payments",
+  "dueMonthNoDues": "No dues this month",
+  "dueMonthPayTitle": "Pay {month} dues",
+  "@dueMonthPayTitle": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "dueMonthSemanticCard": "{period}, {month}. Left to pay {amount}",
+  "@dueMonthSemanticCard": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      },
+      "month": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "errAllocationOutOfPeriod": "One of the selected items is not due in the month you are paying",
+  "errInvalidPeriod": "Only this month and next month can be paid",
   "dueBreakdownTitle": "Due breakdown",
   "dueBreakdownIncludedNote": "Everything included in this total, with what you already paid.",
   "dueBreakdownNoDetails": "No item-level breakdown available",

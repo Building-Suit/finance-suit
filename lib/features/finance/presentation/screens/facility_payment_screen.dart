@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
@@ -30,9 +31,16 @@ import 'package:work_tracker/l10n/generated/app_localizations.dart';
 /// selection is sent as explicit typed allocations to the v2 RPC, which
 /// persists them; the Amount always equals the selected allocation total.
 class FacilityPaymentScreen extends ConsumerStatefulWidget {
-  const FacilityPaymentScreen({super.key, this.accountId});
+  const FacilityPaymentScreen({super.key, this.accountId, this.monthStartIso});
 
   final String? accountId;
+
+  /// When set, the screen pays exactly that calendar month: components come
+  /// from the month-scoped breakdown and the payment goes through the
+  /// month-aware RPC, which lets next month be prepaid while this month is
+  /// still open. When null the screen keeps its original payable-now
+  /// behavior for the top-level Make payment action.
+  final String? monthStartIso;
 
   @override
   ConsumerState<FacilityPaymentScreen> createState() =>
@@ -62,10 +70,24 @@ class _FacilityPaymentScreenState extends ConsumerState<FacilityPaymentScreen> {
   int _balanceMinor = 0;
   String? _activePreset;
 
+  FacilityDueMonth? _month;
+
   @override
   void initState() {
     super.initState();
     _facilityId = widget.accountId;
+    final monthIso = widget.monthStartIso;
+    if (monthIso != null) {
+      final start = PlainDate.parse(monthIso);
+      final months = FacilityDueMonth.payable();
+      _month = months.firstWhere(
+        (m) => m.start == start,
+        orElse: () => FacilityDueMonth(
+          period: FacilityDuePeriod.currentMonth,
+          start: start,
+        ),
+      );
+    }
   }
 
   @override
@@ -234,21 +256,36 @@ class _FacilityPaymentScreenState extends ConsumerState<FacilityPaymentScreen> {
         ),
     ];
     setState(() => _busy = true);
-    final result = await ref
-        .read(financeRepositoryProvider)
-        .payCreditFacilityV2(
-          FacilityPaymentV2Draft(
-            accountId: facility.accountId,
-            sourceAccountId: _sourceAccountId!,
-            amountMinor: amount.minor,
-            paidOn: _paidOn,
-            allocations: allocations,
-            notes: _notesController.text.trim().isEmpty
-                ? null
-                : _notesController.text.trim(),
-            paymentId: _paymentId,
-          ),
-        );
+    final month = _month;
+    final repository = ref.read(financeRepositoryProvider);
+    final result = month == null
+        ? await repository.payCreditFacilityV2(
+            FacilityPaymentV2Draft(
+              accountId: facility.accountId,
+              sourceAccountId: _sourceAccountId!,
+              amountMinor: amount.minor,
+              paidOn: _paidOn,
+              allocations: allocations,
+              notes: _notesController.text.trim().isEmpty
+                  ? null
+                  : _notesController.text.trim(),
+              paymentId: _paymentId,
+            ),
+          )
+        : await repository.payCreditFacilityV3(
+            FacilityPaymentV3Draft(
+              accountId: facility.accountId,
+              sourceAccountId: _sourceAccountId!,
+              amountMinor: amount.minor,
+              paidOn: _paidOn,
+              monthStart: month.start,
+              allocations: allocations,
+              notes: _notesController.text.trim().isEmpty
+                  ? null
+                  : _notesController.text.trim(),
+              paymentId: _paymentId,
+            ),
+          );
     if (!mounted) return;
     setState(() => _busy = false);
     result.when(
@@ -264,7 +301,9 @@ class _FacilityPaymentScreenState extends ConsumerState<FacilityPaymentScreen> {
           // allocation: refetch components and start the selection over.
           _resetSelection();
         });
-        ref.invalidate(facilityDueBreakdownProvider);
+        ref
+          ..invalidate(facilityDueBreakdownProvider)
+          ..invalidate(facilityMonthDueBreakdownProvider);
       },
     );
   }
@@ -273,7 +312,14 @@ class _FacilityPaymentScreenState extends ConsumerState<FacilityPaymentScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final facilitiesAsync = ref.watch(creditFacilitiesProvider);
-    final title = l10n.paymentTitle;
+    final month = _month;
+    final title = month == null
+        ? l10n.paymentTitle
+        : l10n.dueMonthPayTitle(
+            DateFormat.MMMM(
+              Localizations.localeOf(context).toLanguageTag(),
+            ).format(month.start.toDateTime()),
+          );
     return Scaffold(
       appBar: FinanceSuitAppBar.focused(semanticTitle: title),
       body: FinanceSuitFocusedBody(
@@ -303,15 +349,25 @@ class _FacilityPaymentScreenState extends ConsumerState<FacilityPaymentScreen> {
                 payable.where((f) => f.accountId == _facilityId).firstOrNull ??
                 payable.first;
             _facilityId = facility.accountId;
-            final breakdownAsync = ref.watch(
-              facilityDueBreakdownProvider((
-                accountId: facility.accountId,
-                asOfIso: _paidOn.toIso(),
-              )),
-            );
+            final month = _month;
+            final breakdownAsync = month == null
+                ? ref.watch(
+                    facilityDueBreakdownProvider((
+                      accountId: facility.accountId,
+                      asOfIso: _paidOn.toIso(),
+                    )),
+                  )
+                : ref.watch(
+                    facilityMonthDueBreakdownProvider((
+                      accountId: facility.accountId,
+                      monthStartIso: month.key,
+                    )),
+                  );
             return AsyncView<FacilityDueBreakdown>(
               value: breakdownAsync,
-              onRetry: () => ref.invalidate(facilityDueBreakdownProvider),
+              onRetry: () => ref
+                ..invalidate(facilityDueBreakdownProvider)
+                ..invalidate(facilityMonthDueBreakdownProvider),
               data: (breakdown) =>
                   _buildForm(context, l10n, payable, facility, breakdown),
             );

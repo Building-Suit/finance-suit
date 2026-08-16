@@ -34,6 +34,7 @@ final realtimeInvalidationProvider = Provider<void>((ref) {
         ..invalidate(installmentPlansProvider)
         ..invalidate(installmentDuesProvider)
         ..invalidate(facilityDueBreakdownProvider)
+        ..invalidate(facilityMonthDueBreakdownProvider)
         ..invalidate(paymentAllocationsProvider)
         ..invalidate(incomeSourcesProvider)
         ..invalidate(pendingIncomeProvider)

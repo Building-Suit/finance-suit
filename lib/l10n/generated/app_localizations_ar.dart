@@ -2247,6 +2247,35 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get dueMonthCurrent => 'الشهر الحالي';
+
+  @override
+  String get dueMonthNext => 'الشهر القادم';
+
+  @override
+  String get dueMonthMakePayments => 'سداد المستحقات';
+
+  @override
+  String get dueMonthNoDues => 'لا مستحقات هذا الشهر';
+
+  @override
+  String dueMonthPayTitle(String month) {
+    return 'سداد مستحقات $month';
+  }
+
+  @override
+  String dueMonthSemanticCard(String period, String month, String amount) {
+    return '$period، $month. المتبقي للسداد $amount';
+  }
+
+  @override
+  String get errAllocationOutOfPeriod =>
+      'أحد العناصر المختارة غير مستحق في الشهر الذي تسدده';
+
+  @override
+  String get errInvalidPeriod => 'يمكن سداد الشهر الحالي والشهر القادم فقط';
+
+  @override
   String get dueBreakdownTitle => 'تفاصيل المستحقات';
 
   @override

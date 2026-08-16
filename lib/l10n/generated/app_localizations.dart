@@ -4187,6 +4187,54 @@ abstract class AppLocalizations {
   /// **'Installment {number} of {count} · {date}'**
   String paymentInstallmentSubtitle(int number, int count, String date);
 
+  /// No description provided for @dueMonthCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current month'**
+  String get dueMonthCurrent;
+
+  /// No description provided for @dueMonthNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next month'**
+  String get dueMonthNext;
+
+  /// No description provided for @dueMonthMakePayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Make payments'**
+  String get dueMonthMakePayments;
+
+  /// No description provided for @dueMonthNoDues.
+  ///
+  /// In en, this message translates to:
+  /// **'No dues this month'**
+  String get dueMonthNoDues;
+
+  /// No description provided for @dueMonthPayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay {month} dues'**
+  String dueMonthPayTitle(String month);
+
+  /// No description provided for @dueMonthSemanticCard.
+  ///
+  /// In en, this message translates to:
+  /// **'{period}, {month}. Left to pay {amount}'**
+  String dueMonthSemanticCard(String period, String month, String amount);
+
+  /// No description provided for @errAllocationOutOfPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'One of the selected items is not due in the month you are paying'**
+  String get errAllocationOutOfPeriod;
+
+  /// No description provided for @errInvalidPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Only this month and next month can be paid'**
+  String get errInvalidPeriod;
+
   /// No description provided for @dueBreakdownTitle.
   ///
   /// In en, this message translates to:

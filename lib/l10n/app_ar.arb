@@ -1099,6 +1099,34 @@
       }
     }
   },
+  "dueMonthCurrent": "الشهر الحالي",
+  "dueMonthNext": "الشهر القادم",
+  "dueMonthMakePayments": "سداد المستحقات",
+  "dueMonthNoDues": "لا مستحقات هذا الشهر",
+  "dueMonthPayTitle": "سداد مستحقات {month}",
+  "@dueMonthPayTitle": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "dueMonthSemanticCard": "{period}، {month}. المتبقي للسداد {amount}",
+  "@dueMonthSemanticCard": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      },
+      "month": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "errAllocationOutOfPeriod": "أحد العناصر المختارة غير مستحق في الشهر الذي تسدده",
+  "errInvalidPeriod": "يمكن سداد الشهر الحالي والشهر القادم فقط",
   "dueBreakdownTitle": "تفاصيل المستحقات",
   "dueBreakdownIncludedNote": "كل ما يشمله هذا الإجمالي، مع ما سددته بالفعل.",
   "dueBreakdownNoDetails": "لا توجد تفاصيل على مستوى العناصر",
