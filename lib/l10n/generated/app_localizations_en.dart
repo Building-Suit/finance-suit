@@ -3056,8 +3056,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feeRuleAddCategoryAction => 'Add expense category';
 
   @override
-  String feeRulePercentOfBasis(String percent, String basis) {
-    return '$percent% of $basis';
+  String feeRulePercentRate(String percent) {
+    return '$percent%';
+  }
+
+  @override
+  String feeRuleOfBasis(String basis) {
+    return 'of $basis';
   }
 
   @override

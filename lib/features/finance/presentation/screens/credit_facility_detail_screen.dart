@@ -1575,36 +1575,53 @@ class _FeeRuleTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    // The trailing slot holds only a short value. A percent fee's basis
+    // ("of Highest of recent statements") is a sentence, not an amount: left
+    // in the trailing Row it claimed the whole width and squeezed the name
+    // and schedule into a one-character-per-line column, so it belongs in
+    // the subtitle where it can wrap.
     final amountText = rule.isPercent
-        ? l10n.feeRulePercentOfBasis(
-            (rule.percentValue ?? 0).toStringAsFixed(2),
-            feePercentBasisLabel(l10n, rule.percentBasis!),
-          )
+        ? l10n.feeRulePercentRate((rule.percentValue ?? 0).toStringAsFixed(2))
         : rule.fixedAmount(currencyCode)!.format();
     final schedule = rule.isActive
         ? rule.nextChargeOn == null
               ? feeFrequencyLabel(l10n, rule.frequency)
               : l10n.feeRuleNextCharge(rule.nextChargeOn!.toIso())
         : l10n.feeRuleInactive;
+    final basis = rule.isPercent
+        ? ' · ${l10n.feeRuleOfBasis(feePercentBasisLabel(l10n, rule.percentBasis!))}'
+        : '';
     return ListTile(
+      key: Key('fee-rule-tile-${rule.id}'),
       dense: true,
       title: Text(rule.name, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Text(
         '${cardFeeTypeLabel(l10n, rule.feeType)} · '
-        '${feeFrequencyLabel(l10n, rule.frequency)}\n$schedule',
+        '${feeFrequencyLabel(l10n, rule.frequency)}$basis\n$schedule',
       ),
       isThreeLine: true,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (rule.isPercent)
-            Text(amountText, style: theme.textTheme.titleSmall)
-          else
-            ProtectedMoneyText(
-              amountText,
-              style: theme.textTheme.titleSmall,
-              interactive: false,
-            ),
+          // Hard-capped so no future label can starve the title column
+          // again, whatever the text scale or translation.
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 120),
+            child: rule.isPercent
+                ? Text(
+                    amountText,
+                    style: theme.textTheme.titleSmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  )
+                : ProtectedMoneyText(
+                    amountText,
+                    style: theme.textTheme.titleSmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    interactive: false,
+                  ),
+          ),
           PopupMenuButton<VoidCallback>(
             key: Key('fee-rule-actions-${rule.id}'),
             tooltip: l10n.planActionsTooltip,

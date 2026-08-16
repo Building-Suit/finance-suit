@@ -214,6 +214,40 @@ final _breakdown = FacilityDueBreakdown.fromJson(const {
   ],
 });
 
+final _feeRules = [
+  CardFeeRule.fromJson(const {
+    'id': 'f1',
+    'account_id': 'facility-1',
+    'name': 'Annual fee',
+    'fee_type': 'annual_membership',
+    'frequency': 'annually',
+    'is_active': true,
+    'starts_on': '2026-08-01',
+    'state': 'configured',
+    'trigger_kind': 'schedule',
+    'currency_code': 'EGP',
+    'fixed_amount_minor': 30000,
+    'next_charge_on': '2027-08-01',
+    'category_id': 'cat-1',
+  }),
+  CardFeeRule.fromJson(const {
+    'id': 'f3',
+    'account_id': 'facility-1',
+    'name': 'Stamp tax',
+    'fee_type': 'stamp_tax',
+    'frequency': 'quarterly',
+    'is_active': true,
+    'starts_on': '2026-08-01',
+    'state': 'configured',
+    'trigger_kind': 'schedule',
+    'currency_code': 'EGP',
+    'percent_basis_points': 5,
+    'percent_basis': 'highest_statement_due_lookback',
+    'next_charge_on': '2026-10-01',
+    'category_id': 'cat-1',
+  }),
+];
+
 const _expenseCategory = TransactionCategory(
   id: 'cat-1',
   name: 'Shopping',
@@ -226,6 +260,7 @@ const _expenseCategory = TransactionCategory(
 List<dynamic> _baseOverrides({
   List<CreditFacilitySummary>? facilities,
   List<AccountBalance>? accounts,
+  List<CardFeeRule>? feeRules,
 }) {
   final facilityList = facilities ?? [_visa];
   final accountList = accounts ?? [_wallet, _dollarWallet, _visaBalanceRow];
@@ -256,7 +291,7 @@ List<dynamic> _baseOverrides({
           kind == CategoryKind.expense ? [_expenseCategory] : const [],
     ),
     feeRulesProvider.overrideWith(
-      (ref, accountId) async => const <CardFeeRule>[],
+      (ref, accountId) async => feeRules ?? const <CardFeeRule>[],
     ),
     facilityDueBreakdownProvider.overrideWith((ref, args) async => _breakdown),
     facilityMonthDueBreakdownProvider.overrideWith(
@@ -273,12 +308,17 @@ Future<void> _pump(
   Widget home, {
   List<CreditFacilitySummary>? facilities,
   List<AccountBalance>? accounts,
+  List<CardFeeRule>? feeRules,
   Locale locale = const Locale('en'),
 }) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        ..._baseOverrides(facilities: facilities, accounts: accounts).cast(),
+        ..._baseOverrides(
+          facilities: facilities,
+          accounts: accounts,
+          feeRules: feeRules,
+        ).cast(),
       ],
       child: MaterialApp(
         theme: AppTheme.light(),
@@ -473,6 +513,45 @@ void main() {
       await tester.tap(find.byKey(const Key('fee-rule-submit')));
       await tester.pumpAndSettle();
       expect(find.text('This field is required.'), findsWidgets);
+    });
+    testWidgets('a percent fee keeps its tile compact on a narrow phone', (
+      tester,
+    ) async {
+      // A real phone width: 0.05% of "Highest of recent statements" used to
+      // take the whole row, squeezing the name and schedule into a
+      // one-character-per-line column thousands of pixels tall.
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await _pump(
+        tester,
+        const CreditFacilityDetailScreen(accountId: 'facility-1'),
+        feeRules: _feeRules,
+      );
+      await tester.scrollUntilVisible(
+        find.text('Stamp tax'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      final tile = find.ancestor(
+        of: find.text('Stamp tax'),
+        matching: find.byKey(const Key('fee-rule-tile-f3')),
+      );
+      expect(tile, findsOneWidget);
+      // A three-line dense tile is well under 200 logical pixels; the bug
+      // produced thousands.
+      expect(tester.getSize(tile).height, lessThan(200));
+
+      // The rate stays on the row and the basis moves into the subtitle,
+      // where it has room to wrap.
+      expect(find.text('0.05%'), findsOneWidget);
+      expect(
+        find.textContaining('Highest of recent statements'),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
     });
   });
 

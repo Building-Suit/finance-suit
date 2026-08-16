@@ -3037,8 +3037,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get feeRuleAddCategoryAction => 'إضافة فئة مصروفات';
 
   @override
-  String feeRulePercentOfBasis(String percent, String basis) {
-    return '$percent% من $basis';
+  String feeRulePercentRate(String percent) {
+    return '$percent٪';
+  }
+
+  @override
+  String feeRuleOfBasis(String basis) {
+    return 'من $basis';
   }
 
   @override

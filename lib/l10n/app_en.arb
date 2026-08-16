@@ -1431,17 +1431,10 @@
   "feeRuleNoCategoriesTitle": "You need an expense category first",
   "feeRuleNoCategoriesBody": "Fees are booked as expenses, so pick or create a category before saving this one.",
   "feeRuleAddCategoryAction": "Add expense category",
-  "feeRulePercentOfBasis": "{percent}% of {basis}",
-  "@feeRulePercentOfBasis": {
-    "placeholders": {
-      "percent": {
-        "type": "String"
-      },
-      "basis": {
-        "type": "String"
-      }
-    }
-  },
+  "feeRulePercentRate": "{percent}%",
+  "@feeRulePercentRate": {"placeholders": {"percent": {"type": "String"}}},
+  "feeRuleOfBasis": "of {basis}",
+  "@feeRuleOfBasis": {"placeholders": {"basis": {"type": "String"}}},
   "valFeePercent": "Enter a percent between 0.01 and 1,000.",
   "errCategoryInUse": "This category still labels records or has subcategories. Archive it instead, or remove those first.",
   "errAlreadyDecided": "This entry was already handled.",
