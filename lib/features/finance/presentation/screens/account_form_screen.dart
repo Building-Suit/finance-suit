@@ -828,7 +828,14 @@ class _AccountFormScreenState extends ConsumerState<AccountFormScreen> {
                           decoration: InputDecoration(
                             labelText: _accountType == AccountType.creditCard
                                 ? l10n.cardPaymentDueDay
-                                : l10n.facilityDefaultDueDay,
+                                // On BNPL this day is not a statement date:
+                                // it is when an ordinary purchase becomes
+                                // owed, so it says so.
+                                : l10n.bnplPurchaseDueDay,
+                            helperText: _accountType == AccountType.creditCard
+                                ? null
+                                : l10n.bnplPurchaseDueDayHelp,
+                            helperMaxLines: 3,
                           ),
                           onChanged: (_) => _markFieldManual('dueDay'),
                           validator: (v) {

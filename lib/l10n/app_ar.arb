@@ -912,7 +912,6 @@
   "accOpeningOwed": "المبلغ المستحق الافتتاحي",
   "accOpeningOwedHelp": "دين مستخدم على هذه البطاقة أو الجهة قبل أن تبدأ تتبعه في Finance Suit.",
   "facilityCreditLimit": "الحد الائتماني",
-  "facilityDefaultDueDay": "يوم الاستحقاق الافتراضي",
   "facilityStatementDay": "يوم كشف الحساب",
   "facilityLastFour": "آخر أربعة أرقام",
   "facilityReminderDays": "أيام التذكير المسبق",
@@ -1017,7 +1016,6 @@
   "paymentSource": "الدفع من",
   "paymentDate": "تاريخ الدفع",
   "paymentDueNowChip": "المستحق الآن",
-  "paymentNextChip": "القسط التالي",
   "paymentFullChip": "كامل المديونية",
   "paymentAllocationPreview": "سيُطبق على",
   "paymentUnallocatedNote": "{amount} يخفض الرصيد المتبقي المستحق",
@@ -1042,8 +1040,20 @@
   "paymentCustomSelection": "مخصص",
   "paymentGroupInstallments": "الأقساط",
   "paymentGroupFeesInterest": "الرسوم والفوائد",
+  "paymentNextDueChip": "سداد الاستحقاق التالي",
+  "paymentPurchaseComponent": "عملية شراء",
+  "paymentBnplSubtitle": "شراء في {date} · الاستحقاق {due}",
+  "@paymentBnplSubtitle": {"placeholders": {"date": {"type": "String"}, "due": {"type": "String"}}},
+  "facilityAddPurchaseSheetTitle": "إضافة عملية شراء",
+  "facilityPurchaseNormal": "شراء عادي",
+  "facilityPurchaseNormalHint": "مصروف واحد على هذه التسهيلات، يستحق في يوم استحقاق المشتريات الشهري.",
+  "facilityPurchaseInstallment": "شراء بالتقسيط",
+  "facilityPurchaseInstallmentHint": "تقسيم المبلغ إلى أقساط مجدولة.",
+  "bnplPurchaseDueDay": "يوم استحقاق المشتريات الشهري",
+  "bnplPurchaseDueDayHelp": "تستحق المشتريات العادية في هذا اليوم من الشهر. تغييره يؤثر على المشتريات الجديدة فقط.",
+  "errBnplPurchaseSettled": "تم بالفعل تخصيص مدفوعات لعملية الشراء هذه.",
   "paymentGroupPurchases": "المشتريات",
-  "paymentGroupNextDue": "القسط التالي (لم يستحق بعد)",
+  "paymentGroupNextDue": "الاستحقاق التالي (لم يحن بعد)",
   "paymentAdditionalBalance": "رصيد التسهيل الإضافي",
   "paymentRowPaid": "مسدد بالكامل",
   "paymentRowPartial": "مسدد {paid} / {total}",
@@ -1099,6 +1109,34 @@
       }
     }
   },
+  "dueMonthCurrent": "الشهر الحالي",
+  "dueMonthNext": "الشهر القادم",
+  "dueMonthMakePayments": "سداد المستحقات",
+  "dueMonthNoDues": "لا مستحقات هذا الشهر",
+  "dueMonthPayTitle": "سداد مستحقات {month}",
+  "@dueMonthPayTitle": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "dueMonthSemanticCard": "{period}، {month}. المتبقي للسداد {amount}",
+  "@dueMonthSemanticCard": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      },
+      "month": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "errAllocationOutOfPeriod": "أحد العناصر المختارة غير مستحق في الشهر الذي تسدده",
+  "errInvalidPeriod": "يمكن سداد الشهر الحالي والشهر القادم فقط",
   "dueBreakdownTitle": "تفاصيل المستحقات",
   "dueBreakdownIncludedNote": "كل ما يشمله هذا الإجمالي، مع ما سددته بالفعل.",
   "dueBreakdownNoDetails": "لا توجد تفاصيل على مستوى العناصر",

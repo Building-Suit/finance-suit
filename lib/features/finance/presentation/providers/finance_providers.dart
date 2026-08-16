@@ -248,6 +248,24 @@ final facilityDueBreakdownProvider = FutureProvider.family
       return result.when(ok: (b) => b, err: (failure) => throw failure);
     });
 
+/// Dues of one calendar month for one facility. Keyed by the normalized
+/// month start so the current and next month resolve independently and never
+/// collide with the payable-now breakdown's cache entry.
+final facilityMonthDueBreakdownProvider = FutureProvider.family
+    .autoDispose<
+      FacilityDueBreakdown,
+      ({String accountId, String monthStartIso})
+    >((ref, args) async {
+      ref.watch(currentUserIdProvider);
+      final result = await ref
+          .watch(financeRepositoryProvider)
+          .fetchFacilityMonthDueBreakdown(
+            args.accountId,
+            monthStart: PlainDate.parse(args.monthStartIso),
+          );
+      return result.when(ok: (b) => b, err: (failure) => throw failure);
+    });
+
 /// The persisted Applied-to rows of one facility payment.
 final paymentAllocationsProvider = FutureProvider.family
     .autoDispose<List<FacilityPaymentAllocationDetail>, String>((
@@ -309,6 +327,7 @@ void invalidateFinanceData(WidgetRef ref) {
   ref.invalidate(planRevisionsProvider);
   ref.invalidate(feeRulesProvider);
   ref.invalidate(facilityDueBreakdownProvider);
+  ref.invalidate(facilityMonthDueBreakdownProvider);
   ref.invalidate(paymentAllocationsProvider);
   ref.invalidate(homeUpcomingObligationsProvider);
 }

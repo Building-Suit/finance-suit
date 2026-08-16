@@ -912,7 +912,6 @@
   "accOpeningOwed": "Opening amount owed",
   "accOpeningOwedHelp": "Debt already used on this facility before you started tracking it in Finance Suit.",
   "facilityCreditLimit": "Credit limit",
-  "facilityDefaultDueDay": "Default due day",
   "facilityStatementDay": "Statement day",
   "facilityLastFour": "Last four digits",
   "facilityReminderDays": "Reminder lead days",
@@ -1017,7 +1016,6 @@
   "paymentSource": "Pay from",
   "paymentDate": "Payment date",
   "paymentDueNowChip": "Due now",
-  "paymentNextChip": "Next installment",
   "paymentFullChip": "Full outstanding",
   "paymentAllocationPreview": "Will be applied to",
   "paymentUnallocatedNote": "{amount} reduces the remaining balance owed",
@@ -1042,8 +1040,20 @@
   "paymentCustomSelection": "Custom",
   "paymentGroupInstallments": "Installments",
   "paymentGroupFeesInterest": "Fees & interest",
+  "paymentNextDueChip": "Pay next due",
+  "paymentPurchaseComponent": "Purchase",
+  "paymentBnplSubtitle": "Purchased {date} · Due {due}",
+  "@paymentBnplSubtitle": {"placeholders": {"date": {"type": "String"}, "due": {"type": "String"}}},
+  "facilityAddPurchaseSheetTitle": "Add purchase",
+  "facilityPurchaseNormal": "Normal purchase",
+  "facilityPurchaseNormalHint": "One expense charged to this facility, due on its monthly purchase due day.",
+  "facilityPurchaseInstallment": "Installment purchase",
+  "facilityPurchaseInstallmentHint": "Split the amount into scheduled installments.",
+  "bnplPurchaseDueDay": "Monthly purchase due day",
+  "bnplPurchaseDueDayHelp": "Ordinary purchases become due on this day of the month. Changing it only affects new purchases.",
+  "errBnplPurchaseSettled": "This purchase already has payments applied to it.",
   "paymentGroupPurchases": "Purchases",
-  "paymentGroupNextDue": "Next installment (not yet due)",
+  "paymentGroupNextDue": "Next due (not yet due)",
   "paymentAdditionalBalance": "Additional facility balance",
   "paymentRowPaid": "Paid in full",
   "paymentRowPartial": "Paid {paid} / {total}",
@@ -1099,6 +1109,34 @@
       }
     }
   },
+  "dueMonthCurrent": "Current month",
+  "dueMonthNext": "Next month",
+  "dueMonthMakePayments": "Make payments",
+  "dueMonthNoDues": "No dues this month",
+  "dueMonthPayTitle": "Pay {month} dues",
+  "@dueMonthPayTitle": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "dueMonthSemanticCard": "{period}, {month}. Left to pay {amount}",
+  "@dueMonthSemanticCard": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      },
+      "month": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "errAllocationOutOfPeriod": "One of the selected items is not due in the month you are paying",
+  "errInvalidPeriod": "Only this month and next month can be paid",
   "dueBreakdownTitle": "Due breakdown",
   "dueBreakdownIncludedNote": "Everything included in this total, with what you already paid.",
   "dueBreakdownNoDetails": "No item-level breakdown available",
