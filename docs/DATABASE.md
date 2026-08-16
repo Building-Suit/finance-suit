@@ -121,7 +121,12 @@ or future dues never satisfies the minimum) and
 current due (unbilled charges, future principal) — never faked as due
 components. `p_payment_id` idempotency in v2 compares the stored
 allocation set: an identical retry returns the stored payment, a
-conflicting reuse raises `payment_conflict`.
+conflicting reuse raises `payment_conflict`. The Home due-breakdown DTO
+(`home_current_month_obligations`) ships the same item-level paid state:
+every `details.items` entry carries `paid_minor` / `remaining_minor` /
+`payment_status` from the item allocations, and installment entries
+expose `payment_status`, so the Home sheet renders paid components
+checked and struck through exactly like the facility Due Breakdown.
 
 Partial income acceptance: when less money arrives than was owed,
 `accept_income_occurrence_partial` books the received part like a normal

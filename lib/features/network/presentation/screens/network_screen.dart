@@ -49,6 +49,9 @@ class _NetworkScreenState extends ConsumerState<NetworkScreen>
       floatingActionButton: FloatingActionButton.extended(
         key: const Key('network-add-person'),
         onPressed: () => context.push('/money/network/search'),
+        // The global FAB theme is a circle for the square add buttons;
+        // an extended FAB needs a stadium or its label gets clipped.
+        shape: const StadiumBorder(),
         icon: const FinanceSuitIcon(FinanceSuitIcons.personAdd),
         label: Text(l10n.networkAddPerson),
       ),

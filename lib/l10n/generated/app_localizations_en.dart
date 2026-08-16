@@ -2260,6 +2260,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dueBreakdownTitle => 'Due breakdown';
 
   @override
+  String get dueBreakdownIncludedNote =>
+      'Everything included in this total, with what you already paid.';
+
+  @override
+  String get dueBreakdownNoDetails => 'No item-level breakdown available';
+
+  @override
   String get dueBreakdownTotalDue => 'Total due';
 
   @override

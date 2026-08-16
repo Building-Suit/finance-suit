@@ -2250,6 +2250,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dueBreakdownTitle => 'تفاصيل المستحقات';
 
   @override
+  String get dueBreakdownIncludedNote =>
+      'كل ما يشمله هذا الإجمالي، مع ما سددته بالفعل.';
+
+  @override
+  String get dueBreakdownNoDetails => 'لا توجد تفاصيل على مستوى العناصر';
+
+  @override
   String get dueBreakdownTotalDue => 'إجمالي المستحق';
 
   @override

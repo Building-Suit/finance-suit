@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(55);
+select plan(60);
 
 -- ---------------------------------------------------------------------------
 -- Users
@@ -319,6 +319,30 @@ select results_eq(
 );
 
 -- ---------------------------------------------------------------------------
+-- The Home due-breakdown DTO carries the same item-level paid state
+-- ---------------------------------------------------------------------------
+
+select results_eq(
+  $$select item ->> 'title', item ->> 'payment_status',
+      (item ->> 'paid_minor')::bigint, (item ->> 'remaining_minor')::bigint
+    from app_finance.home_current_month_obligations(date '2026-04-01') o,
+      jsonb_array_elements(o.details -> 'items') item
+    where o.obligation_kind = 'card_statement'
+    order by item ->> 'title'$$,
+  $$values ('Netflix'::text, 'paid'::text, 30000::bigint, 0::bigint),
+    ('OpenAI'::text, 'partially_paid'::text, 3000::bigint, 67000::bigint)$$,
+  'Home statement items expose exact paid, remaining, and status'
+);
+select results_eq(
+  $$select inst ->> 'payment_status', (inst ->> 'remaining_minor')::bigint
+    from app_finance.home_current_month_obligations(date '2026-04-01') o,
+      jsonb_array_elements(o.details -> 'installments') inst
+    where o.obligation_kind = 'card_statement'$$,
+  $$values ('unpaid'::text, 100000::bigint)$$,
+  'Home statement installments expose their payment status'
+);
+
+-- ---------------------------------------------------------------------------
 -- Validation rejects
 -- ---------------------------------------------------------------------------
 
@@ -521,6 +545,42 @@ select results_eq(
       and sequence_number = 1$$,
   $$values (20000::bigint, 30000::bigint)$$,
   'the BNPL due keeps exact partial state'
+);
+select results_eq(
+  $$select inst ->> 'payment_status', (inst ->> 'paid_minor')::bigint
+    from app_finance.home_current_month_obligations(date '2026-04-01') o,
+      jsonb_array_elements(o.details -> 'installments') inst
+    where o.obligation_kind = 'installment_due'
+      and (inst ->> 'sequence_number')::integer = 1$$,
+  $$values ('partially_paid'::text, 20000::bigint)$$,
+  'the Home BNPL due entry carries its partial paid state'
+);
+
+-- A due settled in full stays visible on Home as 'paid' while its due date
+-- has not passed, instead of vanishing the moment it is paid.
+select lives_ok(
+  $$select app_finance.pay_credit_facility_v2(
+      (select id from app_finance.accounts where name = 'Item Valu'),
+      '00000000-0000-0000-0000-000000047a01',
+      50000, date '2026-04-01',
+      jsonb_build_array(jsonb_build_object('type', 'installment_due',
+        'id', (select id from app_finance.installment_dues
+          where plan_id = '00000000-0000-0000-0000-000000047e02'
+            and sequence_number = 2),
+        'amount_minor', 50000)),
+      null, '00000000-0000-0000-0000-000000047907')$$,
+  'settling a whole due on its due date succeeds'
+);
+select results_eq(
+  $$select o.obligation_status, o.remaining_minor,
+      inst ->> 'payment_status'
+    from app_finance.home_current_month_obligations(date '2026-04-01') o,
+      jsonb_array_elements(o.details -> 'installments') inst
+    where o.obligation_id = (select id from app_finance.installment_dues
+      where plan_id = '00000000-0000-0000-0000-000000047e02'
+        and sequence_number = 2)$$,
+  $$values ('paid'::text, 0::bigint, 'paid'::text)$$,
+  'the settled due stays on Home as paid with zero remaining'
 );
 
 -- ---------------------------------------------------------------------------
