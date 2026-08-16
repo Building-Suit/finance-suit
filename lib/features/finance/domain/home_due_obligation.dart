@@ -69,14 +69,24 @@ class HomeDueObligation {
       final id = raw['id'] as String?;
       if (amount == null || id == null) return null;
       final paid = (raw['paid_minor'] as num?)?.toInt() ?? 0;
-      final on = (raw['due_on'] ?? raw['occurred_on']) as String?;
+      final on = (raw['occurred_on'] ?? raw['due_on']) as String?;
+      // An ordinary BNPL purchase is its own component type, so the Home
+      // sheet labels and groups it as a purchase instead of borrowing the
+      // card statement's identity.
+      final isBnpl = !isInstallment && kind == 'bnpl_purchase';
       return FacilityPaymentComponent.fromJson({
-        'component_type': isInstallment ? 'installment_due' : 'statement_item',
+        'component_type': isInstallment
+            ? 'installment_due'
+            : isBnpl
+            ? 'bnpl_purchase'
+            : 'statement_item',
         'component_id': id,
         'plan_id': raw['plan_id'],
         'title': raw['title'],
         'activity_kind': isInstallment
             ? 'installment_due'
+            : isBnpl
+            ? 'bnpl_purchase'
             : raw['kind'] == 'fee'
             ? 'fee_charge'
             : 'ordinary_expense',
@@ -84,6 +94,7 @@ class HomeDueObligation {
         'installment_count':
             raw['installment_count'] ?? details['installment_count'],
         'occurred_on': on,
+        'due_on': raw['due_on'],
         'amount_minor': amount,
         'paid_minor': paid,
         'remaining_minor':

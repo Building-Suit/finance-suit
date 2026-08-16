@@ -1,19 +1,26 @@
 import 'package:flutter/foundation.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 
-/// What a due-breakdown component is: a card statement item or an
-/// installment due. Mirrors `component_type` in
+/// What a due-breakdown component is: a card statement item, an installment
+/// due, or an ordinary BNPL purchase. Mirrors `component_type` in
 /// `app_finance.facility_due_breakdown`.
 enum FacilityComponentType {
   statementItem('statement_item'),
-  installmentDue('installment_due');
+  installmentDue('installment_due'),
+  bnplPurchase('bnpl_purchase'),
+
+  /// A component type this build does not know. It is never misfiled as a
+  /// real type and never selectable, so an older client facing a newer
+  /// server shows the row honestly instead of allocating money to something
+  /// it cannot describe.
+  unknown('unknown');
 
   const FacilityComponentType(this.dbValue);
   final String dbValue;
 
   static FacilityComponentType fromDb(String value) => values.firstWhere(
     (v) => v.dbValue == value,
-    orElse: () => FacilityComponentType.statementItem,
+    orElse: () => FacilityComponentType.unknown,
   );
 }
 
@@ -69,6 +76,7 @@ class FacilityPaymentComponent {
     this.sequenceNumber,
     this.installmentCount,
     this.occurredOn,
+    this.dueOn,
   });
 
   factory FacilityPaymentComponent.fromJson(Map<String, dynamic> json) {
@@ -86,6 +94,9 @@ class FacilityPaymentComponent {
       occurredOn: json['occurred_on'] == null
           ? null
           : PlainDate.parse(json['occurred_on'] as String),
+      dueOn: json['due_on'] == null
+          ? null
+          : PlainDate.parse(json['due_on'] as String),
       amountMinor: (json['amount_minor'] as num).toInt(),
       paidMinor: (json['paid_minor'] as num).toInt(),
       remainingMinor: (json['remaining_minor'] as num).toInt(),
@@ -107,6 +118,11 @@ class FacilityPaymentComponent {
   final int? sequenceNumber;
   final int? installmentCount;
   final PlainDate? occurredOn;
+
+  /// When the component is contractually owed. Installment dues and BNPL
+  /// obligations carry their own date; a statement item carries its cycle's
+  /// payment due date. [occurredOn] stays the business date of the charge.
+  final PlainDate? dueOn;
   final int amountMinor;
   final int paidMinor;
   final int remainingMinor;
@@ -120,7 +136,12 @@ class FacilityPaymentComponent {
       type == FacilityComponentType.statementItem &&
       activityKind != 'ordinary_expense';
 
-  bool get isSelectable => remainingMinor > 0;
+  /// The date the money is owed on, falling back to the business date for
+  /// payloads from a server that predates `due_on`.
+  PlainDate? get payableOn => dueOn ?? occurredOn;
+
+  bool get isSelectable =>
+      remainingMinor > 0 && type != FacilityComponentType.unknown;
 }
 
 /// The `facility_due_breakdown` DTO: authoritative totals plus every
@@ -404,7 +425,8 @@ class PresetAllocation {
 
 /// Sorts components in the deterministic Finance Suit payment priority:
 /// current before next-due, installment dues (oldest first) before fees and
-/// interest, then ordinary charges, chronological within each group. This is
+/// interest, then ordinary charges and BNPL purchases, by due date and then
+/// business date within each group. This is
 /// an internal ordering, not a bank's statutory allocation order.
 List<FacilityPaymentComponent> paymentPriorityOrder(
   List<FacilityPaymentComponent> components,
@@ -421,6 +443,12 @@ List<FacilityPaymentComponent> paymentPriorityOrder(
     if (scope != 0) return scope;
     final group = groupOf(a).compareTo(groupOf(b));
     if (group != 0) return group;
+    final aDue = a.payableOn;
+    final bDue = b.payableOn;
+    if (aDue != null && bDue != null) {
+      final due = aDue.compareTo(bDue);
+      if (due != 0) return due;
+    }
     final aOn = a.occurredOn;
     final bOn = b.occurredOn;
     if (aOn != null && bOn != null) {
@@ -432,33 +460,37 @@ List<FacilityPaymentComponent> paymentPriorityOrder(
   return sorted;
 }
 
-/// Next installment preset: the earliest unpaid installment due, matching
-/// the audited `next_due_amount_minor` semantics (one due, never a batch of
-/// future installments).
-PresetAllocation nextInstallmentAllocation(
-  List<FacilityPaymentComponent> components,
-) {
-  FacilityPaymentComponent? next;
-  for (final c in components) {
-    if (c.type != FacilityComponentType.installmentDue || !c.isSelectable) {
-      continue;
-    }
-    if (next == null ||
-        _dueOrder(c, next) < 0 ||
-        (_dueOrder(c, next) == 0 &&
-            (c.sequenceNumber ?? 0) < (next.sequenceNumber ?? 0))) {
-      next = c;
-    }
-  }
-  if (next == null) return PresetAllocation.empty;
-  return PresetAllocation(componentAmounts: {next.key: next.remainingMinor});
-}
+/// Pay-next-due preset: every unpaid component owed on the earliest payable
+/// date — an ordinary BNPL purchase, several purchases sharing a due day, a
+/// purchase plus an installment, or a card statement plus the installment
+/// falling on the same date. It matches `next_due_amount_minor`, which is the
+/// total owed on that date rather than whichever single row sorted first.
+///
+/// Currently payable components always win over merely upcoming ones, so the
+/// preset can never jump past overdue debt to a future bill.
+PresetAllocation nextDueAllocation(List<FacilityPaymentComponent> components) {
+  final selectable = components.where((c) => c.isSelectable).toList();
+  if (selectable.isEmpty) return PresetAllocation.empty;
+  final scope = selectable.any((c) => c.scope == FacilityComponentScope.current)
+      ? FacilityComponentScope.current
+      : FacilityComponentScope.nextDue;
+  final inScope = selectable.where((c) => c.scope == scope);
 
-int _dueOrder(FacilityPaymentComponent a, FacilityPaymentComponent b) {
-  final aOn = a.occurredOn;
-  final bOn = b.occurredOn;
-  if (aOn == null || bOn == null) return 0;
-  return aOn.compareTo(bOn);
+  PlainDate? earliest;
+  for (final c in inScope) {
+    final on = c.payableOn;
+    if (on == null) continue;
+    if (earliest == null || on.compareTo(earliest) < 0) earliest = on;
+  }
+  final amounts = <String, int>{};
+  for (final c in inScope) {
+    // A dated component only belongs to the preset when it shares the
+    // earliest date; undated ones are grouped only when nothing is dated,
+    // so money is never allocated to a bill that cannot be identified.
+    if (c.payableOn != earliest) continue;
+    amounts[c.key] = c.remainingMinor;
+  }
+  return PresetAllocation(componentAmounts: amounts);
 }
 
 /// Minimum payment preset: covers exactly the server-computed remaining

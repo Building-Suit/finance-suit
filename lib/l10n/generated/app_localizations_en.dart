@@ -1931,9 +1931,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get facilityCreditLimit => 'Credit limit';
 
   @override
-  String get facilityDefaultDueDay => 'Default due day';
-
-  @override
   String get facilityStatementDay => 'Statement day';
 
   @override
@@ -2180,9 +2177,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentDueNowChip => 'Due now';
 
   @override
-  String get paymentNextChip => 'Next installment';
-
-  @override
   String get paymentFullChip => 'Full outstanding';
 
   @override
@@ -2217,10 +2211,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentGroupFeesInterest => 'Fees & interest';
 
   @override
+  String get paymentNextDueChip => 'Pay next due';
+
+  @override
+  String get paymentPurchaseComponent => 'Purchase';
+
+  @override
+  String paymentBnplSubtitle(String date, String due) {
+    return 'Purchased $date · Due $due';
+  }
+
+  @override
+  String get facilityAddPurchaseSheetTitle => 'Add purchase';
+
+  @override
+  String get facilityPurchaseNormal => 'Normal purchase';
+
+  @override
+  String get facilityPurchaseNormalHint =>
+      'One expense charged to this facility, due on its monthly purchase due day.';
+
+  @override
+  String get facilityPurchaseInstallment => 'Installment purchase';
+
+  @override
+  String get facilityPurchaseInstallmentHint =>
+      'Split the amount into scheduled installments.';
+
+  @override
+  String get bnplPurchaseDueDay => 'Monthly purchase due day';
+
+  @override
+  String get bnplPurchaseDueDayHelp =>
+      'Ordinary purchases become due on this day of the month. Changing it only affects new purchases.';
+
+  @override
+  String get errBnplPurchaseSettled =>
+      'This purchase already has payments applied to it.';
+
+  @override
   String get paymentGroupPurchases => 'Purchases';
 
   @override
-  String get paymentGroupNextDue => 'Next installment (not yet due)';
+  String get paymentGroupNextDue => 'Next due (not yet due)';
 
   @override
   String get paymentAdditionalBalance => 'Additional facility balance';

@@ -1923,9 +1923,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get facilityCreditLimit => 'الحد الائتماني';
 
   @override
-  String get facilityDefaultDueDay => 'يوم الاستحقاق الافتراضي';
-
-  @override
   String get facilityStatementDay => 'يوم كشف الحساب';
 
   @override
@@ -2170,9 +2167,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paymentDueNowChip => 'المستحق الآن';
 
   @override
-  String get paymentNextChip => 'القسط التالي';
-
-  @override
   String get paymentFullChip => 'كامل المديونية';
 
   @override
@@ -2207,10 +2201,49 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paymentGroupFeesInterest => 'الرسوم والفوائد';
 
   @override
+  String get paymentNextDueChip => 'سداد الاستحقاق التالي';
+
+  @override
+  String get paymentPurchaseComponent => 'عملية شراء';
+
+  @override
+  String paymentBnplSubtitle(String date, String due) {
+    return 'شراء في $date · الاستحقاق $due';
+  }
+
+  @override
+  String get facilityAddPurchaseSheetTitle => 'إضافة عملية شراء';
+
+  @override
+  String get facilityPurchaseNormal => 'شراء عادي';
+
+  @override
+  String get facilityPurchaseNormalHint =>
+      'مصروف واحد على هذه التسهيلات، يستحق في يوم استحقاق المشتريات الشهري.';
+
+  @override
+  String get facilityPurchaseInstallment => 'شراء بالتقسيط';
+
+  @override
+  String get facilityPurchaseInstallmentHint =>
+      'تقسيم المبلغ إلى أقساط مجدولة.';
+
+  @override
+  String get bnplPurchaseDueDay => 'يوم استحقاق المشتريات الشهري';
+
+  @override
+  String get bnplPurchaseDueDayHelp =>
+      'تستحق المشتريات العادية في هذا اليوم من الشهر. تغييره يؤثر على المشتريات الجديدة فقط.';
+
+  @override
+  String get errBnplPurchaseSettled =>
+      'تم بالفعل تخصيص مدفوعات لعملية الشراء هذه.';
+
+  @override
   String get paymentGroupPurchases => 'المشتريات';
 
   @override
-  String get paymentGroupNextDue => 'القسط التالي (لم يستحق بعد)';
+  String get paymentGroupNextDue => 'الاستحقاق التالي (لم يحن بعد)';
 
   @override
   String get paymentAdditionalBalance => 'رصيد التسهيل الإضافي';

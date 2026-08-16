@@ -17,7 +17,9 @@ schema. Module schemas are:
   `installment_plan_revisions`, credit-card statement tables
   (`credit_card_statement_cycles`, `credit_card_statement_items`,
   `credit_card_statement_allocations`,
-  `credit_card_statement_item_allocations`), fee rules
+  `credit_card_statement_item_allocations`), ordinary BNPL purchase
+  obligations (`bnpl_purchase_obligations`,
+  `bnpl_purchase_payment_allocations`), fee rules
   (`credit_card_fee_rules`, `credit_card_fee_charges`), account
   balance views, atomic transfer/income/facility RPCs, and the
   Finance Suit Network tables (`network_add_requests`,
@@ -36,6 +38,7 @@ Important derived objects:
 - `app_finance.installment_plan_summaries`
 - `app_finance.installment_due_statuses`
 - `app_finance.credit_card_statement_summaries`
+- `app_finance.bnpl_purchase_obligation_statuses`
 - `app_reports.history_items`
 - `app_reports.debt_summary`
 - `app_reports.cash_flow_summary`
@@ -136,6 +139,45 @@ is what lets a user prepay next month while this month is still unpaid;
 paying early never moves a due date, and the due's remaining amount still
 gates any later payment, so a prepaid due can never be charged twice. v2
 keeps its exact contract and payable-now eligibility for existing callers.
+
+Ordinary BNPL purchases are first-class payable obligations. A normal
+purchase on a BNPL facility still books exactly one expense on its business
+date and raises outstanding once; alongside it `charge_liability_account`
+records one `bnpl_purchase_obligations` row carrying the contractual
+`due_on`. The date rule is `app_finance.bnpl_purchase_due_on(due_day,
+purchased_on)`: the first occurrence of the facility's `default_due_day`
+strictly after the purchase date, clamped to the length of the target month
+(day 31 becomes Feb 28/29, Apr 30, and so on). A plan-controlled purchase or
+down payment never gets an obligation, so a financed purchase is never owed
+twice, and changing a facility's `default_due_day` never rewrites the
+`due_on` of purchases that already exist — only newly created, re-dated, or
+re-homed purchases use the new rule.
+
+Paid state is derived, never a mutable counter:
+`bnpl_purchase_obligation_statuses` sums
+`bnpl_purchase_payment_allocations` into `paid_minor` /`remaining_minor` /
+`payment_status` and adds `due_status` (overdue / due today / upcoming).
+`pay_credit_facility_v2` and `_v3` accept `bnpl_purchase` allocation
+entries, `facility_payment_allocations` exposes each persisted row as an
+Applied-to detail, and `reverse_facility_payment` deletes them atomically so
+the obligation returns to its prior remaining amount.
+`credit_facility_summaries.next_due_amount_minor` is the TOTAL owed on the
+earliest unpaid date across ordinary purchases and installment dues, not
+whichever row sorted first, and `facility_due_breakdown` /
+`facility_month_due_breakdown` expose `bnpl_purchase` components carrying
+both `occurred_on` (the purchase date) and `due_on`. Every component now
+carries `due_on`, which is what lets the Pay screen's "Pay next due" preset
+select the whole bill falling on one date. `home_current_month_obligations`
+groups real obligations by their due date; the previous workaround that
+summed raw BNPL expenses as if all were unpaid, invented a due-today
+obligation, and folded them onto the first installment is gone, so there is
+one canonical BNPL due calculation. `facility_activity_items.is_settled` is
+true for a purchase carrying an allocation, matching the server-side
+`bnpl_purchase_settled` guard on editing, re-dating, and deleting it.
+Existing purchases were backfilled idempotently; historical generic
+repayments were NOT mapped onto individual purchases because which purchase
+they settled cannot be proven, so those obligations start unpaid and the
+unallocated remainder stays visible as `facility_balance`.
 
 The Home due-breakdown DTO
 (`home_current_month_obligations`) ships the same item-level paid state:

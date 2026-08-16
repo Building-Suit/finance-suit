@@ -3593,12 +3593,6 @@ abstract class AppLocalizations {
   /// **'Credit limit'**
   String get facilityCreditLimit;
 
-  /// No description provided for @facilityDefaultDueDay.
-  ///
-  /// In en, this message translates to:
-  /// **'Default due day'**
-  String get facilityDefaultDueDay;
-
   /// No description provided for @facilityStatementDay.
   ///
   /// In en, this message translates to:
@@ -4061,12 +4055,6 @@ abstract class AppLocalizations {
   /// **'Due now'**
   String get paymentDueNowChip;
 
-  /// No description provided for @paymentNextChip.
-  ///
-  /// In en, this message translates to:
-  /// **'Next installment'**
-  String get paymentNextChip;
-
   /// No description provided for @paymentFullChip.
   ///
   /// In en, this message translates to:
@@ -4127,6 +4115,72 @@ abstract class AppLocalizations {
   /// **'Fees & interest'**
   String get paymentGroupFeesInterest;
 
+  /// No description provided for @paymentNextDueChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay next due'**
+  String get paymentNextDueChip;
+
+  /// No description provided for @paymentPurchaseComponent.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase'**
+  String get paymentPurchaseComponent;
+
+  /// No description provided for @paymentBnplSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchased {date} · Due {due}'**
+  String paymentBnplSubtitle(String date, String due);
+
+  /// No description provided for @facilityAddPurchaseSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add purchase'**
+  String get facilityAddPurchaseSheetTitle;
+
+  /// No description provided for @facilityPurchaseNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal purchase'**
+  String get facilityPurchaseNormal;
+
+  /// No description provided for @facilityPurchaseNormalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'One expense charged to this facility, due on its monthly purchase due day.'**
+  String get facilityPurchaseNormalHint;
+
+  /// No description provided for @facilityPurchaseInstallment.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment purchase'**
+  String get facilityPurchaseInstallment;
+
+  /// No description provided for @facilityPurchaseInstallmentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Split the amount into scheduled installments.'**
+  String get facilityPurchaseInstallmentHint;
+
+  /// No description provided for @bnplPurchaseDueDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly purchase due day'**
+  String get bnplPurchaseDueDay;
+
+  /// No description provided for @bnplPurchaseDueDayHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordinary purchases become due on this day of the month. Changing it only affects new purchases.'**
+  String get bnplPurchaseDueDayHelp;
+
+  /// No description provided for @errBnplPurchaseSettled.
+  ///
+  /// In en, this message translates to:
+  /// **'This purchase already has payments applied to it.'**
+  String get errBnplPurchaseSettled;
+
   /// No description provided for @paymentGroupPurchases.
   ///
   /// In en, this message translates to:
@@ -4136,7 +4190,7 @@ abstract class AppLocalizations {
   /// No description provided for @paymentGroupNextDue.
   ///
   /// In en, this message translates to:
-  /// **'Next installment (not yet due)'**
+  /// **'Next due (not yet due)'**
   String get paymentGroupNextDue;
 
   /// No description provided for @paymentAdditionalBalance.

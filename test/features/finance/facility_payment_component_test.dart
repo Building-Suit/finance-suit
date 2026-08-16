@@ -8,6 +8,7 @@ FacilityPaymentComponent _component({
   String? title,
   String activityKind = 'ordinary_expense',
   String? occurredOn,
+  String? dueOn,
   int amount = 10000,
   int paid = 0,
   String scope = 'current',
@@ -20,6 +21,7 @@ FacilityPaymentComponent _component({
     'activity_kind': activityKind,
     'sequence_number': sequence,
     'occurred_on': occurredOn,
+    'due_on': dueOn,
     'amount_minor': amount,
     'paid_minor': paid,
     'remaining_minor': amount - paid,
@@ -116,31 +118,167 @@ void main() {
     });
   });
 
-  group('nextInstallmentAllocation', () {
-    test('selects only the earliest unpaid due', () {
-      final allocation = nextInstallmentAllocation([
-        _component(id: 'd2', type: 'installment_due', occurredOn: '2026-03-25'),
-        _component(
-          id: 'd1',
-          type: 'installment_due',
-          occurredOn: '2026-02-25',
-          amount: 55187,
-        ),
-        _component(id: 'p1', occurredOn: '2026-02-01'),
-      ]);
-      expect(allocation.componentAmounts, {'installment_due:d1': 55187});
-      expect(allocation.facilityBalanceMinor, 0);
+  group('FacilityComponentType', () {
+    test('parses the ordinary BNPL purchase type', () {
+      final component = _component(
+        id: 'b1',
+        type: 'bnpl_purchase',
+        title: 'Noon',
+        activityKind: 'bnpl_purchase',
+        occurredOn: '2026-08-16',
+        dueOn: '2026-09-05',
+        amount: 500000,
+      );
+      expect(component.type, FacilityComponentType.bnplPurchase);
+      expect(component.key, 'bnpl_purchase:b1');
+      expect(component.dueOn?.toIso(), '2026-09-05');
+      expect(component.occurredOn?.toIso(), '2026-08-16');
+      expect(component.isSelectable, isTrue);
+      expect(component.isFeeOrInterest, isFalse);
     });
 
-    test('skips settled dues and returns empty without any due', () {
-      final allocation = nextInstallmentAllocation([
+    test('an unknown server type is never misfiled as a statement item', () {
+      final component = _component(id: 'x1', type: 'something_new');
+      expect(component.type, FacilityComponentType.unknown);
+      expect(component.isSelectable, isFalse);
+    });
+  });
+
+  group('nextDueAllocation', () {
+    test('case A — the only ordinary BNPL purchase due', () {
+      final allocation = nextDueAllocation([
+        _component(
+          id: 'b1',
+          type: 'bnpl_purchase',
+          occurredOn: '2026-08-16',
+          dueOn: '2026-09-05',
+          amount: 150000,
+        ),
+      ]);
+      expect(allocation.componentAmounts, {'bnpl_purchase:b1': 150000});
+      expect(allocation.totalMinor, 150000);
+    });
+
+    test('case B — several purchases sharing one due date pay together', () {
+      final allocation = nextDueAllocation([
+        _component(
+          id: 'b1',
+          type: 'bnpl_purchase',
+          occurredOn: '2026-08-16',
+          dueOn: '2026-09-05',
+          amount: 100000,
+        ),
+        _component(
+          id: 'b2',
+          type: 'bnpl_purchase',
+          occurredOn: '2026-08-20',
+          dueOn: '2026-09-05',
+          amount: 200000,
+        ),
+      ]);
+      expect(allocation.componentAmounts, {
+        'bnpl_purchase:b1': 100000,
+        'bnpl_purchase:b2': 200000,
+      });
+      expect(allocation.totalMinor, 300000);
+    });
+
+    test('case C — a purchase and an installment on the same date', () {
+      final allocation = nextDueAllocation([
+        _component(
+          id: 'b1',
+          type: 'bnpl_purchase',
+          occurredOn: '2026-08-16',
+          dueOn: '2026-09-05',
+          amount: 200000,
+        ),
+        _component(
+          id: 'd1',
+          type: 'installment_due',
+          occurredOn: '2026-09-05',
+          dueOn: '2026-09-05',
+          amount: 50000,
+          sequence: 4,
+        ),
+      ]);
+      expect(allocation.totalMinor, 250000);
+      expect(
+        allocation.componentAmounts.keys,
+        containsAll(<String>['bnpl_purchase:b1', 'installment_due:d1']),
+      );
+    });
+
+    test('case D — never jumps past current debt to a later due', () {
+      final allocation = nextDueAllocation([
+        _component(
+          id: 'b2',
+          type: 'bnpl_purchase',
+          occurredOn: '2026-08-20',
+          dueOn: '2026-10-05',
+          amount: 900000,
+        ),
+        _component(
+          id: 'd1',
+          type: 'installment_due',
+          occurredOn: '2026-08-25',
+          dueOn: '2026-08-25',
+          amount: 55187,
+        ),
+      ]);
+      expect(allocation.componentAmounts, {'installment_due:d1': 55187});
+    });
+
+    test('settled components are skipped', () {
+      final allocation = nextDueAllocation([
         _component(
           id: 'd1',
           type: 'installment_due',
           occurredOn: '2026-02-25',
+          dueOn: '2026-02-25',
           paid: 10000,
         ),
-        _component(id: 'p1'),
+        _component(
+          id: 'd2',
+          type: 'installment_due',
+          occurredOn: '2026-03-25',
+          dueOn: '2026-03-25',
+          amount: 42000,
+        ),
+      ]);
+      expect(allocation.componentAmounts, {'installment_due:d2': 42000});
+    });
+
+    test('falls back to the next-due group only when nothing is payable', () {
+      final allocation = nextDueAllocation([
+        _component(
+          id: 'n1',
+          type: 'installment_due',
+          occurredOn: '2026-04-25',
+          dueOn: '2026-04-25',
+          scope: 'next_due',
+          amount: 33000,
+        ),
+        _component(
+          id: 'n2',
+          type: 'bnpl_purchase',
+          occurredOn: '2026-04-02',
+          dueOn: '2026-04-25',
+          scope: 'next_due',
+          amount: 12000,
+        ),
+      ]);
+      expect(allocation.totalMinor, 45000);
+    });
+
+    test('returns nothing when every component is settled', () {
+      final allocation = nextDueAllocation([
+        _component(
+          id: 'd1',
+          type: 'installment_due',
+          occurredOn: '2026-02-25',
+          dueOn: '2026-02-25',
+          paid: 10000,
+        ),
       ]);
       expect(allocation.componentAmounts, isEmpty);
     });

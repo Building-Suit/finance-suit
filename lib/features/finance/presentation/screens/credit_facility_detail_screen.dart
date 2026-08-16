@@ -450,13 +450,21 @@ class _FacilityDetailBody extends ConsumerWidget {
                   key: const Key('facility-add-purchase'),
                   onPressed: !summary.canFundPurchases
                       ? null
+                      // A BNPL facility funds both an ordinary purchase and
+                      // an installment plan, so it asks which one instead of
+                      // assuming the installment flow. A card keeps its
+                      // single existing route.
+                      : summary.accountType == AccountType.bnpl
+                      ? () => _showAddPurchaseSheet(context, summary)
                       : () => context.push(
                           '/money/facilities/purchase'
                           '?accountId=${summary.accountId}',
                         ),
                   icon: const FinanceSuitIcon(FinanceSuitIcons.addCircle),
                   label: Text(
-                    l10n.facilityAddPurchase,
+                    summary.accountType == AccountType.bnpl
+                        ? l10n.facilityAddPurchaseSheetTitle
+                        : l10n.facilityAddPurchase,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -690,6 +698,58 @@ class _FacilityDetailBody extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// BNPL funds two different products from one button. The sheet names them
+/// instead of guessing: Normal opens the canonical expense form with the
+/// facility preselected — there is no second ordinary-expense form — and
+/// Installment opens the existing plan flow unchanged.
+Future<void> _showAddPurchaseSheet(
+  BuildContext context,
+  CreditFacilitySummary summary,
+) async {
+  final l10n = AppLocalizations.of(context);
+  final choice = await showModalBottomSheet<String>(
+    context: context,
+    showDragHandle: true,
+    builder: (sheetContext) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Text(
+              l10n.facilityAddPurchaseSheetTitle,
+              style: Theme.of(sheetContext).textTheme.titleMedium,
+            ),
+          ),
+          ListTile(
+            key: const Key('facility-purchase-normal'),
+            leading: const FinanceSuitIcon(FinanceSuitIcons.shoppingCart),
+            title: Text(l10n.facilityPurchaseNormal),
+            subtitle: Text(l10n.facilityPurchaseNormalHint),
+            onTap: () => Navigator.of(sheetContext).pop('normal'),
+          ),
+          ListTile(
+            key: const Key('facility-purchase-installment'),
+            leading: const FinanceSuitIcon(FinanceSuitIcons.eventRepeat),
+            title: Text(l10n.facilityPurchaseInstallment),
+            subtitle: Text(l10n.facilityPurchaseInstallmentHint),
+            onTap: () => Navigator.of(sheetContext).pop('installment'),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    ),
+  );
+  if (choice == null || !context.mounted) return;
+  await context.push(
+    choice == 'normal'
+        ? '${AppRoutes.money}/tx/new?kind=expense'
+              '&accountId=${summary.accountId}'
+        : '/money/facilities/purchase?accountId=${summary.accountId}',
+  );
 }
 
 class _FacilitySummaryCard extends StatelessWidget {
@@ -2192,9 +2252,11 @@ class _AppliedToRow extends StatelessWidget {
     final theme = Theme.of(context);
     var title = allocation.title?.trim() ?? '';
     if (title.isEmpty) {
-      title = allocation.componentType == 'statement_cycle'
-          ? l10n.paymentAppliedToStatement
-          : l10n.txExpense;
+      title = switch (allocation.componentType) {
+        'statement_cycle' => l10n.paymentAppliedToStatement,
+        'bnpl_purchase' => l10n.paymentPurchaseComponent,
+        _ => l10n.txExpense,
+      };
     }
     final subtitle = [
       if (allocation.sequenceNumber != null) '${allocation.sequenceNumber}',

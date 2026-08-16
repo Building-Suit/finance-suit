@@ -331,6 +331,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                           kind: TransactionKind.fromDb(
                             state.uri.queryParameters['kind'] ?? 'expense',
                           ),
+                          initialAccountId:
+                              state.uri.queryParameters['accountId'],
                         ),
                       ),
                       GoRoute(

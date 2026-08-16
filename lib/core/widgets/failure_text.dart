@@ -66,6 +66,8 @@ String _dbValidationMessage(AppLocalizations l10n, String raw) {
     'allocation_exceeds_due' => l10n.errAllocationInvalid,
     'allocation_exceeds_payment' => l10n.errAllocationInvalid,
     'allocation_exceeds_item' => l10n.errAllocationInvalid,
+    'allocation_exceeds_purchase' => l10n.errAllocationInvalid,
+    'bnpl_purchase_settled' => l10n.errBnplPurchaseSettled,
     'allocation_total_mismatch' => l10n.valAllocationTotalMismatch,
     'allocation_selection_required' => l10n.valAllocationSelectionRequired,
     'allocation_not_payable' => l10n.errAllocationNotPayable,

@@ -130,7 +130,7 @@ class _FacilityPaymentScreenState extends ConsumerState<FacilityPaymentScreen> {
 
   void _applyPreset(String preset, FacilityDueBreakdown breakdown) {
     final allocation = switch (preset) {
-      'next' => nextInstallmentAllocation(breakdown.components),
+      'next' => nextDueAllocation(breakdown.components),
       'minimum' => minimumPaymentAllocation(
         breakdown.minimumRemainingMinor ?? 0,
         breakdown.components,
@@ -512,7 +512,7 @@ class _FacilityPaymentScreenState extends ConsumerState<FacilityPaymentScreen> {
               children: [
                 ActionChip(
                   key: const Key('payment-chip-next'),
-                  label: Text(l10n.paymentNextChip),
+                  label: Text(l10n.paymentNextDueChip),
                   onPressed: () => _applyPreset('next', breakdown),
                 ),
                 if (breakdown.supportsMinimumPayment)

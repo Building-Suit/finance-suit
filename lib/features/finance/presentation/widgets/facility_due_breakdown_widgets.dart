@@ -57,6 +57,7 @@ String dueComponentTitle(AppLocalizations l10n, FacilityPaymentComponent c) {
     'purchase_interest' => l10n.facilityActivityPurchaseInterest,
     'installment_interest' => l10n.facilityActivityInstallmentInterest,
     'fee_charge' => l10n.paymentGroupFeesInterest,
+    'bnpl_purchase' => l10n.paymentPurchaseComponent,
     _ => l10n.txExpense,
   };
 }
@@ -75,6 +76,16 @@ String? dueComponentSubtitle(
       );
     }
     return on;
+  }
+  // An ordinary BNPL purchase is bought on one date and owed on another, so
+  // the row names both instead of leaving the due date to be guessed.
+  if (c.type == FacilityComponentType.bnplPurchase) {
+    final purchased = c.occurredOn?.toIso();
+    final due = c.dueOn?.toIso();
+    if (purchased != null && due != null) {
+      return l10n.paymentBnplSubtitle(purchased, due);
+    }
+    return purchased ?? due;
   }
   return c.occurredOn?.toIso();
 }

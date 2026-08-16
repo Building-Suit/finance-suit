@@ -88,6 +88,8 @@ final realtimeInvalidationProvider = Provider<void>((ref) {
       schema: AppSchemas.finance,
       table: 'credit_card_statement_item_allocations',
     ),
+    (schema: AppSchemas.finance, table: 'bnpl_purchase_obligations'),
+    (schema: AppSchemas.finance, table: 'bnpl_purchase_payment_allocations'),
     (schema: AppSchemas.finance, table: 'credit_card_fee_rules'),
     (schema: AppSchemas.finance, table: 'credit_card_fee_charges'),
     (schema: AppSchemas.finance, table: 'income_sources'),
