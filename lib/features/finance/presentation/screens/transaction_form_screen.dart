@@ -31,10 +31,20 @@ import 'package:work_tracker/l10n/generated/app_localizations.dart';
 /// Transfers use [TransferFormScreen]; salary payments come from the
 /// salary period flow and are not editable here.
 class TransactionFormScreen extends ConsumerStatefulWidget {
-  const TransactionFormScreen({super.key, required this.kind, this.existing});
+  const TransactionFormScreen({
+    super.key,
+    required this.kind,
+    this.existing,
+    this.initialAccountId,
+  });
 
   final TransactionKind kind;
   final FinancialTransaction? existing;
+
+  /// Preselects the funding account on a new transaction, so opening the
+  /// canonical expense form from a facility lands on that facility instead
+  /// of the default asset account.
+  final String? initialAccountId;
 
   @override
   ConsumerState<TransactionFormScreen> createState() =>
@@ -90,6 +100,8 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
       _accountId = existing.sourceAccountId ?? existing.destinationAccountId;
       _categoryId = existing.categoryId;
       _loadExistingFxMarkup(existing.id);
+    } else {
+      _accountId = widget.initialAccountId;
     }
   }
 
@@ -392,6 +404,18 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
             !selected!.isCurrent
         ? l10n.errCardNotConfigured
         : null;
+    // A preselected account handed in by a caller is honored only when it is
+    // actually eligible for this kind; anything else falls back to the normal
+    // default instead of submitting an account the server would reject.
+    final eligibleIds = assetOnly
+        ? accountList.map((a) => a.accountId).toList()
+        : options.map((o) => o.accountId).toList();
+    if (!_isEdit &&
+        _accountId != null &&
+        eligibleIds.isNotEmpty &&
+        !eligibleIds.contains(_accountId)) {
+      _accountId = null;
+    }
     if (_accountId == null) {
       // Preselect the default account (or the first one) on new
       // transactions; an edit already carries its own account.

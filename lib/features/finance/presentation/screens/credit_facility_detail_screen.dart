@@ -29,6 +29,7 @@ import 'package:work_tracker/features/finance/domain/installment_responsibility.
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/providers/responsibility_providers.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/facility_due_breakdown_widgets.dart';
+import 'package:work_tracker/features/finance/presentation/widgets/facility_due_month_carousel.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/finance_widgets.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/responsibility_widgets.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
@@ -449,13 +450,21 @@ class _FacilityDetailBody extends ConsumerWidget {
                   key: const Key('facility-add-purchase'),
                   onPressed: !summary.canFundPurchases
                       ? null
+                      // A BNPL facility funds both an ordinary purchase and
+                      // an installment plan, so it asks which one instead of
+                      // assuming the installment flow. A card keeps its
+                      // single existing route.
+                      : summary.accountType == AccountType.bnpl
+                      ? () => _showAddPurchaseSheet(context, summary)
                       : () => context.push(
                           '/money/facilities/purchase'
                           '?accountId=${summary.accountId}',
                         ),
                   icon: const FinanceSuitIcon(FinanceSuitIcons.addCircle),
                   label: Text(
-                    l10n.facilityAddPurchase,
+                    summary.accountType == AccountType.bnpl
+                        ? l10n.facilityAddPurchaseSheetTitle
+                        : l10n.facilityAddPurchase,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -489,22 +498,7 @@ class _FacilityDetailBody extends ConsumerWidget {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
-          AsyncView<FacilityDueBreakdown>(
-            value: ref.watch(
-              facilityDueBreakdownProvider((
-                accountId: summary.accountId,
-                asOfIso: null,
-              )),
-            ),
-            onRetry: () => ref.invalidate(facilityDueBreakdownProvider),
-            data: (breakdown) => Card(
-              key: const Key('facility-due-breakdown'),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: DueBreakdownList(breakdown: breakdown),
-              ),
-            ),
-          ),
+          _FacilityDueMonthSection(accountId: summary.accountId),
           if (summary.accountType == AccountType.creditCard &&
               summary.statementDay != null) ...[
             const SizedBox(height: 16),
@@ -704,6 +698,58 @@ class _FacilityDetailBody extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// BNPL funds two different products from one button. The sheet names them
+/// instead of guessing: Normal opens the canonical expense form with the
+/// facility preselected — there is no second ordinary-expense form — and
+/// Installment opens the existing plan flow unchanged.
+Future<void> _showAddPurchaseSheet(
+  BuildContext context,
+  CreditFacilitySummary summary,
+) async {
+  final l10n = AppLocalizations.of(context);
+  final choice = await showModalBottomSheet<String>(
+    context: context,
+    showDragHandle: true,
+    builder: (sheetContext) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Text(
+              l10n.facilityAddPurchaseSheetTitle,
+              style: Theme.of(sheetContext).textTheme.titleMedium,
+            ),
+          ),
+          ListTile(
+            key: const Key('facility-purchase-normal'),
+            leading: const FinanceSuitIcon(FinanceSuitIcons.shoppingCart),
+            title: Text(l10n.facilityPurchaseNormal),
+            subtitle: Text(l10n.facilityPurchaseNormalHint),
+            onTap: () => Navigator.of(sheetContext).pop('normal'),
+          ),
+          ListTile(
+            key: const Key('facility-purchase-installment'),
+            leading: const FinanceSuitIcon(FinanceSuitIcons.eventRepeat),
+            title: Text(l10n.facilityPurchaseInstallment),
+            subtitle: Text(l10n.facilityPurchaseInstallmentHint),
+            onTap: () => Navigator.of(sheetContext).pop('installment'),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    ),
+  );
+  if (choice == null || !context.mounted) return;
+  await context.push(
+    choice == 'normal'
+        ? '${AppRoutes.money}/tx/new?kind=expense'
+              '&accountId=${summary.accountId}'
+        : '/money/facilities/purchase?accountId=${summary.accountId}',
+  );
 }
 
 class _FacilitySummaryCard extends StatelessWidget {
@@ -2206,9 +2252,11 @@ class _AppliedToRow extends StatelessWidget {
     final theme = Theme.of(context);
     var title = allocation.title?.trim() ?? '';
     if (title.isEmpty) {
-      title = allocation.componentType == 'statement_cycle'
-          ? l10n.paymentAppliedToStatement
-          : l10n.txExpense;
+      title = switch (allocation.componentType) {
+        'statement_cycle' => l10n.paymentAppliedToStatement,
+        'bnpl_purchase' => l10n.paymentPurchaseComponent,
+        _ => l10n.txExpense,
+      };
     }
     final subtitle = [
       if (allocation.sequenceNumber != null) '${allocation.sequenceNumber}',
@@ -2248,6 +2296,69 @@ class _AppliedToRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// The month carousel plus the detailed breakdown of whichever month is
+/// active. Each month is fetched by its own provider key, so they resolve —
+/// and fail — independently.
+class _FacilityDueMonthSection extends ConsumerStatefulWidget {
+  const _FacilityDueMonthSection({required this.accountId});
+
+  final String accountId;
+
+  @override
+  ConsumerState<_FacilityDueMonthSection> createState() =>
+      _FacilityDueMonthSectionState();
+}
+
+class _FacilityDueMonthSectionState
+    extends ConsumerState<_FacilityDueMonthSection> {
+  final List<FacilityDueMonth> _months = FacilityDueMonth.payable();
+  int _activeIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final active = _months[_activeIndex];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FacilityDueMonthCarousel(
+          accountId: widget.accountId,
+          months: _months,
+          activeIndex: _activeIndex,
+          onMonthChanged: (index) => setState(() => _activeIndex = index),
+          onPayMonth: (month) => context.push(
+            '${AppRoutes.money}/facilities/pay'
+            '?accountId=${widget.accountId}&month=${month.key}',
+          ),
+        ),
+        const SizedBox(height: 8),
+        AsyncView<FacilityDueBreakdown>(
+          key: ValueKey('facility-due-breakdown-month-${active.key}'),
+          value: ref.watch(
+            facilityMonthDueBreakdownProvider((
+              accountId: widget.accountId,
+              monthStartIso: active.key,
+            )),
+          ),
+          onRetry: () => ref.invalidate(facilityMonthDueBreakdownProvider),
+          data: (breakdown) => Card(
+            key: const Key('facility-due-breakdown-active-month'),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: DueBreakdownList(
+                breakdown: breakdown,
+                // The carousel card above already carries the three totals.
+                showTotals: false,
+                emptyMessage: l10n.dueMonthNoDues,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
