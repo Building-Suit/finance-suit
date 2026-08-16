@@ -4193,6 +4193,18 @@ abstract class AppLocalizations {
   /// **'Due breakdown'**
   String get dueBreakdownTitle;
 
+  /// No description provided for @dueBreakdownIncludedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything included in this total, with what you already paid.'**
+  String get dueBreakdownIncludedNote;
+
+  /// No description provided for @dueBreakdownNoDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'No item-level breakdown available'**
+  String get dueBreakdownNoDetails;
+
   /// No description provided for @dueBreakdownTotalDue.
   ///
   /// In en, this message translates to:

@@ -1100,6 +1100,8 @@
     }
   },
   "dueBreakdownTitle": "تفاصيل المستحقات",
+  "dueBreakdownIncludedNote": "كل ما يشمله هذا الإجمالي، مع ما سددته بالفعل.",
+  "dueBreakdownNoDetails": "لا توجد تفاصيل على مستوى العناصر",
   "dueBreakdownTotalDue": "إجمالي المستحق",
   "dueBreakdownPaid": "المسدد",
   "dueBreakdownLeftToPay": "المتبقي للسداد",

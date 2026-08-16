@@ -81,9 +81,27 @@ String? dueComponentSubtitle(
 
 /// The three authoritative totals of the persistent Due Breakdown.
 class DueBreakdownTotals extends StatelessWidget {
-  const DueBreakdownTotals({super.key, required this.breakdown});
+  const DueBreakdownTotals({
+    super.key,
+    required this.totalDueMinor,
+    required this.paidMinor,
+    required this.remainingMinor,
+    required this.currencyCode,
+  });
 
-  final FacilityDueBreakdown breakdown;
+  DueBreakdownTotals.fromBreakdown(FacilityDueBreakdown breakdown, {Key? key})
+    : this(
+        key: key,
+        totalDueMinor: breakdown.totalDueMinor,
+        paidMinor: breakdown.paidMinor,
+        remainingMinor: breakdown.remainingMinor,
+        currencyCode: breakdown.currencyCode,
+      );
+
+  final int totalDueMinor;
+  final int paidMinor;
+  final int remainingMinor;
+  final String currencyCode;
 
   @override
   Widget build(BuildContext context) {
@@ -96,14 +114,17 @@ class DueBreakdownTotals extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 2),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: style),
+            Expanded(
+              child: Text(
+                label,
+                style: style,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             ProtectedMoneyText(
-              Money(
-                minor: minor,
-                currencyCode: breakdown.currencyCode,
-              ).format(),
+              Money(minor: minor, currencyCode: currencyCode).format(),
               style: style,
               interactive: false,
             ),
@@ -115,13 +136,9 @@ class DueBreakdownTotals extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        row(l10n.dueBreakdownTotalDue, breakdown.totalDueMinor),
-        row(l10n.dueBreakdownPaid, breakdown.paidMinor),
-        row(
-          l10n.dueBreakdownLeftToPay,
-          breakdown.remainingMinor,
-          emphasize: true,
-        ),
+        row(l10n.dueBreakdownTotalDue, totalDueMinor),
+        row(l10n.dueBreakdownPaid, paidMinor),
+        row(l10n.dueBreakdownLeftToPay, remainingMinor, emphasize: true),
       ],
     );
   }
@@ -249,7 +266,7 @@ class DueBreakdownList extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DueBreakdownTotals(breakdown: breakdown),
+        DueBreakdownTotals.fromBreakdown(breakdown),
         for (final group in DueComponentGroup.values)
           if (groups[group] case final components?) ...[
             Padding(
