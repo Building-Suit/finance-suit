@@ -5597,11 +5597,17 @@ abstract class AppLocalizations {
   /// **'Add expense category'**
   String get feeRuleAddCategoryAction;
 
-  /// No description provided for @feeRulePercentOfBasis.
+  /// No description provided for @feeRulePercentRate.
   ///
   /// In en, this message translates to:
-  /// **'{percent}% of {basis}'**
-  String feeRulePercentOfBasis(String percent, String basis);
+  /// **'{percent}%'**
+  String feeRulePercentRate(String percent);
+
+  /// No description provided for @feeRuleOfBasis.
+  ///
+  /// In en, this message translates to:
+  /// **'of {basis}'**
+  String feeRuleOfBasis(String basis);
 
   /// No description provided for @valFeePercent.
   ///
