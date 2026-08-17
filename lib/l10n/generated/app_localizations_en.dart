@@ -4099,4 +4099,176 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errReimbursementLocked =>
       'Recorded reimbursements cannot be edited directly';
+
+  @override
+  String get notificationLoadFailed => 'Notifications could not be loaded.';
+
+  @override
+  String get notificationEndOfList => 'No more notifications';
+
+  @override
+  String get notificationUnreadLabel => 'Unread';
+
+  @override
+  String get notificationGenericBody => 'Open Finance Suit for details.';
+
+  @override
+  String get notificationUnknownAccount => 'Your account';
+
+  @override
+  String get notificationUnknownPerson => 'Someone';
+
+  @override
+  String notificationBadgeLabel(int count) {
+    return '$count unread notifications';
+  }
+
+  @override
+  String get notifEventCreditCardDueSoon => 'Credit card payment due soon';
+
+  @override
+  String get notifEventCreditCardDueToday => 'Credit card payment due today';
+
+  @override
+  String get notifEventCreditCardOverdue => 'Credit card payment overdue';
+
+  @override
+  String get notifEventInstallmentDueSoon => 'Installment due soon';
+
+  @override
+  String get notifEventInstallmentDueToday => 'Installment due today';
+
+  @override
+  String get notifEventInstallmentOverdue => 'Installment overdue';
+
+  @override
+  String get notifEventBnplDueSoon => 'BNPL payment due soon';
+
+  @override
+  String get notifEventBnplDueToday => 'BNPL payment due today';
+
+  @override
+  String get notifEventBnplOverdue => 'BNPL payment overdue';
+
+  @override
+  String get notifEventPaymentRecorded => 'Payment recorded';
+
+  @override
+  String get notifEventNetworkAddRequest => 'New add request';
+
+  @override
+  String get notifEventNetworkAddAccepted => 'Request accepted';
+
+  @override
+  String get notifEventTransferReceived => 'New transfer request';
+
+  @override
+  String get notifEventTransferAccepted => 'Transfer accepted';
+
+  @override
+  String get notifEventTransferDeclined => 'Transfer declined';
+
+  @override
+  String get notifEventLinkRequest => 'Installment link request';
+
+  @override
+  String get notifEventLinkAccepted => 'Installment link accepted';
+
+  @override
+  String get notifEventLinkDeclined => 'Installment link declined';
+
+  @override
+  String get notifEventDeveloperTest => 'Notification test';
+
+  @override
+  String notifBodyAccountDue(String account, String date) {
+    return '$account · due $date';
+  }
+
+  @override
+  String notifBodyAccountOverdue(String account, String date) {
+    return '$account · was due $date';
+  }
+
+  @override
+  String notifBodyAccountPayment(String account) {
+    return 'Recorded for $account';
+  }
+
+  @override
+  String notifBodyPersonAddRequest(String name) {
+    return '$name wants to add you to their network';
+  }
+
+  @override
+  String notifBodyPersonAddAccepted(String name) {
+    return '$name is now in your network';
+  }
+
+  @override
+  String notifBodyPersonTransferReceived(String name) {
+    return '$name sent you a transfer';
+  }
+
+  @override
+  String notifBodyPersonTransferAccepted(String name) {
+    return '$name accepted your transfer';
+  }
+
+  @override
+  String notifBodyPersonTransferDeclined(String name) {
+    return '$name declined your transfer';
+  }
+
+  @override
+  String notifBodyPersonLinkRequest(String name) {
+    return '$name wants to link an installment to you';
+  }
+
+  @override
+  String notifBodyPersonLinkAccepted(String name) {
+    return '$name accepted the installment link';
+  }
+
+  @override
+  String notifBodyPersonLinkDeclined(String name) {
+    return '$name declined the installment link';
+  }
+
+  @override
+  String get notifBodyDeveloperTest =>
+      'If you see this, alerts are working on this phone.';
+
+  @override
+  String get notifPushChannelSection => 'Phone alerts';
+
+  @override
+  String get notifPushChannelHelp =>
+      'In-app notifications keep arriving even when phone alerts are off.';
+
+  @override
+  String get notifDuePushTitle => 'Due reminders on this phone';
+
+  @override
+  String get notifOverduePushTitle => 'Overdue alerts on this phone';
+
+  @override
+  String get notifPaymentPushTitle => 'Payment alerts on this phone';
+
+  @override
+  String get notifNetworkTitle => 'Network activity';
+
+  @override
+  String get notifNetworkHelp =>
+      'Add requests, transfers and installment links from your contacts.';
+
+  @override
+  String get notifNetworkPushTitle => 'Network alerts on this phone';
+
+  @override
+  String get notifSystemPushTitle => 'Account and security alerts';
+
+  @override
+  String get notifSystemPushHelp =>
+      'Security notices always appear in the app; this only controls phone alerts.';
 }

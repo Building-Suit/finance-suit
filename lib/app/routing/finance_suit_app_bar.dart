@@ -8,6 +8,7 @@ import 'package:work_tracker/app/routing/finance_suit_header_scroll_scope.dart';
 import 'package:work_tracker/app/routing/finance_suit_menu.dart';
 import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/notifications/notification_center.dart';
+import 'package:work_tracker/core/notifications/notification_feed.dart';
 import 'package:work_tracker/core/security/device_authenticator.dart';
 import 'package:work_tracker/core/security/device_privacy_controller.dart';
 import 'package:work_tracker/core/widgets/app_toast.dart';
@@ -255,17 +256,7 @@ class FinanceSuitAppBar extends StatelessWidget implements PreferredSizeWidget {
                                       if (_showsMoneyVisibility)
                                         const _MoneyVisibilityAction(),
                                       if (_showsMoneyVisibility)
-                                        IconButton(
-                                          key: const Key(
-                                            'finance-suit-notifications-button',
-                                          ),
-                                          tooltip: l10n.setNotificationsSection,
-                                          onPressed: () =>
-                                              NotificationCenter.open(context),
-                                          icon: const FinanceSuitIcon(
-                                            FinanceSuitIcons.notifications,
-                                          ),
-                                        ),
+                                        const _NotificationBellAction(),
                                       ...?actions,
                                     ],
                                   ),
@@ -356,6 +347,82 @@ class _FinanceSuitObservedHeaderSurfaceState
 
   @override
   Widget build(BuildContext context) => widget.builder(_isSolid);
+}
+
+/// The header bell and the app's single unread badge.
+///
+/// The count comes from [notificationUnreadCountProvider], the one
+/// authoritative unread state, so the bell can never disagree with the
+/// Notification Center or show a stale positive number. Feature-specific
+/// counts (pending transfers, dues) are separate concepts and deliberately do
+/// not feed this badge.
+class _NotificationBellAction extends ConsumerWidget {
+  const _NotificationBellAction();
+
+  static const _maxDisplayed = 99;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    // Same fallback contract as the header surface above: shared chrome must
+    // still render when the semantic-colour extension is absent.
+    final semanticColors = theme.extension<FinanceSuitSemanticColors>();
+    final badgeColor = semanticColors?.error.icon ?? theme.colorScheme.error;
+    final badgeTextColor =
+        semanticColors?.error.textOnSolid ?? theme.colorScheme.onError;
+    final unread = ref.watch(notificationUnreadCountProvider);
+    final bell = IconButton(
+      key: const Key('finance-suit-notifications-button'),
+      tooltip: l10n.setNotificationsSection,
+      onPressed: () => NotificationCenter.open(context),
+      icon: const FinanceSuitIcon(FinanceSuitIcons.notifications),
+    );
+    if (unread <= 0) return bell;
+    final label = unread > _maxDisplayed ? '$_maxDisplayed+' : '$unread';
+    return Semantics(
+      label: l10n.notificationBadgeLabel(unread),
+      button: true,
+      child: ExcludeSemantics(
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            bell,
+            PositionedDirectional(
+              top: 6,
+              end: 4,
+              child: DecoratedBox(
+                key: const Key('finance-suit-notifications-badge'),
+                decoration: BoxDecoration(
+                  color: badgeColor,
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 1,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 10),
+                    child: Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: badgeTextColor,
+                        fontSize: 10,
+                        height: 1.2,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _MoneyVisibilityAction extends ConsumerWidget {

@@ -8,156 +8,14 @@ import 'package:work_tracker/app/branding/finance_suit_icons.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_menu.dart';
 import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
+import 'package:work_tracker/core/notifications/notification_events.dart';
+import 'package:work_tracker/core/notifications/notification_feed.dart';
 import 'package:work_tracker/core/notifications/notifications_repository.dart';
-import 'package:work_tracker/core/result/result.dart';
+import 'package:work_tracker/core/widgets/app_money_text.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
-typedef NotificationHistoryLoader =
-    Future<Result<NotificationHistoryPage>> Function({
-      NotificationHistoryCursor? after,
-      int limit,
-    });
-typedef NotificationReadMutation = Future<Result<void>> Function(String id);
-typedef NotificationReadAllMutation = Future<Result<void>> Function();
-
-final notificationHistoryLoaderProvider = Provider<NotificationHistoryLoader>(
-  (ref) => ref.watch(notificationsRepositoryProvider).fetchHistory,
-);
-final notificationReadMutationProvider = Provider<NotificationReadMutation>(
-  (ref) => ref.watch(notificationsRepositoryProvider).markHistoryRead,
-);
-final notificationReadAllMutationProvider =
-    Provider<NotificationReadAllMutation>(
-      (ref) => ref.watch(notificationsRepositoryProvider).markAllHistoryRead,
-    );
-
-@immutable
-class NotificationFeedState {
-  const NotificationFeedState({
-    this.items = const [],
-    this.next,
-    this.loading = false,
-    this.loadingMore = false,
-    this.error,
-  });
-
-  final List<NotificationHistoryItem> items;
-  final NotificationHistoryCursor? next;
-  final bool loading;
-  final bool loadingMore;
-  final Object? error;
-
-  bool get hasMore => next != null;
-
-  NotificationFeedState copyWith({
-    List<NotificationHistoryItem>? items,
-    NotificationHistoryCursor? next,
-    bool clearNext = false,
-    bool? loading,
-    bool? loadingMore,
-    Object? error,
-    bool clearError = false,
-  }) => NotificationFeedState(
-    items: items ?? this.items,
-    next: clearNext ? null : (next ?? this.next),
-    loading: loading ?? this.loading,
-    loadingMore: loadingMore ?? this.loadingMore,
-    error: clearError ? null : (error ?? this.error),
-  );
-}
-
-final notificationFeedProvider =
-    NotifierProvider<NotificationFeedController, NotificationFeedState>(
-      NotificationFeedController.new,
-    );
-
-class NotificationFeedController extends Notifier<NotificationFeedState> {
-  @override
-  NotificationFeedState build() => const NotificationFeedState();
-
-  Future<void> loadInitial({bool refresh = false}) async {
-    if (state.loading || (!refresh && state.items.isNotEmpty)) return;
-    state = state.copyWith(loading: true, clearError: true);
-    final result = await ref.read(notificationHistoryLoaderProvider)();
-    result.when(
-      ok: (page) => state = NotificationFeedState(
-        items: _deduplicate(page.items),
-        next: page.next,
-      ),
-      err: (failure) => state = state.copyWith(loading: false, error: failure),
-    );
-  }
-
-  Future<void> loadMore() async {
-    final cursor = state.next;
-    if (cursor == null || state.loading || state.loadingMore) return;
-    state = state.copyWith(loadingMore: true, clearError: true);
-    final result = await ref.read(notificationHistoryLoaderProvider)(
-      after: cursor,
-    );
-    result.when(
-      ok: (page) => state = NotificationFeedState(
-        items: _deduplicate([...state.items, ...page.items]),
-        next: page.next,
-      ),
-      err: (failure) =>
-          state = state.copyWith(loadingMore: false, error: failure),
-    );
-  }
-
-  Future<void> markRead(String id) async {
-    final item = state.items.where((entry) => entry.id == id).firstOrNull;
-    if (item == null || !item.isUnread) return;
-    final readAt = DateTime.now();
-    state = state.copyWith(
-      items: [
-        for (final entry in state.items)
-          if (entry.id == id) entry.copyWith(readAt: readAt) else entry,
-      ],
-    );
-    final result = await ref.read(notificationReadMutationProvider)(id);
-    result.when(
-      ok: (_) {},
-      err: (failure) => state = state.copyWith(
-        items: [
-          for (final entry in state.items)
-            if (entry.id == id) item else entry,
-        ],
-        error: failure,
-      ),
-    );
-  }
-
-  Future<void> markAllRead() async {
-    final unread = {
-      for (final item in state.items.where((i) => i.isUnread)) item.id,
-    };
-    if (unread.isEmpty) return;
-    final previous = state.items;
-    final readAt = DateTime.now();
-    state = state.copyWith(
-      items: [
-        for (final item in previous)
-          if (item.isUnread) item.copyWith(readAt: readAt) else item,
-      ],
-    );
-    final result = await ref.read(notificationReadAllMutationProvider)();
-    result.when(
-      ok: (_) {},
-      err: (failure) => state = state.copyWith(items: previous, error: failure),
-    );
-  }
-
-  static List<NotificationHistoryItem> _deduplicate(
-    List<NotificationHistoryItem> source,
-  ) {
-    final seen = <String>{};
-    return source.where((item) => seen.add(item.id)).toList(growable: false);
-  }
-}
-
 /// Logical-end counterpart to [FinanceSuitMenu]. It reuses the menu's motion,
-/// scrim, width and focus semantics while presenting the user's own delivered
+/// scrim, width and focus semantics while presenting the user's own
 /// notification history.
 abstract final class NotificationCenter {
   static final ValueNotifier<double> pageProgress = ValueNotifier<double>(0);
@@ -343,6 +201,7 @@ class _NotificationCenterPanelState
     super.initState();
     _scrollController = ScrollController()..addListener(_loadMoreWhenNeeded);
     WidgetsBinding.instance.addPostFrameCallback(
+      // Cached pages render immediately; this only refreshes stale content.
       (_) => ref.read(notificationFeedProvider.notifier).loadInitial(),
     );
   }
@@ -356,7 +215,10 @@ class _NotificationCenterPanelState
   }
 
   void _loadMoreWhenNeeded() {
+    if (!_scrollController.hasClients) return;
     if (_scrollController.position.extentAfter > 160) return;
+    // The controller ignores re-entrant calls, so crossing the threshold
+    // repeatedly cannot issue a second request or start a fetch loop.
     unawaited(ref.read(notificationFeedProvider.notifier).loadMore());
   }
 
@@ -365,6 +227,7 @@ class _NotificationCenterPanelState
     final colors = context.suitColors;
     final l10n = AppLocalizations.of(context);
     final feed = ref.watch(notificationFeedProvider);
+    final unread = ref.watch(notificationUnreadCountProvider);
     final foreground = colors.onBrandSurface;
     final mutedForeground = foreground.withValues(alpha: 0.76);
     return Align(
@@ -394,6 +257,18 @@ class _NotificationCenterPanelState
                               ),
                         ),
                       ),
+                      if (feed.refreshing)
+                        Padding(
+                          key: const Key('notification-center-refreshing'),
+                          padding: const EdgeInsetsDirectional.only(end: 8),
+                          child: SizedBox.square(
+                            dimension: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: mutedForeground,
+                            ),
+                          ),
+                        ),
                       IconButton(
                         key: const Key('notification-center-settings'),
                         tooltip: l10n.tabSettings,
@@ -420,7 +295,10 @@ class _NotificationCenterPanelState
                   top: false,
                   child: TextButton.icon(
                     key: const Key('notification-center-mark-all-read'),
-                    onPressed: feed.items.any((item) => item.isUnread)
+                    // Driven by the authoritative unread count, so it stays
+                    // enabled for unread notifications on pages not loaded.
+                    onPressed:
+                        unread > 0 || feed.items.any((item) => item.isUnread)
                         ? () => ref
                               .read(notificationFeedProvider.notifier)
                               .markAllRead()
@@ -462,17 +340,31 @@ class _NotificationList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     if (feed.loading && feed.items.isEmpty) {
-      return Center(
-        child: CircularProgressIndicator(color: context.suitColors.info.icon),
-      );
+      return _NotificationSkeletonList(mutedForeground: mutedForeground);
     }
     if (feed.error != null && feed.items.isEmpty) {
       return Center(
-        child: TextButton(
-          onPressed: () => ref
-              .read(notificationFeedProvider.notifier)
-              .loadInitial(refresh: true),
-          child: Text(l10n.commonRetry),
+        key: const Key('notification-center-error'),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                l10n.notificationLoadFailed,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: mutedForeground),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              key: const Key('notification-center-retry'),
+              onPressed: () => ref
+                  .read(notificationFeedProvider.notifier)
+                  .loadInitial(force: true),
+              child: Text(l10n.commonRetry),
+            ),
+          ],
         ),
       );
     }
@@ -485,19 +377,36 @@ class _NotificationList extends ConsumerWidget {
       );
     }
     final entries = _groupedEntries(context, feed.items);
+    // Only the rendered slice is built, so a user with thousands of
+    // historical notifications scrolls at the same cost as one with twenty.
     return ListView.builder(
       key: const Key('notification-center-list'),
       controller: controller,
       padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 12, 12),
-      itemCount: entries.length + (feed.loadingMore ? 1 : 0),
+      itemCount: entries.length + (feed.loadingMore || !feed.hasMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == entries.length) {
-          return const Padding(
-            padding: EdgeInsets.all(16),
+          if (feed.loadingMore) {
+            return const Padding(
+              key: Key('notification-center-loading-more'),
+              padding: EdgeInsets.all(16),
+              child: Center(
+                child: SizedBox.square(
+                  dimension: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            );
+          }
+          return Padding(
+            key: const Key('notification-center-end'),
+            padding: const EdgeInsets.symmetric(vertical: 16),
             child: Center(
-              child: SizedBox.square(
-                dimension: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
+              child: Text(
+                l10n.notificationEndOfList,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: mutedForeground.withValues(alpha: 0.7),
+                ),
               ),
             ),
           );
@@ -553,6 +462,69 @@ class _NotificationList extends ConsumerWidget {
   }
 }
 
+/// Shaped like the real rows so the first paint does not jump, and so the
+/// drawer never becomes an indefinite full-panel spinner.
+class _NotificationSkeletonList extends StatelessWidget {
+  const _NotificationSkeletonList({required this.mutedForeground});
+
+  final Color mutedForeground;
+
+  @override
+  Widget build(BuildContext context) {
+    final base = mutedForeground.withValues(alpha: 0.12);
+    return ListView.builder(
+      key: const Key('notification-center-skeleton'),
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 12, 12),
+      itemCount: 6,
+      itemBuilder: (context, index) => Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(8, 10, 6, 10),
+        child: Row(
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: base,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const SizedBox.square(dimension: 40),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _SkeletonBar(color: base, widthFactor: 0.6),
+                  const SizedBox(height: 6),
+                  _SkeletonBar(color: base, widthFactor: 0.85),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SkeletonBar extends StatelessWidget {
+  const _SkeletonBar({required this.color, required this.widthFactor});
+
+  final Color color;
+  final double widthFactor;
+
+  @override
+  Widget build(BuildContext context) => FractionallySizedBox(
+    alignment: AlignmentDirectional.centerStart,
+    widthFactor: widthFactor,
+    child: DecoratedBox(
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: const SizedBox(height: 10, width: double.infinity),
+    ),
+  );
+}
+
 sealed class _NotificationListEntry {
   const _NotificationListEntry();
 }
@@ -565,6 +537,162 @@ class _NotificationGroupHeading extends _NotificationListEntry {
 class _NotificationGroupItem extends _NotificationListEntry {
   const _NotificationGroupItem(this.item);
   final NotificationHistoryItem item;
+}
+
+/// Localized presentation for one event. Machine event keys never reach the
+/// user: an event this build does not know renders as a generic entry.
+@immutable
+class NotificationPresentation {
+  const NotificationPresentation({
+    required this.title,
+    required this.body,
+    required this.glyph,
+    required this.accent,
+  });
+
+  final String title;
+  final String body;
+  final FinanceSuitGlyph glyph;
+  final Color accent;
+}
+
+NotificationPresentation notificationPresentation(
+  BuildContext context,
+  NotificationHistoryItem item,
+) {
+  final l10n = AppLocalizations.of(context);
+  final colors = context.suitColors;
+  final locale = Localizations.localeOf(context).toString();
+  final account = item.accountName ?? l10n.notificationUnknownAccount;
+  final person = item.counterpartyName ?? l10n.notificationUnknownPerson;
+  final dueOn = item.dueOn;
+  final dueText = dueOn == null
+      ? ''
+      : DateFormat.MMMd(locale).format(DateTime.parse(dueOn));
+
+  return switch (item.event) {
+    NotificationEvent.creditCardStatementDueSoon => NotificationPresentation(
+      title: l10n.notifEventCreditCardDueSoon,
+      body: l10n.notifBodyAccountDue(account, dueText),
+      glyph: FinanceSuitIcons.calendarToday,
+      accent: colors.warning.icon,
+    ),
+    NotificationEvent.creditCardStatementDueToday => NotificationPresentation(
+      title: l10n.notifEventCreditCardDueToday,
+      body: l10n.notifBodyAccountDue(account, dueText),
+      glyph: FinanceSuitIcons.calendarToday,
+      accent: colors.warning.icon,
+    ),
+    NotificationEvent.creditCardStatementOverdue => NotificationPresentation(
+      title: l10n.notifEventCreditCardOverdue,
+      body: l10n.notifBodyAccountOverdue(account, dueText),
+      glyph: FinanceSuitIcons.warning,
+      accent: colors.error.icon,
+    ),
+    NotificationEvent.installmentDueSoon => NotificationPresentation(
+      title: l10n.notifEventInstallmentDueSoon,
+      body: l10n.notifBodyAccountDue(account, dueText),
+      glyph: FinanceSuitIcons.calendarToday,
+      accent: colors.warning.icon,
+    ),
+    NotificationEvent.installmentDueToday => NotificationPresentation(
+      title: l10n.notifEventInstallmentDueToday,
+      body: l10n.notifBodyAccountDue(account, dueText),
+      glyph: FinanceSuitIcons.calendarToday,
+      accent: colors.warning.icon,
+    ),
+    NotificationEvent.installmentOverdue => NotificationPresentation(
+      title: l10n.notifEventInstallmentOverdue,
+      body: l10n.notifBodyAccountOverdue(account, dueText),
+      glyph: FinanceSuitIcons.warning,
+      accent: colors.error.icon,
+    ),
+    NotificationEvent.bnplDueSoon => NotificationPresentation(
+      title: l10n.notifEventBnplDueSoon,
+      body: l10n.notifBodyAccountDue(account, dueText),
+      glyph: FinanceSuitIcons.calendarToday,
+      accent: colors.warning.icon,
+    ),
+    NotificationEvent.bnplDueToday => NotificationPresentation(
+      title: l10n.notifEventBnplDueToday,
+      body: l10n.notifBodyAccountDue(account, dueText),
+      glyph: FinanceSuitIcons.calendarToday,
+      accent: colors.warning.icon,
+    ),
+    NotificationEvent.bnplOverdue => NotificationPresentation(
+      title: l10n.notifEventBnplOverdue,
+      body: l10n.notifBodyAccountOverdue(account, dueText),
+      glyph: FinanceSuitIcons.warning,
+      accent: colors.error.icon,
+    ),
+    NotificationEvent.facilityPaymentRecorded => NotificationPresentation(
+      title: l10n.notifEventPaymentRecorded,
+      body: l10n.notifBodyAccountPayment(account),
+      glyph: FinanceSuitIcons.checkCircle,
+      accent: colors.success.icon,
+    ),
+    NotificationEvent.networkAddRequestReceived => NotificationPresentation(
+      title: l10n.notifEventNetworkAddRequest,
+      body: l10n.notifBodyPersonAddRequest(person),
+      glyph: FinanceSuitIcons.personAdd,
+      accent: colors.info.icon,
+    ),
+    NotificationEvent.networkAddRequestAccepted => NotificationPresentation(
+      title: l10n.notifEventNetworkAddAccepted,
+      body: l10n.notifBodyPersonAddAccepted(person),
+      glyph: FinanceSuitIcons.person,
+      accent: colors.success.icon,
+    ),
+    NotificationEvent.networkTransferReceived => NotificationPresentation(
+      title: l10n.notifEventTransferReceived,
+      body: l10n.notifBodyPersonTransferReceived(person),
+      glyph: FinanceSuitIcons.swapHoriz,
+      accent: colors.info.icon,
+    ),
+    NotificationEvent.networkTransferAccepted => NotificationPresentation(
+      title: l10n.notifEventTransferAccepted,
+      body: l10n.notifBodyPersonTransferAccepted(person),
+      glyph: FinanceSuitIcons.checkCircle,
+      accent: colors.success.icon,
+    ),
+    NotificationEvent.networkTransferDeclined => NotificationPresentation(
+      title: l10n.notifEventTransferDeclined,
+      body: l10n.notifBodyPersonTransferDeclined(person),
+      glyph: FinanceSuitIcons.warning,
+      accent: colors.error.icon,
+    ),
+    NotificationEvent.installmentLinkRequestReceived =>
+      NotificationPresentation(
+        title: l10n.notifEventLinkRequest,
+        body: l10n.notifBodyPersonLinkRequest(person),
+        glyph: FinanceSuitIcons.link,
+        accent: colors.info.icon,
+      ),
+    NotificationEvent.installmentLinkAccepted => NotificationPresentation(
+      title: l10n.notifEventLinkAccepted,
+      body: l10n.notifBodyPersonLinkAccepted(person),
+      glyph: FinanceSuitIcons.checkCircle,
+      accent: colors.success.icon,
+    ),
+    NotificationEvent.installmentLinkDeclined => NotificationPresentation(
+      title: l10n.notifEventLinkDeclined,
+      body: l10n.notifBodyPersonLinkDeclined(person),
+      glyph: FinanceSuitIcons.warning,
+      accent: colors.error.icon,
+    ),
+    NotificationEvent.developerTest => NotificationPresentation(
+      title: l10n.notifEventDeveloperTest,
+      body: l10n.notifBodyDeveloperTest,
+      glyph: FinanceSuitIcons.notifications,
+      accent: colors.info.icon,
+    ),
+    NotificationEvent.unknown => NotificationPresentation(
+      title: l10n.setNotificationsSection,
+      body: l10n.notificationGenericBody,
+      glyph: FinanceSuitIcons.notifications,
+      accent: colors.info.icon,
+    ),
+  };
 }
 
 class _NotificationTile extends ConsumerWidget {
@@ -581,52 +709,9 @@ class _NotificationTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final colors = context.suitColors;
-    final payload = item.payload;
-    final accountName = payload['account_name'] as String?;
-    final amount = payload['amount_text'] as String?;
-    final (
-      title,
-      body,
-      destination,
-      glyph,
-      accent,
-    ) = switch (item.reminderKind) {
-      'overdue' => (
-        l10n.dueStatusOverdue,
-        accountName ?? l10n.setNotificationsSection,
-        AppRoutes.money,
-        FinanceSuitIcons.warning,
-        colors.error.icon,
-      ),
-      'payment_confirmation' || 'payment_success' => (
-        l10n.paymentTitle,
-        [amount, accountName].whereType<String>().join(' · '),
-        AppRoutes.money,
-        FinanceSuitIcons.checkCircle,
-        colors.success.icon,
-      ),
-      'due_today' || 'due_soon' || 'due_tomorrow' => (
-        l10n.dueStatusDueToday,
-        [amount, accountName].whereType<String>().join(' · '),
-        AppRoutes.money,
-        FinanceSuitIcons.calendarToday,
-        colors.warning.icon,
-      ),
-      'plan_completed' => (
-        l10n.setNotificationsSection,
-        accountName ?? l10n.commonDone,
-        AppRoutes.money,
-        FinanceSuitIcons.celebration,
-        colors.info.icon,
-      ),
-      _ => (
-        l10n.setNotificationsSection,
-        accountName ?? l10n.commonToday,
-        null,
-        FinanceSuitIcons.notifications,
-        colors.info.icon,
-      ),
-    };
+    final presentation = notificationPresentation(context, item);
+    final destination = item.destination;
+    final amount = item.amount;
     final locale = Localizations.localeOf(context).toString();
     final timestamp =
         '${DateFormat.MMMd(locale).format(item.createdAt)} · '
@@ -636,9 +721,12 @@ class _NotificationTile extends ConsumerWidget {
       borderRadius: BorderRadius.circular(16),
       onTap: () async {
         await ref.read(notificationFeedProvider.notifier).markRead(item.id);
-        if (!context.mounted || destination == null) return;
+        if (!context.mounted) return;
+        if (destination == null) return;
         final router = GoRouter.of(context);
         await NotificationCenter.close();
+        // The destination is a validated app route; the screen behind it
+        // still loads the entity through the normal repositories under RLS.
         unawaited(router.push(destination));
       },
       child: Padding(
@@ -648,12 +736,16 @@ class _NotificationTile extends ConsumerWidget {
           children: [
             DecoratedBox(
               decoration: BoxDecoration(
-                color: accent.withValues(alpha: 0.16),
+                color: presentation.accent.withValues(alpha: 0.16),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: SizedBox.square(
                 dimension: 40,
-                child: FinanceSuitIcon(glyph, size: 21, color: accent),
+                child: FinanceSuitIcon(
+                  presentation.glyph,
+                  size: 21,
+                  color: presentation.accent,
+                ),
               ),
             ),
             const SizedBox(width: 10),
@@ -662,7 +754,7 @@ class _NotificationTile extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    presentation.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -670,15 +762,27 @@ class _NotificationTile extends ConsumerWidget {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  if (body.isNotEmpty) ...[
+                  if (presentation.body.isNotEmpty) ...[
                     const SizedBox(height: 2),
                     Text(
-                      body,
+                      presentation.body,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(
                         context,
                       ).textTheme.bodySmall?.copyWith(color: mutedForeground),
+                    ),
+                  ],
+                  if (amount != null) ...[
+                    const SizedBox(height: 4),
+                    // Reuses the app's money-privacy control, so amounts in
+                    // the Center follow the same reveal rules as everywhere
+                    // else instead of a second privacy system.
+                    AppMoneyText(
+                      money: amount,
+                      sign: AppMoneySign.never,
+                      style: Theme.of(context).textTheme.labelLarge,
+                      color: foreground,
                     ),
                   ],
                   const SizedBox(height: 4),
@@ -696,13 +800,16 @@ class _NotificationTile extends ConsumerWidget {
               height: 40,
               child: item.isUnread
                   ? Center(
-                      child: DecoratedBox(
-                        key: Key('notification-unread-${item.id}'),
-                        decoration: BoxDecoration(
-                          color: colors.info.icon,
-                          shape: BoxShape.circle,
+                      child: Semantics(
+                        label: l10n.notificationUnreadLabel,
+                        child: DecoratedBox(
+                          key: Key('notification-unread-${item.id}'),
+                          decoration: BoxDecoration(
+                            color: colors.info.icon,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const SizedBox.square(dimension: 7),
                         ),
-                        child: const SizedBox.square(dimension: 7),
                       ),
                     )
                   : null,
