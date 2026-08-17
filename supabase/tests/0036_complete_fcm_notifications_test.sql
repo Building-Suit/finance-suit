@@ -24,10 +24,12 @@ select has_function(
   array['text', 'text', 'text', 'text', 'text'],
   'register_push_device RPC exists'
 );
+-- Batch size, lease seconds, attempt budget. The lease argument is what lets
+-- a crashed worker's `sending` rows become claimable again.
 select has_function(
   'app_core',
   'claim_notification_outbox',
-  array['integer'],
+  array['integer', 'integer', 'integer'],
   'claim_notification_outbox RPC exists'
 );
 
