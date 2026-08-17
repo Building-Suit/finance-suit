@@ -261,6 +261,7 @@ List<dynamic> _baseOverrides({
   List<CreditFacilitySummary>? facilities,
   List<AccountBalance>? accounts,
   List<CardFeeRule>? feeRules,
+  FacilityDueBreakdown? breakdown,
 }) {
   final facilityList = facilities ?? [_visa];
   final accountList = accounts ?? [_wallet, _dollarWallet, _visaBalanceRow];
@@ -293,9 +294,11 @@ List<dynamic> _baseOverrides({
     feeRulesProvider.overrideWith(
       (ref, accountId) async => feeRules ?? const <CardFeeRule>[],
     ),
-    facilityDueBreakdownProvider.overrideWith((ref, args) async => _breakdown),
+    facilityDueBreakdownProvider.overrideWith(
+      (ref, args) async => breakdown ?? _breakdown,
+    ),
     facilityMonthDueBreakdownProvider.overrideWith(
-      (ref, args) async => _breakdown,
+      (ref, args) async => breakdown ?? _breakdown,
     ),
     paymentAllocationsProvider.overrideWith(
       (ref, transactionId) async => const <FacilityPaymentAllocationDetail>[],
@@ -309,6 +312,7 @@ Future<void> _pump(
   List<CreditFacilitySummary>? facilities,
   List<AccountBalance>? accounts,
   List<CardFeeRule>? feeRules,
+  FacilityDueBreakdown? breakdown,
   Locale locale = const Locale('en'),
 }) async {
   await tester.pumpWidget(
@@ -318,6 +322,7 @@ Future<void> _pump(
           facilities: facilities,
           accounts: accounts,
           feeRules: feeRules,
+          breakdown: breakdown,
         ).cast(),
       ],
       child: MaterialApp(
@@ -759,6 +764,97 @@ void main() {
       );
       expect(find.byKey(const Key('payment-checklist')), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('checklist reveal', () {
+    testWidgets('a heavy checklist reveals rows in steps, presets unaffected', (
+      tester,
+    ) async {
+      // The regression: every component of a heavy month rendered into the
+      // checklist at once, making the form thousands of pixels tall.
+      tester.view.physicalSize = const Size(800, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final heavy = FacilityDueBreakdown.fromJson({
+        'account_id': 'facility-1',
+        'account_type': 'credit_card',
+        'currency_code': 'EGP',
+        'as_of': '2026-08-10',
+        'outstanding_minor': 300000,
+        'total_due_minor': 300000,
+        'paid_minor': 0,
+        'remaining_minor': 300000,
+        'additional_balance_minor': 0,
+        'components': [
+          for (var i = 0; i < 60; i++)
+            {
+              'component_type': 'statement_item',
+              'component_id': 'bulk-$i',
+              'cycle_id': 'cycle-1',
+              'title': 'Bulk purchase $i',
+              'activity_kind': 'ordinary_expense',
+              'occurred_on': '2026-07-20',
+              'amount_minor': 5000,
+              'paid_minor': 0,
+              'remaining_minor': 5000,
+              'payment_status': 'unpaid',
+              'scope': 'current',
+            },
+        ],
+      });
+      await _pump(
+        tester,
+        const FacilityPaymentScreen(accountId: 'facility-1'),
+        breakdown: heavy,
+      );
+
+      // Only the first step renders; the rest wait behind Show more.
+      final showMore = find.byKey(const Key('payment-checklist-show-more'));
+      await tester.dragUntilVisible(
+        showMore,
+        find.byType(Scrollable).first,
+        const Offset(0, -400),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('payment-row-statement_item:bulk-19')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('payment-row-statement_item:bulk-20')),
+        findsNothing,
+      );
+
+      // The label promises exactly what one tap reveals — never the full
+      // hidden count.
+      expect(find.text('Show 20 more items'), findsOneWidget);
+      await tester.tap(showMore);
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('payment-row-statement_item:bulk-20')),
+        findsOneWidget,
+      );
+
+      // A preset allocates across every component, visible or not.
+      await tester.dragUntilVisible(
+        find.byKey(const Key('payment-chip-full')),
+        find.byType(Scrollable).first,
+        const Offset(0, 400),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('payment-chip-full')));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<TextFormField>(find.byKey(const Key('payment-amount')))
+            .controller!
+            .text,
+        '3,000.00',
+      );
+      // Money allocated to rows not yet revealed is called out, so the
+      // Amount never disagrees silently with the visible list.
+      expect(find.byKey(const Key('payment-hidden-selected')), findsOneWidget);
     });
   });
 

@@ -1,4 +1,8 @@
+import 'dart:math' as math;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
@@ -42,6 +46,59 @@ class _FacilityDueMonthCarouselState
     viewportFraction: 0.86,
   );
 
+  /// Reported page heights. The viewport takes the tallest one, so the
+  /// cards are never clipped: a hardcoded height broke at larger text
+  /// scales, cutting the payment button in half.
+  ///
+  /// Each card is rendered with the viewport as its minimum height (so the
+  /// two months always read as one equal row), which means a report is
+  /// max(natural, viewport): the viewport can grow but not shrink while
+  /// this state lives. That bias is only cosmetic whitespace — content can
+  /// never be clipped by it — and the map is reset whenever the months or
+  /// the text scale change.
+  final Map<int, double> _pageHeights = {};
+
+  /// The text scale the current measurements were taken at.
+  TextScaler? _measuredScale;
+
+  /// Before the first report the viewport uses this guess for one frame;
+  /// it is corrected as soon as a page reports its real height.
+  static const _fallbackHeight = 186.0;
+
+  double get _viewportHeight => _pageHeights.isEmpty
+      ? _fallbackHeight
+      : _pageHeights.values.reduce(math.max);
+
+  void _reportHeight(int index, double height) {
+    if (_pageHeights[index] == height) return;
+    setState(() => _pageHeights[index] = height);
+  }
+
+  @override
+  void didUpdateWidget(covariant FacilityDueMonthCarousel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A month rollover replaces the pages; their old heights must not keep
+    // inflating the viewport.
+    if (!listEquals(
+      [for (final m in oldWidget.months) m.key],
+      [for (final m in widget.months) m.key],
+    )) {
+      _pageHeights.clear();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Heights measured at one text scale are meaningless at another; a
+    // lowered scale would otherwise leave permanently inflated cards.
+    final scale = MediaQuery.textScalerOf(context);
+    if (_measuredScale != null && _measuredScale != scale) {
+      _pageHeights.clear();
+    }
+    _measuredScale = scale;
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -55,7 +112,7 @@ class _FacilityDueMonthCarouselState
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(
-          height: 186,
+          height: _viewportHeight,
           child: PageView.builder(
             controller: _controller,
             itemCount: widget.months.length,
@@ -64,15 +121,27 @@ class _FacilityDueMonthCarouselState
               final month = widget.months[index];
               return Padding(
                 padding: const EdgeInsetsDirectional.only(end: 8),
-                child: _MonthCard(
-                  key: Key(
-                    'facility-due-card-'
-                    '${month.isCurrentMonth ? 'current' : 'next'}',
+                // The page is given the viewport's tight height, so the
+                // card measures itself unbounded and reports back instead
+                // of being forced to clip its own content.
+                child: OverflowBox(
+                  alignment: AlignmentDirectional.topStart,
+                  minHeight: 0,
+                  maxHeight: double.infinity,
+                  child: _ReportHeight(
+                    onHeight: (height) => _reportHeight(index, height),
+                    child: _MonthCard(
+                      key: Key(
+                        'facility-due-card-'
+                        '${month.isCurrentMonth ? 'current' : 'next'}',
+                      ),
+                      accountId: widget.accountId,
+                      month: month,
+                      minHeight: _viewportHeight,
+                      isActive: index == widget.activeIndex,
+                      onPay: () => widget.onPayMonth(month),
+                    ),
                   ),
-                  accountId: widget.accountId,
-                  month: month,
-                  isActive: index == widget.activeIndex,
-                  onPay: () => widget.onPayMonth(month),
                 ),
               );
             },
@@ -88,17 +157,60 @@ class _FacilityDueMonthCarouselState
   }
 }
 
+/// Reports the laid-out height of its child whenever it changes.
+class _ReportHeight extends SingleChildRenderObjectWidget {
+  const _ReportHeight({required this.onHeight, super.child});
+
+  final ValueChanged<double> onHeight;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _ReportHeightRenderObject(onHeight);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _ReportHeightRenderObject renderObject,
+  ) {
+    renderObject.onHeight = onHeight;
+  }
+}
+
+class _ReportHeightRenderObject extends RenderProxyBox {
+  _ReportHeightRenderObject(this.onHeight);
+
+  ValueChanged<double> onHeight;
+  double? _reported;
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    final height = size.height;
+    if (_reported == height) return;
+    _reported = height;
+    // Reporting mutates state, so it must wait for the frame to finish.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (attached) onHeight(height);
+    });
+  }
+}
+
 class _MonthCard extends ConsumerWidget {
   const _MonthCard({
     super.key,
     required this.accountId,
     required this.month,
+    required this.minHeight,
     required this.isActive,
     required this.onPay,
   });
 
   final String accountId;
   final FacilityDueMonth month;
+
+  /// The current viewport height: the card fills at least the tallest
+  /// sibling so both months read as one row even when one has less content.
+  final double minHeight;
   final bool isActive;
   final VoidCallback onPay;
 
@@ -119,52 +231,63 @@ class _MonthCard extends ConsumerWidget {
       )),
     );
 
-    return Card(
-      elevation: 0,
-      color: isActive ? colors.brandSurface : colors.surfaceRaised,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: isActive ? colors.primary : colors.borderSubtle,
-          width: isActive ? 1.5 : 1,
+    // The card sizes itself to its content — a fixed height clipped the
+    // payment button as soon as the device text scale grew — and never
+    // shrinks below the tallest sibling so the two cards stay one row.
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: minHeight),
+      child: Card(
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        color: isActive ? colors.brandSurface : colors.surfaceRaised,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: isActive ? colors.primary : colors.borderSubtle,
+            width: isActive ? 1.5 : 1,
+          ),
         ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    periodLabel,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      periodLabel,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: isActive
+                            ? colors.onBrandSurface
+                            : colors.textMuted,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(
+                    monthLabel,
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: isActive
                           ? colors.onBrandSurface
                           : colors.textMuted,
-                      fontWeight: FontWeight.w700,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                Text(
-                  monthLabel,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: isActive ? colors.onBrandSurface : colors.textMuted,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: async.when(
-                loading: () => const Center(
-                  child: SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                ],
+              ),
+              const SizedBox(height: 8),
+              async.when(
+                loading: () => const SizedBox(
+                  height: 96,
+                  child: Center(
+                    child: SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
                   ),
                 ),
                 error: (_, _) => _MonthError(
@@ -184,8 +307,8 @@ class _MonthCard extends ConsumerWidget {
                   onPay: onPay,
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -219,19 +342,15 @@ class _MonthBody extends StatelessWidget {
         Money(minor: minor, currencyCode: breakdown.currencyCode).format();
 
     if (breakdown.hasNoDues) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: Center(
-              child: Text(
-                l10n.dueMonthNoDues,
-                style: theme.textTheme.bodyMedium?.copyWith(color: onSurface),
-                textAlign: TextAlign.center,
-              ),
-            ),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Center(
+          child: Text(
+            l10n.dueMonthNoDues,
+            style: theme.textTheme.bodyMedium?.copyWith(color: onSurface),
+            textAlign: TextAlign.center,
           ),
-        ],
+        ),
       );
     }
 
@@ -240,6 +359,7 @@ class _MonthBody extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
+            flex: 2,
             child: Text(
               label,
               style:
@@ -254,17 +374,29 @@ class _MonthBody extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          ProtectedMoneyText(
-            money(minor),
-            interactive: false,
-            style:
-                (emphasize
-                        ? theme.textTheme.bodyMedium
-                        : theme.textTheme.bodySmall)
-                    ?.copyWith(
-                      color: onSurface,
-                      fontWeight: emphasize ? FontWeight.w700 : null,
-                    ),
+          // Expanded + end alignment keeps the amounts flush in one column;
+          // the FittedBox only shrinks a figure that a large text scale
+          // would otherwise overflow.
+          Expanded(
+            flex: 3,
+            child: Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: ProtectedMoneyText(
+                  money(minor),
+                  interactive: false,
+                  style:
+                      (emphasize
+                              ? theme.textTheme.bodyMedium
+                              : theme.textTheme.bodySmall)
+                          ?.copyWith(
+                            color: onSurface,
+                            fontWeight: emphasize ? FontWeight.w700 : null,
+                          ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -278,6 +410,7 @@ class _MonthBody extends StatelessWidget {
         money(breakdown.remainingMinor),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           row(l10n.dueBreakdownTotalDue, breakdown.totalDueMinor),
@@ -287,7 +420,7 @@ class _MonthBody extends StatelessWidget {
             breakdown.remainingMinor,
             emphasize: true,
           ),
-          const Spacer(),
+          const SizedBox(height: 12),
           if (settled)
             Row(
               children: [
@@ -307,19 +440,16 @@ class _MonthBody extends StatelessWidget {
               ],
             )
           else
-            SizedBox(
-              height: 40,
-              child: FilledButton(
-                key: Key(
-                  'facility-due-card-pay-'
-                  '${month.isCurrentMonth ? 'current' : 'next'}',
-                ),
-                onPressed: onPay,
-                child: Text(
-                  l10n.dueMonthMakePayments,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+            FilledButton(
+              key: Key(
+                'facility-due-card-pay-'
+                '${month.isCurrentMonth ? 'current' : 'next'}',
+              ),
+              onPressed: onPay,
+              child: Text(
+                l10n.dueMonthMakePayments,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
         ],
