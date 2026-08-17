@@ -2,34 +2,59 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:work_tracker/core/errors/app_failure.dart';
+import 'package:work_tracker/core/money/money.dart';
+import 'package:work_tracker/core/notifications/notification_events.dart';
 import 'package:work_tracker/core/result/result.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 
 /// A row from `app_core.notification_preferences`; every flag defaults to
 /// the server-side default so a missing row behaves identically.
+///
+/// The category switches decide whether a notification exists at all; the
+/// matching `*Push` switches only silence the lock screen, so a user can keep
+/// their in-app history while turning phone alerts off.
 @immutable
 class NotificationPreferences {
   const NotificationPreferences({
     this.dueRemindersEnabled = true,
     this.overdueRemindersEnabled = true,
     this.paymentConfirmationsEnabled = true,
+    this.networkEnabled = true,
+    this.duePushEnabled = true,
+    this.overduePushEnabled = true,
+    this.paymentPushEnabled = true,
+    this.networkPushEnabled = true,
+    this.systemPushEnabled = true,
     this.showAmounts = false,
   });
 
   factory NotificationPreferences.fromJson(Map<String, dynamic> json) {
+    bool flag(String key, {bool fallback = true}) =>
+        json[key] as bool? ?? fallback;
     return NotificationPreferences(
-      dueRemindersEnabled: json['due_reminders_enabled'] as bool? ?? true,
-      overdueRemindersEnabled:
-          json['overdue_reminders_enabled'] as bool? ?? true,
-      paymentConfirmationsEnabled:
-          json['payment_confirmations_enabled'] as bool? ?? true,
-      showAmounts: json['show_amounts'] as bool? ?? false,
+      dueRemindersEnabled: flag('due_reminders_enabled'),
+      overdueRemindersEnabled: flag('overdue_reminders_enabled'),
+      paymentConfirmationsEnabled: flag('payment_confirmations_enabled'),
+      networkEnabled: flag('network_enabled'),
+      duePushEnabled: flag('due_push_enabled'),
+      overduePushEnabled: flag('overdue_push_enabled'),
+      paymentPushEnabled: flag('payment_push_enabled'),
+      networkPushEnabled: flag('network_push_enabled'),
+      systemPushEnabled: flag('system_push_enabled'),
+      showAmounts: flag('show_amounts', fallback: false),
     );
   }
 
   final bool dueRemindersEnabled;
   final bool overdueRemindersEnabled;
   final bool paymentConfirmationsEnabled;
+  final bool networkEnabled;
+
+  final bool duePushEnabled;
+  final bool overduePushEnabled;
+  final bool paymentPushEnabled;
+  final bool networkPushEnabled;
+  final bool systemPushEnabled;
 
   /// Amounts stay out of push payloads unless the user opts in; lock-screen
   /// notifications must never leak balances by default.
@@ -39,6 +64,12 @@ class NotificationPreferences {
     bool? dueRemindersEnabled,
     bool? overdueRemindersEnabled,
     bool? paymentConfirmationsEnabled,
+    bool? networkEnabled,
+    bool? duePushEnabled,
+    bool? overduePushEnabled,
+    bool? paymentPushEnabled,
+    bool? networkPushEnabled,
+    bool? systemPushEnabled,
     bool? showAmounts,
   }) => NotificationPreferences(
     dueRemindersEnabled: dueRemindersEnabled ?? this.dueRemindersEnabled,
@@ -46,8 +77,27 @@ class NotificationPreferences {
         overdueRemindersEnabled ?? this.overdueRemindersEnabled,
     paymentConfirmationsEnabled:
         paymentConfirmationsEnabled ?? this.paymentConfirmationsEnabled,
+    networkEnabled: networkEnabled ?? this.networkEnabled,
+    duePushEnabled: duePushEnabled ?? this.duePushEnabled,
+    overduePushEnabled: overduePushEnabled ?? this.overduePushEnabled,
+    paymentPushEnabled: paymentPushEnabled ?? this.paymentPushEnabled,
+    networkPushEnabled: networkPushEnabled ?? this.networkPushEnabled,
+    systemPushEnabled: systemPushEnabled ?? this.systemPushEnabled,
     showAmounts: showAmounts ?? this.showAmounts,
   );
+
+  Map<String, dynamic> toJson() => {
+    'due_reminders_enabled': dueRemindersEnabled,
+    'overdue_reminders_enabled': overdueRemindersEnabled,
+    'payment_confirmations_enabled': paymentConfirmationsEnabled,
+    'network_enabled': networkEnabled,
+    'due_push_enabled': duePushEnabled,
+    'overdue_push_enabled': overduePushEnabled,
+    'payment_push_enabled': paymentPushEnabled,
+    'network_push_enabled': networkPushEnabled,
+    'system_push_enabled': systemPushEnabled,
+    'show_amounts': showAmounts,
+  };
 }
 
 @immutable
@@ -65,51 +115,85 @@ class NotificationTestDelivery {
   final int suppressed;
 }
 
-/// A delivered notification visible in the in-app Notification Center.
+/// One logical notification from `app_core.notifications`.
 ///
-/// Delivery history already belongs to the authenticated user under RLS. The
-/// app deliberately reads only sent rows, so pending/retry implementation
-/// details and failed attempts are never presented as user notifications.
+/// This is deliberately *not* a delivery record: a user with two phones has
+/// one of these, and a user with no registered device still has one. Push
+/// deliveries hang off it in `app_core.notification_outbox`.
 @immutable
 class NotificationHistoryItem {
   const NotificationHistoryItem({
     required this.id,
-    required this.obligationType,
-    required this.reminderKind,
+    required this.event,
     required this.createdAt,
     required this.payload,
+    this.entityType,
+    this.entityId,
+    this.route,
     this.readAt,
   });
 
   factory NotificationHistoryItem.fromJson(Map<String, dynamic> json) =>
       NotificationHistoryItem(
         id: json['id'] as String,
-        obligationType: json['obligation_type'] as String? ?? 'general',
-        reminderKind: json['reminder_kind'] as String? ?? 'due_today',
+        event: NotificationEvent.fromKey(json['event_key'] as String?),
+        entityType: json['entity_type'] as String?,
+        entityId: json['entity_id'] as String?,
+        route: json['route'] as String?,
         createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
         readAt: switch (json['read_at']) {
           final String value => DateTime.parse(value).toLocal(),
           _ => null,
         },
         payload: Map<String, dynamic>.from(
-          (json['payload_snapshot'] as Map?) ?? const <String, dynamic>{},
+          (json['payload'] as Map?) ?? const <String, dynamic>{},
         ),
       );
 
   final String id;
-  final String obligationType;
-  final String reminderKind;
+  final NotificationEvent event;
+  final String? entityType;
+  final String? entityId;
+  final String? route;
   final DateTime createdAt;
   final Map<String, dynamic> payload;
   final DateTime? readAt;
 
   bool get isUnread => readAt == null;
 
+  String? get accountName => _text('account_name');
+  String? get counterpartyName => _text('counterparty_name');
+  String? get planTitle => _text('plan_title');
+  String? get dueOn => _text('due_on');
+
+  /// Integer minor units straight from the payload. The Notification Center
+  /// renders this through the app's existing money-privacy control rather
+  /// than showing the server's pre-rendered push text.
+  Money? get amount {
+    final minor = payload['amount_minor'];
+    final currency = payload['currency_code'];
+    if (minor is! num || currency is! String || currency.length != 3) {
+      return null;
+    }
+    return Money(minor: minor.toInt(), currencyCode: currency);
+  }
+
+  /// The validated in-app destination, or null when there is nothing safe to
+  /// open.
+  String? get destination => NotificationRoutes.resolve(route);
+
+  String? _text(String key) {
+    final value = payload[key];
+    return value is String && value.isNotEmpty ? value : null;
+  }
+
   NotificationHistoryItem copyWith({DateTime? readAt}) =>
       NotificationHistoryItem(
         id: id,
-        obligationType: obligationType,
-        reminderKind: reminderKind,
+        event: event,
+        entityType: entityType,
+        entityId: entityId,
+        route: route,
         createdAt: createdAt,
         payload: payload,
         readAt: readAt ?? this.readAt,
@@ -132,7 +216,8 @@ class NotificationHistoryPage {
   final NotificationHistoryCursor? next;
 }
 
-/// Push device registration and notification preferences in `app_core`.
+/// Notification history, read state, push device registration and preferences
+/// in `app_core`.
 class NotificationsRepository {
   NotificationsRepository(this._client);
 
@@ -231,9 +316,9 @@ class NotificationsRepository {
     });
   }
 
-  /// Fetches delivered notifications newest first with a stable
-  /// `(created_at, id)` keyset cursor. RLS and the explicit owner filter keep
-  /// the feed private even if a caller supplies a stale cursor.
+  /// Fetches notifications newest first with a stable `(created_at, id)`
+  /// keyset cursor. RLS and the explicit owner filter keep the feed private
+  /// even if a caller supplies a stale cursor.
   Future<Result<NotificationHistoryPage>> fetchHistory({
     NotificationHistoryCursor? after,
     int limit = 20,
@@ -241,18 +326,20 @@ class NotificationsRepository {
     return guard(() async {
       final pageSize = limit.clamp(1, 50).toInt();
       var query = _db
-          .from('notification_outbox')
+          .from('notifications')
           .select(
-            'id,obligation_type,reminder_kind,created_at,payload_snapshot,read_at',
+            'id,event_key,category,entity_type,entity_id,route,payload,'
+            'created_at,read_at',
           )
-          .eq('user_id', _userId)
-          .eq('status', 'sent');
+          .eq('user_id', _userId);
       if (after != null) {
         final timestamp = after.createdAt.toUtc().toIso8601String();
         query = query.or(
-          'created_at.lt.$timestamp,and(created_at.eq.$timestamp,id.lt.${after.id})',
+          'created_at.lt.$timestamp,'
+          'and(created_at.eq.$timestamp,id.lt.${after.id})',
         );
       }
+      // One extra row decides `hasMore` without a second count query.
       final rows = await query
           .order('created_at', ascending: false)
           .order('id', ascending: false)
@@ -271,26 +358,36 @@ class NotificationsRepository {
     });
   }
 
-  Future<Result<void>> markHistoryRead(String id) {
+  /// Authoritative unread count. Deliberately independent of which history
+  /// pages the Notification Center happens to have loaded.
+  Future<Result<int>> unreadCount() {
     return guard(() async {
-      await _db
-          .from('notification_outbox')
-          .update({'read_at': DateTime.now().toUtc().toIso8601String()})
-          .eq('id', id)
-          .eq('user_id', _userId)
-          .eq('status', 'sent')
-          .isFilter('read_at', null);
+      final value = await _db.rpc<dynamic>('unread_notification_count');
+      return _count(value);
     });
   }
 
-  Future<Result<void>> markAllHistoryRead() {
+  /// PostgREST returns a scalar RPC result as JSON, which decodes to `num`
+  /// rather than `int` on some platforms. A badge is never negative.
+  static int _count(Object? value) {
+    final parsed = switch (value) {
+      final num number => number.toInt(),
+      final String text => int.tryParse(text) ?? 0,
+      _ => 0,
+    };
+    return parsed < 0 ? 0 : parsed;
+  }
+
+  /// Marks [ids] read, or every unread notification when [ids] is null.
+  /// Returns the reconciled unread count so the badge settles in the same
+  /// round trip instead of guessing.
+  Future<Result<int>> markRead({List<String>? ids}) {
     return guard(() async {
-      await _db
-          .from('notification_outbox')
-          .update({'read_at': DateTime.now().toUtc().toIso8601String()})
-          .eq('user_id', _userId)
-          .eq('status', 'sent')
-          .isFilter('read_at', null);
+      final value = await _db.rpc<dynamic>(
+        'mark_notifications_read',
+        params: {'p_ids': ids},
+      );
+      return _count(value);
     });
   }
 
@@ -298,11 +395,7 @@ class NotificationsRepository {
     return guard(() async {
       await _db.from('notification_preferences').upsert({
         'user_id': _userId,
-        'due_reminders_enabled': preferences.dueRemindersEnabled,
-        'overdue_reminders_enabled': preferences.overdueRemindersEnabled,
-        'payment_confirmations_enabled':
-            preferences.paymentConfirmationsEnabled,
-        'show_amounts': preferences.showAmounts,
+        ...preferences.toJson(),
       });
     });
   }

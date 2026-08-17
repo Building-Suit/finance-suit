@@ -1043,7 +1043,16 @@
   "paymentNextDueChip": "سداد الاستحقاق التالي",
   "paymentPurchaseComponent": "عملية شراء",
   "paymentBnplSubtitle": "شراء في {date} · الاستحقاق {due}",
-  "@paymentBnplSubtitle": {"placeholders": {"date": {"type": "String"}, "due": {"type": "String"}}},
+  "@paymentBnplSubtitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "due": {
+        "type": "String"
+      }
+    }
+  },
   "facilityAddPurchaseSheetTitle": "إضافة عملية شراء",
   "facilityPurchaseNormal": "شراء عادي",
   "facilityPurchaseNormalHint": "مصروف واحد على هذه التسهيلات، يستحق في يوم استحقاق المشتريات الشهري.",
@@ -1170,11 +1179,29 @@
   "homeDueNext": "مستحق الشهر القادم",
   "homeDueCurrentWindow": "متأخر أو مستحق اليوم",
   "homeDueThrough": "مستحق حتى {date}",
-  "@homeDueThrough": {"placeholders": {"date": {"type": "String"}}},
+  "@homeDueThrough": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "homeDueInMonth": "مستحق في {month}",
-  "@homeDueInMonth": {"placeholders": {"month": {"type": "String"}}},
+  "@homeDueInMonth": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
   "homeDueOn": "مستحق في {date}",
-  "@homeDueOn": {"placeholders": {"date": {"type": "String"}}},
+  "@homeDueOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "homeDueNothing": "لا توجد مدفوعات مستحقة حتى نهاية الشهر القادم.",
   "homeCardOwed": "مستحق عليك {amount}",
   "@homeCardOwed": {
@@ -1440,9 +1467,21 @@
   "feeRuleNoCategoriesBody": "تُسجَّل الرسوم كمصروفات، لذا اختر فئة أو أنشئ واحدة قبل حفظ هذا الرسم.",
   "feeRuleAddCategoryAction": "إضافة فئة مصروفات",
   "feeRulePercentRate": "{percent}٪",
-  "@feeRulePercentRate": {"placeholders": {"percent": {"type": "String"}}},
+  "@feeRulePercentRate": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
   "feeRuleOfBasis": "من {basis}",
-  "@feeRuleOfBasis": {"placeholders": {"basis": {"type": "String"}}},
+  "@feeRuleOfBasis": {
+    "placeholders": {
+      "basis": {
+        "type": "String"
+      }
+    }
+  },
   "valFeePercent": "أدخل نسبة بين 0.01 و1,000.",
   "errCategoryInUse": "لا يزال هذا التصنيف مستخدمًا في سجلات أو له تصنيفات فرعية. أرشِفه بدلًا من ذلك أو أزل ما يستخدمه أولًا.",
   "errAlreadyDecided": "تم التعامل مع هذا العنصر بالفعل.",
@@ -1535,7 +1574,13 @@
   "catalogUnavailable": "كتالوج المنتجات غير متاح الآن.",
   "catalogEmpty": "لم يتم العثور على منتجات مطابقة.",
   "catalogProductCount": "{count, plural, =1{منتج واحد} =2{منتجان} few{{count} منتجات} other{{count} منتجًا}}",
-  "@catalogProductCount": {"placeholders": {"count": {"type": "int"}}},
+  "@catalogProductCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "aiAutofillCautionText": "قد تتغيّر شروط البنك. يعتمد Finance Suit فقط على المعلومات التي يمكنه التحقق منها من مصادر عامة.",
   "aiResearchStatusFinding": "جارٍ البحث عن منتجك…",
   "aiResearchStatusFilling": "جارٍ تعبئة إعدادات بطاقتك…",
@@ -1573,7 +1618,9 @@
   "aiResearchCatalogVerifiedOn": "تم التحقق من كتالوج Finance Suit · {date}",
   "@aiResearchCatalogVerifiedOn": {
     "placeholders": {
-      "date": {"type": "String"}
+      "date": {
+        "type": "String"
+      }
     }
   },
   "cardPaymentDueDay": "يوم استحقاق السداد",
@@ -1626,9 +1673,15 @@
   "planInstallmentCounts": "{paid} مدفوع · {current} حالي · {future} مستقبلي",
   "@planInstallmentCounts": {
     "placeholders": {
-      "paid": {"type": "int"},
-      "current": {"type": "int"},
-      "future": {"type": "int"}
+      "paid": {
+        "type": "int"
+      },
+      "current": {
+        "type": "int"
+      },
+      "future": {
+        "type": "int"
+      }
     }
   },
   "planBilling": "الخطة والفوترة",
@@ -1637,9 +1690,21 @@
   "complimentaryAccess": "وصول مجاني",
   "noExpiration": "بدون تاريخ انتهاء",
   "availableUntil": "متاح حتى: {date}",
-  "@availableUntil": {"placeholders": {"date": {"type": "String"}}},
+  "@availableUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "daysRemaining": "{days} يومًا متبقيًا",
-  "@daysRemaining": {"placeholders": {"days": {"type": "int"}}},
+  "@daysRemaining": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "proMonthly": "برو · شهري",
   "proAnnual": "برو · سنوي",
   "proComplimentary": "برو · وصول مجاني",
@@ -1664,7 +1729,13 @@
   "networkAliasAdding": "إضافة:",
   "networkAliasQuestion": "بماذا تريد تسمية هذا الشخص؟",
   "networkAliasQuestionFor": "بماذا تريد تسمية {name}؟",
-  "@networkAliasQuestionFor": { "placeholders": { "name": { "type": "String" } } },
+  "@networkAliasQuestionFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "networkAliasHelper": "هذا هو الاسم الذي ستراه في Finance Suit. ويمكنه اختيار اسم مختلف لك.",
   "networkAliasLabel": "الاسم الخاص",
   "networkRequestSent": "تم إرسال الطلب",
@@ -1683,33 +1754,78 @@
   "networkRemove": "إزالة من الشبكة",
   "networkRemoveConfirmTitle": "إزالة من الشبكة؟",
   "networkRemoveConfirmBody": "لن تكون التحويلات الجديدة ممكنة مع {name}. يبقى السجل محفوظًا.",
-  "@networkRemoveConfirmBody": { "placeholders": { "name": { "type": "String" } } },
+  "@networkRemoveConfirmBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "networkRemovedToast": "تمت الإزالة من الشبكة",
   "networkContactLabel": "جهة اتصال بالشبكة",
   "networkGroupMyAccounts": "حساباتي",
   "networkGroupMyNetwork": "شبكتي",
   "networkTransferTo": "إلى {name}",
-  "@networkTransferTo": { "placeholders": { "name": { "type": "String" } } },
+  "@networkTransferTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "networkTransferFrom": "من {name}",
-  "@networkTransferFrom": { "placeholders": { "name": { "type": "String" } } },
+  "@networkTransferFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "networkStatusPending": "قيد الانتظار",
   "networkStatusAccepted": "مقبول",
   "networkStatusRejected": "مرفوض",
   "networkFilterAll": "الكل",
   "networkPendingTransfer": "تحويل قيد الانتظار",
   "networkSentYou": "{name} أرسل لك {amount}",
-  "@networkSentYou": { "placeholders": { "name": { "type": "String" }, "amount": { "type": "String" } } },
+  "@networkSentYou": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "networkReceiveInto": "الاستلام في",
   "networkReceiveIntoHelper": "اختر أحد حساباتك بعملة {currency}",
-  "@networkReceiveIntoHelper": { "placeholders": { "currency": { "type": "String" } } },
+  "@networkReceiveIntoHelper": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
   "networkNoMatchingAccounts": "تحتاج إلى حساب نشط بعملة {currency} لاستلام هذا التحويل",
-  "@networkNoMatchingAccounts": { "placeholders": { "currency": { "type": "String" } } },
+  "@networkNoMatchingAccounts": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
   "networkTransferAcceptedToast": "تم استلام التحويل",
   "networkTransferRejectedToast": "تم رفض التحويل",
   "networkTransferRequestSentToast": "تم إرسال طلب التحويل — في انتظار قبوله",
   "networkLedgerDisclaimer": "يُسجَّل داخل Finance Suit فقط. لا يتم تنفيذ أي تحويل بنكي حقيقي.",
   "networkPendingCount": "{count} في الانتظار",
-  "@networkPendingCount": { "placeholders": { "count": { "type": "int" } } },
+  "@networkPendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "homePendingNetworkTitle": "تحويلات شبكة بانتظار المراجعة",
   "errNetworkAlias": "اختر اسمًا بين 1 و80 حرفًا",
   "errNetworkAlreadyConnected": "هذا الشخص موجود بالفعل في شبكتك",
@@ -1734,16 +1850,40 @@
   "respManageNetwork": "إدارة الشبكة",
   "respExplainerGeneric": "الشخص المسؤول يسدّد لك قيمة هذا القسط. تبقى بطاقتك الائتمانية / خدمة التقسيط ملكك.",
   "respRecipientExplainer": "أنت مسؤول عن السداد لـ {name} عن هذا القسط. تبقى بطاقته الائتمانية / خدمة التقسيط ملكه.",
-  "@respRecipientExplainer": { "placeholders": { "name": { "type": "String" } } },
+  "@respRecipientExplainer": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "respLinkAction": "اربط بشخص",
   "respOpenAction": "مسؤولية القسط",
   "respLinkOngoingScope": "سيتم ربط الأقساط المتبقية غير المدفوعة. الأقساط المدفوعة سابقًا تبقى كما هي.",
   "respLinkedTo": "مرتبط بـ {name}",
-  "@respLinkedTo": { "placeholders": { "name": { "type": "String" } } },
+  "@respLinkedTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "respWaitingForAcceptance": "{name} · في انتظار القبول",
-  "@respWaitingForAcceptance": { "placeholders": { "name": { "type": "String" } } },
+  "@respWaitingForAcceptance": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "respRejectedLink": "{name} رفض الربط",
-  "@respRejectedLink": { "placeholders": { "name": { "type": "String" } } },
+  "@respRejectedLink": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "respUnlink": "إلغاء الربط",
   "respUnlinkConfirmTitle": "إلغاء ربط المسؤولية؟",
   "respUnlinkConfirmBody": "تنتهي المسؤولية المستقبلية ويتوقف الوصول المشترك. تبقى التسديدات المسجلة في سجلك.",
@@ -1759,21 +1899,57 @@
   "respReviewAction": "مراجعة",
   "respReviewBeforeAccepting": "راجع التفاصيل قبل القبول.",
   "respWantsToLink": "{name} يريد ربط قسط بك",
-  "@respWantsToLink": { "placeholders": { "name": { "type": "String" } } },
+  "@respWantsToLink": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "homePendingLinkedTitle": "طلبات ربط أقساط",
   "respOwnerLabel": "المالك: {name}",
-  "@respOwnerLabel": { "placeholders": { "name": { "type": "String" } } },
+  "@respOwnerLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "respYourResponsibilityRemaining": "مسؤوليتك: {amount} متبقية",
-  "@respYourResponsibilityRemaining": { "placeholders": { "amount": { "type": "String" } } },
+  "@respYourResponsibilityRemaining": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "respNextInstallment": "القسط التالي: {amount} في {date}",
-  "@respNextInstallment": { "placeholders": { "amount": { "type": "String" }, "date": { "type": "String" } } },
+  "@respNextInstallment": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "respTermsChangedBanner": "تغيّر هذا القسط بعد إرسال الطلب. راجع التفاصيل المحدّثة قبل القبول.",
   "respConsentHint": "القبول يؤكد المسؤولية فقط. لا تنتقل أي أموال حتى يُرسل التسديد ويُقبل.",
   "respTermsSection": "شروط القسط",
   "respScheduleSection": "الجدول",
   "respReimbursementSection": "التسديد",
   "respReimbursementReceivedTotal": "تم تسديد {received} من {expected}",
-  "@respReimbursementReceivedTotal": { "placeholders": { "received": { "type": "String" }, "expected": { "type": "String" } } },
+  "@respReimbursementReceivedTotal": {
+    "placeholders": {
+      "received": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      }
+    }
+  },
   "respTermInterest": "فائدة التقسيط",
   "respTermRate": "معدل الفائدة",
   "respTermAlreadyPaid": "أقساط مدفوعة بالفعل",
@@ -1803,5 +1979,53 @@
   "errDueNotLinked": "هذا القسط خارج نطاق المسؤولية المرتبطة",
   "errReimbursementExceedsDue": "المبلغ أكبر من المسؤولية المتبقية",
   "errReimbursementPending": "قم بحل التسديد المعلق أولًا",
-  "errReimbursementLocked": "لا يمكن تعديل التسديدات المسجلة مباشرة"
+  "errReimbursementLocked": "لا يمكن تعديل التسديدات المسجلة مباشرة",
+  "notificationLoadFailed": "تعذر تحميل الإشعارات.",
+  "notificationEndOfList": "لا مزيد من الإشعارات",
+  "notificationUnreadLabel": "غير مقروء",
+  "notificationGenericBody": "افتح Finance Suit لعرض التفاصيل.",
+  "notificationUnknownAccount": "حسابك",
+  "notificationUnknownPerson": "شخص ما",
+  "notificationBadgeLabel": "{count} إشعارات غير مقروءة",
+  "notifEventCreditCardDueSoon": "دفعة بطاقة ائتمان مستحقة قريبًا",
+  "notifEventCreditCardDueToday": "دفعة بطاقة ائتمان مستحقة اليوم",
+  "notifEventCreditCardOverdue": "دفعة بطاقة ائتمان متأخرة",
+  "notifEventInstallmentDueSoon": "قسط مستحق قريبًا",
+  "notifEventInstallmentDueToday": "قسط مستحق اليوم",
+  "notifEventInstallmentOverdue": "قسط متأخر",
+  "notifEventBnplDueSoon": "دفعة اشتر الآن وادفع لاحقًا مستحقة قريبًا",
+  "notifEventBnplDueToday": "دفعة اشتر الآن وادفع لاحقًا مستحقة اليوم",
+  "notifEventBnplOverdue": "دفعة اشتر الآن وادفع لاحقًا متأخرة",
+  "notifEventPaymentRecorded": "تم تسجيل دفعة",
+  "notifEventNetworkAddRequest": "طلب إضافة جديد",
+  "notifEventNetworkAddAccepted": "تم قبول الطلب",
+  "notifEventTransferReceived": "طلب تحويل جديد",
+  "notifEventTransferAccepted": "تم قبول التحويل",
+  "notifEventTransferDeclined": "تم رفض التحويل",
+  "notifEventLinkRequest": "طلب ربط قسط",
+  "notifEventLinkAccepted": "تم قبول ربط القسط",
+  "notifEventLinkDeclined": "تم رفض ربط القسط",
+  "notifEventDeveloperTest": "اختبار الإشعارات",
+  "notifBodyAccountDue": "{account} · مستحق {date}",
+  "notifBodyAccountOverdue": "{account} · كان مستحقًا {date}",
+  "notifBodyAccountPayment": "تم تسجيلها على {account}",
+  "notifBodyPersonAddRequest": "{name} يريد إضافتك إلى شبكته",
+  "notifBodyPersonAddAccepted": "{name} الآن في شبكتك",
+  "notifBodyPersonTransferReceived": "{name} أرسل لك تحويلًا",
+  "notifBodyPersonTransferAccepted": "{name} قبل تحويلك",
+  "notifBodyPersonTransferDeclined": "{name} رفض تحويلك",
+  "notifBodyPersonLinkRequest": "{name} يريد ربط قسط بك",
+  "notifBodyPersonLinkAccepted": "{name} قبل ربط القسط",
+  "notifBodyPersonLinkDeclined": "{name} رفض ربط القسط",
+  "notifBodyDeveloperTest": "إذا ظهر هذا التنبيه، فإشعارات هذا الهاتف تعمل.",
+  "notifPushChannelSection": "تنبيهات الهاتف",
+  "notifPushChannelHelp": "تظل الإشعارات داخل التطبيق تصل حتى عند إيقاف تنبيهات الهاتف.",
+  "notifDuePushTitle": "تذكيرات الاستحقاق على هذا الهاتف",
+  "notifOverduePushTitle": "تنبيهات التأخر على هذا الهاتف",
+  "notifPaymentPushTitle": "تنبيهات الدفع على هذا الهاتف",
+  "notifNetworkTitle": "نشاط الشبكة",
+  "notifNetworkHelp": "طلبات الإضافة والتحويلات وروابط الأقساط من جهات اتصالك.",
+  "notifNetworkPushTitle": "تنبيهات الشبكة على هذا الهاتف",
+  "notifSystemPushTitle": "تنبيهات الحساب والأمان",
+  "notifSystemPushHelp": "تظهر إشعارات الأمان دائمًا داخل التطبيق؛ هذا يتحكم في تنبيهات الهاتف فقط."
 }

@@ -10,6 +10,7 @@ import 'package:work_tracker/app/routing/finance_suit_header_scroll_scope.dart';
 import 'package:work_tracker/app/routing/finance_suit_navigation_bar.dart';
 import 'package:work_tracker/app/routing/global_add_sheet.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
+import 'package:work_tracker/core/notifications/notification_feed.dart';
 import 'package:work_tracker/core/supabase/realtime_invalidation.dart';
 import 'package:work_tracker/core/updates/app_update_service.dart';
 import 'package:work_tracker/core/widgets/app_toast.dart';
@@ -268,6 +269,9 @@ class _AppShellState extends ConsumerState<AppShell> {
   @override
   Widget build(BuildContext context) {
     ref.watch(realtimeInvalidationProvider);
+    // One notification subscription per signed-in session, owned by the
+    // authenticated shell rather than by any individual screen.
+    ref.watch(notificationRealtimeProvider);
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       extendBody: true,
