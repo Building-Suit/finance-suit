@@ -1,9 +1,29 @@
 import { createClient } from "npm:@supabase/supabase-js@2.110.7";
+import {
+  addDays,
+  backoff,
+  type ClaimedRow,
+  compose,
+  dayDiff,
+  eventKeyFor,
+  fcmData,
+  formatAmount,
+  localParts,
+} from "./compose.ts";
 
 const CHANNEL_ID = "finance_due_reminders";
 const MAX_ATTEMPTS = 5;
 const BATCH_SIZE = 50;
+// A claim older than this is assumed to belong to a worker that died before
+// recording a result, and becomes claimable again.
+const CLAIM_LEASE_SECONDS = 600;
 const SEND_HOUR_LOCAL = 9;
+// Obligations are only inspected inside the reminder window: the longest
+// supported lead plus one day of overdue.
+const MAX_LEAD_DAYS = 30;
+// Upper bound on logical notifications created per invocation. Reaching it is
+// logged rather than silently truncating the run.
+const MATERIALIZE_LIMIT = 500;
 const FIREBASE_SCOPE = "https://www.googleapis.com/auth/firebase.messaging";
 const GOOGLE_TOKEN_URI = "https://oauth2.googleapis.com/token";
 
@@ -24,21 +44,10 @@ interface ServiceAccount {
   token_uri?: string;
 }
 
-interface DeviceRow {
-  id: string;
+interface UserContext {
   user_id: string;
-  fcm_token: string;
-  platform: string;
-  locale: string | null;
-  timezone: string | null;
-}
-
-interface PreferenceRow {
-  user_id: string;
-  due_reminders_enabled?: boolean;
-  overdue_reminders_enabled?: boolean;
-  payment_confirmations_enabled?: boolean;
-  show_amounts?: boolean;
+  timezone: string;
+  locale: string;
 }
 
 interface FacilityRow {
@@ -48,8 +57,6 @@ interface FacilityRow {
   account_type: string;
   currency_code: string;
   reminder_lead_days: number | null;
-  is_archived?: boolean;
-  facility_status?: string | null;
 }
 
 interface Obligation {
@@ -61,22 +68,6 @@ interface Obligation {
   amountMinor: number;
   currencyCode: string;
   dueOn: string;
-}
-
-interface ClaimedRow {
-  id: string;
-  user_id: string;
-  device_id: string;
-  fcm_token: string;
-  platform: string;
-  locale: string | null;
-  timezone: string | null;
-  obligation_type: string;
-  obligation_id: string;
-  reminder_kind: string;
-  scheduled_local_date: string;
-  payload_snapshot: Record<string, unknown> | null;
-  attempt_count: number;
 }
 
 let cachedOAuth: { token: string; expiresAt: number } | null = null;
@@ -198,315 +189,97 @@ async function fetchAccessToken(account: ServiceAccount): Promise<string> {
   };
   return cachedOAuth.token;
 }
-
-function localParts(timezone: string): { date: string; hour: number } {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: timezone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    hour12: false,
-  }).formatToParts(new Date());
-  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
-  return {
-    date: `${get("year")}-${get("month")}-${get("day")}`,
-    hour: Number(get("hour")),
-  };
-}
-
-function dayDiff(fromIso: string, toIso: string): number {
-  const from = Date.parse(`${fromIso}T00:00:00Z`);
-  const to = Date.parse(`${toIso}T00:00:00Z`);
-  return Math.round((to - from) / 86_400_000);
-}
-
-function isArabic(locale: string | null | undefined): boolean {
-  return (locale ?? "").toLowerCase().startsWith("ar");
-}
-
-function formatAmount(
-  minor: number,
-  currency: string,
-  locale: string | null,
-): string {
-  return new Intl.NumberFormat(isArabic(locale) ? "ar-EG" : "en-EG", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 2,
-  }).format(minor / 100);
-}
-
-function formatDate(iso: string, locale: string | null): string {
-  const date = new Date(`${iso}T12:00:00Z`);
-  return new Intl.DateTimeFormat(isArabic(locale) ? "ar-EG" : "en-GB", {
-    day: "numeric",
-    month: "short",
-  }).format(date);
-}
-
-function compose(
-  payload: Record<string, unknown>,
-  locale: string | null,
-): { title: string; body: string } {
-  const ar = isArabic(locale);
-  const kind = payload.reminder_kind as string;
-  const type = payload.type as string;
-  const accountName = String(
-    payload.account_name ?? (ar ? "الحساب" : "Account"),
+async function loadUserContexts(
+  core: SupabaseClient,
+  userIds: string[],
+): Promise<Map<string, UserContext>> {
+  if (!userIds.length) return new Map();
+  const { data, error } = await core.rpc("notification_user_context", {
+    p_user_ids: userIds,
+  });
+  if (error) throw error;
+  return new Map(
+    ((data ?? []) as UserContext[]).map((row) => [row.user_id, row]),
   );
-  const dueOn = String(payload.due_on ?? "");
-  const amount = payload.amount_text ? String(payload.amount_text) : null;
-
-  if (type === "developer_test") {
-    return ar
-      ? {
-        title: "اختبار إشعارات Finance Suit",
-        body: "إذا ظهر هذا التنبيه، فإشعارات هذا الهاتف تعمل.",
-      }
-      : {
-        title: "Finance Suit notification test",
-        body: "If you see this, alerts are working on this phone.",
-      };
-  }
-
-  if (type.startsWith("network_")) {
-    const name = String(
-      payload.counterparty_name ?? (ar ? "شخص ما" : "Someone"),
-    );
-    const amount = payload.amount_text ? String(payload.amount_text) : null;
-    switch (type) {
-      case "network_add_request":
-        return ar
-          ? {
-            title: "طلب إضافة جديد",
-            body: `${name} يريد إضافتك إلى شبكته في Finance Suit.`,
-          }
-          : {
-            title: "New add request",
-            body: `${name} wants to add you to their Finance Suit network.`,
-          };
-      case "network_add_request_accepted":
-        return ar
-          ? { title: "تم قبول الطلب", body: `${name} الآن في شبكتك.` }
-          : { title: "Request accepted", body: `${name} is now in your network.` };
-      case "network_transfer_pending":
-        return ar
-          ? {
-            title: "طلب تحويل جديد",
-            body: amount
-              ? `${name} أرسل لك ${amount}.`
-              : `${name} أرسل لك طلب تحويل.`,
-          }
-          : {
-            title: "New transfer request",
-            body: amount
-              ? `${name} sent you ${amount}.`
-              : `${name} sent you a transfer request.`,
-          };
-      case "network_transfer_accepted":
-        return ar
-          ? {
-            title: "تم قبول التحويل",
-            body: amount
-              ? `${name} قبل تحويلك بمبلغ ${amount}.`
-              : `${name} قبل تحويلك.`,
-          }
-          : {
-            title: "Transfer accepted",
-            body: amount
-              ? `${name} accepted your ${amount} transfer.`
-              : `${name} accepted your transfer.`,
-          };
-      default:
-        return ar
-          ? { title: "تم رفض التحويل", body: `${name} رفض تحويلك.` }
-          : { title: "Transfer declined", body: `${name} declined your transfer.` };
-    }
-  }
-
-  if (type.startsWith("installment_link_")) {
-    const name = String(
-      payload.counterparty_name ?? (ar ? "شخص ما" : "Someone"),
-    );
-    const planTitle = payload.plan_title ? String(payload.plan_title) : null;
-    switch (type) {
-      case "installment_link_request":
-        return ar
-          ? {
-            title: "طلب ربط قسط",
-            body: `${name} يريد ربط قسط بك. راجع التفاصيل قبل القبول.`,
-          }
-          : {
-            title: "Installment link request",
-            body:
-              `${name} wants to link an installment to you. Review the details before accepting.`,
-          };
-      case "installment_link_accepted":
-        return ar
-          ? {
-            title: "تم قبول ربط القسط",
-            body: planTitle
-              ? `${name} قبل ربط قسط ${planTitle}.`
-              : `${name} قبل ربط القسط.`,
-          }
-          : {
-            title: "Installment link accepted",
-            body: planTitle
-              ? `${name} accepted the ${planTitle} installment link.`
-              : `${name} accepted the installment link.`,
-          };
-      default:
-        return ar
-          ? {
-            title: "تم رفض ربط القسط",
-            body: planTitle
-              ? `${name} رفض ربط قسط ${planTitle}.`
-              : `${name} رفض ربط القسط.`,
-          }
-          : {
-            title: "Installment link declined",
-            body: planTitle
-              ? `${name} declined the ${planTitle} installment link.`
-              : `${name} declined the installment link.`,
-          };
-    }
-  }
-
-  if (type === "facility_payment_confirmation") {
-    return ar
-      ? {
-        title: "تم تسجيل دفعة",
-        body: amount
-          ? `تم تسجيل دفعة ${amount} على ${accountName}.`
-          : `تم تسجيل دفعة على ${accountName}.`,
-      }
-      : {
-        title: "Payment recorded",
-        body: amount
-          ? `${amount} was recorded for ${accountName}.`
-          : `A payment was recorded for ${accountName}.`,
-      };
-  }
-
-  const label = type === "bnpl_due"
-    ? (ar ? "دفعة اشتر الآن وادفع لاحقا" : "BNPL payment")
-    : type === "installment_due"
-    ? (ar ? "قسط" : "Installment")
-    : (ar ? "دفعة بطاقة ائتمان" : "Credit Card payment");
-  const dateText = dueOn ? formatDate(dueOn, locale) : "";
-  if (ar) {
-    const title = kind === "overdue"
-      ? `${label} متأخرة`
-      : kind === "due_today"
-      ? `${label} مستحقة اليوم`
-      : `${label} مستحقة قريبا`;
-    const body = amount
-      ? `${amount} مستحقة على ${accountName}${
-        dateText ? ` يوم ${dateText}` : ""
-      }.`
-      : `${accountName}${
-        dateText ? ` مستحق يوم ${dateText}` : " عليه دفعة مستحقة"
-      }.`;
-    return { title, body };
-  }
-  const title = kind === "overdue"
-    ? `${label} overdue`
-    : kind === "due_today"
-    ? `${label} due today`
-    : `${label} due soon`;
-  const body = amount
-    ? `${amount} is due for ${accountName}${dateText ? ` on ${dateText}` : ""}.`
-    : `${accountName}${
-      dateText ? ` is due on ${dateText}` : " has a payment due"
-    }.`;
-  return { title, body };
 }
 
-function backoff(attempt: number): string {
-  const minutes = [1, 5, 15, 60][Math.min(Math.max(attempt - 1, 0), 3)];
-  return new Date(Date.now() + minutes * 60_000).toISOString();
-}
-
-function fcmData(payload: Record<string, unknown>): Record<string, string> {
-  return {
-    type: String(payload.type ?? "unknown"),
-    obligation_id: String(payload.obligation_id ?? ""),
-    account_id: String(payload.account_id ?? ""),
-    reminder_kind: String(payload.reminder_kind ?? ""),
-  };
-}
-
+/// Turns finance state into logical notifications. Every write goes through
+/// `enqueue_notification`, so preferences, the event catalog, deduplication
+/// and per-device fan-out are enforced in one place.
 async function materialize(
   core: SupabaseClient,
   finance: SupabaseClient,
-): Promise<number> {
-  const { data: devices, error: devicesError } = await core
-    .from("push_devices")
-    .select("id, user_id, fcm_token, platform, locale, timezone")
-    .eq("is_enabled", true);
-  if (devicesError) throw devicesError;
-  if (!devices?.length) return 0;
+): Promise<{ created: number; capped: boolean }> {
+  const todayUtc = new Date().toISOString().slice(0, 10);
+  // Widened by a day on each side so users whose local date is ahead of or
+  // behind UTC are still inside the window.
+  const windowStart = addDays(todayUtc, -3);
+  const windowEnd = addDays(todayUtc, MAX_LEAD_DAYS + 1);
 
-  const typedDevices = devices as DeviceRow[];
-  const userIds = [...new Set(typedDevices.map((d) => d.user_id))];
-  const { data: preferenceRows } = await core
-    .from("notification_preferences")
-    .select("*")
-    .in("user_id", userIds);
-  const preferences = new Map(
-    ((preferenceRows ?? []) as PreferenceRow[]).map((p) => [p.user_id, p]),
-  );
+  const { data: statements, error: statementsError } = await finance
+    .from("credit_card_statement_summaries")
+    .select(
+      "id, user_id, account_id, due_on, total_remaining_minor, remaining_minor, currency_code, obligation_status",
+    )
+    .gt("total_remaining_minor", 0)
+    .gte("due_on", windowStart)
+    .lte("due_on", windowEnd);
+  if (statementsError) throw statementsError;
+
+  const { data: dues, error: duesError } = await finance
+    .from("installment_due_statuses")
+    .select(
+      "id, user_id, account_id, due_on, remaining_minor, currency_code, plan_status, is_presettled",
+    )
+    .eq("plan_status", "active")
+    .eq("is_presettled", false)
+    .gt("remaining_minor", 0)
+    .gte("due_on", windowStart)
+    .lte("due_on", windowEnd);
+  if (duesError) throw duesError;
+
+  const statementRows = ((statements ?? []) as Record<string, unknown>[])
+    .filter((row) =>
+      row.obligation_status !== "paid" && row.obligation_status !== "open"
+    );
+  const dueRows = (dues ?? []) as Record<string, unknown>[];
+
+  const userIds = [
+    ...new Set(
+      [...statementRows, ...dueRows].map((row) => row.user_id as string),
+    ),
+  ];
+  if (!userIds.length) return { created: 0, capped: false };
+
+  const contexts = await loadUserContexts(core, userIds);
 
   const { data: facilities } = await finance
     .from("credit_facility_summaries")
     .select(
-      "account_id, user_id, name, account_type, currency_code, reminder_lead_days, is_archived, facility_status",
+      "account_id, user_id, name, account_type, currency_code, reminder_lead_days",
     )
     .in("user_id", userIds);
   const facilityById = new Map(
     ((facilities ?? []) as FacilityRow[]).map((f) => [f.account_id, f]),
   );
 
-  const { data: statements } = await finance
-    .from("credit_card_statement_summaries")
-    .select(
-      "id, user_id, account_id, due_on, cycle_close, total_remaining_minor, remaining_minor, currency_code, obligation_status",
-    )
-    .in("user_id", userIds)
-    .gt("total_remaining_minor", 0);
-
-  const { data: dues } = await finance
-    .from("installment_due_statuses")
-    .select(
-      "id, user_id, account_id, due_on, remaining_minor, currency_code, plan_status, is_presettled",
-    )
-    .in("user_id", userIds)
-    .eq("plan_status", "active")
-    .eq("is_presettled", false)
-    .gt("remaining_minor", 0);
-
   const obligations: Obligation[] = [
-    ...((statements ?? []) as Record<string, unknown>[])
-      .filter((row) =>
-        row.obligation_status !== "paid" && row.obligation_status !== "open"
-      )
-      .map((row) => {
-        const facility = facilityById.get(row.account_id as string);
-        return {
-          type: "credit_card_statement_due" as const,
-          id: row.id as string,
-          userId: row.user_id as string,
-          accountId: row.account_id as string,
-          accountName: facility?.name ?? "Credit card",
-          amountMinor: Number(
-            row.total_remaining_minor ?? row.remaining_minor ?? 0,
-          ),
-          currencyCode: row.currency_code as string,
-          dueOn: row.due_on as string,
-        };
-      }),
-    ...((dues ?? []) as Record<string, unknown>[]).map((row) => {
+    ...statementRows.map((row) => {
+      const facility = facilityById.get(row.account_id as string);
+      return {
+        type: "credit_card_statement_due" as const,
+        id: row.id as string,
+        userId: row.user_id as string,
+        accountId: row.account_id as string,
+        accountName: facility?.name ?? "Credit card",
+        amountMinor: Number(
+          row.total_remaining_minor ?? row.remaining_minor ?? 0,
+        ),
+        currencyCode: row.currency_code as string,
+        dueOn: row.due_on as string,
+      };
+    }),
+    ...dueRows.map((row) => {
       const facility = facilityById.get(row.account_id as string);
       const isBnpl = facility?.account_type === "bnpl";
       return {
@@ -522,136 +295,214 @@ async function materialize(
     }),
   ];
 
+  const showAmounts = await loadShowAmounts(core, userIds);
+
   let created = 0;
-  for (const device of typedDevices) {
-    const timezone = device.timezone ?? "Africa/Cairo";
+  let capped = false;
+  for (const obligation of obligations) {
+    if (created >= MATERIALIZE_LIMIT) {
+      capped = true;
+      break;
+    }
+    const context = contexts.get(obligation.userId);
+    const timezone = context?.timezone ?? "Africa/Cairo";
+    const locale = context?.locale ?? "en";
     const { date: localDate, hour } = localParts(timezone);
-    const prefs = preferences.get(device.user_id);
-    const dueEnabled = prefs?.due_reminders_enabled ?? true;
-    const overdueEnabled = prefs?.overdue_reminders_enabled ?? true;
     if (hour < SEND_HOUR_LOCAL) continue;
 
-    for (
-      const obligation of obligations.filter((o) => o.userId === device.user_id)
-    ) {
-      const diff = dayDiff(localDate, obligation.dueOn);
-      const facility = facilityById.get(obligation.accountId);
-      const lead = facility?.reminder_lead_days ?? 3;
-      let kind: "due_soon" | "due_today" | "overdue" | null = null;
-      if (diff === lead && lead > 0 && dueEnabled) kind = "due_soon";
-      else if (diff === 0 && dueEnabled) kind = "due_today";
-      else if (diff === -1 && overdueEnabled) kind = "overdue";
-      if (!kind) continue;
+    const diff = dayDiff(localDate, obligation.dueOn);
+    const lead = facilityById.get(obligation.accountId)?.reminder_lead_days ??
+      3;
+    let kind: "due_soon" | "due_today" | "overdue" | null = null;
+    if (diff === lead && lead > 0) kind = "due_soon";
+    else if (diff === 0) kind = "due_today";
+    else if (diff === -1) kind = "overdue";
+    if (!kind) continue;
 
-      const showAmounts = prefs?.show_amounts ?? false;
-      const payload = {
+    const eventKey = eventKeyFor(obligation.type, kind);
+    if (!eventKey) continue;
+
+    const notificationId = await enqueue(core, {
+      userId: obligation.userId,
+      eventKey,
+      // The due *instance* is the logical identity, not the day the
+      // scheduler happened to run: rerunning the scheduler cannot duplicate,
+      // and moving the due date legitimately produces a new reminder.
+      dedupeKey: `${eventKey}:${obligation.id}:${obligation.dueOn}`,
+      payload: {
         type: obligation.type,
+        reminder_kind: kind,
         obligation_id: obligation.id,
         account_id: obligation.accountId,
         account_name: obligation.accountName,
-        reminder_kind: kind,
         due_on: obligation.dueOn,
-        amount_text: showAmounts
+        // Raw minor units drive the in-app Notification Center, which renders
+        // them through the app's existing money-privacy control.
+        amount_minor: obligation.amountMinor,
+        currency_code: obligation.currencyCode,
+        // Pre-rendered text is what reaches the lock screen, so it exists
+        // only when the recipient opted into amounts in notifications.
+        amount_text: showAmounts.get(obligation.userId)
           ? formatAmount(
             obligation.amountMinor,
             obligation.currencyCode,
-            device.locale,
+            locale,
           )
           : null,
-      };
-      const { error } = await core.from("notification_outbox").insert({
-        user_id: obligation.userId,
-        device_id: device.id,
-        obligation_type: obligation.type,
-        obligation_id: obligation.id,
-        reminder_kind: kind,
-        scheduled_local_date: localDate,
-        status: "pending",
-        next_attempt_at: new Date().toISOString(),
-        payload_snapshot: payload,
-      });
-      if (!error) created++;
-      else if (error.code !== "23505") throw error;
-    }
+      },
+      entityId: obligation.id,
+      route: `/money/facilities/${obligation.accountId}`,
+    });
+    if (notificationId) created++;
   }
 
-  await materializePaymentConfirmations(
+  const confirmations = await materializePaymentConfirmations(
     core,
     finance,
-    typedDevices,
-    preferences,
-    facilityById,
+    contexts,
+    showAmounts,
   );
-  return created;
+  return { created: created + confirmations, capped };
+}
+
+async function loadShowAmounts(
+  core: SupabaseClient,
+  userIds: string[],
+): Promise<Map<string, boolean>> {
+  const { data } = await core
+    .from("notification_preferences")
+    .select("user_id, show_amounts")
+    .in("user_id", userIds);
+  return new Map(
+    ((data ?? []) as { user_id: string; show_amounts: boolean | null }[])
+      .map((row) => [row.user_id, row.show_amounts === true]),
+  );
 }
 
 async function materializePaymentConfirmations(
   core: SupabaseClient,
   finance: SupabaseClient,
-  devices: DeviceRow[],
-  preferences: Map<string, PreferenceRow>,
-  facilityById: Map<string, FacilityRow>,
-): Promise<void> {
-  const userIds = [...new Set(devices.map((d) => d.user_id))];
+  contexts: Map<string, UserContext>,
+  showAmounts: Map<string, boolean>,
+): Promise<number> {
   const { data: payments } = await finance
     .from("financial_transactions")
     .select(
       "id, user_id, destination_account_id, amount_minor, currency_code, created_at",
     )
-    .in("user_id", userIds)
     .eq("transaction_kind", "transfer")
     .not("destination_account_id", "is", null)
     .gte("created_at", new Date(Date.now() - 24 * 60 * 60_000).toISOString())
     .order("created_at", { ascending: false })
-    .limit(100);
+    .limit(200);
 
-  for (const payment of (payments ?? []) as Record<string, unknown>[]) {
+  const rows = (payments ?? []) as Record<string, unknown>[];
+  if (!rows.length) return 0;
+
+  const accountIds = [
+    ...new Set(rows.map((p) => p.destination_account_id as string)),
+  ];
+  const { data: facilities } = await finance
+    .from("credit_facility_summaries")
+    .select("account_id, user_id, name")
+    .in("account_id", accountIds);
+  const facilityById = new Map(
+    ((facilities ?? []) as FacilityRow[]).map((f) => [f.account_id, f]),
+  );
+
+  const missingContexts = [
+    ...new Set(
+      rows.map((p) => p.user_id as string).filter((id) => !contexts.has(id)),
+    ),
+  ];
+  if (missingContexts.length) {
+    for (const [id, ctx] of await loadUserContexts(core, missingContexts)) {
+      contexts.set(id, ctx);
+    }
+  }
+
+  let created = 0;
+  for (const payment of rows) {
     const accountId = payment.destination_account_id as string;
     const facility = facilityById.get(accountId);
     if (!facility) continue;
-    const prefs = preferences.get(payment.user_id as string);
-    if ((prefs?.payment_confirmations_enabled ?? true) !== true) continue;
-    const paymentDevices = devices.filter((d) => d.user_id === payment.user_id);
-    for (const device of paymentDevices) {
-      const payload = {
+    const userId = payment.user_id as string;
+    if (facility.user_id !== userId) continue;
+    const locale = contexts.get(userId)?.locale ?? "en";
+
+    const notificationId = await enqueue(core, {
+      userId,
+      eventKey: "facility.payment_recorded",
+      // Keyed on the payment alone. Including a local date here used to let
+      // a payment recorded near midnight notify twice.
+      dedupeKey: `facility.payment_recorded:${payment.id}`,
+      payload: {
         type: "facility_payment_confirmation",
+        reminder_kind: "payment_confirmation",
         obligation_id: payment.id,
         account_id: accountId,
         account_name: facility.name ?? "Credit facility",
-        reminder_kind: "payment_confirmation",
-        amount_text: (prefs?.show_amounts ?? false)
+        amount_minor: Number(payment.amount_minor ?? 0),
+        currency_code: payment.currency_code,
+        amount_text: showAmounts.get(userId)
           ? formatAmount(
             Number(payment.amount_minor ?? 0),
             payment.currency_code as string,
-            device.locale,
+            locale,
           )
           : null,
-      };
-      await core.from("notification_outbox").insert({
-        user_id: payment.user_id,
-        device_id: device.id,
-        obligation_type: "facility_payment",
-        obligation_id: payment.id,
-        reminder_kind: "payment_confirmation",
-        scheduled_local_date:
-          localParts(device.timezone ?? "Africa/Cairo").date,
-        status: "pending",
-        next_attempt_at: new Date().toISOString(),
-        payload_snapshot: payload,
-      });
-    }
+      },
+      entityId: payment.id as string,
+      route: `/money/facilities/${accountId}`,
+    });
+    if (notificationId) created++;
   }
+  return created;
+}
+
+async function enqueue(core: SupabaseClient, input: {
+  userId: string;
+  eventKey: string;
+  dedupeKey: string;
+  payload: Record<string, unknown>;
+  entityId?: string | null;
+  route?: string | null;
+}): Promise<string | null> {
+  const { data, error } = await core.rpc("enqueue_notification", {
+    p_user_id: input.userId,
+    p_event_key: input.eventKey,
+    p_dedupe_key: input.dedupeKey,
+    p_payload: input.payload,
+    p_entity_type: null,
+    p_entity_id: input.entityId ?? null,
+    p_route: input.route ?? null,
+  });
+  if (error) {
+    // A preference-suppressed or already-created notification returns null
+    // rather than an error, so anything here is a real fault worth surfacing.
+    console.error(JSON.stringify({
+      stage: "enqueue",
+      event_key: input.eventKey,
+      code: error.code ?? null,
+      message: String(error.message ?? "").slice(0, 200),
+    }));
+    return null;
+  }
+  return (data as string | null) ?? null;
 }
 
 async function sendClaimed(
   core: SupabaseClient,
   finance: SupabaseClient,
   account: ServiceAccount,
+  invocationId: string,
 ): Promise<
   { sent: number; retry: number; failed: number; suppressed: number }
 > {
   const { data, error } = await core.rpc("claim_notification_outbox", {
     batch_size: BATCH_SIZE,
+    p_lease_seconds: CLAIM_LEASE_SECONDS,
+    p_max_attempts: MAX_ATTEMPTS,
   });
   if (error) throw error;
 
@@ -665,17 +516,20 @@ async function sendClaimed(
   let failed = 0;
   let suppressed = 0;
 
+  const eligibility = await eligibilityFor(core, finance, rows);
+
   for (const row of rows) {
     const payload = row.payload_snapshot ?? {};
-    if (!(await stillEligible(core, finance, row))) {
+    if (eligibility.get(row.id) !== true) {
       suppressed++;
       await core.from("notification_outbox").update({
         status: "suppressed",
         error: "stale_or_disabled",
+        updated_at: new Date().toISOString(),
       }).eq("id", row.id);
       continue;
     }
-    const notification = compose(payload, row.locale);
+    const notification = compose(row.event_key, payload, row.locale);
     const response = await fetch(endpoint, {
       method: "POST",
       headers: {
@@ -690,7 +544,7 @@ async function sendClaimed(
             priority: "high",
             notification: { channel_id: CHANNEL_ID },
           },
-          data: fcmData(payload),
+          data: fcmData(row, payload),
         },
       }),
     });
@@ -703,6 +557,7 @@ async function sendClaimed(
         sent_at: new Date().toISOString(),
         fcm_message_id: body.name ?? null,
         error: null,
+        updated_at: new Date().toISOString(),
       }).eq("id", row.id);
       continue;
     }
@@ -714,8 +569,27 @@ async function sendClaimed(
     const transient = response.status === 429 || response.status === 500 ||
       response.status === 503;
 
+    // Only the sanitized provider status is stored or logged; the FCM token
+    // and the authorization header never appear in either.
+    console.error(JSON.stringify({
+      invocationId,
+      stage: "fcm",
+      outbox_id: row.id,
+      notification_id: row.notification_id,
+      event_key: row.event_key,
+      attempt: row.attempt_count,
+      status: response.status,
+      classification: permanentToken
+        ? "permanent_token"
+        : transient
+        ? "transient"
+        : "permanent",
+    }));
+
     if (permanentToken) {
       failed++;
+      // A retired token must stop consuming attempts across every queued
+      // delivery for that device, not just this one.
       await core.from("push_devices").update({ is_enabled: false }).eq(
         "id",
         row.device_id,
@@ -724,6 +598,7 @@ async function sendClaimed(
         status: "failed",
         permanently_failed_at: new Date().toISOString(),
         error: `fcm_permanent_${response.status}`,
+        updated_at: new Date().toISOString(),
       }).eq("id", row.id);
     } else if (transient && row.attempt_count < MAX_ATTEMPTS) {
       retry++;
@@ -731,6 +606,7 @@ async function sendClaimed(
         status: "retry",
         next_attempt_at: backoff(row.attempt_count),
         error: `fcm_transient_${response.status}`,
+        updated_at: new Date().toISOString(),
       }).eq("id", row.id);
     } else {
       failed++;
@@ -738,79 +614,129 @@ async function sendClaimed(
         status: "failed",
         permanently_failed_at: new Date().toISOString(),
         error: `fcm_failed_${response.status}`,
+        updated_at: new Date().toISOString(),
       }).eq("id", row.id);
     }
   }
   return { sent, retry, failed, suppressed };
 }
 
-async function stillEligible(
+/// Batched staleness check for a claimed page: an obligation settled between
+/// enqueue and send must not produce a push. Returns outbox id -> eligible.
+async function eligibilityFor(
   core: SupabaseClient,
   finance: SupabaseClient,
-  row: ClaimedRow,
-): Promise<boolean> {
-  if (row.payload_snapshot?.type === "developer_test") return true;
-
-  const { data: device } = await core
+  rows: ClaimedRow[],
+): Promise<Map<string, boolean>> {
+  const result = new Map<string, boolean>();
+  const deviceIds = [...new Set(rows.map((r) => r.device_id))];
+  const { data: devices } = await core
     .from("push_devices")
-    .select("is_enabled")
-    .eq("id", row.device_id)
-    .maybeSingle();
-  if (device?.is_enabled !== true) return false;
+    .select("id, is_enabled")
+    .in("id", deviceIds);
+  const enabledDevices = new Set(
+    ((devices ?? []) as { id: string; is_enabled: boolean }[])
+      .filter((d) => d.is_enabled).map((d) => d.id),
+  );
 
-  const { data: prefs } = await core
-    .from("notification_preferences")
-    .select(
-      "due_reminders_enabled, overdue_reminders_enabled, payment_confirmations_enabled",
-    )
-    .eq("user_id", row.user_id)
-    .maybeSingle();
-  if (
-    row.reminder_kind === "overdue" &&
-    prefs?.overdue_reminders_enabled === false
-  ) {
-    return false;
-  }
-  if (row.reminder_kind === "payment_confirmation") {
-    return prefs?.payment_confirmations_enabled !== false;
-  }
-  if (prefs?.due_reminders_enabled === false) return false;
+  const keyOf = (row: ClaimedRow) =>
+    row.event_key ??
+      eventKeyFor(
+        row.payload_snapshot?.type as string,
+        row.reminder_kind ?? undefined,
+      );
 
-  if (row.obligation_type === "credit_card_statement_due") {
+  const entityOf = (row: ClaimedRow) =>
+    (row.payload_snapshot?.obligation_id as string) ?? row.obligation_id;
+
+  const statementIds = new Set<string>();
+  const dueIds = new Set<string>();
+  const transferIds = new Set<string>();
+  for (const row of rows) {
+    const key = keyOf(row);
+    const entity = entityOf(row);
+    if (!key || !entity) continue;
+    if (key.startsWith("credit_card.")) statementIds.add(entity);
+    else if (key.startsWith("installment.") || key.startsWith("bnpl.")) {
+      dueIds.add(entity);
+    } else if (key === "network.transfer_received") transferIds.add(entity);
+  }
+
+  const statementState = new Map<string, Record<string, unknown>>();
+  if (statementIds.size) {
     const { data } = await finance
       .from("credit_card_statement_summaries")
-      .select("total_remaining_minor, obligation_status")
-      .eq("id", row.obligation_id)
-      .maybeSingle();
-    return Number(data?.total_remaining_minor ?? 0) > 0 &&
-      !["paid", "open"].includes(String(data?.obligation_status ?? ""));
+      .select("id, total_remaining_minor, obligation_status")
+      .in("id", [...statementIds]);
+    for (const row of (data ?? []) as Record<string, unknown>[]) {
+      statementState.set(row.id as string, row);
+    }
   }
-  if (
-    row.obligation_type === "network_transfer" &&
-    row.reminder_kind === "network_transfer_pending"
-  ) {
-    // A transfer decided before the push went out no longer needs one.
-    const { data } = await finance
-      .from("network_transfers")
-      .select("status")
-      .eq("id", row.obligation_id)
-      .maybeSingle();
-    return data?.status === "pending";
-  }
-  if (
-    row.obligation_type === "installment_due" ||
-    row.obligation_type === "bnpl_due"
-  ) {
+
+  const dueState = new Map<string, Record<string, unknown>>();
+  if (dueIds.size) {
     const { data } = await finance
       .from("installment_due_statuses")
-      .select("remaining_minor, plan_status, is_presettled")
-      .eq("id", row.obligation_id)
-      .maybeSingle();
-    return Number(data?.remaining_minor ?? 0) > 0 &&
-      data?.plan_status === "active" &&
-      data?.is_presettled !== true;
+      .select("id, remaining_minor, plan_status, is_presettled")
+      .in("id", [...dueIds]);
+    for (const row of (data ?? []) as Record<string, unknown>[]) {
+      dueState.set(row.id as string, row);
+    }
   }
-  return true;
+
+  const transferState = new Map<string, string>();
+  if (transferIds.size) {
+    const { data } = await finance
+      .from("network_transfers")
+      .select("id, status")
+      .in("id", [...transferIds]);
+    for (const row of (data ?? []) as Record<string, unknown>[]) {
+      transferState.set(row.id as string, String(row.status));
+    }
+  }
+
+  for (const row of rows) {
+    if (!enabledDevices.has(row.device_id)) {
+      result.set(row.id, false);
+      continue;
+    }
+    const key = keyOf(row);
+    const entity = entityOf(row);
+    if (key === "system.developer_test") {
+      result.set(row.id, true);
+      continue;
+    }
+    if (!key || !entity) {
+      result.set(row.id, true);
+      continue;
+    }
+    if (key.startsWith("credit_card.")) {
+      const state = statementState.get(entity);
+      result.set(
+        row.id,
+        Number(state?.total_remaining_minor ?? 0) > 0 &&
+          !["paid", "open"].includes(String(state?.obligation_status ?? "")),
+      );
+      continue;
+    }
+    if (key.startsWith("installment.") || key.startsWith("bnpl.")) {
+      const state = dueState.get(entity);
+      result.set(
+        row.id,
+        Number(state?.remaining_minor ?? 0) > 0 &&
+          state?.plan_status === "active" &&
+          state?.is_presettled !== true,
+      );
+      continue;
+    }
+    if (key === "network.transfer_received") {
+      // A transfer decided before the push went out no longer needs one.
+      result.set(row.id, transferState.get(entity) === "pending");
+      continue;
+    }
+    result.set(row.id, true);
+  }
+  return result;
 }
 
 Deno.serve(async (request) => {
@@ -824,16 +750,33 @@ Deno.serve(async (request) => {
     const core = buildClient("app_core");
     const finance = buildClient("app_finance");
     const account = loadServiceAccount();
-    const materialized = await materialize(core, finance);
-    const delivery = await sendClaimed(core, finance, account);
+
+    // Retire deliveries past their attempt budget first, including any a
+    // crashed worker left in `sending`, so nothing accumulates as a zombie.
+    const { data: reaped } = await core.rpc("reap_notification_outbox", {
+      p_max_attempts: MAX_ATTEMPTS,
+      p_lease_seconds: CLAIM_LEASE_SECONDS,
+    });
+
+    const { created, capped } = await materialize(core, finance);
+    const delivery = await sendClaimed(core, finance, account, invocationId);
     const result = {
       invocationId,
-      materialized,
+      materialized: created,
+      materializeCapped: capped,
+      reaped: reaped ?? 0,
       claimed: delivery.sent + delivery.retry + delivery.failed +
         delivery.suppressed,
       ...delivery,
       durationMs: Date.now() - started,
     };
+    if (capped) {
+      console.warn(JSON.stringify({
+        invocationId,
+        warning: "materialize_limit_reached",
+        limit: MATERIALIZE_LIMIT,
+      }));
+    }
     console.log(JSON.stringify(result));
     return json(200, result);
   } catch (error) {
