@@ -20,6 +20,7 @@ import 'package:work_tracker/core/widgets/protected_money.dart';
 import 'package:work_tracker/features/commercial/presentation/providers/commercial_providers.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
+import 'package:work_tracker/features/finance/domain/facility_payment_component.dart';
 import 'package:work_tracker/features/finance/domain/home_due_obligation.dart';
 import 'package:work_tracker/features/finance/domain/income_source.dart';
 import 'package:work_tracker/features/finance/domain/installment_responsibility.dart';
@@ -1374,6 +1375,19 @@ class _DueObligationGroup extends StatelessWidget {
     // too instead of silently disappearing from the list.
     final components = obligation.components;
     final groups = groupDueComponents(components);
+    // The expanded breakdown is capped the same way the facility Due
+    // Breakdown is: a card statement obligation carries every statement
+    // item, and painting hundreds of rows inline made Home enormous. The
+    // rest opens in the shared lazy sheet.
+    const maxRows = 10;
+    var rowBudget = maxRows;
+    final visibleGroups = <DueComponentGroup, List<FacilityPaymentComponent>>{};
+    for (final group in DueComponentGroup.values) {
+      final grouped = groups[group];
+      if (grouped == null || rowBudget <= 0) continue;
+      visibleGroups[group] = grouped.take(rowBudget).toList();
+      rowBudget -= grouped.length;
+    }
     final breakdown = Padding(
       padding: const EdgeInsetsDirectional.only(start: 20),
       child: Column(
@@ -1386,15 +1400,31 @@ class _DueObligationGroup extends StatelessWidget {
               remainingMinor: obligation.remainingMinor,
               currencyCode: obligation.currencyCode,
             ),
-          for (final group in DueComponentGroup.values)
-            if (groups[group] case final grouped?) ...[
-              _DueSubsectionHeader(title: dueComponentGroupLabel(l10n, group)),
-              for (final component in grouped)
-                DueBreakdownRow(
-                  component: component,
+          for (final MapEntry(key: group, value: grouped)
+              in visibleGroups.entries) ...[
+            _DueSubsectionHeader(title: dueComponentGroupLabel(l10n, group)),
+            for (final component in grouped)
+              DueBreakdownRow(
+                component: component,
+                currencyCode: obligation.currencyCode,
+              ),
+          ],
+          if (components.length > maxRows)
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton(
+                key: ValueKey('due-show-all-${obligation.id}'),
+                onPressed: () => showDueComponentsSheet(
+                  context,
+                  title: obligation.sourceName.isNotEmpty
+                      ? obligation.sourceName
+                      : l10n.dueBreakdownTitle,
+                  components: components,
                   currencyCode: obligation.currencyCode,
                 ),
-            ],
+                child: Text(l10n.dueBreakdownShowAll(components.length)),
+              ),
+            ),
           if (components.isEmpty)
             ListTile(
               dense: true,

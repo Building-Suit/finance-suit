@@ -4181,6 +4181,30 @@ abstract class AppLocalizations {
   /// **'This purchase already has payments applied to it.'**
   String get errBnplPurchaseSettled;
 
+  /// No description provided for @dueBreakdownShowAll.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Show the 1 item} other{Show all {count} items}}'**
+  String dueBreakdownShowAll(int count);
+
+  /// No description provided for @dueBreakdownItemCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item} =2{2 items} few{{count} items} many{{count} items} other{{count} items}}'**
+  String dueBreakdownItemCount(int count);
+
+  /// No description provided for @paymentShowMoreRows.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Show 1 more item} other{Show {count} more items}}'**
+  String paymentShowMoreRows(int count);
+
+  /// No description provided for @paymentHiddenSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 selected item is not shown yet} other{{count} selected items are not shown yet}}'**
+  String paymentHiddenSelected(int count);
+
   /// No description provided for @paymentGroupPurchases.
   ///
   /// In en, this message translates to:
