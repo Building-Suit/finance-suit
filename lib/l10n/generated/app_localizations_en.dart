@@ -1993,6 +1993,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get facilityNoPlans => 'No installment plans yet.';
 
   @override
+  String facilityPlansShowAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Show all $count plans',
+      one: 'Show the 1 plan',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String facilityPlansCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plans',
+      many: '$count plans',
+      few: '$count plans',
+      two: '2 plans',
+      one: '1 plan',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get facilityHistorySection => 'Related activity';
 
   @override

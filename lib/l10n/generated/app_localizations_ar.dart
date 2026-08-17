@@ -1985,6 +1985,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get facilityNoPlans => 'لا توجد خطط تقسيط بعد.';
 
   @override
+  String facilityPlansShowAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'عرض كل الخطط ($count)',
+      many: 'عرض كل الخطط ($count)',
+      few: 'عرض كل الخطط ($count)',
+      two: 'عرض الخطتين',
+      one: 'عرض الخطة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String facilityPlansCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count خطة',
+      many: '$count خطةً',
+      few: '$count خطط',
+      two: 'خطتان',
+      one: 'خطة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get facilityHistorySection => 'الحركات المرتبطة';
 
   @override

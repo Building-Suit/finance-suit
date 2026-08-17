@@ -426,6 +426,110 @@ class _FacilityDetailBody extends ConsumerWidget {
   final ValueChanged<CardFeeRule> onToggleFeeRule;
   final ValueChanged<CardFeeRule> onDeleteFeeRule;
 
+  /// Inline plan-card budget. Each card is several times taller than a due
+  /// row, so the cap is lower than the breakdown's ten to keep the single
+  /// column surface comfortably inside the raster budget.
+  static const _maxInlinePlans = 5;
+
+  /// One plan card with its full action wiring, shared by the inline column
+  /// and the show-all sheet so both stay in lockstep.
+  Widget _planCard(
+    BuildContext context,
+    WidgetRef ref,
+    InstallmentPlan plan,
+    InstallmentResponsibilitySummary? responsibility,
+  ) {
+    return _PlanCard(
+      plan: plan,
+      responsibility: responsibility,
+      onCancel:
+          plan.status == InstallmentPlanStatus.active && plan.paidMinor == 0
+          ? () => onCancelPlan(plan)
+          : null,
+      onEdit: plan.isEditable ? () => onEditPlan(plan) : null,
+      onRestructure: plan.isEditable && plan.paidMinor > 0
+          ? () => onRestructurePlan(plan)
+          : null,
+      onShowRevisions: plan.revision > 1 ? () => onShowRevisions(plan) : null,
+      onLink:
+          plan.status == InstallmentPlanStatus.active && responsibility == null
+          ? () => showResponsibilityLinkSheet(context, ref, planId: plan.id)
+          : null,
+      onOpenResponsibility: responsibility == null
+          ? null
+          : () => context.push('/money/linked/${responsibility.linkId}'),
+    );
+  }
+
+  /// Opens the complete plan list as a modal sheet backed by a lazy
+  /// [ListView], so a facility with dozens of plans never paints one
+  /// oversized column.
+  Future<void> _showAllPlans(
+    BuildContext context,
+    WidgetRef ref, {
+    required List<InstallmentPlan> plans,
+    required Map<String, InstallmentResponsibilitySummary> respSummaries,
+  }) {
+    final l10n = AppLocalizations.of(context);
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (sheetContext) {
+        final theme = Theme.of(sheetContext);
+        return FractionallySizedBox(
+          heightFactor: 0.85,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Semantics(
+                        header: true,
+                        child: Text(
+                          l10n.facilityPlansSection,
+                          style: theme.textTheme.titleMedium,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      l10n.facilityPlansCount(plans.length),
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  key: const Key('facility-plans-sheet-list'),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  itemCount: plans.length,
+                  itemBuilder: (_, index) {
+                    final plan = plans[index];
+                    // Actions run against the screen's context, exactly as
+                    // they do from the inline column.
+                    return _planCard(
+                      context,
+                      ref,
+                      plan,
+                      respSummaries[plan.id],
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
@@ -637,39 +741,29 @@ class _FacilityDetailBody extends ConsumerWidget {
               final respSummaries =
                   ref.watch(responsibilitySummariesProvider).value ??
                   const <String, InstallmentResponsibilitySummary>{};
+              // Same defect class as the heavy statement month: this whole
+              // column paints as one surface, so enough plans push it past
+              // what the GPU will rasterize and the section renders as a
+              // flat gray block. The first few plans stay inline; the full
+              // list opens in a lazy sheet.
               return Column(
+                key: const Key('facility-plans-column'),
                 children: [
-                  for (final plan in plans)
-                    _PlanCard(
-                      plan: plan,
-                      responsibility: respSummaries[plan.id],
-                      onCancel:
-                          plan.status == InstallmentPlanStatus.active &&
-                              plan.paidMinor == 0
-                          ? () => onCancelPlan(plan)
-                          : null,
-                      onEdit: plan.isEditable ? () => onEditPlan(plan) : null,
-                      onRestructure: plan.isEditable && plan.paidMinor > 0
-                          ? () => onRestructurePlan(plan)
-                          : null,
-                      onShowRevisions: plan.revision > 1
-                          ? () => onShowRevisions(plan)
-                          : null,
-                      onLink:
-                          plan.status == InstallmentPlanStatus.active &&
-                              respSummaries[plan.id] == null
-                          ? () => showResponsibilityLinkSheet(
-                              context,
-                              ref,
-                              planId: plan.id,
-                            )
-                          : null,
-                      onOpenResponsibility: respSummaries[plan.id] == null
-                          ? null
-                          : () => context.push(
-                              '/money/linked/'
-                              '${respSummaries[plan.id]!.linkId}',
-                            ),
+                  for (final plan in plans.take(_maxInlinePlans))
+                    _planCard(context, ref, plan, respSummaries[plan.id]),
+                  if (plans.length > _maxInlinePlans)
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: TextButton(
+                        key: const Key('facility-plans-show-all'),
+                        onPressed: () => _showAllPlans(
+                          context,
+                          ref,
+                          plans: plans,
+                          respSummaries: respSummaries,
+                        ),
+                        child: Text(l10n.facilityPlansShowAll(plans.length)),
+                      ),
                     ),
                 ],
               );
@@ -2331,12 +2425,21 @@ class _FacilityDueMonthSection extends ConsumerStatefulWidget {
 }
 
 class _FacilityDueMonthSectionState
-    extends ConsumerState<_FacilityDueMonthSection> {
+    extends ConsumerState<_FacilityDueMonthSection>
+    with AutomaticKeepAliveClientMixin<_FacilityDueMonthSection> {
   final List<FacilityDueMonth> _months = FacilityDueMonth.payable();
   int _activeIndex = 0;
 
+  // The outer screen scroll view disposes this section once it scrolls
+  // outside the list's cache extent — without keep-alive, that drops its
+  // watch on the autoDispose due-breakdown provider, so scrolling it back
+  // into view refetched from scratch and flashed a loading spinner.
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final l10n = AppLocalizations.of(context);
     final active = _months[_activeIndex];
     return Column(

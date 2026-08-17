@@ -3713,6 +3713,18 @@ abstract class AppLocalizations {
   /// **'No installment plans yet.'**
   String get facilityNoPlans;
 
+  /// No description provided for @facilityPlansShowAll.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Show the 1 plan} other{Show all {count} plans}}'**
+  String facilityPlansShowAll(int count);
+
+  /// No description provided for @facilityPlansCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 plan} =2{2 plans} few{{count} plans} many{{count} plans} other{{count} plans}}'**
+  String facilityPlansCount(int count);
+
   /// No description provided for @facilityHistorySection.
   ///
   /// In en, this message translates to:
