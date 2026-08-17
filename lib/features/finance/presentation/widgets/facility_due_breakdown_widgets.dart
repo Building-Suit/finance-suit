@@ -127,6 +127,7 @@ class DueBreakdownTotals extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
+              flex: 2,
               child: Text(
                 label,
                 style: style,
@@ -134,10 +135,22 @@ class DueBreakdownTotals extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            ProtectedMoneyText(
-              Money(minor: minor, currencyCode: currencyCode).format(),
-              style: style,
-              interactive: false,
+            // Expanded + end alignment keeps the money column flush at the
+            // row end; the FittedBox only shrinks the figure when a large
+            // text scale would otherwise overflow it.
+            Expanded(
+              flex: 3,
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: ProtectedMoneyText(
+                    Money(minor: minor, currencyCode: currencyCode).format(),
+                    style: style,
+                    interactive: false,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -218,6 +231,7 @@ class DueBreakdownRow extends StatelessWidget {
               ),
             ),
             Expanded(
+              flex: 3,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -243,12 +257,23 @@ class DueBreakdownRow extends StatelessWidget {
                 ],
               ),
             ),
-            ProtectedMoneyText(
-              money(component.amountMinor),
-              style: paid
-                  ? theme.textTheme.bodyMedium?.copyWith(color: muted)
-                  : theme.textTheme.bodyMedium,
-              interactive: false,
+            // Merchant titles keep the larger share; the amount stays flush
+            // at the row end and only shrinks under extreme text scales.
+            Expanded(
+              flex: 2,
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: ProtectedMoneyText(
+                    money(component.amountMinor),
+                    style: paid
+                        ? theme.textTheme.bodyMedium?.copyWith(color: muted)
+                        : theme.textTheme.bodyMedium,
+                    interactive: false,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -258,12 +283,21 @@ class DueBreakdownRow extends StatelessWidget {
 }
 
 /// The persistent Due Breakdown list: totals plus grouped component rows.
+///
+/// [maxRows] bounds what is rendered inline. A heavy statement month can
+/// carry hundreds of components; painted into one column they made the
+/// screen minutes long and produced a single surface so tall the GPU could
+/// not rasterize it — the page rendered as a giant flat gray rectangle.
+/// Beyond the cap a "Show all" action opens [showDueComponentsSheet], which
+/// builds rows lazily and never creates an oversized surface.
 class DueBreakdownList extends StatelessWidget {
   const DueBreakdownList({
     super.key,
     required this.breakdown,
     this.showTotals = true,
     this.emptyMessage,
+    this.maxRows,
+    this.onShowAll,
   });
 
   final FacilityDueBreakdown breakdown;
@@ -272,6 +306,13 @@ class DueBreakdownList extends StatelessWidget {
   /// detail below it opts out instead of repeating them.
   final bool showTotals;
   final String? emptyMessage;
+
+  /// Inline row budget; null renders everything (only safe for callers whose
+  /// component count is inherently small).
+  final int? maxRows;
+
+  /// Invoked by the "Show all" action when [maxRows] truncated the list.
+  final VoidCallback? onShowAll;
 
   @override
   Widget build(BuildContext context) {
@@ -287,26 +328,141 @@ class DueBreakdownList extends StatelessWidget {
       );
     }
     final groups = groupDueComponents(breakdown.components);
+    final total = breakdown.components.length;
+    final truncated = maxRows != null && total > maxRows!;
+    // Visible rows per group, honoring the budget in display order.
+    var budget = maxRows ?? total;
+    final visible = <DueComponentGroup, List<FacilityPaymentComponent>>{};
+    for (final group in DueComponentGroup.values) {
+      final components = groups[group];
+      if (components == null || budget <= 0) continue;
+      visible[group] = components.take(budget).toList();
+      budget -= components.length;
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (showTotals) DueBreakdownTotals.fromBreakdown(breakdown),
-        for (final group in DueComponentGroup.values)
-          if (groups[group] case final components?) ...[
-            Padding(
-              padding: const EdgeInsets.only(top: 12, bottom: 4),
+        for (final MapEntry(key: group, value: components)
+            in visible.entries) ...[
+          Padding(
+            padding: const EdgeInsets.only(top: 12, bottom: 4),
+            child: Semantics(
+              header: true,
               child: Text(
                 dueComponentGroupLabel(l10n, group),
                 style: theme.textTheme.titleSmall,
               ),
             ),
-            for (final component in components)
-              DueBreakdownRow(
-                component: component,
-                currencyCode: breakdown.currencyCode,
-              ),
-          ],
+          ),
+          for (final component in components)
+            DueBreakdownRow(
+              component: component,
+              currencyCode: breakdown.currencyCode,
+            ),
+        ],
+        if (truncated)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton(
+              key: const Key('due-breakdown-show-all'),
+              onPressed: onShowAll,
+              child: Text(l10n.dueBreakdownShowAll(total)),
+            ),
+          ),
       ],
     );
   }
+}
+
+/// Opens the full component list as a modal sheet backed by a lazy
+/// [ListView], so even a month with hundreds of components never paints one
+/// oversized column.
+Future<void> showDueComponentsSheet(
+  BuildContext context, {
+  required String title,
+  required List<FacilityPaymentComponent> components,
+  required String currencyCode,
+}) {
+  // Flattened up front: group headers and rows become one lazy list.
+  final entries =
+      <({DueComponentGroup? header, FacilityPaymentComponent? row})>[];
+  final groups = groupDueComponents(components);
+  for (final group in DueComponentGroup.values) {
+    final components = groups[group];
+    if (components == null) continue;
+    entries.add((header: group, row: null));
+    for (final component in components) {
+      entries.add((header: null, row: component));
+    }
+  }
+  final l10n = AppLocalizations.of(context);
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    useSafeArea: true,
+    builder: (sheetContext) {
+      final theme = Theme.of(sheetContext);
+      return FractionallySizedBox(
+        heightFactor: 0.85,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Semantics(
+                      header: true,
+                      child: Text(
+                        title,
+                        style: theme.textTheme.titleMedium,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    l10n.dueBreakdownItemCount(components.length),
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                key: const Key('due-breakdown-sheet-list'),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                itemCount: entries.length,
+                itemBuilder: (context, index) {
+                  final entry = entries[index];
+                  if (entry.header case final group?) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 12, bottom: 4),
+                      child: Semantics(
+                        header: true,
+                        child: Text(
+                          dueComponentGroupLabel(
+                            AppLocalizations.of(context),
+                            group,
+                          ),
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                      ),
+                    );
+                  }
+                  return DueBreakdownRow(
+                    component: entry.row!,
+                    currencyCode: currencyCode,
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
 }
