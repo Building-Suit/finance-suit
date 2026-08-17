@@ -127,6 +127,7 @@ class DueBreakdownTotals extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
+              flex: 2,
               child: Text(
                 label,
                 style: style,
@@ -134,14 +135,20 @@ class DueBreakdownTotals extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            Flexible(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
+            // Expanded + end alignment keeps the money column flush at the
+            // row end; the FittedBox only shrinks the figure when a large
+            // text scale would otherwise overflow it.
+            Expanded(
+              flex: 3,
+              child: Align(
                 alignment: AlignmentDirectional.centerEnd,
-                child: ProtectedMoneyText(
-                  Money(minor: minor, currencyCode: currencyCode).format(),
-                  style: style,
-                  interactive: false,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: ProtectedMoneyText(
+                    Money(minor: minor, currencyCode: currencyCode).format(),
+                    style: style,
+                    interactive: false,
+                  ),
                 ),
               ),
             ),
@@ -224,6 +231,7 @@ class DueBreakdownRow extends StatelessWidget {
               ),
             ),
             Expanded(
+              flex: 3,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -249,16 +257,21 @@ class DueBreakdownRow extends StatelessWidget {
                 ],
               ),
             ),
-            Flexible(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
+            // Merchant titles keep the larger share; the amount stays flush
+            // at the row end and only shrinks under extreme text scales.
+            Expanded(
+              flex: 2,
+              child: Align(
                 alignment: AlignmentDirectional.centerEnd,
-                child: ProtectedMoneyText(
-                  money(component.amountMinor),
-                  style: paid
-                      ? theme.textTheme.bodyMedium?.copyWith(color: muted)
-                      : theme.textTheme.bodyMedium,
-                  interactive: false,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: ProtectedMoneyText(
+                    money(component.amountMinor),
+                    style: paid
+                        ? theme.textTheme.bodyMedium?.copyWith(color: muted)
+                        : theme.textTheme.bodyMedium,
+                    interactive: false,
+                  ),
                 ),
               ),
             ),
@@ -334,9 +347,12 @@ class DueBreakdownList extends StatelessWidget {
             in visible.entries) ...[
           Padding(
             padding: const EdgeInsets.only(top: 12, bottom: 4),
-            child: Text(
-              dueComponentGroupLabel(l10n, group),
-              style: theme.textTheme.titleSmall,
+            child: Semantics(
+              header: true,
+              child: Text(
+                dueComponentGroupLabel(l10n, group),
+                style: theme.textTheme.titleSmall,
+              ),
             ),
           ),
           for (final component in components)
@@ -398,11 +414,14 @@ Future<void> showDueComponentsSheet(
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      title,
-                      style: theme.textTheme.titleMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    child: Semantics(
+                      header: true,
+                      child: Text(
+                        title,
+                        style: theme.textTheme.titleMedium,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ),
                   Text(
@@ -422,12 +441,15 @@ Future<void> showDueComponentsSheet(
                   if (entry.header case final group?) {
                     return Padding(
                       padding: const EdgeInsets.only(top: 12, bottom: 4),
-                      child: Text(
-                        dueComponentGroupLabel(
-                          AppLocalizations.of(context),
-                          group,
+                      child: Semantics(
+                        header: true,
+                        child: Text(
+                          dueComponentGroupLabel(
+                            AppLocalizations.of(context),
+                            group,
+                          ),
+                          style: Theme.of(context).textTheme.titleSmall,
                         ),
-                        style: Theme.of(context).textTheme.titleSmall,
                       ),
                     );
                   }

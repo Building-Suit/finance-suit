@@ -826,6 +826,9 @@ void main() {
         findsNothing,
       );
 
+      // The label promises exactly what one tap reveals — never the full
+      // hidden count.
+      expect(find.text('Show 20 more items'), findsOneWidget);
       await tester.tap(showMore);
       await tester.pumpAndSettle();
       expect(
@@ -849,6 +852,9 @@ void main() {
             .text,
         '3,000.00',
       );
+      // Money allocated to rows not yet revealed is called out, so the
+      // Amount never disagrees silently with the visible list.
+      expect(find.byKey(const Key('payment-hidden-selected')), findsOneWidget);
     });
   });
 

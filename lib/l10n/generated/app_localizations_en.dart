@@ -2251,17 +2251,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String dueBreakdownShowAll(int count) {
-    return 'Show all $count items';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Show all $count items',
+      one: 'Show the 1 item',
+    );
+    return '$_temp0';
   }
 
   @override
   String dueBreakdownItemCount(int count) {
-    return '$count items';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      many: '$count items',
+      few: '$count items',
+      two: '2 items',
+      one: '1 item',
+    );
+    return '$_temp0';
   }
 
   @override
   String paymentShowMoreRows(int count) {
-    return 'Show $count more';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Show $count more items',
+      one: 'Show 1 more item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String paymentHiddenSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count selected items are not shown yet',
+      one: '1 selected item is not shown yet',
+    );
+    return '$_temp0';
   }
 
   @override

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -107,6 +109,19 @@ class _FacilityPaymentScreenState extends ConsumerState<FacilityPaymentScreen> {
 
   int get _allocationTotal =>
       _allocations.values.fold(0, (a, b) => a + b) + _balanceMinor;
+
+  /// Selected components whose rows the reveal budget has not shown yet.
+  int _hiddenSelectedCount(
+    Map<DueComponentGroup, List<FacilityPaymentComponent>> visibleGroups,
+  ) {
+    final visibleKeys = {
+      for (final components in visibleGroups.values)
+        for (final component in components) component.key,
+    };
+    return _allocations.keys
+        .where((key) => key != _kBalanceKey && !visibleKeys.contains(key))
+        .length;
+  }
 
   void _resetSelection() {
     _allocations = {};
@@ -655,16 +670,37 @@ class _FacilityPaymentScreenState extends ConsumerState<FacilityPaymentScreen> {
                 else
                   DueBreakdownRow(component: component, currencyCode: currency),
             ],
-            if (hiddenRows > 0)
+            if (hiddenRows > 0) ...[
               Align(
                 alignment: AlignmentDirectional.centerStart,
                 child: TextButton(
                   key: const Key('payment-checklist-show-more'),
                   onPressed: () =>
                       setState(() => _checklistRowBudget += _checklistRowStep),
-                  child: Text(l10n.paymentShowMoreRows(hiddenRows)),
+                  // The label promises exactly what one tap reveals.
+                  child: Text(
+                    l10n.paymentShowMoreRows(
+                      math.min(_checklistRowStep, hiddenRows),
+                    ),
+                  ),
                 ),
               ),
+              // A preset can allocate to rows that are not revealed yet; the
+              // Amount must never disagree silently with what the list
+              // shows, so hidden money is called out.
+              if (_hiddenSelectedCount(visibleGroups) case final hidden
+                  when hidden > 0)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 12),
+                  child: Text(
+                    l10n.paymentHiddenSelected(hidden),
+                    key: const Key('payment-hidden-selected'),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ),
+            ],
             if (breakdown.additionalBalanceMinor > 0) ...[
               Padding(
                 padding: const EdgeInsets.only(top: 12, bottom: 4),

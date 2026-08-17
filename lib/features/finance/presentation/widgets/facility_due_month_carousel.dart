@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -45,11 +46,20 @@ class _FacilityDueMonthCarouselState
     viewportFraction: 0.86,
   );
 
-  /// Natural content height of each page, reported after layout. The
-  /// viewport takes the tallest one, so the cards are never clipped: a
-  /// hardcoded height broke at larger text scales, cutting the payment
-  /// button in half.
+  /// Reported page heights. The viewport takes the tallest one, so the
+  /// cards are never clipped: a hardcoded height broke at larger text
+  /// scales, cutting the payment button in half.
+  ///
+  /// Each card is rendered with the viewport as its minimum height (so the
+  /// two months always read as one equal row), which means a report is
+  /// max(natural, viewport): the viewport can grow but not shrink while
+  /// this state lives. That bias is only cosmetic whitespace — content can
+  /// never be clipped by it — and the map is reset whenever the months or
+  /// the text scale change.
   final Map<int, double> _pageHeights = {};
+
+  /// The text scale the current measurements were taken at.
+  TextScaler? _measuredScale;
 
   /// Before the first report the viewport uses this guess for one frame;
   /// it is corrected as soon as a page reports its real height.
@@ -62,6 +72,31 @@ class _FacilityDueMonthCarouselState
   void _reportHeight(int index, double height) {
     if (_pageHeights[index] == height) return;
     setState(() => _pageHeights[index] = height);
+  }
+
+  @override
+  void didUpdateWidget(covariant FacilityDueMonthCarousel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A month rollover replaces the pages; their old heights must not keep
+    // inflating the viewport.
+    if (!listEquals(
+      [for (final m in oldWidget.months) m.key],
+      [for (final m in widget.months) m.key],
+    )) {
+      _pageHeights.clear();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Heights measured at one text scale are meaningless at another; a
+    // lowered scale would otherwise leave permanently inflated cards.
+    final scale = MediaQuery.textScalerOf(context);
+    if (_measuredScale != null && _measuredScale != scale) {
+      _pageHeights.clear();
+    }
+    _measuredScale = scale;
   }
 
   @override
@@ -324,6 +359,7 @@ class _MonthBody extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
+            flex: 2,
             child: Text(
               label,
               style:
@@ -338,23 +374,27 @@ class _MonthBody extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          // The amount scales down rather than overflowing when a large
-          // text scale meets a long figure.
-          Flexible(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
+          // Expanded + end alignment keeps the amounts flush in one column;
+          // the FittedBox only shrinks a figure that a large text scale
+          // would otherwise overflow.
+          Expanded(
+            flex: 3,
+            child: Align(
               alignment: AlignmentDirectional.centerEnd,
-              child: ProtectedMoneyText(
-                money(minor),
-                interactive: false,
-                style:
-                    (emphasize
-                            ? theme.textTheme.bodyMedium
-                            : theme.textTheme.bodySmall)
-                        ?.copyWith(
-                          color: onSurface,
-                          fontWeight: emphasize ? FontWeight.w700 : null,
-                        ),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: ProtectedMoneyText(
+                  money(minor),
+                  interactive: false,
+                  style:
+                      (emphasize
+                              ? theme.textTheme.bodyMedium
+                              : theme.textTheme.bodySmall)
+                          ?.copyWith(
+                            color: onSurface,
+                            fontWeight: emphasize ? FontWeight.w700 : null,
+                          ),
+                ),
               ),
             ),
           ),

@@ -2241,17 +2241,58 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String dueBreakdownShowAll(int count) {
-    return 'عرض كل العناصر ($count)';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'عرض كل العناصر ($count)',
+      many: 'عرض كل العناصر ($count)',
+      few: 'عرض كل العناصر ($count)',
+      two: 'عرض العنصرين',
+      one: 'عرض العنصر',
+    );
+    return '$_temp0';
   }
 
   @override
   String dueBreakdownItemCount(int count) {
-    return '$count عنصرًا';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر',
+      many: '$count عنصرًا',
+      few: '$count عناصر',
+      two: 'عنصران',
+      one: 'عنصر واحد',
+    );
+    return '$_temp0';
   }
 
   @override
   String paymentShowMoreRows(int count) {
-    return 'عرض $count إضافية';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'عرض $count عنصر إضافي',
+      many: 'عرض $count عنصرًا إضافيًا',
+      few: 'عرض $count عناصر إضافية',
+      two: 'عرض عنصرين إضافيين',
+      one: 'عرض عنصر إضافي واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String paymentHiddenSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر محدد غير معروض بعد',
+      many: '$count عنصرًا محددًا غير معروض بعد',
+      few: '$count عناصر محددة غير معروضة بعد',
+      two: 'عنصران محددان غير معروضين بعد',
+      one: 'عنصر محدد واحد غير معروض بعد',
+    );
+    return '$_temp0';
   }
 
   @override
