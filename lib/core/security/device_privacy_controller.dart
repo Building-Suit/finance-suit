@@ -138,12 +138,21 @@ class DevicePrivacyController extends AsyncNotifier<DevicePrivacyState> {
     _update((current) => current.copyWith(appUnlocked: true));
   }
 
-  void lockForBackground() {
+  /// Re-blurs any revealed amounts once the money-privacy grace period after
+  /// backgrounding elapses. Kept independent of [lockAppForBackground] so
+  /// the two can run on different grace periods.
+  void hideMoneyForBackground() {
     _update(
-      (current) => current.copyWith(
-        moneyRevealed: !current.moneyPrivacyEnabled,
-        appUnlocked: !current.appLockEnabled,
-      ),
+      (current) =>
+          current.copyWith(moneyRevealed: !current.moneyPrivacyEnabled),
+    );
+  }
+
+  /// Locks the app once the app-lock grace period after backgrounding
+  /// elapses.
+  void lockAppForBackground() {
+    _update(
+      (current) => current.copyWith(appUnlocked: !current.appLockEnabled),
     );
   }
 

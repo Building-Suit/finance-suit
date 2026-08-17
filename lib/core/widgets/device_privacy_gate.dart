@@ -29,8 +29,16 @@ class _DevicePrivacyGateState extends ConsumerState<DevicePrivacyGate>
   /// cold start is always locked.
   static const lockGracePeriod = Duration(seconds: 2);
 
+  /// How long the app must stay backgrounded before revealed amounts blur
+  /// again. Kept longer than [lockGracePeriod]: the app lock should demand a
+  /// fresh unlock quickly, but a brief glance away (switching apps to paste
+  /// a number, answering a quick notification) shouldn't immediately hide
+  /// amounts the user just chose to reveal.
+  static const blurGracePeriod = Duration(seconds: 10);
+
   late final DeviceAuthenticator _authenticator;
   Timer? _pendingLock;
+  Timer? _pendingBlur;
   bool _automaticAttempted = false;
   bool _fullyBackgrounded = false;
   DeviceAuthOutcome? _lastOutcome;
@@ -45,6 +53,7 @@ class _DevicePrivacyGateState extends ConsumerState<DevicePrivacyGate>
   @override
   void dispose() {
     _pendingLock?.cancel();
+    _pendingBlur?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _authenticator.cancel();
     super.dispose();
@@ -62,14 +71,17 @@ class _DevicePrivacyGateState extends ConsumerState<DevicePrivacyGate>
       case AppLifecycleState.paused:
         // Some devices stop the activity for the notification shade and for
         // fullscreen fingerprint prompts, so a bare paused event is not proof
-        // of a real backgrounding. Lock only if the app is still in the
-        // background once the grace period passes.
+        // of a real backgrounding. Lock/blur only if the app is still in the
+        // background once each grace period passes.
         _pendingLock ??= Timer(lockGracePeriod, _lockIfStillBackgrounded);
+        _pendingBlur ??= Timer(blurGracePeriod, _blurIfStillBackgrounded);
       case AppLifecycleState.detached:
         return;
       case AppLifecycleState.resumed:
         _pendingLock?.cancel();
         _pendingLock = null;
+        _pendingBlur?.cancel();
+        _pendingBlur = null;
         if (!_fullyBackgrounded) return;
         _fullyBackgrounded = false;
         if (mounted) setState(() => _automaticAttempted = false);
@@ -92,8 +104,24 @@ class _DevicePrivacyGateState extends ConsumerState<DevicePrivacyGate>
       return;
     }
     _fullyBackgrounded = true;
-    ref.read(devicePrivacyProvider.notifier).lockForBackground();
+    ref.read(devicePrivacyProvider.notifier).lockAppForBackground();
     _automaticAttempted = false;
+  }
+
+  void _blurIfStillBackgrounded() {
+    _pendingBlur = null;
+    if (!mounted) return;
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    if (lifecycle != AppLifecycleState.paused &&
+        lifecycle != AppLifecycleState.hidden) {
+      return;
+    }
+    final privacy = ref.read(devicePrivacyProvider).value;
+    if (privacy?.authenticating == true || DeviceAuthSession.isActive) {
+      _pendingBlur = Timer(blurGracePeriod, _blurIfStillBackgrounded);
+      return;
+    }
+    ref.read(devicePrivacyProvider.notifier).hideMoneyForBackground();
   }
 
   Future<void> _unlock() async {

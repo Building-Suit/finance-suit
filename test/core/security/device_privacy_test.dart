@@ -80,7 +80,8 @@ void main() {
         DeviceAuthOutcome.authenticated,
       );
 
-      controller.lockForBackground();
+      controller.hideMoneyForBackground();
+      controller.lockAppForBackground();
       var state = container.read(devicePrivacyProvider).requireValue;
       expect(state.moneyRevealed, isFalse);
       expect(state.appUnlocked, isFalse);
