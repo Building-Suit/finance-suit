@@ -70,6 +70,14 @@ class _FacilityPaymentScreenState extends ConsumerState<FacilityPaymentScreen> {
   int _balanceMinor = 0;
   String? _activePreset;
 
+  /// How many checklist rows render right now. A heavy statement month has
+  /// hundreds of components; painting them all at once made the form
+  /// enormous, so rows reveal in steps. Selection state is independent of
+  /// visibility — presets may allocate to rows not yet revealed.
+  int _checklistRowBudget = _checklistRowStep;
+
+  static const _checklistRowStep = 20;
+
   FacilityDueMonth? _month;
 
   @override
@@ -104,6 +112,7 @@ class _FacilityPaymentScreenState extends ConsumerState<FacilityPaymentScreen> {
     _allocations = {};
     _balanceMinor = 0;
     _activePreset = null;
+    _checklistRowBudget = _checklistRowStep;
     _amountController.clear();
   }
 
@@ -582,6 +591,18 @@ class _FacilityPaymentScreenState extends ConsumerState<FacilityPaymentScreen> {
   ) {
     final groups = groupDueComponents(breakdown.components);
     final currency = breakdown.currencyCode;
+    // Rows render within the reveal budget: an unbounded checklist for a
+    // heavy month made the form thousands of pixels tall.
+    final totalRows = breakdown.components.length;
+    var rowBudget = _checklistRowBudget;
+    final visibleGroups = <DueComponentGroup, List<FacilityPaymentComponent>>{};
+    for (final group in DueComponentGroup.values) {
+      final components = groups[group];
+      if (components == null || rowBudget <= 0) continue;
+      visibleGroups[group] = components.take(rowBudget).toList();
+      rowBudget -= components.length;
+    }
+    final hiddenRows = totalRows - _checklistRowBudget;
     return Card(
       key: const Key('payment-checklist'),
       child: Padding(
@@ -602,42 +623,48 @@ class _FacilityPaymentScreenState extends ConsumerState<FacilityPaymentScreen> {
                   style: theme.textTheme.bodyMedium,
                 ),
               ),
-            for (final group in DueComponentGroup.values)
-              if (groups[group] case final components?) ...[
-                Padding(
-                  padding: const EdgeInsets.only(top: 12, bottom: 4),
-                  child: Text(
-                    dueComponentGroupLabel(l10n, group),
-                    style: theme.textTheme.labelLarge,
-                  ),
+            for (final MapEntry(key: group, value: components)
+                in visibleGroups.entries) ...[
+              Padding(
+                padding: const EdgeInsets.only(top: 12, bottom: 4),
+                child: Text(
+                  dueComponentGroupLabel(l10n, group),
+                  style: theme.textTheme.labelLarge,
                 ),
-                for (final component in components)
-                  if (component.isSelectable)
-                    _ChecklistRow(
-                      key: ValueKey('payment-row-${component.key}'),
-                      component: component,
+              ),
+              for (final component in components)
+                if (component.isSelectable)
+                  _ChecklistRow(
+                    key: ValueKey('payment-row-${component.key}'),
+                    component: component,
+                    currencyCode: currency,
+                    allocatedMinor: _allocations[component.key],
+                    busy: _busy,
+                    onToggle: (selected) =>
+                        _toggleComponent(component, selected),
+                    onEditAmount: () => _editAllocationAmount(
+                      title: dueComponentTitle(l10n, component),
                       currencyCode: currency,
-                      allocatedMinor: _allocations[component.key],
-                      busy: _busy,
-                      onToggle: (selected) =>
-                          _toggleComponent(component, selected),
-                      onEditAmount: () => _editAllocationAmount(
-                        title: dueComponentTitle(l10n, component),
-                        currencyCode: currency,
-                        currentMinor:
-                            _allocations[component.key] ??
-                            component.remainingMinor,
-                        maxMinor: component.remainingMinor,
-                        onChanged: (minor) =>
-                            _allocations[component.key] = minor,
-                      ),
-                    )
-                  else
-                    DueBreakdownRow(
-                      component: component,
-                      currencyCode: currency,
+                      currentMinor:
+                          _allocations[component.key] ??
+                          component.remainingMinor,
+                      maxMinor: component.remainingMinor,
+                      onChanged: (minor) => _allocations[component.key] = minor,
                     ),
-              ],
+                  )
+                else
+                  DueBreakdownRow(component: component, currencyCode: currency),
+            ],
+            if (hiddenRows > 0)
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton(
+                  key: const Key('payment-checklist-show-more'),
+                  onPressed: () =>
+                      setState(() => _checklistRowBudget += _checklistRowStep),
+                  child: Text(l10n.paymentShowMoreRows(hiddenRows)),
+                ),
+              ),
             if (breakdown.additionalBalanceMinor > 0) ...[
               Padding(
                 padding: const EdgeInsets.only(top: 12, bottom: 4),

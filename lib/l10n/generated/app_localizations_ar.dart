@@ -2240,6 +2240,21 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم بالفعل تخصيص مدفوعات لعملية الشراء هذه.';
 
   @override
+  String dueBreakdownShowAll(int count) {
+    return 'عرض كل العناصر ($count)';
+  }
+
+  @override
+  String dueBreakdownItemCount(int count) {
+    return '$count عنصرًا';
+  }
+
+  @override
+  String paymentShowMoreRows(int count) {
+    return 'عرض $count إضافية';
+  }
+
+  @override
   String get paymentGroupPurchases => 'المشتريات';
 
   @override

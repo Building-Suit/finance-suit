@@ -389,6 +389,98 @@ void main() {
     });
   });
 
+  testWidgets('large text scale never clips the payment button', (
+    tester,
+  ) async {
+    // The regression: a hardcoded carousel height cut the Make payments
+    // button in half as soon as the device text scale grew. The viewport
+    // now takes the measured card height.
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.empty();
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [...overrides().cast()],
+        child: MaterialApp(
+          theme: AppTheme.light(),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: MediaQuery(
+            data: const MediaQueryData(textScaler: TextScaler.linear(1.6)),
+            child: const CreditFacilityDetailScreen(accountId: 'facility-1'),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await scrollToCarousel(tester);
+
+    final button = find.byKey(const Key('facility-due-card-pay-current'));
+    expect(button, findsOneWidget);
+    final buttonRect = tester.getRect(button);
+    final cardRect = tester.getRect(
+      find.byKey(const Key('facility-due-card-current')),
+    );
+    expect(buttonRect.bottom, lessThanOrEqualTo(cardRect.bottom));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a heavy month is capped and opens the full lazy sheet', (
+    tester,
+  ) async {
+    // The regression: a statement month with hundreds of purchases
+    // rendered every component into one card — a surface so tall the GPU
+    // drew it as a flat gray block, and the page took minutes to scroll.
+    final heavy = breakdownFor(
+      currentMonth,
+      components: [
+        for (var i = 0; i < 120; i++)
+          component(
+            id: 'item-$i',
+            title: 'Purchase $i',
+            type: 'statement_item',
+            dueOn: currentMonth.start.addDays(24).toIso(),
+            amount: 1000 + i,
+          ),
+      ],
+    );
+    await pump(
+      tester,
+      const CreditFacilityDetailScreen(accountId: 'facility-1'),
+      scopeOverrides: overrides(current: heavy),
+    );
+    await scrollToCarousel(tester);
+    await tester.dragUntilVisible(
+      find.byKey(const Key('due-breakdown-show-all')),
+      find.byType(Scrollable).first,
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
+
+    // Only the capped rows render inline; the card stays small.
+    final card = tester.getSize(
+      find.byKey(const Key('facility-due-breakdown-active-month')),
+    );
+    expect(card.height, lessThan(1500));
+    expect(find.text('Purchase 0'), findsOneWidget);
+    expect(find.text('Purchase 60'), findsNothing);
+
+    // Show all opens the lazy sheet with every component reachable.
+    await tester.tap(find.byKey(const Key('due-breakdown-show-all')));
+    await tester.pumpAndSettle();
+    final sheetList = find.byKey(const Key('due-breakdown-sheet-list'));
+    expect(sheetList, findsOneWidget);
+    await tester.dragUntilVisible(
+      find.text('Purchase 119'),
+      sheetList,
+      const Offset(0, -400),
+    );
+    expect(find.text('Purchase 119'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   group('month-scoped payment screen', () {
     testWidgets('next month scope shows only next month components', (
       tester,

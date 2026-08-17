@@ -2250,6 +2250,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'This purchase already has payments applied to it.';
 
   @override
+  String dueBreakdownShowAll(int count) {
+    return 'Show all $count items';
+  }
+
+  @override
+  String dueBreakdownItemCount(int count) {
+    return '$count items';
+  }
+
+  @override
+  String paymentShowMoreRows(int count) {
+    return 'Show $count more';
+  }
+
+  @override
   String get paymentGroupPurchases => 'Purchases';
 
   @override

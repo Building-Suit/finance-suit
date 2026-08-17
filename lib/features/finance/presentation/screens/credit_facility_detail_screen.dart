@@ -2371,6 +2371,17 @@ class _FacilityDueMonthSectionState
                 // The carousel card above already carries the three totals.
                 showTotals: false,
                 emptyMessage: l10n.dueMonthNoDues,
+                // A heavy statement month carries every purchase as a
+                // component; unbounded, the single card grew so tall the
+                // GPU rendered it as a flat gray block and the page took
+                // minutes to scroll. The rest opens in a lazy sheet.
+                maxRows: 10,
+                onShowAll: () => showDueComponentsSheet(
+                  context,
+                  title: l10n.dueBreakdownTitle,
+                  components: breakdown.components,
+                  currencyCode: breakdown.currencyCode,
+                ),
               ),
             ),
           ),
