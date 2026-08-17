@@ -362,9 +362,20 @@ class NotificationsRepository {
   /// pages the Notification Center happens to have loaded.
   Future<Result<int>> unreadCount() {
     return guard(() async {
-      final value = await _db.rpc<int>('unread_notification_count');
-      return value;
+      final value = await _db.rpc<dynamic>('unread_notification_count');
+      return _count(value);
     });
+  }
+
+  /// PostgREST returns a scalar RPC result as JSON, which decodes to `num`
+  /// rather than `int` on some platforms. A badge is never negative.
+  static int _count(Object? value) {
+    final parsed = switch (value) {
+      final num number => number.toInt(),
+      final String text => int.tryParse(text) ?? 0,
+      _ => 0,
+    };
+    return parsed < 0 ? 0 : parsed;
   }
 
   /// Marks [ids] read, or every unread notification when [ids] is null.
@@ -372,11 +383,11 @@ class NotificationsRepository {
   /// round trip instead of guessing.
   Future<Result<int>> markRead({List<String>? ids}) {
     return guard(() async {
-      final value = await _db.rpc<int>(
+      final value = await _db.rpc<dynamic>(
         'mark_notifications_read',
         params: {'p_ids': ids},
       );
-      return value;
+      return _count(value);
     });
   }
 
