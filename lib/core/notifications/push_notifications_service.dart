@@ -10,6 +10,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:work_tracker/app/routing/app_router.dart';
+import 'package:work_tracker/core/notifications/notification_events.dart';
+import 'package:work_tracker/core/notifications/notification_feed.dart';
 import 'package:work_tracker/core/notifications/notifications_repository.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/firebase_options.dart';
@@ -90,10 +92,12 @@ class PushNotificationsService with WidgetsBindingObserver {
   StreamSubscription<RemoteMessage>? _openedSub;
   Future<void>? _syncInFlight;
   void Function(String route)? _openRoute;
+  VoidCallback? _onForegroundMessage;
   String? _currentUserId;
   String? _currentToken;
   String? _syncedKey;
   String? _handledInitialMessageId;
+  String? _pendingRoute;
   String? _lastError;
   bool _localReady = false;
   bool _lifecycleAttached = false;
@@ -104,6 +108,7 @@ class PushNotificationsService with WidgetsBindingObserver {
   Future<void> syncRegistration({
     required String userId,
     required void Function(String route) openRoute,
+    VoidCallback? onForegroundMessage,
     String? appVersion,
     String? locale,
     String timezone = 'Africa/Cairo',
@@ -111,6 +116,7 @@ class PushNotificationsService with WidgetsBindingObserver {
   }) async {
     if (!_firebaseReady) return;
     _openRoute = openRoute;
+    _onForegroundMessage = onForegroundMessage ?? _onForegroundMessage;
     _currentUserId = userId;
     if (_syncInFlight != null) return _syncInFlight;
     _syncInFlight = _syncRegistration(
@@ -199,6 +205,9 @@ class PushNotificationsService with WidgetsBindingObserver {
         _handleRemoteMessageOpen,
       );
       await _handleInitialMessage();
+      // The router and the authenticated user both exist by now, so a tap
+      // captured while the app was still starting can finally navigate.
+      _flushPendingRoute();
       _attachLifecycleObserver();
     } on Object catch (error) {
       // Registration failures must never break sign-in.
@@ -249,6 +258,10 @@ class PushNotificationsService with WidgetsBindingObserver {
     _currentToken = null;
     _syncedKey = null;
     _openRoute = null;
+    _onForegroundMessage = null;
+    // A destination captured for the previous session must not open in the
+    // next one.
+    _pendingRoute = null;
     if (_lifecycleAttached) {
       WidgetsBinding.instance.removeObserver(this);
       _lifecycleAttached = false;
@@ -343,7 +356,13 @@ class PushNotificationsService with WidgetsBindingObserver {
   }
 
   Future<void> _showForegroundMessage(RemoteMessage message) async {
+    // Realtime normally updates the center and the badge, but a push that
+    // arrives while realtime is reconnecting must not leave a stale count.
+    _onForegroundMessage?.call();
     final notification = message.notification;
+    // Android does not raise a system notification while the app is in the
+    // foreground, so mirroring to one local notification is the only alert
+    // the user sees. There is no duplicate.
     if (notification == null) return;
     await _localNotifications.show(
       id: message.messageId?.hashCode ?? notification.hashCode,
@@ -386,22 +405,69 @@ class PushNotificationsService with WidgetsBindingObserver {
     }
   }
 
-  void _openNotificationData(Map<String, dynamic> data) {
-    if (_currentUserId == null) return;
-    final type = data['type'] as String?;
+  /// Resolves a tap to a destination without ever switching on human-readable
+  /// notification text.
+  ///
+  /// The server sends a structured `route`; older messages only carry
+  /// `type` + `account_id`, so those are mapped here. Either way the result
+  /// goes through [NotificationRoutes.resolve], and the destination screen
+  /// still loads its entity under normal authentication and RLS — a payload
+  /// is addressing, not authorization.
+  @visibleForTesting
+  static String? routeForMessage(Map<String, dynamic> data) {
+    final explicit = NotificationRoutes.resolve(data['route'] as String?);
+    if (explicit != null) return explicit;
+
+    final event = NotificationEvent.fromKey(data['event_key'] as String?);
     final accountId = data['account_id'] as String?;
-    final route = switch (type) {
-      'credit_card_statement_due' ||
-      'installment_due' ||
-      'bnpl_due' ||
-      'facility_payment_confirmation' =>
-        accountId == null || accountId.isEmpty
-            ? AppRoutes.money
-            : '${AppRoutes.money}/facilities/$accountId',
-      'developer_test' => AppRoutes.home,
+    final facility = accountId == null || accountId.isEmpty
+        ? AppRoutes.money
+        : '${AppRoutes.money}/facilities/$accountId';
+    final fallback = switch (event) {
+      NotificationEvent.developerTest => AppRoutes.home,
+      NotificationEvent.unknown => _legacyRoute(data, facility),
+      _
+          when event.isDue ||
+              event == NotificationEvent.facilityPaymentRecorded =>
+        facility,
+      _ when event.category == NotificationCategory.network =>
+        '${AppRoutes.money}/network',
       _ => null,
     };
-    if (route != null) _openRoute?.call(route);
+    return NotificationRoutes.resolve(fallback);
+  }
+
+  static String? _legacyRoute(Map<String, dynamic> data, String facility) =>
+      switch (data['type'] as String?) {
+        'credit_card_statement_due' ||
+        'installment_due' ||
+        'bnpl_due' ||
+        'facility_payment_confirmation' => facility,
+        'developer_test' => AppRoutes.home,
+        _ => null,
+      };
+
+  void _openNotificationData(Map<String, dynamic> data) {
+    final route = routeForMessage(data);
+    if (route == null) return;
+    if (_currentUserId != null) {
+      _openRoute?.call(route);
+      return;
+    }
+    // Terminated-app or pre-session tap: hold the destination until the
+    // session and router are ready rather than losing it or navigating into
+    // an unauthenticated shell.
+    _pendingRoute = route;
+  }
+
+  /// Replays a destination captured before the session was ready. Called once
+  /// registration has resolved the authenticated user and the router exists.
+  void _flushPendingRoute() {
+    final route = _pendingRoute;
+    final open = _openRoute;
+    if (route == null || open == null || _currentUserId == null) return;
+    _pendingRoute = null;
+    open(route);
   }
 }
 
@@ -431,6 +497,8 @@ final pushRegistrationProvider = Provider<void>((ref) {
       userId: userId,
       locale: locale,
       openRoute: router.go,
+      onForegroundMessage: () =>
+          ref.read(notificationUnreadCountProvider.notifier).refresh(),
     ),
   );
 });

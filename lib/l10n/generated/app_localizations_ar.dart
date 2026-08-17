@@ -4020,4 +4020,178 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get errReimbursementLocked => 'لا يمكن تعديل التسديدات المسجلة مباشرة';
+
+  @override
+  String get notificationLoadFailed => 'تعذر تحميل الإشعارات.';
+
+  @override
+  String get notificationEndOfList => 'لا مزيد من الإشعارات';
+
+  @override
+  String get notificationUnreadLabel => 'غير مقروء';
+
+  @override
+  String get notificationGenericBody => 'افتح Finance Suit لعرض التفاصيل.';
+
+  @override
+  String get notificationUnknownAccount => 'حسابك';
+
+  @override
+  String get notificationUnknownPerson => 'شخص ما';
+
+  @override
+  String notificationBadgeLabel(int count) {
+    return '$count إشعارات غير مقروءة';
+  }
+
+  @override
+  String get notifEventCreditCardDueSoon => 'دفعة بطاقة ائتمان مستحقة قريبًا';
+
+  @override
+  String get notifEventCreditCardDueToday => 'دفعة بطاقة ائتمان مستحقة اليوم';
+
+  @override
+  String get notifEventCreditCardOverdue => 'دفعة بطاقة ائتمان متأخرة';
+
+  @override
+  String get notifEventInstallmentDueSoon => 'قسط مستحق قريبًا';
+
+  @override
+  String get notifEventInstallmentDueToday => 'قسط مستحق اليوم';
+
+  @override
+  String get notifEventInstallmentOverdue => 'قسط متأخر';
+
+  @override
+  String get notifEventBnplDueSoon =>
+      'دفعة اشتر الآن وادفع لاحقًا مستحقة قريبًا';
+
+  @override
+  String get notifEventBnplDueToday =>
+      'دفعة اشتر الآن وادفع لاحقًا مستحقة اليوم';
+
+  @override
+  String get notifEventBnplOverdue => 'دفعة اشتر الآن وادفع لاحقًا متأخرة';
+
+  @override
+  String get notifEventPaymentRecorded => 'تم تسجيل دفعة';
+
+  @override
+  String get notifEventNetworkAddRequest => 'طلب إضافة جديد';
+
+  @override
+  String get notifEventNetworkAddAccepted => 'تم قبول الطلب';
+
+  @override
+  String get notifEventTransferReceived => 'طلب تحويل جديد';
+
+  @override
+  String get notifEventTransferAccepted => 'تم قبول التحويل';
+
+  @override
+  String get notifEventTransferDeclined => 'تم رفض التحويل';
+
+  @override
+  String get notifEventLinkRequest => 'طلب ربط قسط';
+
+  @override
+  String get notifEventLinkAccepted => 'تم قبول ربط القسط';
+
+  @override
+  String get notifEventLinkDeclined => 'تم رفض ربط القسط';
+
+  @override
+  String get notifEventDeveloperTest => 'اختبار الإشعارات';
+
+  @override
+  String notifBodyAccountDue(String account, String date) {
+    return '$account · مستحق $date';
+  }
+
+  @override
+  String notifBodyAccountOverdue(String account, String date) {
+    return '$account · كان مستحقًا $date';
+  }
+
+  @override
+  String notifBodyAccountPayment(String account) {
+    return 'تم تسجيلها على $account';
+  }
+
+  @override
+  String notifBodyPersonAddRequest(String name) {
+    return '$name يريد إضافتك إلى شبكته';
+  }
+
+  @override
+  String notifBodyPersonAddAccepted(String name) {
+    return '$name الآن في شبكتك';
+  }
+
+  @override
+  String notifBodyPersonTransferReceived(String name) {
+    return '$name أرسل لك تحويلًا';
+  }
+
+  @override
+  String notifBodyPersonTransferAccepted(String name) {
+    return '$name قبل تحويلك';
+  }
+
+  @override
+  String notifBodyPersonTransferDeclined(String name) {
+    return '$name رفض تحويلك';
+  }
+
+  @override
+  String notifBodyPersonLinkRequest(String name) {
+    return '$name يريد ربط قسط بك';
+  }
+
+  @override
+  String notifBodyPersonLinkAccepted(String name) {
+    return '$name قبل ربط القسط';
+  }
+
+  @override
+  String notifBodyPersonLinkDeclined(String name) {
+    return '$name رفض ربط القسط';
+  }
+
+  @override
+  String get notifBodyDeveloperTest =>
+      'إذا ظهر هذا التنبيه، فإشعارات هذا الهاتف تعمل.';
+
+  @override
+  String get notifPushChannelSection => 'تنبيهات الهاتف';
+
+  @override
+  String get notifPushChannelHelp =>
+      'تظل الإشعارات داخل التطبيق تصل حتى عند إيقاف تنبيهات الهاتف.';
+
+  @override
+  String get notifDuePushTitle => 'تذكيرات الاستحقاق على هذا الهاتف';
+
+  @override
+  String get notifOverduePushTitle => 'تنبيهات التأخر على هذا الهاتف';
+
+  @override
+  String get notifPaymentPushTitle => 'تنبيهات الدفع على هذا الهاتف';
+
+  @override
+  String get notifNetworkTitle => 'نشاط الشبكة';
+
+  @override
+  String get notifNetworkHelp =>
+      'طلبات الإضافة والتحويلات وروابط الأقساط من جهات اتصالك.';
+
+  @override
+  String get notifNetworkPushTitle => 'تنبيهات الشبكة على هذا الهاتف';
+
+  @override
+  String get notifSystemPushTitle => 'تنبيهات الحساب والأمان';
+
+  @override
+  String get notifSystemPushHelp =>
+      'تظهر إشعارات الأمان دائمًا داخل التطبيق؛ هذا يتحكم في تنبيهات الهاتف فقط.';
 }

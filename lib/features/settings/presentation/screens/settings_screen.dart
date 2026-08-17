@@ -783,6 +783,20 @@ class _NotificationPreferencesSection extends ConsumerWidget {
                 ),
         ),
         SwitchListTile.adaptive(
+          key: const Key('notif-network'),
+          secondary: const FinanceSuitIcon(FinanceSuitIcons.person),
+          title: Text(l10n.notifNetworkTitle),
+          subtitle: Text(l10n.notifNetworkHelp),
+          value: preferences.networkEnabled,
+          onChanged: !loaded
+              ? null
+              : (value) => _update(
+                  context,
+                  ref,
+                  preferences.copyWith(networkEnabled: value),
+                ),
+        ),
+        SwitchListTile.adaptive(
           key: const Key('notif-show-amounts'),
           secondary: const FinanceSuitIcon(FinanceSuitIcons.visibilityOff),
           title: Text(l10n.notifShowAmountsTitle),
@@ -794,6 +808,104 @@ class _NotificationPreferencesSection extends ConsumerWidget {
                   context,
                   ref,
                   preferences.copyWith(showAmounts: value),
+                ),
+        ),
+        // Channel split: the switches above decide whether a notification
+        // exists at all, these decide only whether the phone alerts for it.
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 20, 16, 4),
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.notifPushChannelSection,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  l10n.notifPushChannelHelp,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        ),
+        SwitchListTile.adaptive(
+          key: const Key('notif-due-push'),
+          secondary: const FinanceSuitIcon(FinanceSuitIcons.notifications),
+          title: Text(l10n.notifDuePushTitle),
+          // A silenced category cannot alert, so its channel switch is inert
+          // rather than pretending to be independent.
+          value: preferences.duePushEnabled && preferences.dueRemindersEnabled,
+          onChanged: !loaded || !preferences.dueRemindersEnabled
+              ? null
+              : (value) => _update(
+                  context,
+                  ref,
+                  preferences.copyWith(duePushEnabled: value),
+                ),
+        ),
+        SwitchListTile.adaptive(
+          key: const Key('notif-overdue-push'),
+          secondary: const FinanceSuitIcon(FinanceSuitIcons.notifications),
+          title: Text(l10n.notifOverduePushTitle),
+          value:
+              preferences.overduePushEnabled &&
+              preferences.overdueRemindersEnabled,
+          onChanged: !loaded || !preferences.overdueRemindersEnabled
+              ? null
+              : (value) => _update(
+                  context,
+                  ref,
+                  preferences.copyWith(overduePushEnabled: value),
+                ),
+        ),
+        SwitchListTile.adaptive(
+          key: const Key('notif-payment-push'),
+          secondary: const FinanceSuitIcon(FinanceSuitIcons.notifications),
+          title: Text(l10n.notifPaymentPushTitle),
+          value:
+              preferences.paymentPushEnabled &&
+              preferences.paymentConfirmationsEnabled,
+          onChanged: !loaded || !preferences.paymentConfirmationsEnabled
+              ? null
+              : (value) => _update(
+                  context,
+                  ref,
+                  preferences.copyWith(paymentPushEnabled: value),
+                ),
+        ),
+        SwitchListTile.adaptive(
+          key: const Key('notif-network-push'),
+          secondary: const FinanceSuitIcon(FinanceSuitIcons.notifications),
+          title: Text(l10n.notifNetworkPushTitle),
+          value: preferences.networkPushEnabled && preferences.networkEnabled,
+          onChanged: !loaded || !preferences.networkEnabled
+              ? null
+              : (value) => _update(
+                  context,
+                  ref,
+                  preferences.copyWith(networkPushEnabled: value),
+                ),
+        ),
+        SwitchListTile.adaptive(
+          key: const Key('notif-system-push'),
+          secondary: const FinanceSuitIcon(FinanceSuitIcons.lock),
+          title: Text(l10n.notifSystemPushTitle),
+          // Security and account notices are not disableable in-app; only
+          // their phone alerts are, and the copy says so.
+          subtitle: Text(l10n.notifSystemPushHelp),
+          value: preferences.systemPushEnabled,
+          onChanged: !loaded
+              ? null
+              : (value) => _update(
+                  context,
+                  ref,
+                  preferences.copyWith(systemPushEnabled: value),
                 ),
         ),
       ],

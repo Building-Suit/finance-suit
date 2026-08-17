@@ -7354,6 +7354,294 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recorded reimbursements cannot be edited directly'**
   String get errReimbursementLocked;
+
+  /// No description provided for @notificationLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications could not be loaded.'**
+  String get notificationLoadFailed;
+
+  /// No description provided for @notificationEndOfList.
+  ///
+  /// In en, this message translates to:
+  /// **'No more notifications'**
+  String get notificationEndOfList;
+
+  /// No description provided for @notificationUnreadLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unread'**
+  String get notificationUnreadLabel;
+
+  /// No description provided for @notificationGenericBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Finance Suit for details.'**
+  String get notificationGenericBody;
+
+  /// No description provided for @notificationUnknownAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account'**
+  String get notificationUnknownAccount;
+
+  /// No description provided for @notificationUnknownPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone'**
+  String get notificationUnknownPerson;
+
+  /// No description provided for @notificationBadgeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} unread notifications'**
+  String notificationBadgeLabel(int count);
+
+  /// No description provided for @notifEventCreditCardDueSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit card payment due soon'**
+  String get notifEventCreditCardDueSoon;
+
+  /// No description provided for @notifEventCreditCardDueToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit card payment due today'**
+  String get notifEventCreditCardDueToday;
+
+  /// No description provided for @notifEventCreditCardOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit card payment overdue'**
+  String get notifEventCreditCardOverdue;
+
+  /// No description provided for @notifEventInstallmentDueSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment due soon'**
+  String get notifEventInstallmentDueSoon;
+
+  /// No description provided for @notifEventInstallmentDueToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment due today'**
+  String get notifEventInstallmentDueToday;
+
+  /// No description provided for @notifEventInstallmentOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment overdue'**
+  String get notifEventInstallmentOverdue;
+
+  /// No description provided for @notifEventBnplDueSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'BNPL payment due soon'**
+  String get notifEventBnplDueSoon;
+
+  /// No description provided for @notifEventBnplDueToday.
+  ///
+  /// In en, this message translates to:
+  /// **'BNPL payment due today'**
+  String get notifEventBnplDueToday;
+
+  /// No description provided for @notifEventBnplOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'BNPL payment overdue'**
+  String get notifEventBnplOverdue;
+
+  /// No description provided for @notifEventPaymentRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment recorded'**
+  String get notifEventPaymentRecorded;
+
+  /// No description provided for @notifEventNetworkAddRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'New add request'**
+  String get notifEventNetworkAddRequest;
+
+  /// No description provided for @notifEventNetworkAddAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Request accepted'**
+  String get notifEventNetworkAddAccepted;
+
+  /// No description provided for @notifEventTransferReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'New transfer request'**
+  String get notifEventTransferReceived;
+
+  /// No description provided for @notifEventTransferAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer accepted'**
+  String get notifEventTransferAccepted;
+
+  /// No description provided for @notifEventTransferDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer declined'**
+  String get notifEventTransferDeclined;
+
+  /// No description provided for @notifEventLinkRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment link request'**
+  String get notifEventLinkRequest;
+
+  /// No description provided for @notifEventLinkAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment link accepted'**
+  String get notifEventLinkAccepted;
+
+  /// No description provided for @notifEventLinkDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment link declined'**
+  String get notifEventLinkDeclined;
+
+  /// No description provided for @notifEventDeveloperTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification test'**
+  String get notifEventDeveloperTest;
+
+  /// No description provided for @notifBodyAccountDue.
+  ///
+  /// In en, this message translates to:
+  /// **'{account} · due {date}'**
+  String notifBodyAccountDue(String account, String date);
+
+  /// No description provided for @notifBodyAccountOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'{account} · was due {date}'**
+  String notifBodyAccountOverdue(String account, String date);
+
+  /// No description provided for @notifBodyAccountPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded for {account}'**
+  String notifBodyAccountPayment(String account);
+
+  /// No description provided for @notifBodyPersonAddRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} wants to add you to their network'**
+  String notifBodyPersonAddRequest(String name);
+
+  /// No description provided for @notifBodyPersonAddAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is now in your network'**
+  String notifBodyPersonAddAccepted(String name);
+
+  /// No description provided for @notifBodyPersonTransferReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} sent you a transfer'**
+  String notifBodyPersonTransferReceived(String name);
+
+  /// No description provided for @notifBodyPersonTransferAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} accepted your transfer'**
+  String notifBodyPersonTransferAccepted(String name);
+
+  /// No description provided for @notifBodyPersonTransferDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} declined your transfer'**
+  String notifBodyPersonTransferDeclined(String name);
+
+  /// No description provided for @notifBodyPersonLinkRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} wants to link an installment to you'**
+  String notifBodyPersonLinkRequest(String name);
+
+  /// No description provided for @notifBodyPersonLinkAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} accepted the installment link'**
+  String notifBodyPersonLinkAccepted(String name);
+
+  /// No description provided for @notifBodyPersonLinkDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} declined the installment link'**
+  String notifBodyPersonLinkDeclined(String name);
+
+  /// No description provided for @notifBodyDeveloperTest.
+  ///
+  /// In en, this message translates to:
+  /// **'If you see this, alerts are working on this phone.'**
+  String get notifBodyDeveloperTest;
+
+  /// No description provided for @notifPushChannelSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone alerts'**
+  String get notifPushChannelSection;
+
+  /// No description provided for @notifPushChannelHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'In-app notifications keep arriving even when phone alerts are off.'**
+  String get notifPushChannelHelp;
+
+  /// No description provided for @notifDuePushTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Due reminders on this phone'**
+  String get notifDuePushTitle;
+
+  /// No description provided for @notifOverduePushTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue alerts on this phone'**
+  String get notifOverduePushTitle;
+
+  /// No description provided for @notifPaymentPushTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment alerts on this phone'**
+  String get notifPaymentPushTitle;
+
+  /// No description provided for @notifNetworkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Network activity'**
+  String get notifNetworkTitle;
+
+  /// No description provided for @notifNetworkHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Add requests, transfers and installment links from your contacts.'**
+  String get notifNetworkHelp;
+
+  /// No description provided for @notifNetworkPushTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Network alerts on this phone'**
+  String get notifNetworkPushTitle;
+
+  /// No description provided for @notifSystemPushTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account and security alerts'**
+  String get notifSystemPushTitle;
+
+  /// No description provided for @notifSystemPushHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Security notices always appear in the app; this only controls phone alerts.'**
+  String get notifSystemPushHelp;
 }
 
 class _AppLocalizationsDelegate

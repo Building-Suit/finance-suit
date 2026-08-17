@@ -1,32 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
+import 'package:work_tracker/core/errors/app_failure.dart';
 import 'package:work_tracker/core/notifications/notification_center.dart';
+import 'package:work_tracker/core/notifications/notification_events.dart';
+import 'package:work_tracker/core/notifications/notification_feed.dart';
 import 'package:work_tracker/core/notifications/notifications_repository.dart';
 import 'package:work_tracker/core/result/result.dart';
 
 import '../../app/routing/shell_test_harness.dart';
 
+NotificationHistoryItem item({
+  required String id,
+  NotificationEvent event = NotificationEvent.creditCardStatementDueToday,
+  DateTime? createdAt,
+  DateTime? readAt,
+  Map<String, dynamic> payload = const {},
+  String? route,
+}) => NotificationHistoryItem(
+  id: id,
+  event: event,
+  createdAt: createdAt ?? DateTime.now(),
+  readAt: readAt,
+  payload: payload,
+  route: route,
+);
+
 void main() {
   final firstPage = NotificationHistoryPage(
     items: [
-      NotificationHistoryItem(
+      item(
         id: '00000000-0000-0000-0000-000000000001',
-        obligationType: 'general',
-        reminderKind: 'due_today',
-        createdAt: DateTime.now(),
-        payload: const {},
+        payload: const {'account_name': 'CIB Gold'},
       ),
-      NotificationHistoryItem(
+      item(
         id: '00000000-0000-0000-0000-000000000002',
-        obligationType: 'facility_payment',
-        reminderKind: 'payment_confirmation',
+        event: NotificationEvent.facilityPaymentRecorded,
         createdAt: DateTime.now().subtract(const Duration(days: 1)),
+        readAt: DateTime.now().subtract(const Duration(days: 1)),
         payload: const {'account_name': 'Saving'},
       ),
     ],
     next: null,
   );
+
+  List<dynamic> overrides({NotificationHistoryPage? page}) => [
+    notificationHistoryLoaderProvider.overrideWithValue(
+      ({NotificationHistoryCursor? after, int limit = 20}) async =>
+          Ok(page ?? firstPage),
+    ),
+    notificationReadMutationProvider.overrideWithValue(
+      ({List<String>? ids}) async => const Ok(0),
+    ),
+  ];
 
   testWidgets('opens the notification center as a right-side drawer', (
     tester,
@@ -34,18 +60,7 @@ void main() {
     await pumpShellApp(
       tester,
       buildShellTestRouter(),
-      extraOverrides: [
-        notificationHistoryLoaderProvider.overrideWithValue(
-          ({NotificationHistoryCursor? after, int limit = 20}) async =>
-              Ok(firstPage),
-        ),
-        notificationReadMutationProvider.overrideWithValue(
-          (id) async => const Ok(null),
-        ),
-        notificationReadAllMutationProvider.overrideWithValue(
-          () async => const Ok(null),
-        ),
-      ],
+      extraOverrides: overrides(),
     );
     final home = find.text('home-root');
     final restingHomeCenter = tester.getCenter(home);
@@ -90,6 +105,13 @@ void main() {
       ),
       findsOneWidget,
     );
+    // A read notification carries no unread dot.
+    expect(
+      find.byKey(
+        const Key('notification-unread-00000000-0000-0000-0000-000000000002'),
+      ),
+      findsNothing,
+    );
 
     await tester.tap(
       find.byKey(const Key('notification-center-mark-all-read')),
@@ -108,6 +130,142 @@ void main() {
     expect(find.byKey(const Key('notification-center-panel')), findsNothing);
   });
 
+  testWidgets('renders localized event text, never the machine event key', (
+    tester,
+  ) async {
+    await pumpShellApp(
+      tester,
+      buildShellTestRouter(),
+      extraOverrides: overrides(),
+    );
+    final context = tester.element(
+      find.byKey(const Key('finance-suit-menu-button')),
+    );
+    final opened = NotificationCenter.open(context);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Credit card payment due today'), findsOneWidget);
+    expect(find.text('Payment recorded'), findsOneWidget);
+    expect(find.textContaining('CIB Gold'), findsOneWidget);
+    expect(find.textContaining('credit_card.'), findsNothing);
+    expect(find.textContaining('facility.payment_recorded'), findsNothing);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    await opened;
+  });
+
+  testWidgets('shows skeleton rows rather than an indefinite spinner', (
+    tester,
+  ) async {
+    await pumpShellApp(
+      tester,
+      buildShellTestRouter(),
+      extraOverrides: [
+        notificationHistoryLoaderProvider.overrideWithValue(({
+          NotificationHistoryCursor? after,
+          int limit = 20,
+        }) async {
+          await Future<void>.delayed(const Duration(milliseconds: 200));
+          return Ok(firstPage);
+        }),
+        notificationReadMutationProvider.overrideWithValue(
+          ({List<String>? ids}) async => const Ok(0),
+        ),
+      ],
+    );
+    final context = tester.element(
+      find.byKey(const Key('finance-suit-menu-button')),
+    );
+    final opened = NotificationCenter.open(context);
+    await tester.pump();
+    await tester.pump();
+    expect(
+      find.byKey(const Key('notification-center-skeleton')),
+      findsOneWidget,
+    );
+
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('notification-center-skeleton')), findsNothing);
+    expect(find.byKey(const Key('notification-center-list')), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    await opened;
+  });
+
+  testWidgets('a failed first load offers retry instead of an empty state', (
+    tester,
+  ) async {
+    var attempts = 0;
+    await pumpShellApp(
+      tester,
+      buildShellTestRouter(),
+      extraOverrides: [
+        notificationHistoryLoaderProvider.overrideWithValue(({
+          NotificationHistoryCursor? after,
+          int limit = 20,
+        }) async {
+          attempts++;
+          if (attempts == 1) {
+            return const Err<NotificationHistoryPage>(NetworkFailure());
+          }
+          return Ok(firstPage);
+        }),
+        notificationReadMutationProvider.overrideWithValue(
+          ({List<String>? ids}) async => const Ok(0),
+        ),
+      ],
+    );
+    final context = tester.element(
+      find.byKey(const Key('finance-suit-menu-button')),
+    );
+    final opened = NotificationCenter.open(context);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('notification-center-error')), findsOneWidget);
+    expect(find.text('No notifications yet.'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('notification-center-retry')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('notification-center-list')), findsOneWidget);
+    expect(attempts, 2);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    await opened;
+  });
+
+  testWidgets('the header bell shows the authoritative unread badge', (
+    tester,
+  ) async {
+    await pumpShellApp(
+      tester,
+      buildShellTestRouter(),
+      unreadCount: 7,
+      extraOverrides: overrides(),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('finance-suit-notifications-badge')),
+      findsWidgets,
+    );
+    expect(find.text('7'), findsWidgets);
+  });
+
+  testWidgets('a zero unread count leaves the bell unbadged', (tester) async {
+    await pumpShellApp(
+      tester,
+      buildShellTestRouter(),
+      extraOverrides: overrides(),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('finance-suit-notifications-badge')),
+      findsNothing,
+    );
+  });
+
   testWidgets('opens the notification drawer from the logical end in RTL', (
     tester,
   ) async {
@@ -115,12 +273,7 @@ void main() {
       tester,
       buildShellTestRouter(),
       locale: const Locale('ar'),
-      extraOverrides: [
-        notificationHistoryLoaderProvider.overrideWithValue(
-          ({NotificationHistoryCursor? after, int limit = 20}) async =>
-              Ok(firstPage),
-        ),
-      ],
+      extraOverrides: overrides(),
     );
     final home = find.text('home-root');
     final restingHomeCenter = tester.getCenter(home);
@@ -135,6 +288,8 @@ void main() {
     );
     expect(panel.left, closeTo(0, 1));
     expect(tester.getCenter(home).dx, greaterThan(restingHomeCenter.dx));
+    // Arabic content, not an untranslated fallback.
+    expect(find.text('دفعة بطاقة ائتمان مستحقة اليوم'), findsOneWidget);
 
     final panelMaterial = tester.widget<Material>(
       find.byKey(const Key('notification-center-panel')),
@@ -153,12 +308,7 @@ void main() {
         tester,
         buildShellTestRouter(),
         themeMode: ThemeMode.dark,
-        extraOverrides: [
-          notificationHistoryLoaderProvider.overrideWithValue(
-            ({NotificationHistoryCursor? after, int limit = 20}) async =>
-                Ok(firstPage),
-          ),
-        ],
+        extraOverrides: overrides(),
       );
       final context = tester.element(
         find.byKey(const Key('finance-suit-menu-button')),
@@ -182,7 +332,10 @@ void main() {
         mutedForeground,
       );
       expect(
-        tester.widget<Text>(find.text('Due today')).style?.color,
+        tester
+            .widget<Text>(find.text('Credit card payment due today'))
+            .style
+            ?.color,
         foreground,
       );
       final markAllRead = tester.widget<TextButton>(
@@ -203,16 +356,7 @@ void main() {
     tester,
   ) async {
     final router = buildShellTestRouter(initialLocation: '/settings');
-    await pumpShellApp(
-      tester,
-      router,
-      extraOverrides: [
-        notificationHistoryLoaderProvider.overrideWithValue(
-          ({NotificationHistoryCursor? after, int limit = 20}) async =>
-              Ok(firstPage),
-        ),
-      ],
-    );
+    await pumpShellApp(tester, router, extraOverrides: overrides());
     final page = find.text('settings-root');
     final restingCenter = tester.getCenter(page);
     final context = tester.element(page);
@@ -233,12 +377,7 @@ void main() {
     await pumpShellApp(
       tester,
       buildShellTestRouter(),
-      extraOverrides: [
-        notificationHistoryLoaderProvider.overrideWithValue(
-          ({NotificationHistoryCursor? after, int limit = 20}) async =>
-              Ok(firstPage),
-        ),
-      ],
+      extraOverrides: overrides(),
     );
 
     for (final tab in [
