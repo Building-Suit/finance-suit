@@ -2331,12 +2331,21 @@ class _FacilityDueMonthSection extends ConsumerStatefulWidget {
 }
 
 class _FacilityDueMonthSectionState
-    extends ConsumerState<_FacilityDueMonthSection> {
+    extends ConsumerState<_FacilityDueMonthSection>
+    with AutomaticKeepAliveClientMixin<_FacilityDueMonthSection> {
   final List<FacilityDueMonth> _months = FacilityDueMonth.payable();
   int _activeIndex = 0;
 
+  // The outer screen scroll view disposes this section once it scrolls
+  // outside the list's cache extent — without keep-alive, that drops its
+  // watch on the autoDispose due-breakdown provider, so scrolling it back
+  // into view refetched from scratch and flashed a loading spinner.
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final l10n = AppLocalizations.of(context);
     final active = _months[_activeIndex];
     return Column(
