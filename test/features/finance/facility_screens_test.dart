@@ -262,6 +262,7 @@ List<dynamic> _baseOverrides({
   List<AccountBalance>? accounts,
   List<CardFeeRule>? feeRules,
   FacilityDueBreakdown? breakdown,
+  List<InstallmentPlan>? plans,
 }) {
   final facilityList = facilities ?? [_visa];
   final accountList = accounts ?? [_wallet, _dollarWallet, _visaBalanceRow];
@@ -278,7 +279,7 @@ List<dynamic> _baseOverrides({
       (ref) async => const <PendingRecurring>[],
     ),
     installmentPlansProvider.overrideWith(
-      (ref, accountId) async => [_fridgePlan],
+      (ref, accountId) async => plans ?? [_fridgePlan],
     ),
     installmentDuesProvider.overrideWith(
       (ref, accountId) async => [_overdueDue, _upcomingDue],
@@ -313,6 +314,7 @@ Future<void> _pump(
   List<AccountBalance>? accounts,
   List<CardFeeRule>? feeRules,
   FacilityDueBreakdown? breakdown,
+  List<InstallmentPlan>? plans,
   Locale locale = const Locale('en'),
 }) async {
   await tester.pumpWidget(
@@ -323,6 +325,7 @@ Future<void> _pump(
           accounts: accounts,
           feeRules: feeRules,
           breakdown: breakdown,
+          plans: plans,
         ).cast(),
       ],
       child: MaterialApp(
@@ -935,6 +938,74 @@ void main() {
       expect(find.text('Upcoming installments'), findsOneWidget);
       expect(find.textContaining('Fridge'), findsWidgets);
       expect(find.text('Installment plans'), findsOneWidget);
+    });
+
+    testWidgets('many plans are capped and open the full lazy sheet', (
+      tester,
+    ) async {
+      // The regression sibling of the heavy statement month: every plan
+      // painted into one column becomes a single surface, and enough plans
+      // push it past what the GPU will rasterize — a flat gray block.
+      tester.view.physicalSize = const Size(800, 2000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final plans = [
+        for (var i = 0; i < 40; i++)
+          InstallmentPlan.fromJson({
+            'id': 'plan-$i',
+            'account_id': 'facility-1',
+            'title': 'Plan $i',
+            'category_id': 'cat-1',
+            'purchased_on': '2026-07-01',
+            'first_due_on': '2026-07-10',
+            'installment_count': 12,
+            'purchase_price_minor': 120000,
+            'down_payment_minor': 0,
+            'financed_principal_minor': 120000,
+            'financing_fees_minor': 0,
+            'total_payable_minor': 120000,
+            'currency_code': 'EGP',
+            'status': 'active',
+            'paid_minor': 10000,
+            'remaining_minor': 110000,
+            'next_due_on': '2026-08-10',
+            'next_due_amount_minor': 10000,
+            'notes': null,
+          }),
+      ];
+      await _pump(
+        tester,
+        const CreditFacilityDetailScreen(accountId: 'facility-1'),
+        plans: plans,
+      );
+      await tester.dragUntilVisible(
+        find.byKey(const Key('facility-plans-show-all')),
+        find.byType(Scrollable).first,
+        const Offset(0, -400),
+      );
+      await tester.pumpAndSettle();
+
+      // Only the capped cards render inline; the column stays small.
+      final column = tester.getSize(
+        find.byKey(const Key('facility-plans-column')),
+      );
+      expect(column.height, lessThan(1500));
+      expect(find.text('Plan 0'), findsOneWidget);
+      expect(find.text('Plan 4'), findsOneWidget);
+      expect(find.text('Plan 5'), findsNothing);
+
+      // Show all opens the lazy sheet with every plan reachable.
+      await tester.tap(find.byKey(const Key('facility-plans-show-all')));
+      await tester.pumpAndSettle();
+      final sheetList = find.byKey(const Key('facility-plans-sheet-list'));
+      expect(sheetList, findsOneWidget);
+      await tester.dragUntilVisible(
+        find.text('Plan 39'),
+        sheetList,
+        const Offset(0, -400),
+      );
+      expect(find.text('Plan 39'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
   });
 
