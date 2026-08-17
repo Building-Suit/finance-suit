@@ -186,6 +186,34 @@ After deployment, the human operator must manually:
 These cloud and Play Console steps have not been performed by this repository
 change. `GOOGLE_PLAY_RTDN_SHARED_SECRET` and the old custom header are not used.
 
+### Debugging rejected pushes (HTTP 401/403)
+
+The HTTP response is always the generic `{"code":"invalid_pubsub_oidc"}`; the
+precise cause appears only in the Edge Function logs as a single structured
+`rtdn_auth_failure` line. Its `reason` field names the exact failed check:
+
+- `missing_authorization` / `malformed_authorization_header`: no usable
+  `Authorization: Bearer` header — push authentication is not enabled on the
+  subscription, or a proxy stripped the header.
+- `jwt_audience_mismatch`: the token `aud` does not equal
+  `GOOGLE_PLAY_RTDN_EXPECTED_AUDIENCE`. Compare `receivedAudience` with
+  `expectedAudience` in the log entry; both are JSON-encoded, so a trailing
+  slash, query string, or stray whitespace is visible. If the subscription's
+  `oidcToken.audience` is unset, Pub/Sub uses the full push endpoint URL.
+- `jwt_email_mismatch`: the token was minted for a different service account
+  than `GOOGLE_PLAY_RTDN_PUSH_SERVICE_ACCOUNT_EMAIL`; compare `receivedEmail`
+  with `expectedEmail`.
+- `jwt_email_not_verified`, `jwt_issuer_mismatch`, `jwt_expired`,
+  `jwt_signature_failure`, `jwt_malformed`, `unknown_jwt_validation_failure`:
+  token-integrity failures; `joseErrorCode`/`joseErrorMessage` carry the
+  verifier detail.
+- `missing_expected_audience` / `missing_expected_email`: the corresponding
+  Supabase secret is unset (the function answers 503, not 403).
+
+The logged claim values are decoded without signature verification and are
+diagnostics only; authorization always comes from full `jwtVerify()`
+validation. The Authorization header and JWT are never logged.
+
 ## Downgrade behavior
 
 Commercial state is separate from finance data. Trial expiration,
