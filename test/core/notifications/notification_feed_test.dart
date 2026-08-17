@@ -183,6 +183,59 @@ void main() {
       },
     );
 
+    test('a refresh keeps pages the user already scrolled to', () async {
+      final cache = NotificationFeedCache();
+      final server = FakeHistoryServer(100);
+      final container = makeContainer(server: server, cache: cache);
+      final controller = container.read(notificationFeedProvider.notifier);
+      await controller.loadInitial();
+      await controller.loadMore();
+      await controller.loadMore();
+      expect(container.read(notificationFeedProvider).items, hasLength(60));
+
+      await controller.loadInitial(force: true);
+      final state = container.read(notificationFeedProvider);
+      // The refreshed first page overlaps the cache, so the deeper pages are
+      // still there and the cursor still points past them.
+      expect(state.items, hasLength(60));
+      expect(state.items.map((item) => item.id).toSet(), hasLength(60));
+      expect(state.next?.id, 'n059');
+
+      await controller.loadMore();
+      expect(container.read(notificationFeedProvider).items, hasLength(80));
+    });
+
+    test('a refresh with no overlap drops a cache it cannot trust', () async {
+      final cache = NotificationFeedCache();
+      final server = FakeHistoryServer(100);
+      final container = makeContainer(server: server, cache: cache);
+      final controller = container.read(notificationFeedProvider.notifier);
+      await controller.loadInitial();
+      await controller.loadMore();
+
+      // 40 newer notifications arrived while the drawer was closed, so the
+      // fresh first page no longer reaches the cached rows.
+      server.all.insertAll(
+        0,
+        List.generate(
+          40,
+          (index) => NotificationHistoryItem(
+            id: 'new-$index',
+            event: NotificationEvent.networkTransferReceived,
+            createdAt: _base.add(Duration(minutes: 40 - index)),
+            payload: const {},
+          ),
+        ),
+      );
+
+      await controller.loadInitial(force: true);
+      final state = container.read(notificationFeedProvider);
+      expect(state.items, hasLength(20));
+      expect(state.items.first.id, 'new-0');
+      // Keeping a disjoint cache would leave a silent hole in the list.
+      expect(state.items.map((item) => item.id), isNot(contains('n000')));
+    });
+
     test(
       'signing in as another user never shows the previous history',
       () async {

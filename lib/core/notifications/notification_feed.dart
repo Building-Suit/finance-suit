@@ -178,11 +178,31 @@ class NotificationFeedController extends Notifier<NotificationFeedState> {
     );
     result.when(
       ok: (page) {
-        // A realtime row that arrived while the request was in flight is
-        // newer than the page, so keep it rather than letting the refresh
-        // drop it.
-        final merged = _merge(state.items, page.items);
-        state = NotificationFeedState(items: merged, next: page.next);
+        final existing = state.items;
+        final fresh = page.items;
+        // The fresh page reaching back into rows we already hold proves there
+        // is no gap between them, so deeper pages the user already scrolled
+        // to are kept instead of being thrown away by a routine refresh. A
+        // fully disjoint page means too much arrived while we were away, and
+        // the cache below it can no longer be trusted to be contiguous.
+        final existingIds = {for (final item in existing) item.id};
+        final contiguous =
+            page.next == null ||
+            existing.isEmpty ||
+            fresh.any((item) => existingIds.contains(item.id));
+        final oldestFresh = fresh.isEmpty ? null : fresh.last;
+        final retained = contiguous
+            ? existing
+            // Realtime rows that landed while the request was in flight are
+            // newer than anything the server just returned; keep only those.
+            : existing.where(
+                (item) => oldestFresh == null || _isNewer(item, oldestFresh),
+              );
+        final merged = _mergeSorted(fresh, retained);
+        state = NotificationFeedState(
+          items: merged,
+          next: contiguous ? (state.next ?? page.next) : page.next,
+        );
         _persist();
       },
       err: (failure) => state = state.copyWith(
@@ -284,19 +304,28 @@ class NotificationFeedController extends Notifier<NotificationFeedState> {
   }
 
   /// Keeps newest-first order while removing ids seen in either list.
-  static List<NotificationHistoryItem> _merge(
-    List<NotificationHistoryItem> existing,
-    List<NotificationHistoryItem> incoming,
+  /// True when [a] sorts before [b] under the feed's `created_at desc, id
+  /// desc` order — the same ordering the server pages with, so client and
+  /// server never disagree about position.
+  static bool _isNewer(NotificationHistoryItem a, NotificationHistoryItem b) {
+    final byTime = b.createdAt.compareTo(a.createdAt);
+    return byTime != 0 ? byTime < 0 : b.id.compareTo(a.id) < 0;
+  }
+
+  /// Unions a freshly fetched page with retained rows, newest first. The
+  /// fresh copy of a row wins, so read state settled on another device shows
+  /// up rather than being masked by the cached copy.
+  static List<NotificationHistoryItem> _mergeSorted(
+    List<NotificationHistoryItem> fresh,
+    Iterable<NotificationHistoryItem> retained,
   ) {
-    final incomingIds = {for (final item in incoming) item.id};
-    final newer = existing
-        .where((item) => !incomingIds.contains(item.id))
-        .where(
-          (item) =>
-              incoming.isEmpty ||
-              item.createdAt.isAfter(incoming.first.createdAt),
-        );
-    return _deduplicate([...newer, ...incoming]);
+    final byId = <String, NotificationHistoryItem>{
+      for (final item in retained) item.id: item,
+      for (final item in fresh) item.id: item,
+    };
+    final merged = byId.values.toList()
+      ..sort((a, b) => _isNewer(a, b) ? -1 : (a.id == b.id ? 0 : 1));
+    return List.unmodifiable(merged);
   }
 
   static List<NotificationHistoryItem> _deduplicate(
