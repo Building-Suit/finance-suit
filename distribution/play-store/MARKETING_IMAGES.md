@@ -7,6 +7,19 @@ Source-of-truth brief for the Play Store listing graphics of **Finance Suit**
 2. an **image-generation prompt** that composes an advertising frame around a
    real app screenshot, with the screenshot embedded **unmodified**.
 
+## Status
+
+`CHATGPT_IMAGE_PROMPTS.md` is the authoritative spec for generating the
+images: it locks one composition across the whole set so the frames read as a
+series, and it carries the final headline and sub-line copy.
+
+This file remains the reference for the asset sizes, the brand constants, and
+the inventory of captured screenshots. The nine per-frame prompt blocks below
+predate the consistency requirement — each invents its own background motif
+(diagonal split, arcs, grid, timeline), which produces nine unrelated-looking
+images. Keep them only as a source of alternative art direction; do not mix
+them into a single listing.
+
 ## Asset specifications
 
 | Asset | Size | Format | Count |
