@@ -94,18 +94,21 @@ class _FakeHistoryRepository implements HistoryRepository {
 
 final _today = PlainDate.today();
 
+// The product has no multi-currency setup yet, so every fixture below is
+// denominated in this one currency.
+const _currency = 'EGP';
+
 AccountBalance _account(
   String id,
   String name,
   String type,
   int balance, {
-  String currency = 'EGP',
   bool isDefault = false,
 }) => AccountBalance.fromJson({
   'account_id': id,
   'name': name,
   'account_type': type,
-  'currency_code': currency,
+  'currency_code': _currency,
   'is_default': isDefault,
   'is_archived': false,
   'allow_negative_balance': false,
@@ -119,7 +122,6 @@ final _accounts = [
   _account('wallet-1', 'Main Wallet', 'cash', 1245000, isDefault: true),
   _account('bank-1', 'CIB Current', 'current', 4830025),
   _account('savings-1', 'Savings', 'savings', 12500000),
-  _account('usd-1', 'USD Wallet', 'wallet', 32000, currency: 'USD'),
 ];
 
 final _visa = CreditFacilitySummary.fromJson({
@@ -839,6 +841,12 @@ List<dynamic> _overrides() {
       (ref, accountId) async => const <CardFeeRule>[],
     ),
     facilityDueBreakdownProvider.overrideWith((ref, args) async => _breakdown),
+    // The detail screen and its month carousel read the per-month
+    // breakdown, not the as-of one; without this override both fall
+    // through to the live repository and render the error state.
+    facilityMonthDueBreakdownProvider.overrideWith(
+      (ref, args) async => _breakdown,
+    ),
     paymentAllocationsProvider.overrideWith(
       (ref, id) async => const <FacilityPaymentAllocationDetail>[],
     ),
@@ -1060,6 +1068,26 @@ Future<void> _loadFonts() async {
 }
 
 Future<void> _capture(WidgetTester tester, String name) async {
+  // A store screenshot must never ship an error or loading state. Any
+  // provider left unstubbed renders AsyncView's failure card, which is
+  // easy to miss when eyeballing eighteen PNGs — so fail the run instead.
+  expect(
+    find.textContaining('Something went wrong'),
+    findsNothing,
+    reason: '$name captured an error state: a provider is not overridden',
+  );
+  expect(
+    find.textContaining(
+      '\u062d\u062f\u062b\u0020\u062e\u0637\u0623\u0020\u0645\u0627',
+    ),
+    findsNothing,
+    reason: '$name captured an Arabic error state',
+  );
+  expect(
+    find.byType(CircularProgressIndicator),
+    findsNothing,
+    reason: '$name captured a loading spinner',
+  );
   await tester.runAsync(() async {
     final boundary =
         _shotKey.currentContext!.findRenderObject()! as RenderRepaintBoundary;
@@ -1220,6 +1248,12 @@ void main() {
     router.push('/settings/income-sources').ignore();
     await settle(tester);
     await _capture(tester, '16-income-automation');
+
+    // Scrolled past the approval card, the same screen shows the active
+    // automations and their account split — the listing frame for
+    // "Income that splits itself".
+    await scrollBy(tester, 900);
+    await _capture(tester, '19-income-split');
   });
 
   testWidgets('arabic and dark home', (tester) async {
