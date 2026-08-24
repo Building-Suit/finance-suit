@@ -88,10 +88,19 @@ export async function auditMutation(
   if (error) throw error;
 }
 
-export function adminError(error: unknown): Response {
+export function adminError(
+  error: unknown,
+  metadata: { action?: string; correlationId?: string | null } = {},
+): Response {
+  const record = error && typeof error === "object"
+    ? error as Record<string, unknown>
+    : {};
   const message = error instanceof Error
     ? error.message
+    : typeof record.message === "string"
+    ? record.message
     : String(error || "unknown_error");
+  const databaseCode = typeof record.code === "string" ? record.code : null;
   const known = [
     "reason_required",
     "invalid_",
@@ -113,6 +122,15 @@ export function adminError(error: unknown): Response {
       { code },
     );
   }
-  console.error(`admin operation failed: ${message}`);
-  return json(500, { code: "admin_operation_failed" });
+  console.error(JSON.stringify({
+    event: "admin_operation_failed",
+    action: metadata.action ?? "unknown",
+    correlationId: metadata.correlationId ?? null,
+    databaseCode,
+    message,
+  }));
+  return json(500, {
+    code: "admin_operation_failed",
+    requestId: metadata.correlationId ?? null,
+  });
 }

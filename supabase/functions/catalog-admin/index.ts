@@ -14,6 +14,7 @@ import {
   requireReason,
   uuid,
 } from "../_shared/adminValidation.ts";
+import { normalizeCatalogSummary } from "../_shared/adminPresentation.ts";
 
 type Body = Record<string, unknown>;
 function result<T>(value: { data: T; error: unknown }): T {
@@ -41,19 +42,20 @@ async function handle(
       const raw = result(summaryResult) as Record<string, unknown>;
       const runs = result(runsResult) as Record<string, unknown>;
       return {
-        summary: {
-          ...raw,
-          active_products: raw.activeProducts,
-          due_or_stale: raw.staleProducts,
-          queued: raw.queued,
-          leased: raw.leased,
-          failed: raw.failed,
-        },
+        summary: normalizeCatalogSummary(raw),
         contract: result(contractResult),
         configuration: result(configResult),
         latestRun: (runs.runs as unknown[])?.[0] ?? null,
       };
     }
+    case "configuration":
+      return {
+        configuration: result(
+          await admin.schema("app_finance").rpc(
+            "admin_catalog_configuration",
+          ),
+        ),
+      };
     case "products": {
       const { page, pageSize } = pageOf(body);
       const status = body.status
@@ -211,6 +213,9 @@ Deno.serve(async (request) => {
   try {
     return json(200, await handle(context, body));
   } catch (error) {
-    return adminError(error);
+    return adminError(error, {
+      action: String(body.action ?? "unknown"),
+      correlationId: context.correlationId,
+    });
   }
 });
