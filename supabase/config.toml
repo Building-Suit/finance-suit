@@ -238,6 +238,12 @@ verify_jwt = false
 [functions.commercial-admin]
 verify_jwt = false
 
+[functions.catalog-admin]
+verify_jwt = false
+
+[functions.operations-admin]
+verify_jwt = false
+
 [functions.google-play-billing]
 verify_jwt = false
 
