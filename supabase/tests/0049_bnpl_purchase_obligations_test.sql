@@ -45,8 +45,8 @@ select ok((select relrowsecurity from pg_class
 
 select results_eq(
   $$select app_finance.bnpl_purchase_due_on(5::smallint, date '2026-08-02')$$,
-  $$values (date '2026-08-05')$$,
-  'a purchase before the due day is billed this month'
+  $$values (date '2026-09-05')$$,
+  'a purchase is always billed with the following month'
 );
 select results_eq(
   $$select app_finance.bnpl_purchase_due_on(5::smallint, date '2026-08-05')$$,
@@ -70,8 +70,8 @@ select results_eq(
 );
 select results_eq(
   $$select app_finance.bnpl_purchase_due_on(30::smallint, date '2026-02-27')$$,
-  $$values (date '2026-02-28')$$,
-  'day 30 clamps inside a short month'
+  $$values (date '2026-03-30')$$,
+  'a short-month purchase is billed on the configured day next month'
 );
 select results_eq(
   $$select app_finance.bnpl_purchase_due_on(5::smallint, date '2026-12-20')$$,
@@ -114,7 +114,7 @@ select app_finance.save_credit_facility(
   'Card', 'credit_card', 'EGP', 2000000, 25::smallint,
   p_statement_day => 10::smallint);
 
--- An ordinary purchase on the 2nd is due on the 5th of the same month.
+-- An ordinary purchase on the 2nd is billed on the 5th of next month.
 select app_finance.charge_liability_account(
   (select id from app_finance.accounts where name = 'ValU'),
   'Amazon', '00000000-0000-0000-0000-000000051c01',
@@ -132,7 +132,7 @@ select results_eq(
   $$select count(*)::integer, min(due_on)
     from app_finance.bnpl_purchase_obligations
     where transaction_id = '00000000-0000-0000-0000-000000051f01'$$,
-  $$values (1, (date_trunc('month', current_date) + interval '4 days')::date)$$,
+  $$values (1, (date_trunc('month', current_date) + interval '1 month 4 days')::date)$$,
   'it creates exactly one obligation on the configured due day'
 );
 select results_eq(
@@ -179,7 +179,7 @@ select app_finance.create_installment_plan(
   (select id from app_finance.accounts where name = 'ValU'),
   'Phone', '00000000-0000-0000-0000-000000051c01',
   date_trunc('month', current_date)::date, 300000, 3,
-  (date_trunc('month', current_date) + interval '4 days')::date,
+  (date_trunc('month', current_date) + interval '1 month 4 days')::date,
   0, null, null, null, null,
   '00000000-0000-0000-0000-000000051e01'
 );
@@ -198,7 +198,7 @@ select results_eq(
 select results_eq(
   $$select next_due_on, next_due_amount_minor
     from app_finance.credit_facility_summaries where name = 'ValU'$$,
-  $$values ((date_trunc('month', current_date) + interval '4 days')::date,
+  $$values ((date_trunc('month', current_date) + interval '1 month 4 days')::date,
     200000::bigint)$$,
   'next due sums the purchase and the installment sharing that date'
 );
@@ -220,12 +220,12 @@ select results_eq(
 select app_finance.charge_liability_account(
   (select id from app_finance.accounts where name = 'ValU'),
   'Later', '00000000-0000-0000-0000-000000051c01',
-  (date_trunc('month', current_date) + interval '10 days')::date, 70000, null,
-  '00000000-0000-0000-0000-000000051f04');
+  (date_trunc('month', current_date) + interval '1 month 10 days')::date,
+  70000, null, '00000000-0000-0000-0000-000000051f04');
 select results_eq(
   $$select next_due_on, next_due_amount_minor
     from app_finance.credit_facility_summaries where name = 'ValU'$$,
-  $$values ((date_trunc('month', current_date) + interval '4 days')::date,
+  $$values ((date_trunc('month', current_date) + interval '1 month 4 days')::date,
     250000::bigint)$$,
   'the earliest date wins and later months are not summed into it'
 );
@@ -238,7 +238,7 @@ select results_eq(
   $$select count(*)::integer
     from app_finance.facility_due_breakdown(
       (select id from app_finance.accounts where name = 'ValU'),
-      (date_trunc('month', current_date) + interval '4 days')::date) b,
+      (date_trunc('month', current_date) + interval '1 month 4 days')::date) b,
     jsonb_array_elements(b -> 'components') c
     where c ->> 'component_type' = 'bnpl_purchase'$$,
   $$values (2)$$,
@@ -248,11 +248,11 @@ select results_eq(
   $$select count(*)::integer
     from app_finance.facility_due_breakdown(
       (select id from app_finance.accounts where name = 'ValU'),
-      (date_trunc('month', current_date) + interval '4 days')::date) b,
+      (date_trunc('month', current_date) + interval '1 month 4 days')::date) b,
     jsonb_array_elements(b -> 'components') c
     where c ->> 'component_type' = 'bnpl_purchase'
       and (c ->> 'due_on')::date
-        = (date_trunc('month', current_date) + interval '4 days')::date
+        = (date_trunc('month', current_date) + interval '1 month 4 days')::date
       and (c ->> 'occurred_on')::date
         = (date_trunc('month', current_date) + interval '1 day')::date$$,
   $$values (2)$$,
@@ -261,9 +261,9 @@ select results_eq(
 select results_eq(
   $$select count(*)::integer
     from app_finance.home_current_month_obligations(
-      date_trunc('month', current_date)::date + 1) o
+      (date_trunc('month', current_date) + interval '1 month 1 day')::date) o
     where o.obligation_kind = 'bnpl_purchase'
-      and o.due_on = (date_trunc('month', current_date) + interval '4 days')::date
+      and o.due_on = (date_trunc('month', current_date) + interval '1 month 4 days')::date
       and o.remaining_minor = 150000$$,
   $$values (1)$$,
   'Home groups the two purchases due that day into one real obligation'
@@ -271,16 +271,17 @@ select results_eq(
 select results_eq(
   $$select count(*)::integer
     from app_finance.home_current_month_obligations(
-      date_trunc('month', current_date)::date + 1) o
+      (date_trunc('month', current_date) + interval '1 month 1 day')::date) o
     where o.obligation_kind = 'bnpl_purchase'
-      and o.due_on = date_trunc('month', current_date)::date + 1$$,
+      and o.due_on
+        = (date_trunc('month', current_date) + interval '1 month 1 day')::date$$,
   $$values (0)$$,
   'Home no longer invents a due-today obligation for BNPL purchases'
 );
 select results_eq(
   $$select o.remaining_minor
     from app_finance.home_current_month_obligations(
-      date_trunc('month', current_date)::date + 1) o
+      (date_trunc('month', current_date) + interval '1 month 1 day')::date) o
     where o.obligation_kind = 'installment_due'
       and o.source_name = 'ValU'
     order by o.due_on limit 1$$,
@@ -306,7 +307,7 @@ select lives_ok(
   $$select app_finance.pay_credit_facility_v2(
       (select id from app_finance.accounts where name = 'ValU'),
       '00000000-0000-0000-0000-000000051a01',
-      40000, (date_trunc('month', current_date) + interval '4 days')::date,
+      40000, (date_trunc('month', current_date) + interval '1 month 4 days')::date,
       jsonb_build_array(jsonb_build_object('type', 'bnpl_purchase',
         'id', (select obligation_id
           from app_finance.bnpl_purchase_obligation_statuses
@@ -353,7 +354,7 @@ select lives_ok(
   $$select app_finance.pay_credit_facility_v2(
       (select id from app_finance.accounts where name = 'ValU'),
       '00000000-0000-0000-0000-000000051a01',
-      110000, (date_trunc('month', current_date) + interval '4 days')::date,
+      110000, (date_trunc('month', current_date) + interval '1 month 4 days')::date,
       jsonb_build_array(
         jsonb_build_object('type', 'bnpl_purchase',
           'id', (select obligation_id
@@ -384,7 +385,7 @@ select results_eq(
 select results_eq(
   $$select count(*)::integer
     from app_finance.home_current_month_obligations(
-      date_trunc('month', current_date)::date + 1) o,
+      (date_trunc('month', current_date) + interval '1 month 1 day')::date) o,
     jsonb_array_elements(o.details -> 'items') i
     where o.obligation_kind = 'bnpl_purchase'
       and i ->> 'title' = 'Carrefour'$$,
@@ -397,7 +398,7 @@ select throws_ok(
   $$select app_finance.pay_credit_facility_v2(
       (select id from app_finance.accounts where name = 'ValU'),
       '00000000-0000-0000-0000-000000051a01',
-      999999, (date_trunc('month', current_date) + interval '4 days')::date,
+      999999, (date_trunc('month', current_date) + interval '1 month 4 days')::date,
       jsonb_build_array(jsonb_build_object('type', 'bnpl_purchase',
         'id', (select obligation_id
           from app_finance.bnpl_purchase_obligation_statuses
@@ -410,7 +411,7 @@ select throws_ok(
   $$select app_finance.pay_credit_facility_v2(
       (select id from app_finance.accounts where name = 'ValU'),
       '00000000-0000-0000-0000-000000051a01',
-      10000, (date_trunc('month', current_date) + interval '4 days')::date,
+      10000, (date_trunc('month', current_date) + interval '1 month 4 days')::date,
       jsonb_build_array(jsonb_build_object('type', 'bnpl_purchase',
         'id', (select obligation_id
           from app_finance.bnpl_purchase_obligation_statuses
@@ -423,7 +424,7 @@ select throws_ok(
   $$select app_finance.pay_credit_facility_v2(
       (select id from app_finance.accounts where name = 'Aman'),
       '00000000-0000-0000-0000-000000051a01',
-      10000, (date_trunc('month', current_date) + interval '4 days')::date,
+      10000, (date_trunc('month', current_date) + interval '1 month 4 days')::date,
       jsonb_build_array(jsonb_build_object('type', 'bnpl_purchase',
         'id', (select obligation_id
           from app_finance.bnpl_purchase_obligation_statuses
@@ -436,7 +437,7 @@ select throws_ok(
   $$select app_finance.pay_credit_facility_v2(
       (select id from app_finance.accounts where name = 'ValU'),
       '00000000-0000-0000-0000-000000051a01',
-      20000, (date_trunc('month', current_date) + interval '4 days')::date,
+      20000, (date_trunc('month', current_date) + interval '1 month 4 days')::date,
       jsonb_build_array(
         jsonb_build_object('type', 'bnpl_purchase',
           'id', (select obligation_id
@@ -455,7 +456,7 @@ select results_eq(
   $$select app_finance.pay_credit_facility_v2(
       (select id from app_finance.accounts where name = 'ValU'),
       '00000000-0000-0000-0000-000000051a01',
-      40000, (date_trunc('month', current_date) + interval '4 days')::date,
+      40000, (date_trunc('month', current_date) + interval '1 month 4 days')::date,
       jsonb_build_array(jsonb_build_object('type', 'bnpl_purchase',
         'id', (select obligation_id
           from app_finance.bnpl_purchase_obligation_statuses
@@ -505,7 +506,7 @@ select lives_ok(
 select results_eq(
   $$select due_on from app_finance.bnpl_purchase_obligations
     where transaction_id = '00000000-0000-0000-0000-000000051f04'$$,
-  $$values ((date_trunc('month', current_date) + interval '4 days')::date)$$,
+  $$values ((date_trunc('month', current_date) + interval '1 month 4 days')::date)$$,
   'the obligation due date follows the new purchase date'
 );
 -- Moving it to an asset account drops the obligation.
