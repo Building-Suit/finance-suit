@@ -17,6 +17,7 @@ import {
   uuid,
   validateAnnouncement,
 } from "../_shared/adminValidation.ts";
+import { normalizeCatalogSummary } from "../_shared/adminPresentation.ts";
 
 type Body = Record<string, unknown>;
 function value<T>(result: { data: T; error: unknown }): T {
@@ -158,7 +159,9 @@ async function overview(context: AdminContext) {
     config: config.data ?? [],
     monetization: monetization.data,
     recentAudit: (audit.data ?? []).map((item) => redact(item)),
-    catalog: catalog.data ?? {},
+    catalog: normalizeCatalogSummary(
+      (catalog.data ?? {}) as Record<string, unknown>,
+    ),
     notifications: {
       pending: pending.count ?? 0,
       sending: sending.count ?? 0,
@@ -504,8 +507,10 @@ async function handle(
         if (before.status !== "draft") throw new Error("price_not_draft");
         result = await admin.schema("app_commercial").from("plan_prices")
           .update(patch).eq("id", priceId).select().single();
-      } else {result = await admin.schema("app_commercial").from("plan_prices")
-          .insert(patch).select().single();}
+      } else {
+        result = await admin.schema("app_commercial").from("plan_prices")
+          .insert(patch).select().single();
+      }
       const after = value(result);
       await auditMutation(
         context,
@@ -740,9 +745,11 @@ async function handle(
         );
         result = await admin.schema("app_commercial").from("announcements")
           .update(patch).eq("id", announcementId).select().single();
-      } else {result = await admin.schema("app_commercial").from(
+      } else {
+        result = await admin.schema("app_commercial").from(
           "announcements",
-        ).insert({ ...patch, created_by: actorUserId }).select().single();}
+        ).insert({ ...patch, created_by: actorUserId }).select().single();
+      }
       const after = value(result);
       await auditMutation(
         context,
@@ -859,6 +866,9 @@ Deno.serve(async (request) => {
   try {
     return json(200, await handle(context, body));
   } catch (error) {
-    return adminError(error);
+    return adminError(error, {
+      action: String(body.action ?? "unknown"),
+      correlationId: context.correlationId,
+    });
   }
 });
