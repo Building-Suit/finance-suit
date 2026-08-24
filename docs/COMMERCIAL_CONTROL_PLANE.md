@@ -129,6 +129,30 @@ Secrets must never be committed or exposed to Flutter/admin browser bundles.
 | `google-play-billing` | Verifies/restores a purchase token with Android Publisher API, stores normalized subscription state, and returns effective entitlement. |
 | `google-play-rtdn` | Stores append-only RTDN events idempotently and updates matched subscription lifecycle status. |
 | `commercial-admin` | Super Admin overview, user/grant lifecycle, campaign changes, protected monetization start, audit log, and app configuration actions. |
+| `catalog-admin` | Super Admin-only sanitized catalog reads plus guarded queue and configuration operations. |
+| `operations-admin` | Super Admin-only notification health aggregates and self-only developer test notification. |
+
+### Super Admin control plane v2
+
+The v2 dashboard extends `commercial-admin` with plans/features/entitlements,
+price draft/publish/archive, announcement management, platform-admin management,
+filtered billing diagnostics, filtered audit history, and the complete
+monetization lifecycle. High-impact state changes use service-role-only
+transactional RPCs:
+
+- `update_monetization_duration()` is permitted only before the cycle starts.
+- `transition_paid_live()` is idempotent and uses server time; it rejects an
+  early transition while Timed Early Access is still active.
+- `publish_plan_price()` locks the target, requires provider readiness, archives
+  the prior current price, publishes one replacement, and writes the audit row
+  in the same transaction.
+- `upsert_platform_admin()` prevents self-revocation and loss of the last active
+  Super Admin.
+
+Catalog admin read RPCs return public catalog facts and omit immutable research
+payloads. Catalog requeue/config changes preserve attempt and database bounds.
+Notification health is aggregated in the database and never returns FCM tokens,
+logical notification payloads, or financial message content.
 
 ## Google Play RTDN — Authenticated Pub/Sub Push
 
