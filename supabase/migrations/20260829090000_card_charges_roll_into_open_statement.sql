@@ -103,15 +103,16 @@ declare
   v_settings record;
   v_account record;
   v_bounds record;
+  v_base record;
+  v_existing_close date;
   v_cycle_id uuid;
 begin
-  delete from app_finance.credit_card_statement_items
-    where transaction_id = p_transaction_id and user_id = p_user_id;
-
   select account_type into v_account
     from app_finance.accounts
     where id = p_account_id and user_id = p_user_id;
   if v_account is null or v_account.account_type <> 'credit_card' then
+    delete from app_finance.credit_card_statement_items
+      where transaction_id = p_transaction_id and user_id = p_user_id;
     return;
   end if;
 
@@ -119,8 +120,33 @@ begin
     from app_finance.credit_facility_settings
     where account_id = p_account_id and user_id = p_user_id;
   if v_settings is null or v_settings.statement_day is null then
+    delete from app_finance.credit_card_statement_items
+      where transaction_id = p_transaction_id and user_id = p_user_id;
     return;
   end if;
+
+  -- A charge that already sits on the statement its date bills to keeps that
+  -- membership even if the statement was paid meanwhile: it was legitimately
+  -- billed there, and a non-monetary edit (rename, recategorize) must never
+  -- silently move history. Only a charge newly landing on a cycle skips
+  -- settled ones.
+  select * into v_base from app_finance.statement_bounds_for(
+    v_settings.statement_day, v_settings.default_due_day, p_occurred_on
+  );
+  select c.cycle_close into v_existing_close
+    from app_finance.credit_card_statement_items i
+    join app_finance.credit_card_statement_cycles c on c.id = i.cycle_id
+    where i.transaction_id = p_transaction_id and i.user_id = p_user_id
+      and c.account_id = p_account_id;
+  if v_existing_close = v_base.cycle_close then
+    update app_finance.credit_card_statement_items
+      set amount_minor = p_amount_minor
+      where transaction_id = p_transaction_id and user_id = p_user_id;
+    return;
+  end if;
+
+  delete from app_finance.credit_card_statement_items
+    where transaction_id = p_transaction_id and user_id = p_user_id;
 
   select * into v_bounds from app_finance.open_statement_bounds_for(
     p_user_id, p_account_id, v_settings.statement_day,

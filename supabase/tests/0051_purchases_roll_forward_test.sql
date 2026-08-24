@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(18);
+select plan(20);
 
 insert into auth.users (
   id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -151,6 +151,25 @@ select throws_ok(
       (select id from app_finance.accounts where name = 'Roll Card'),
       date '2026-03-05', 99000, '00000000-0000-0000-0000-000000055c01')$$,
   'P0001', null, 'a charge inside a paid statement still cannot be re-priced'
+);
+
+-- A non-monetary edit never moves settled history: the renamed charge keeps
+-- its membership on the paid March statement instead of rolling forward.
+select lives_ok(
+  $$select app_finance.update_expense_transaction(
+      '00000000-0000-0000-0000-000000055f01',
+      (select id from app_finance.accounts where name = 'Roll Card'),
+      date '2026-03-05', 70000, '00000000-0000-0000-0000-000000055c01',
+      null, 'March Groceries renamed')$$,
+  'renaming a charge on a paid statement stays allowed'
+);
+select results_eq(
+  $$select c.cycle_close
+    from app_finance.credit_card_statement_items si
+    join app_finance.credit_card_statement_cycles c on c.id = si.cycle_id
+    where si.transaction_id = '00000000-0000-0000-0000-000000055f01'$$,
+  $$values (date '2026-03-10')$$,
+  'the renamed charge stays on its paid statement'
 );
 
 -- With April paid too, a new backdated charge rolls past both cycles.
