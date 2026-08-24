@@ -65,6 +65,9 @@ Deno.serve(async (request) => {
   try {
     return json(200, await handle(context, body));
   } catch (error) {
-    return adminError(error);
+    return adminError(error, {
+      action: String(body.action ?? "unknown"),
+      correlationId: context.correlationId,
+    });
   }
 });
