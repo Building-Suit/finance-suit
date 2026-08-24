@@ -204,21 +204,15 @@ class _InstallmentPurchaseScreenState
     super.dispose();
   }
 
+  /// Monthly BNPL billing collects a purchase made in month M with month
+  /// M+1, so the first installment defaults to the due day of the month
+  /// after the purchase. The user can still pick another date.
   PlainDate _defaultFirstDue(CreditFacilitySummary facility) {
     final day = facility.installmentDueDay ?? facility.defaultDueDay;
-    var candidate = _purchasedOn.withDay(
-      math.min(
-        day,
-        PlainDate.daysInMonth(_purchasedOn.year, _purchasedOn.month),
-      ),
+    final nextMonth = _purchasedOn.withDay(1).addMonths(1);
+    return nextMonth.withDay(
+      math.min(day, PlainDate.daysInMonth(nextMonth.year, nextMonth.month)),
     );
-    if (candidate.isBefore(_purchasedOn)) {
-      candidate = _purchasedOn.withDay(1).addMonths(1);
-      candidate = candidate.withDay(
-        math.min(day, PlainDate.daysInMonth(candidate.year, candidate.month)),
-      );
-    }
-    return candidate;
   }
 
   int? _minor(TextEditingController controller, String currency) =>
