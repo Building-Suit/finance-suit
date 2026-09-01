@@ -6,6 +6,7 @@ import 'package:work_tracker/app/routing/app_router.dart';
 import 'package:work_tracker/app/routing/finance_suit_app_bar.dart';
 import 'package:work_tracker/app/routing/finance_suit_navigation_bar.dart';
 import 'package:work_tracker/app/theme/app_theme.dart';
+import 'package:work_tracker/app/theme/finance_suit_semantic_colors.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/domain/db_enums.dart';
 import 'package:work_tracker/core/money/money.dart';
@@ -516,6 +517,9 @@ class _HeldTile extends StatelessWidget {
         children: [
           Text('$directionLabel · ${held.heldOn.toIso()}'),
           if (held.title?.isNotEmpty == true) Text(held.counterparty),
+          // The owner has to be able to tell at a glance which of their holds
+          // the other person can see.
+          if (held.isNetworkLinked) Text(l10n.heldNetworkChip),
           if (held.isLinked) Text(l10n.heldLinkedTransactionReference),
           if (held.isSettled)
             Text('${l10n.heldSettledLabel} · ${held.settledOn!.toIso()}'),
@@ -600,20 +604,70 @@ class _AccountTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = context.suitColors;
     final badges = <String>[
       accountTypeLabel(l10n, account.accountType),
       if (account.isDefault) l10n.moneyDefaultLabel,
       if (account.isArchived) l10n.moneyArchivedLabel,
     ];
+    // Liability accounts owe money rather than holding it, so a "what is left
+    // to spend" line would be meaningless on them.
+    final showHolds =
+        !account.isLiability &&
+        (account.hasReservedFunds || account.hasIncomingHolds);
     return ListTile(
+      isThreeLine: showHolds,
       leading: FinanceSuitIcon(accountTypeIcon(account.accountType)),
       title: Text(account.name),
-      subtitle: Text(badges.join(' · ')),
+      subtitle: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(badges.join(' · ')),
+          if (showHolds)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 2,
+                children: [
+                  if (account.hasReservedFunds)
+                    _HoldChip(
+                      label: l10n.moneyAccountHeld,
+                      money: account.reserved,
+                      color: colors.warning.icon,
+                    ),
+                  if (account.hasIncomingHolds)
+                    _HoldChip(
+                      label: l10n.moneyAccountHeldIncoming,
+                      money: account.heldIncoming,
+                      color: colors.success.icon,
+                    ),
+                ],
+              ),
+            ),
+        ],
+      ),
       onTap: () => onAction('edit'),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          BalanceText(money: account.balance),
+          if (account.hasReservedFunds && !account.isLiability)
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                BalanceText(money: account.balance),
+                _HoldChip(
+                  label: l10n.moneyAccountAvailable,
+                  money: account.availableBalance,
+                  color: theme.textTheme.bodySmall?.color,
+                ),
+              ],
+            )
+          else
+            BalanceText(money: account.balance),
           PopupMenuButton<String>(
             onSelected: onAction,
             itemBuilder: (context) => [
@@ -634,6 +688,29 @@ class _AccountTile extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// A label paired with an amount, for the small reservation lines under an
+/// account. The amount goes through [AppMoneyText] rather than string
+/// interpolation so it stays covered by the app-wide amount privacy setting.
+class _HoldChip extends StatelessWidget {
+  const _HoldChip({required this.label, required this.money, this.color});
+
+  final String label;
+  final Money money;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme.bodySmall?.copyWith(color: color);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('$label ', style: style),
+        AppMoneyText(money: money, style: style, color: color),
+      ],
     );
   }
 }

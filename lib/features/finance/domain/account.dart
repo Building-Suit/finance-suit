@@ -63,6 +63,9 @@ class AccountBalance {
     required this.totalIncomingMinor,
     required this.totalOutgoingMinor,
     this.hideFromHome = false,
+    this.pendingTransferHoldMinor = 0,
+    this.heldOutgoingMinor = 0,
+    this.heldIncomingMinor = 0,
   });
 
   factory AccountBalance.fromJson(Map<String, dynamic> json) => AccountBalance(
@@ -78,6 +81,13 @@ class AccountBalance {
     totalIncomingMinor: (json['total_incoming_minor'] as num).toInt(),
     totalOutgoingMinor: (json['total_outgoing_minor'] as num).toInt(),
     hideFromHome: json['hide_from_home'] as bool? ?? false,
+    // Default to zero rather than requiring the keys: a client can outrun the
+    // migration that adds these columns, and an account with no reservations
+    // is the correct reading of their absence.
+    pendingTransferHoldMinor:
+        (json['pending_transfer_hold_minor'] as num?)?.toInt() ?? 0,
+    heldOutgoingMinor: (json['held_outgoing_minor'] as num?)?.toInt() ?? 0,
+    heldIncomingMinor: (json['held_incoming_minor'] as num?)?.toInt() ?? 0,
   );
 
   final String accountId;
@@ -93,11 +103,42 @@ class AccountBalance {
   final int totalOutgoingMinor;
   final bool hideFromHome;
 
+  /// Pending outgoing network transfers sourced from this account. Promised,
+  /// not yet booked: acceptance by the other side is what moves the money.
+  final int pendingTransferHoldMinor;
+
+  /// Unsettled `i_owe` held amounts recorded against this account.
+  final int heldOutgoingMinor;
+
+  /// Unsettled `owed_to_me` held amounts recorded against this account. Money
+  /// expected in, so it never raises what is available to spend.
+  final int heldIncomingMinor;
+
   Money get balance => Money(minor: balanceMinor, currencyCode: currencyCode);
   Money get totalIncoming =>
       Money(minor: totalIncomingMinor, currencyCode: currencyCode);
   Money get totalOutgoing =>
       Money(minor: totalOutgoingMinor, currencyCode: currencyCode);
+
+  /// Everything committed out of this account but not yet booked.
+  int get reservedMinor => pendingTransferHoldMinor + heldOutgoingMinor;
+
+  /// What is left to spend. Deliberately allowed to go negative: reserving is
+  /// not spending, and the app never blocks a transfer request on it.
+  int get availableBalanceMinor => balanceMinor - reservedMinor;
+
+  Money get pendingTransferHold =>
+      Money(minor: pendingTransferHoldMinor, currencyCode: currencyCode);
+  Money get heldOutgoing =>
+      Money(minor: heldOutgoingMinor, currencyCode: currencyCode);
+  Money get heldIncoming =>
+      Money(minor: heldIncomingMinor, currencyCode: currencyCode);
+  Money get reserved => Money(minor: reservedMinor, currencyCode: currencyCode);
+  Money get availableBalance =>
+      Money(minor: availableBalanceMinor, currencyCode: currencyCode);
+
+  bool get hasReservedFunds => reservedMinor > 0;
+  bool get hasIncomingHolds => heldIncomingMinor > 0;
 
   /// Credit cards and BNPL facilities owe money instead of holding it.
   bool get isLiability => accountType.isLiability;

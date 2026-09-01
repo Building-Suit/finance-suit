@@ -30,9 +30,9 @@ class NetworkScreen extends ConsumerStatefulWidget {
 class _NetworkScreenState extends ConsumerState<NetworkScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController = TabController(
-    length: 4,
+    length: 5,
     vsync: this,
-    initialIndex: widget.initialTab.clamp(0, 3),
+    initialIndex: widget.initialTab.clamp(0, 4),
   );
 
   @override
@@ -68,6 +68,7 @@ class _NetworkScreenState extends ConsumerState<NetworkScreen>
                 Tab(text: l10n.networkTabRequests),
                 Tab(text: l10n.networkTabTransfers),
                 Tab(text: l10n.respLinkedInstallmentsTab),
+                Tab(text: l10n.networkTabHeldAgainstMe),
               ],
             ),
             Expanded(
@@ -80,6 +81,7 @@ class _NetworkScreenState extends ConsumerState<NetworkScreen>
                   const _RequestsTab(),
                   const _TransfersTab(),
                   const _LinkedInstallmentsTab(),
+                  const _HeldAgainstMeTab(),
                 ],
               ),
             ),
@@ -485,6 +487,17 @@ class _NetworkTransferCard extends ConsumerWidget {
                 Expanded(
                   child: Text(title, style: theme.textTheme.titleMedium),
                 ),
+                // The receiver must be able to see that the amount is not the
+                // one they were first told about, or the server's consent
+                // guard just reads as a bug when they tap accept.
+                if (transfer.isAmended && transfer.isPending)
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 6),
+                    child: Text(
+                      l10n.networkAmendedBadge,
+                      style: theme.textTheme.labelSmall,
+                    ),
+                  ),
                 NetworkStatusChip(status: transfer.status),
               ],
             ),
@@ -529,6 +542,29 @@ class _NetworkTransferCard extends ConsumerWidget {
                 ],
               ),
             ],
+            // Sender-side control, resolved server-side: their own request,
+            // still pending, connection still live.
+            if (transfer.canAmend) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 8,
+                children: [
+                  TextButton(
+                    key: Key('network-transfer-cancel-${transfer.id}'),
+                    onPressed: () =>
+                        cancelNetworkTransfer(context, ref, transfer),
+                    child: Text(l10n.networkCancelTransfer),
+                  ),
+                  FilledButton.tonal(
+                    key: Key('network-transfer-amend-${transfer.id}'),
+                    onPressed: () =>
+                        amendNetworkTransfer(context, ref, transfer),
+                    child: Text(l10n.networkAmendTransfer),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
@@ -542,6 +578,84 @@ class _NetworkTransferCard extends ConsumerWidget {
 
 /// Installments other people linked to this user: pending requests to
 /// review first, then accepted responsibilities with their remaining state.
+/// The counterparty's read-only view of held amounts other people recorded
+/// against them. Deliberately has no actions: this is the other person's
+/// record of what is owed between you, and it does not touch your balances.
+class _HeldAgainstMeTab extends ConsumerWidget {
+  const _HeldAgainstMeTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final holds = ref.watch(holdsAgainstMeProvider);
+    return AsyncView(
+      value: holds,
+      onRetry: () => ref.invalidate(holdsAgainstMeProvider),
+      data: (items) {
+        if (items.isEmpty) {
+          return EmptyStateView(
+            icon: FinanceSuitIcons.savings,
+            message: l10n.heldAgainstMeEmpty,
+          );
+        }
+        return RefreshIndicator(
+          onRefresh: () async => invalidateNetworkData(ref),
+          child: ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+            itemCount: items.length + 1,
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    l10n.heldNetworkReadOnlyHelp,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                );
+              }
+              final hold = items[index - 1];
+              // The owner stored the direction from their side, so it flips
+              // here: their "I owe" is money being held for the viewer.
+              final line = hold.theyOweMe
+                  ? l10n.heldNetworkHoldingForYou(
+                      hold.counterpartyAlias,
+                      hold.amount.format(),
+                    )
+                  : l10n.heldNetworkHoldingAgainstYou(
+                      hold.counterpartyAlias,
+                      hold.amount.format(),
+                    );
+              return Card(
+                key: Key('held-against-me-${hold.id}'),
+                child: ListTile(
+                  leading: const FinanceSuitIcon(FinanceSuitIcons.savings),
+                  title: ProtectedMoneyText(line, interactive: false),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(hold.heldOn.toIso()),
+                      if (hold.isSettled)
+                        Text(
+                          l10n.heldNetworkSettledOn(hold.settledOn!.toIso()),
+                        ),
+                      if (hold.sharedNote != null &&
+                          hold.sharedNote!.isNotEmpty)
+                        Text(
+                          '${l10n.heldNetworkSharedNote}: ${hold.sharedNote}',
+                        ),
+                    ],
+                  ),
+                  isThreeLine: hold.isSettled || hold.sharedNote != null,
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _LinkedInstallmentsTab extends ConsumerWidget {
   const _LinkedInstallmentsTab();
 

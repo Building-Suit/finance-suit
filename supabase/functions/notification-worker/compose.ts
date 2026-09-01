@@ -113,6 +113,10 @@ export function eventKeyFor(
       return "network.transfer_accepted";
     case "network_transfer_rejected":
       return "network.transfer_declined";
+    case "network_transfer_cancelled":
+      return "network.transfer_cancelled";
+    case "network_transfer_amended":
+      return "network.transfer_amended";
     case "installment_link_request":
       return "installment_link.request_received";
     case "installment_link_accepted":
@@ -209,6 +213,82 @@ export function compose(
         : {
           title: "Transfer declined",
           body: `${counterparty} declined your transfer.`,
+        };
+    case "network.transfer_cancelled":
+      return ar
+        ? {
+          title: "تم سحب التحويل",
+          body: `${counterparty} سحب طلب التحويل.`,
+        }
+        : {
+          title: "Transfer withdrawn",
+          body: `${counterparty} withdrew their transfer request.`,
+        };
+    case "network.transfer_amended":
+      return ar
+        ? {
+          title: "تم تعديل التحويل",
+          body: amount
+            ? `${counterparty} غيّر طلب التحويل إلى ${amount}.`
+            : `${counterparty} غيّر طلب التحويل.`,
+        }
+        : {
+          title: "Transfer changed",
+          body: amount
+            ? `${counterparty} changed their transfer request to ${amount}.`
+            : `${counterparty} changed their transfer request.`,
+        };
+    case "held_amount.recorded_against_you":
+      return ar
+        ? {
+          title: "مبلغ محجوز",
+          body: amount
+            ? `${counterparty} سجّل مبلغ ${amount} بينكما.`
+            : `${counterparty} سجّل مبلغًا بينكما.`,
+        }
+        : {
+          title: "Amount on hold",
+          body: amount
+            ? `${counterparty} recorded ${amount} held between you.`
+            : `${counterparty} recorded an amount held between you.`,
+        };
+    case "held_amount.updated":
+      return ar
+        ? {
+          title: "تم تعديل المبلغ المحجوز",
+          body: amount
+            ? `${counterparty} عدّل المبلغ المحجوز إلى ${amount}.`
+            : `${counterparty} عدّل المبلغ المحجوز بينكما.`,
+        }
+        : {
+          title: "Held amount changed",
+          body: amount
+            ? `${counterparty} changed the held amount to ${amount}.`
+            : `${counterparty} changed the amount held between you.`,
+        };
+    case "held_amount.settled":
+      return ar
+        ? {
+          title: "تمت تسوية المبلغ",
+          body: amount
+            ? `${counterparty} سوّى مبلغ ${amount}.`
+            : `${counterparty} سوّى المبلغ المحجوز بينكما.`,
+        }
+        : {
+          title: "Held amount settled",
+          body: amount
+            ? `${counterparty} settled ${amount}.`
+            : `${counterparty} settled the amount held between you.`,
+        };
+    case "held_amount.removed":
+      return ar
+        ? {
+          title: "تم حذف المبلغ المحجوز",
+          body: `${counterparty} حذف المبلغ المحجوز بينكما.`,
+        }
+        : {
+          title: "Held amount removed",
+          body: `${counterparty} removed the amount held between you.`,
         };
     case "installment_link.request_received":
       return ar

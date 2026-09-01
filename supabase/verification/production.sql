@@ -50,10 +50,18 @@ begin
     v_missing := array_append(v_missing, 'held_kind_matches_direction');
   end if;
 
+  -- 20260901090300_held_amounts_network_link.sql appended
+  -- p_network_connection_id and p_shared_note. Both default, so released
+  -- 11-argument callers still resolve against this single signature.
   if to_regprocedure(
-    'app_finance.save_held_amount(app_finance.transaction_kind,bigint,text,text,date,text,text,uuid,uuid,uuid,uuid)'
+    'app_finance.save_held_amount(app_finance.transaction_kind,bigint,text,text,date,text,text,uuid,uuid,uuid,uuid,uuid,text)'
   ) is null then
     v_missing := array_append(v_missing, 'typed save_held_amount');
+  end if;
+  if to_regprocedure(
+    'app_finance.list_holds_against_me()'
+  ) is null then
+    v_missing := array_append(v_missing, 'list_holds_against_me');
   end if;
   if to_regprocedure(
     'app_finance.save_held_amount(app_finance.held_amount_direction,bigint,text,text,date,text,text,uuid,uuid,uuid)'
@@ -443,6 +451,29 @@ begin
   ) then
     v_missing := array_append(v_missing, 'account_balances.hide_from_home');
   end if;
+  -- Reservation columns from 20260901090200_account_available_balance.sql.
+  -- The aggregate behind them lives in app_finance.account_hold_totals, which
+  -- deliberately runs in owner context: account_balances is security_invoker
+  -- and app_private.enforce_account_balance reads it as the caller on every
+  -- transaction insert, so an inline read of the client-invisible
+  -- network_transfers.sender_source_account_id would raise 42501 there.
+  if to_regclass('app_finance.account_hold_totals') is null then
+    v_missing := array_append(v_missing, 'app_finance.account_hold_totals');
+  end if;
+  if exists (
+    select 1 from unnest(array[
+      'pending_transfer_hold_minor', 'held_outgoing_minor',
+      'held_incoming_minor', 'reserved_minor', 'available_balance_minor'
+    ]) as required(column_name)
+    where not exists (
+      select 1 from information_schema.columns c
+      where c.table_schema = 'app_finance'
+        and c.table_name = 'account_balances'
+        and c.column_name = required.column_name
+    )
+  ) then
+    v_missing := array_append(v_missing, 'account_balances reservation columns');
+  end if;
   if to_regprocedure(
     'app_finance.reverse_facility_payment(uuid)'
   ) is null then
@@ -587,10 +618,23 @@ begin
   ) is null then
     v_missing := array_append(v_missing, 'create_network_transfer_request');
   end if;
+  -- 20260901090100_network_transfer_amendments.sql appended the receiver's
+  -- consent token, p_expected_amount_minor. It defaults, so released
+  -- two-argument callers still resolve.
   if to_regprocedure(
-    'app_finance.accept_network_transfer(uuid,uuid)'
+    'app_finance.accept_network_transfer(uuid,uuid,bigint)'
   ) is null then
     v_missing := array_append(v_missing, 'accept_network_transfer');
+  end if;
+  if to_regprocedure(
+    'app_finance.cancel_network_transfer(uuid)'
+  ) is null then
+    v_missing := array_append(v_missing, 'cancel_network_transfer');
+  end if;
+  if to_regprocedure(
+    'app_finance.amend_network_transfer(uuid,bigint,uuid,date,text,boolean)'
+  ) is null then
+    v_missing := array_append(v_missing, 'amend_network_transfer');
   end if;
   if to_regprocedure(
     'app_finance.reject_network_transfer(uuid)'

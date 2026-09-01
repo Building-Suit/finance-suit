@@ -661,6 +661,42 @@ NotificationPresentation notificationPresentation(
       glyph: FinanceSuitIcons.warning,
       accent: colors.error.icon,
     ),
+    NotificationEvent.networkTransferCancelled => NotificationPresentation(
+      title: l10n.notifEventTransferCancelled,
+      body: l10n.notifBodyPersonTransferCancelled(person),
+      glyph: FinanceSuitIcons.warning,
+      accent: colors.warning.icon,
+    ),
+    NotificationEvent.networkTransferAmended => NotificationPresentation(
+      title: l10n.notifEventTransferAmended,
+      body: l10n.notifBodyPersonTransferAmended(person),
+      glyph: FinanceSuitIcons.swapHoriz,
+      accent: colors.warning.icon,
+    ),
+    NotificationEvent.heldAmountRecordedAgainstYou => NotificationPresentation(
+      title: l10n.notifEventHeldRecorded,
+      body: l10n.notifBodyPersonHeldRecorded(person),
+      glyph: FinanceSuitIcons.savings,
+      accent: colors.info.icon,
+    ),
+    NotificationEvent.heldAmountUpdated => NotificationPresentation(
+      title: l10n.notifEventHeldUpdated,
+      body: l10n.notifBodyPersonHeldUpdated(person),
+      glyph: FinanceSuitIcons.savings,
+      accent: colors.warning.icon,
+    ),
+    NotificationEvent.heldAmountSettled => NotificationPresentation(
+      title: l10n.notifEventHeldSettled,
+      body: l10n.notifBodyPersonHeldSettled(person),
+      glyph: FinanceSuitIcons.checkCircle,
+      accent: colors.success.icon,
+    ),
+    NotificationEvent.heldAmountRemoved => NotificationPresentation(
+      title: l10n.notifEventHeldRemoved,
+      body: l10n.notifBodyPersonHeldRemoved(person),
+      glyph: FinanceSuitIcons.warning,
+      accent: colors.error.icon,
+    ),
     NotificationEvent.installmentLinkRequestReceived =>
       NotificationPresentation(
         title: l10n.notifEventLinkRequest,

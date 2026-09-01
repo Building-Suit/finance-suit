@@ -57,11 +57,14 @@ select ok(
   'held category ownership foreign key has a covering index'
 );
 
+-- 20260901090300_held_amounts_network_link.sql appended
+-- p_network_connection_id and p_shared_note as defaulted parameters, so the
+-- released 11-argument call still resolves against this one signature.
 select has_function(
   'app_finance', 'save_held_amount',
   array[
     'app_finance.transaction_kind', 'bigint', 'text', 'text', 'date',
-    'text', 'text', 'uuid', 'uuid', 'uuid', 'uuid'
+    'text', 'text', 'uuid', 'uuid', 'uuid', 'uuid', 'uuid', 'text'
   ],
   'typed save_held_amount overload exists'
 );

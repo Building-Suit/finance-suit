@@ -2121,5 +2121,119 @@
   "notifNetworkHelp": "Add requests, transfers and installment links from your contacts.",
   "notifNetworkPushTitle": "Network alerts on this phone",
   "notifSystemPushTitle": "Account and security alerts",
-  "notifSystemPushHelp": "Security notices always appear in the app; this only controls phone alerts."
+  "notifSystemPushHelp": "Security notices always appear in the app; this only controls phone alerts.",
+  "moneyAccountHeld": "Held",
+  "moneyAccountHeldIncoming": "Expected",
+  "moneyAccountAvailable": "Available",
+  "moneyAccountHeldHelp": "Pending network transfers and unsettled holds are not available to spend.",
+  "networkStatusCancelled": "Withdrawn",
+  "networkCancelTransfer": "Withdraw request",
+  "networkCancelConfirmTitle": "Withdraw this transfer?",
+  "networkCancelConfirmBody": "They will be told you withdrew it. Nothing has moved yet, so nothing is undone.",
+  "networkTransferCancelledToast": "Transfer withdrawn",
+  "networkAmendTransfer": "Change request",
+  "networkAmendTitle": "Change transfer",
+  "networkAmendAmount": "Amount",
+  "networkAmendSource": "Pay from",
+  "networkAmendDate": "Date",
+  "networkAmendNote": "Note for them",
+  "networkAmendSaved": "Transfer updated",
+  "networkAmendHelp": "The amount is held from your available balance until they accept. Your balance is not checked now.",
+  "networkAmendedBadge": "Changed",
+  "networkTransferChangedError": "The sender changed this request. Check the new amount and try again.",
+  "networkTransferCancelledError": "The sender withdrew this transfer.",
+  "networkTabHeldAgainstMe": "Held with you",
+  "heldAgainstMeEmpty": "No one in your network is holding an amount with you.",
+  "heldNetworkHoldingForYou": "{name} is holding {amount} for you",
+  "@heldNetworkHoldingForYou": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "heldNetworkHoldingAgainstYou": "{name} is holding {amount} against you",
+  "@heldNetworkHoldingAgainstYou": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "heldNetworkSettledOn": "Settled {date}",
+  "@heldNetworkSettledOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "heldNetworkSharedNote": "Their note",
+  "heldNetworkReadOnlyHelp": "This is their record. It does not change your balances.",
+  "heldCounterpartyModeText": "Someone",
+  "heldCounterpartyModeNetwork": "Network contact",
+  "heldPickNetworkContact": "Choose a contact",
+  "heldSharedNote": "Note they can see",
+  "heldSharedNoteHelper": "They will see the amount, the date and this note.",
+  "heldNetworkChip": "Shared",
+  "notifEventTransferCancelled": "Transfer withdrawn",
+  "notifEventTransferAmended": "Transfer changed",
+  "notifEventHeldRecorded": "Amount on hold",
+  "notifEventHeldUpdated": "Held amount changed",
+  "notifEventHeldSettled": "Held amount settled",
+  "notifEventHeldRemoved": "Held amount removed",
+  "notifBodyPersonTransferCancelled": "{name} withdrew their transfer request",
+  "@notifBodyPersonTransferCancelled": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifBodyPersonTransferAmended": "{name} changed their transfer request",
+  "@notifBodyPersonTransferAmended": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifBodyPersonHeldRecorded": "{name} recorded an amount held between you",
+  "@notifBodyPersonHeldRecorded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifBodyPersonHeldUpdated": "{name} changed the amount held between you",
+  "@notifBodyPersonHeldUpdated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifBodyPersonHeldSettled": "{name} settled the amount held between you",
+  "@notifBodyPersonHeldSettled": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifBodyPersonHeldRemoved": "{name} removed the amount held between you",
+  "@notifBodyPersonHeldRemoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

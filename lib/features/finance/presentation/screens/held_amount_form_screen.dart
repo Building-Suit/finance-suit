@@ -22,6 +22,8 @@ import 'package:work_tracker/features/finance/domain/held_amount.dart';
 import 'package:work_tracker/features/finance/domain/transaction_category.dart';
 import 'package:work_tracker/features/finance/presentation/providers/finance_providers.dart';
 import 'package:work_tracker/features/finance/presentation/widgets/category_selector.dart';
+import 'package:work_tracker/features/network/domain/network_models.dart';
+import 'package:work_tracker/features/network/presentation/providers/network_providers.dart';
 import 'package:work_tracker/features/settings/presentation/providers/settings_data_providers.dart';
 import 'package:work_tracker/l10n/generated/app_localizations.dart';
 
@@ -44,6 +46,7 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
   final _counterpartyController = TextEditingController();
   final _titleController = TextEditingController();
   final _notesController = TextEditingController();
+  final _sharedNoteController = TextEditingController();
 
   late PlainDate _date =
       widget.existing?.heldOn ?? widget.prefill?.heldOn ?? PlainDate.today();
@@ -55,6 +58,7 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
       widget.existing?.transactionId ?? widget.prefill?.transactionId;
   String? _accountId;
   String? _categoryId;
+  String? _networkConnectionId;
 
   AppFailure? _failure;
   bool _busy = false;
@@ -85,6 +89,10 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
     _notesController.text = existing?.notes ?? prefill?.notes ?? '';
     _accountId = existing?.accountId ?? prefill?.accountId;
     _categoryId = existing?.categoryId ?? prefill?.categoryId;
+    _networkConnectionId =
+        existing?.networkConnectionId ?? prefill?.networkConnectionId;
+    _sharedNoteController.text =
+        existing?.sharedNote ?? prefill?.sharedNote ?? '';
   }
 
   @override
@@ -93,6 +101,7 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
     _counterpartyController.dispose();
     _titleController.dispose();
     _notesController.dispose();
+    _sharedNoteController.dispose();
     super.dispose();
   }
 
@@ -123,6 +132,10 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
     )!;
     final title = _titleController.text.trim();
     final notes = _notesController.text.trim();
+    final sharedNote = _sharedNoteController.text.trim();
+    final connectionId = (_networkConnectionId?.isEmpty ?? true)
+        ? null
+        : _networkConnectionId;
     final draft = HeldAmountDraft(
       transactionKind: _kind,
       amountMinor: amount.minor,
@@ -134,6 +147,13 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
       accountId: _accountId,
       title: title.isEmpty ? null : title,
       notes: notes.isEmpty ? null : notes,
+      // '' is the "network mode, nothing picked" sentinel and must never
+      // reach the RPC as a connection id; the field validator blocks saving in
+      // that state, so this is belt and braces.
+      networkConnectionId: connectionId,
+      sharedNote: connectionId == null || sharedNote.isEmpty
+          ? null
+          : sharedNote,
     );
     setState(() => _busy = true);
     final repo = ref.read(financeRepositoryProvider);
@@ -311,17 +331,63 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                AppTextFormField(
-                  controller: _counterpartyController,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: InputDecoration(
-                    labelText: _isOutgoing ? l10n.heldOwedTo : l10n.heldOwedBy,
-                  ),
-                  validator: (v) {
-                    final e = Validators.requiredText(v, maxLength: 120);
-                    return e == null ? null : validationMessage(context, e);
-                  },
+                SegmentedButton<bool>(
+                  key: const Key('held-counterparty-mode'),
+                  segments: [
+                    ButtonSegment(
+                      value: false,
+                      label: Text(l10n.heldCounterpartyModeText),
+                    ),
+                    ButtonSegment(
+                      value: true,
+                      label: Text(l10n.heldCounterpartyModeNetwork),
+                    ),
+                  ],
+                  selected: {_networkConnectionId != null},
+                  onSelectionChanged: (selection) => setState(() {
+                    // Empty string means "network mode, no contact picked yet";
+                    // null means plain free text.
+                    _networkConnectionId = selection.first ? '' : null;
+                    _counterpartyController.clear();
+                  }),
                 ),
+                const SizedBox(height: 8),
+                if (_networkConnectionId == null)
+                  AppTextFormField(
+                    controller: _counterpartyController,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: InputDecoration(
+                      labelText: _isOutgoing
+                          ? l10n.heldOwedTo
+                          : l10n.heldOwedBy,
+                    ),
+                    validator: (v) {
+                      final e = Validators.requiredText(v, maxLength: 120);
+                      return e == null ? null : validationMessage(context, e);
+                    },
+                  )
+                else ...[
+                  // The server resolves the label from the connection itself,
+                  // so this stores an id and the free-text field goes unused.
+                  _NetworkContactField(
+                    connectionId: _networkConnectionId!.isEmpty
+                        ? null
+                        : _networkConnectionId,
+                    onChanged: (id) =>
+                        setState(() => _networkConnectionId = id ?? ''),
+                  ),
+                  const SizedBox(height: 8),
+                  AppTextFormField(
+                    key: const Key('held-shared-note'),
+                    controller: _sharedNoteController,
+                    maxLength: 500,
+                    decoration: InputDecoration(
+                      labelText: l10n.heldSharedNote,
+                      helperText: l10n.heldSharedNoteHelper,
+                      helperMaxLines: 2,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 8),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
@@ -369,6 +435,43 @@ class _HeldAmountFormScreenState extends ConsumerState<HeldAmountFormScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Picks one of the user's network contacts for a held amount. The label the
+/// hold ends up carrying is resolved server-side from the connection, so this
+/// only ever hands back a connection id.
+class _NetworkContactField extends ConsumerWidget {
+  const _NetworkContactField({
+    required this.connectionId,
+    required this.onChanged,
+  });
+
+  final String? connectionId;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final contacts = ref.watch(networkContactsProvider);
+    final items = contacts.value ?? const <NetworkContact>[];
+    return AppSelectionField<String>(
+      key: const Key('held-network-contact'),
+      initialValue: connectionId,
+      decoration: InputDecoration(labelText: l10n.heldPickNetworkContact),
+      sheetTitle: l10n.heldPickNetworkContact,
+      items: [
+        for (final contact in items)
+          DropdownMenuItem(
+            value: contact.connectionId,
+            child: Text(contact.localAlias),
+          ),
+      ],
+      onChanged: onChanged,
+      validator: (value) => value == null || value.isEmpty
+          ? validationMessage(context, ValidationError.required)
+          : null,
     );
   }
 }
