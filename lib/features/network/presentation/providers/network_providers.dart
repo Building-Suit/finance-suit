@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/network/data/network_repository.dart';
+import 'package:work_tracker/features/network/domain/held_against_me.dart';
 import 'package:work_tracker/features/network/domain/network_models.dart';
 
 final networkContactsProvider = FutureProvider<List<NetworkContact>>((
@@ -42,9 +43,28 @@ final pendingIncomingNetworkRequestsProvider =
       return requests.where((r) => r.isIncoming && r.isPending).toList();
     });
 
+/// Held amounts other people recorded against the current user. Read-only:
+/// these never affect the viewer's own balances or held totals.
+final holdsAgainstMeProvider = FutureProvider<List<HeldAgainstMe>>((ref) async {
+  ref.watch(currentUserIdProvider);
+  final result = await ref
+      .watch(networkRepositoryProvider)
+      .fetchHoldsAgainstMe();
+  return result.when(ok: (holds) => holds, err: (f) => throw f);
+});
+
+/// Unsettled holds against the viewer, for the tab badge.
+final pendingHoldsAgainstMeProvider = FutureProvider<List<HeldAgainstMe>>((
+  ref,
+) async {
+  final holds = await ref.watch(holdsAgainstMeProvider.future);
+  return holds.where((h) => !h.isSettled).toList();
+});
+
 void invalidateNetworkData(WidgetRef ref) {
   ref
     ..invalidate(networkContactsProvider)
     ..invalidate(networkAddRequestsProvider)
-    ..invalidate(networkTransfersProvider);
+    ..invalidate(networkTransfersProvider)
+    ..invalidate(holdsAgainstMeProvider);
 }

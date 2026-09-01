@@ -4296,4 +4296,165 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notifSystemPushHelp =>
       'Security notices always appear in the app; this only controls phone alerts.';
+
+  @override
+  String get moneyAccountHeld => 'Held';
+
+  @override
+  String get moneyAccountHeldIncoming => 'Expected';
+
+  @override
+  String get moneyAccountAvailable => 'Available';
+
+  @override
+  String get moneyAccountHeldHelp =>
+      'Pending network transfers and unsettled holds are not available to spend.';
+
+  @override
+  String get networkStatusCancelled => 'Withdrawn';
+
+  @override
+  String get networkCancelTransfer => 'Withdraw request';
+
+  @override
+  String get networkCancelConfirmTitle => 'Withdraw this transfer?';
+
+  @override
+  String get networkCancelConfirmBody =>
+      'They will be told you withdrew it. Nothing has moved yet, so nothing is undone.';
+
+  @override
+  String get networkTransferCancelledToast => 'Transfer withdrawn';
+
+  @override
+  String get networkAmendTransfer => 'Change request';
+
+  @override
+  String get networkAmendTitle => 'Change transfer';
+
+  @override
+  String get networkAmendAmount => 'Amount';
+
+  @override
+  String get networkAmendSource => 'Pay from';
+
+  @override
+  String get networkAmendDate => 'Date';
+
+  @override
+  String get networkAmendNote => 'Note for them';
+
+  @override
+  String get networkAmendSaved => 'Transfer updated';
+
+  @override
+  String get networkAmendHelp =>
+      'The amount is held from your available balance until they accept. Your balance is not checked now.';
+
+  @override
+  String get networkAmendedBadge => 'Changed';
+
+  @override
+  String get networkTransferChangedError =>
+      'The sender changed this request. Check the new amount and try again.';
+
+  @override
+  String get networkTransferCancelledError =>
+      'The sender withdrew this transfer.';
+
+  @override
+  String get networkTabHeldAgainstMe => 'Held with you';
+
+  @override
+  String get heldAgainstMeEmpty =>
+      'No one in your network is holding an amount with you.';
+
+  @override
+  String heldNetworkHoldingForYou(String name, String amount) {
+    return '$name is holding $amount for you';
+  }
+
+  @override
+  String heldNetworkHoldingAgainstYou(String name, String amount) {
+    return '$name is holding $amount against you';
+  }
+
+  @override
+  String heldNetworkSettledOn(String date) {
+    return 'Settled $date';
+  }
+
+  @override
+  String get heldNetworkSharedNote => 'Their note';
+
+  @override
+  String get heldNetworkReadOnlyHelp =>
+      'This is their record. It does not change your balances.';
+
+  @override
+  String get heldCounterpartyModeText => 'Someone';
+
+  @override
+  String get heldCounterpartyModeNetwork => 'Network contact';
+
+  @override
+  String get heldPickNetworkContact => 'Choose a contact';
+
+  @override
+  String get heldSharedNote => 'Note they can see';
+
+  @override
+  String get heldSharedNoteHelper =>
+      'They will see the amount, the date and this note.';
+
+  @override
+  String get heldNetworkChip => 'Shared';
+
+  @override
+  String get notifEventTransferCancelled => 'Transfer withdrawn';
+
+  @override
+  String get notifEventTransferAmended => 'Transfer changed';
+
+  @override
+  String get notifEventHeldRecorded => 'Amount on hold';
+
+  @override
+  String get notifEventHeldUpdated => 'Held amount changed';
+
+  @override
+  String get notifEventHeldSettled => 'Held amount settled';
+
+  @override
+  String get notifEventHeldRemoved => 'Held amount removed';
+
+  @override
+  String notifBodyPersonTransferCancelled(String name) {
+    return '$name withdrew their transfer request';
+  }
+
+  @override
+  String notifBodyPersonTransferAmended(String name) {
+    return '$name changed their transfer request';
+  }
+
+  @override
+  String notifBodyPersonHeldRecorded(String name) {
+    return '$name recorded an amount held between you';
+  }
+
+  @override
+  String notifBodyPersonHeldUpdated(String name) {
+    return '$name changed the amount held between you';
+  }
+
+  @override
+  String notifBodyPersonHeldSettled(String name) {
+    return '$name settled the amount held between you';
+  }
+
+  @override
+  String notifBodyPersonHeldRemoved(String name) {
+    return '$name removed the amount held between you';
+  }
 }

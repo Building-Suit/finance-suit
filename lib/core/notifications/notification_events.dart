@@ -52,6 +52,21 @@ enum NotificationEvent {
     'network.transfer_declined',
     NotificationCategory.network,
   ),
+  networkTransferCancelled(
+    'network.transfer_cancelled',
+    NotificationCategory.network,
+  ),
+  networkTransferAmended(
+    'network.transfer_amended',
+    NotificationCategory.network,
+  ),
+  heldAmountRecordedAgainstYou(
+    'held_amount.recorded_against_you',
+    NotificationCategory.network,
+  ),
+  heldAmountUpdated('held_amount.updated', NotificationCategory.network),
+  heldAmountSettled('held_amount.settled', NotificationCategory.network),
+  heldAmountRemoved('held_amount.removed', NotificationCategory.network),
   installmentLinkRequestReceived(
     'installment_link.request_received',
     NotificationCategory.network,

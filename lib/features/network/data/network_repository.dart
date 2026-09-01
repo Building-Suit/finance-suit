@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:work_tracker/core/date_time/plain_date.dart';
 import 'package:work_tracker/core/result/result.dart';
 import 'package:work_tracker/core/supabase/supabase_providers.dart';
+import 'package:work_tracker/features/network/domain/held_against_me.dart';
 import 'package:work_tracker/features/network/domain/network_models.dart';
 
 /// Data access for the Finance Suit Network: user discovery, add requests,
@@ -126,9 +127,13 @@ class NetworkRepository {
     });
   }
 
+  /// [expectedAmountMinor] is the amount the receiver was actually looking at.
+  /// The server rejects the acceptance if the sender amended the request in the
+  /// meantime, so a change can never be booked without being seen.
   Future<Result<String>> acceptTransfer({
     required String transferId,
     required String destinationAccountId,
+    int? expectedAmountMinor,
   }) {
     return guard(() async {
       return _db.rpc<String>(
@@ -136,6 +141,41 @@ class NetworkRepository {
         params: {
           'p_transfer_id': transferId,
           'p_destination_account_id': destinationAccountId,
+          'p_expected_amount_minor': expectedAmountMinor,
+        },
+      );
+    });
+  }
+
+  Future<Result<void>> cancelTransfer(String transferId) {
+    return guard(() async {
+      await _db.rpc<void>(
+        'cancel_network_transfer',
+        params: {'p_transfer_id': transferId},
+      );
+    });
+  }
+
+  /// Changes a still-pending request. A null field is left untouched, which is
+  /// why erasing the note needs its own flag.
+  Future<Result<String>> amendTransfer({
+    required String transferId,
+    int? amountMinor,
+    String? sourceAccountId,
+    PlainDate? requestedOn,
+    String? sharedNote,
+    bool clearSharedNote = false,
+  }) {
+    return guard(() async {
+      return _db.rpc<String>(
+        'amend_network_transfer',
+        params: {
+          'p_transfer_id': transferId,
+          'p_amount_minor': amountMinor,
+          'p_source_account_id': sourceAccountId,
+          'p_requested_on': requestedOn?.toIso(),
+          'p_shared_note': sharedNote,
+          'p_clear_shared_note': clearSharedNote,
         },
       );
     });
@@ -147,6 +187,17 @@ class NetworkRepository {
         'reject_network_transfer',
         params: {'p_transfer_id': transferId},
       );
+    });
+  }
+
+  /// Held amounts other users recorded against the caller. Read-only: the
+  /// counterparty sees the number, and that is the whole of the exposure.
+  Future<Result<List<HeldAgainstMe>>> fetchHoldsAgainstMe() {
+    return guard(() async {
+      final rows = await _db.rpc<List<dynamic>>('list_holds_against_me');
+      return rows
+          .map((row) => HeldAgainstMe.fromJson(row as Map<String, dynamic>))
+          .toList();
     });
   }
 
