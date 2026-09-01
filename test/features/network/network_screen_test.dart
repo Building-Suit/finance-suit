@@ -223,6 +223,7 @@ void main() {
       () => repository.acceptTransfer(
         transferId: any(named: 'transferId'),
         destinationAccountId: any(named: 'destinationAccountId'),
+        expectedAmountMinor: any(named: 'expectedAmountMinor'),
       ),
     ).thenAnswer((_) async => const Ok('transfer-1'));
     await pumpNetworkScreen(
@@ -246,10 +247,13 @@ void main() {
     await tester.tap(find.byKey(const Key('network-receive-account-egp')));
     await tester.pumpAndSettle();
 
+    // The amount the receiver was actually shown travels with the acceptance,
+    // so the server can refuse it if the sender amended the request meanwhile.
     verify(
       () => repository.acceptTransfer(
         transferId: 'transfer-1',
         destinationAccountId: 'account-egp',
+        expectedAmountMinor: 50000,
       ),
     ).called(1);
   });

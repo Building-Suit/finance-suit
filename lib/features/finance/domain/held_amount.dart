@@ -25,6 +25,9 @@ class HeldAmount {
     this.managesTransaction = false,
     this.title,
     this.notes,
+    this.networkConnectionId,
+    this.counterpartyUserId,
+    this.sharedNote,
   });
 
   factory HeldAmount.fromJson(Map<String, dynamic> json) {
@@ -56,6 +59,9 @@ class HeldAmount {
       managesTransaction: json['manages_transaction'] as bool? ?? false,
       title: json['title'] as String?,
       notes: json['notes'] as String?,
+      networkConnectionId: json['network_connection_id'] as String?,
+      counterpartyUserId: json['counterparty_user_id'] as String?,
+      sharedNote: json['shared_note'] as String?,
     );
   }
 
@@ -76,9 +82,20 @@ class HeldAmount {
   final String? title;
   final String? notes;
 
+  /// Set when the hold names a network contact rather than free text. Nulls
+  /// out if that connection is removed, leaving [counterparty] as the label.
+  final String? networkConnectionId;
+  final String? counterpartyUserId;
+
+  /// The one field the counterparty is shown. [notes] stays private.
+  final String? sharedNote;
+
   Money get amount => Money(minor: amountMinor, currencyCode: currencyCode);
   bool get isSettled => settledOn != null;
   bool get isLinked => (linkedTransactionId ?? transactionId) != null;
+
+  /// The counterparty is a Finance Suit user who can see this hold.
+  bool get isNetworkLinked => counterpartyUserId != null;
 }
 
 /// Payload for inserting or updating a held amount. Also used as the
@@ -96,6 +113,8 @@ class HeldAmountDraft {
     this.accountId,
     this.title,
     this.notes,
+    this.networkConnectionId,
+    this.sharedNote,
   });
 
   final TransactionKind transactionKind;
@@ -108,6 +127,14 @@ class HeldAmountDraft {
   final String? accountId;
   final String? title;
   final String? notes;
+
+  /// When set, the hold names a network contact instead of free text. The
+  /// server overrides [counterparty] with the caller's own alias for them and
+  /// lets that contact see the amount, the date and [sharedNote].
+  final String? networkConnectionId;
+
+  /// The one field the counterparty is shown. [notes] stays private.
+  final String? sharedNote;
 
   /// Direction derived from the kind: outgoing kinds are money I owe,
   /// incoming kinds are money owed to me.
@@ -129,6 +156,8 @@ class HeldAmountDraft {
     'p_account_id': accountId,
     'p_category_id': categoryId,
     'p_transaction_id': transactionId,
+    'p_network_connection_id': networkConnectionId,
+    'p_shared_note': sharedNote,
   };
 }
 

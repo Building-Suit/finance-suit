@@ -7678,6 +7678,276 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Security notices always appear in the app; this only controls phone alerts.'**
   String get notifSystemPushHelp;
+
+  /// No description provided for @moneyAccountHeld.
+  ///
+  /// In en, this message translates to:
+  /// **'Held'**
+  String get moneyAccountHeld;
+
+  /// No description provided for @moneyAccountHeldIncoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected'**
+  String get moneyAccountHeldIncoming;
+
+  /// No description provided for @moneyAccountAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get moneyAccountAvailable;
+
+  /// No description provided for @moneyAccountHeldHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending network transfers and unsettled holds are not available to spend.'**
+  String get moneyAccountHeldHelp;
+
+  /// No description provided for @networkStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawn'**
+  String get networkStatusCancelled;
+
+  /// No description provided for @networkCancelTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw request'**
+  String get networkCancelTransfer;
+
+  /// No description provided for @networkCancelConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw this transfer?'**
+  String get networkCancelConfirmTitle;
+
+  /// No description provided for @networkCancelConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'They will be told you withdrew it. Nothing has moved yet, so nothing is undone.'**
+  String get networkCancelConfirmBody;
+
+  /// No description provided for @networkTransferCancelledToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer withdrawn'**
+  String get networkTransferCancelledToast;
+
+  /// No description provided for @networkAmendTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Change request'**
+  String get networkAmendTransfer;
+
+  /// No description provided for @networkAmendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change transfer'**
+  String get networkAmendTitle;
+
+  /// No description provided for @networkAmendAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get networkAmendAmount;
+
+  /// No description provided for @networkAmendSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay from'**
+  String get networkAmendSource;
+
+  /// No description provided for @networkAmendDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get networkAmendDate;
+
+  /// No description provided for @networkAmendNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note for them'**
+  String get networkAmendNote;
+
+  /// No description provided for @networkAmendSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer updated'**
+  String get networkAmendSaved;
+
+  /// No description provided for @networkAmendHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The amount is held from your available balance until they accept. Your balance is not checked now.'**
+  String get networkAmendHelp;
+
+  /// No description provided for @networkAmendedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed'**
+  String get networkAmendedBadge;
+
+  /// No description provided for @networkTransferChangedError.
+  ///
+  /// In en, this message translates to:
+  /// **'The sender changed this request. Check the new amount and try again.'**
+  String get networkTransferChangedError;
+
+  /// No description provided for @networkTransferCancelledError.
+  ///
+  /// In en, this message translates to:
+  /// **'The sender withdrew this transfer.'**
+  String get networkTransferCancelledError;
+
+  /// No description provided for @networkTabHeldAgainstMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Held with you'**
+  String get networkTabHeldAgainstMe;
+
+  /// No description provided for @heldAgainstMeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No one in your network is holding an amount with you.'**
+  String get heldAgainstMeEmpty;
+
+  /// No description provided for @heldNetworkHoldingForYou.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is holding {amount} for you'**
+  String heldNetworkHoldingForYou(String name, String amount);
+
+  /// No description provided for @heldNetworkHoldingAgainstYou.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is holding {amount} against you'**
+  String heldNetworkHoldingAgainstYou(String name, String amount);
+
+  /// No description provided for @heldNetworkSettledOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled {date}'**
+  String heldNetworkSettledOn(String date);
+
+  /// No description provided for @heldNetworkSharedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Their note'**
+  String get heldNetworkSharedNote;
+
+  /// No description provided for @heldNetworkReadOnlyHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'This is their record. It does not change your balances.'**
+  String get heldNetworkReadOnlyHelp;
+
+  /// No description provided for @heldCounterpartyModeText.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone'**
+  String get heldCounterpartyModeText;
+
+  /// No description provided for @heldCounterpartyModeNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Network contact'**
+  String get heldCounterpartyModeNetwork;
+
+  /// No description provided for @heldPickNetworkContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a contact'**
+  String get heldPickNetworkContact;
+
+  /// No description provided for @heldSharedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note they can see'**
+  String get heldSharedNote;
+
+  /// No description provided for @heldSharedNoteHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'They will see the amount, the date and this note.'**
+  String get heldSharedNoteHelper;
+
+  /// No description provided for @heldNetworkChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared'**
+  String get heldNetworkChip;
+
+  /// No description provided for @notifEventTransferCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer withdrawn'**
+  String get notifEventTransferCancelled;
+
+  /// No description provided for @notifEventTransferAmended.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer changed'**
+  String get notifEventTransferAmended;
+
+  /// No description provided for @notifEventHeldRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount on hold'**
+  String get notifEventHeldRecorded;
+
+  /// No description provided for @notifEventHeldUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Held amount changed'**
+  String get notifEventHeldUpdated;
+
+  /// No description provided for @notifEventHeldSettled.
+  ///
+  /// In en, this message translates to:
+  /// **'Held amount settled'**
+  String get notifEventHeldSettled;
+
+  /// No description provided for @notifEventHeldRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Held amount removed'**
+  String get notifEventHeldRemoved;
+
+  /// No description provided for @notifBodyPersonTransferCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} withdrew their transfer request'**
+  String notifBodyPersonTransferCancelled(String name);
+
+  /// No description provided for @notifBodyPersonTransferAmended.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} changed their transfer request'**
+  String notifBodyPersonTransferAmended(String name);
+
+  /// No description provided for @notifBodyPersonHeldRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} recorded an amount held between you'**
+  String notifBodyPersonHeldRecorded(String name);
+
+  /// No description provided for @notifBodyPersonHeldUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} changed the amount held between you'**
+  String notifBodyPersonHeldUpdated(String name);
+
+  /// No description provided for @notifBodyPersonHeldSettled.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} settled the amount held between you'**
+  String notifBodyPersonHeldSettled(String name);
+
+  /// No description provided for @notifBodyPersonHeldRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} removed the amount held between you'**
+  String notifBodyPersonHeldRemoved(String name);
 }
 
 class _AppLocalizationsDelegate

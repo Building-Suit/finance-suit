@@ -161,6 +161,9 @@ class NetworkTransfer {
     this.sharedNote,
     this.myAccountId,
     this.myTransactionId,
+    this.cancelledAt,
+    this.amendmentCount = 0,
+    this.canAmend = false,
   });
 
   factory NetworkTransfer.fromJson(Map<String, dynamic> json) =>
@@ -185,6 +188,12 @@ class NetworkTransfer {
         sharedNote: json['shared_note'] as String?,
         myAccountId: json['my_account_id'] as String?,
         myTransactionId: json['my_transaction_id'] as String?,
+        cancelledAt: switch (json['cancelled_at']) {
+          final String value => DateTime.parse(value).toUtc(),
+          _ => null,
+        },
+        amendmentCount: (json['amendment_count'] as num?)?.toInt() ?? 0,
+        canAmend: json['can_amend'] as bool? ?? false,
       );
 
   final String id;
@@ -202,11 +211,22 @@ class NetworkTransfer {
   final String? sharedNote;
   final String? myAccountId;
   final String? myTransactionId;
+  final DateTime? cancelledAt;
+
+  /// How many times the sender has changed this request. Also the receiver's
+  /// cue that the amount on screen may not be the one they first saw.
+  final int amendmentCount;
+
+  /// Resolved server-side by `list_network_transfers`: this is the caller's own
+  /// pending request on a live connection. Gates both cancelling and amending.
+  final bool canAmend;
 
   Money get amount => Money(minor: amountMinor, currencyCode: currencyCode);
 
   bool get isIncoming => direction == NetworkDirection.incoming;
   bool get isPending => status == NetworkTransferStatus.pending;
+  bool get isCancelled => status == NetworkTransferStatus.cancelled;
+  bool get isAmended => amendmentCount > 0;
 
   /// An incoming pending transfer the receiver can still act on.
   bool get isActionable => isIncoming && isPending && connectionActive;

@@ -553,13 +553,20 @@ enum NetworkAddRequestStatus {
 enum NetworkTransferStatus {
   pending('pending'),
   rejected('rejected'),
-  accepted('accepted');
+  accepted('accepted'),
+  cancelled('cancelled');
 
   const NetworkTransferStatus(this.dbValue);
   final String dbValue;
 
-  static NetworkTransferStatus fromDb(String value) =>
-      values.firstWhere((e) => e.dbValue == value);
+  /// An unknown value resolves to [pending] rather than throwing. The database
+  /// gains statuses before every install carries the build that knows them,
+  /// and a peer on an older version must not crash their whole transfers list
+  /// the first time someone uses a newer one.
+  static NetworkTransferStatus fromDb(String value) => values.firstWhere(
+    (e) => e.dbValue == value,
+    orElse: () => NetworkTransferStatus.pending,
+  );
 }
 
 enum NetworkTransferOrigin {

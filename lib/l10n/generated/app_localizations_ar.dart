@@ -4278,4 +4278,161 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get notifSystemPushHelp =>
       'تظهر إشعارات الأمان دائمًا داخل التطبيق؛ هذا يتحكم في تنبيهات الهاتف فقط.';
+
+  @override
+  String get moneyAccountHeld => 'محجوز';
+
+  @override
+  String get moneyAccountHeldIncoming => 'متوقع';
+
+  @override
+  String get moneyAccountAvailable => 'المتاح';
+
+  @override
+  String get moneyAccountHeldHelp =>
+      'التحويلات المعلقة والمبالغ المحجوزة غير متاحة للإنفاق.';
+
+  @override
+  String get networkStatusCancelled => 'مسحوب';
+
+  @override
+  String get networkCancelTransfer => 'سحب الطلب';
+
+  @override
+  String get networkCancelConfirmTitle => 'سحب هذا التحويل؟';
+
+  @override
+  String get networkCancelConfirmBody =>
+      'سيُبلَّغ الطرف الآخر بأنك سحبته. لم يتحرك أي مبلغ بعد، فلا شيء يُلغى.';
+
+  @override
+  String get networkTransferCancelledToast => 'تم سحب التحويل';
+
+  @override
+  String get networkAmendTransfer => 'تعديل الطلب';
+
+  @override
+  String get networkAmendTitle => 'تعديل التحويل';
+
+  @override
+  String get networkAmendAmount => 'المبلغ';
+
+  @override
+  String get networkAmendSource => 'الدفع من';
+
+  @override
+  String get networkAmendDate => 'التاريخ';
+
+  @override
+  String get networkAmendNote => 'ملاحظة لهم';
+
+  @override
+  String get networkAmendSaved => 'تم تحديث التحويل';
+
+  @override
+  String get networkAmendHelp =>
+      'يُحجز المبلغ من رصيدك المتاح حتى يقبلوا. لا يتم التحقق من رصيدك الآن.';
+
+  @override
+  String get networkAmendedBadge => 'معدَّل';
+
+  @override
+  String get networkTransferChangedError =>
+      'غيّر المُرسِل هذا الطلب. راجع المبلغ الجديد ثم أعد المحاولة.';
+
+  @override
+  String get networkTransferCancelledError => 'سحب المُرسِل هذا التحويل.';
+
+  @override
+  String get networkTabHeldAgainstMe => 'محجوز معك';
+
+  @override
+  String get heldAgainstMeEmpty => 'لا أحد في شبكتك يحتفظ بمبلغ معك.';
+
+  @override
+  String heldNetworkHoldingForYou(String name, String amount) {
+    return '$name يحتفظ بمبلغ $amount لك';
+  }
+
+  @override
+  String heldNetworkHoldingAgainstYou(String name, String amount) {
+    return '$name يحتفظ بمبلغ $amount عليك';
+  }
+
+  @override
+  String heldNetworkSettledOn(String date) {
+    return 'سُوِّي في $date';
+  }
+
+  @override
+  String get heldNetworkSharedNote => 'ملاحظتهم';
+
+  @override
+  String get heldNetworkReadOnlyHelp => 'هذا سجلهم، ولا يغيّر أرصدتك.';
+
+  @override
+  String get heldCounterpartyModeText => 'شخص';
+
+  @override
+  String get heldCounterpartyModeNetwork => 'جهة من الشبكة';
+
+  @override
+  String get heldPickNetworkContact => 'اختر جهة اتصال';
+
+  @override
+  String get heldSharedNote => 'ملاحظة يمكنهم رؤيتها';
+
+  @override
+  String get heldSharedNoteHelper => 'سيرون المبلغ والتاريخ وهذه الملاحظة.';
+
+  @override
+  String get heldNetworkChip => 'مشترك';
+
+  @override
+  String get notifEventTransferCancelled => 'تم سحب التحويل';
+
+  @override
+  String get notifEventTransferAmended => 'تم تعديل التحويل';
+
+  @override
+  String get notifEventHeldRecorded => 'مبلغ محجوز';
+
+  @override
+  String get notifEventHeldUpdated => 'تم تعديل المبلغ المحجوز';
+
+  @override
+  String get notifEventHeldSettled => 'تمت تسوية المبلغ المحجوز';
+
+  @override
+  String get notifEventHeldRemoved => 'تم حذف المبلغ المحجوز';
+
+  @override
+  String notifBodyPersonTransferCancelled(String name) {
+    return '$name سحب طلب التحويل';
+  }
+
+  @override
+  String notifBodyPersonTransferAmended(String name) {
+    return '$name عدّل طلب التحويل';
+  }
+
+  @override
+  String notifBodyPersonHeldRecorded(String name) {
+    return '$name سجّل مبلغًا محجوزًا بينكما';
+  }
+
+  @override
+  String notifBodyPersonHeldUpdated(String name) {
+    return '$name عدّل المبلغ المحجوز بينكما';
+  }
+
+  @override
+  String notifBodyPersonHeldSettled(String name) {
+    return '$name سوّى المبلغ المحجوز بينكما';
+  }
+
+  @override
+  String notifBodyPersonHeldRemoved(String name) {
+    return '$name حذف المبلغ المحجوز بينكما';
+  }
 }
