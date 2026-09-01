@@ -83,10 +83,10 @@ supabase db push --linked
 supabase functions deploy delete-account --project-ref kedjrbwnznvfqlzszawa
 ```
 
-For deployment without a local checkout, add `SUPABASE_ACCESS_TOKEN` and
-`SUPABASE_DB_PASSWORD` as GitHub repository secrets, then run **Deploy Finance
-Suit account deletion** manually with confirmation `DEPLOY`. The workflow first
-previews pending migrations, applies them, and then deploys the Edge Function.
+For deployment without a local checkout, merge the migration and the Edge
+Function to the branch the Supabase GitHub integration tracks. Supabase applies
+pending migrations and deploys changed Edge Functions from that branch; confirm
+both landed in the Supabase dashboard before releasing the app build.
 
 Then test deletion with a dedicated disposable user containing data in every
 feature. Verify the user remains in **Supabase Dashboard > Authentication >
