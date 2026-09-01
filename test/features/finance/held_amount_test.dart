@@ -200,4 +200,55 @@ void main() {
       expect(totals.iOweByCurrency, isEmpty);
     });
   });
+
+  group('HeldAmountDraft.toJson', () {
+    // The form clears the free-text counterparty when a network contact is
+    // chosen and lets save_held_amount fill it from the caller's own alias.
+    // Dropping p_network_connection_id on the way out therefore reaches the
+    // database as an empty counterparty, which its length check rejects.
+    test('carries the network link and shared note', () {
+      final params = HeldAmountDraft(
+        transactionKind: TransactionKind.expense,
+        amountMinor: 200000,
+        currencyCode: 'EGP',
+        counterparty: '',
+        heldOn: const PlainDate(2026, 8, 28),
+        accountId: 'account-1',
+        networkConnectionId: 'connection-1',
+        sharedNote: 'Paying this back next month',
+      ).toJson();
+
+      expect(params['p_network_connection_id'], 'connection-1');
+      expect(params['p_shared_note'], 'Paying this back next month');
+      expect(params['p_counterparty'], '');
+    });
+
+    test('sends exactly the save_held_amount parameters', () {
+      final params = HeldAmountDraft(
+        transactionKind: TransactionKind.customIncome,
+        amountMinor: 5000,
+        currencyCode: 'EGP',
+        counterparty: 'Mona',
+        heldOn: const PlainDate(2026, 8, 28),
+      ).toJson();
+
+      expect(
+        params.keys,
+        unorderedEquals(const <String>[
+          'p_transaction_kind',
+          'p_amount_minor',
+          'p_currency_code',
+          'p_counterparty',
+          'p_held_on',
+          'p_title',
+          'p_notes',
+          'p_account_id',
+          'p_category_id',
+          'p_transaction_id',
+          'p_network_connection_id',
+          'p_shared_note',
+        ]),
+      );
+    });
+  });
 }
