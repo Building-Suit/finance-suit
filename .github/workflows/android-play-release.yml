@@ -21,14 +21,6 @@ env:
   AUTH_CALLBACK_HOST: auth-callback
 
 jobs:
-  database:
-    name: Sync Supabase before build
-    needs: quality
-    uses: ./.github/workflows/supabase-deploy.yml
-    with:
-      release-sync: true
-    secrets: inherit
-
   quality:
     name: Analyze and test
     runs-on: ubuntu-latest
@@ -117,7 +109,9 @@ jobs:
 
   build-and-deliver:
     name: Build and deliver ${{ github.ref_name }} AAB
-    needs: database
+    # Migrations and Edge Functions are applied by the Supabase GitHub
+    # integration, outside this workflow, so the build only gates on quality.
+    needs: quality
     if: >-
       vars.PLAY_SIGNING_READY == 'true' &&
       ((github.ref == 'refs/heads/stg' &&
