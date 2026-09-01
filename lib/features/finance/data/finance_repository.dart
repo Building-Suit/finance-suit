@@ -734,7 +734,7 @@ class FinanceRepository {
 
   Future<Result<void>> createHeldAmount(HeldAmountDraft draft) {
     return guard(() async {
-      await _db.rpc<String>('save_held_amount', params: _heldParams(draft));
+      await _db.rpc<String>('save_held_amount', params: draft.toJson());
     });
   }
 
@@ -742,23 +742,10 @@ class FinanceRepository {
     return guard(() async {
       await _db.rpc<String>(
         'save_held_amount',
-        params: {..._heldParams(draft), 'p_held_id': id},
+        params: {...draft.toJson(), 'p_held_id': id},
       );
     });
   }
-
-  Map<String, dynamic> _heldParams(HeldAmountDraft draft) => {
-    'p_transaction_kind': draft.transactionKind.dbValue,
-    'p_amount_minor': draft.amountMinor,
-    'p_currency_code': draft.currencyCode,
-    'p_counterparty': draft.counterparty,
-    'p_held_on': draft.heldOn.toIso(),
-    'p_title': draft.title,
-    'p_notes': draft.notes,
-    'p_account_id': draft.accountId,
-    'p_category_id': draft.categoryId,
-    'p_transaction_id': draft.transactionId,
-  };
 
   /// Marks a held amount settled on [settledOn], or active again when null.
   Future<Result<void>> setHeldAmountSettled(String id, PlainDate? settledOn) {
