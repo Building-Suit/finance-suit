@@ -5,6 +5,7 @@ import 'package:work_tracker/core/supabase/supabase_providers.dart';
 import 'package:work_tracker/features/finance/data/finance_repository.dart';
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
+import 'package:work_tracker/features/finance/domain/credit_card_reconciliation.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/facility_activity.dart';
 import 'package:work_tracker/features/finance/domain/facility_payment_component.dart';
@@ -364,3 +365,26 @@ void invalidateRecurringAutomation(WidgetRef ref) {
     ..invalidate(pendingRecurringProvider)
     ..invalidate(homeUpcomingObligationsProvider);
 }
+
+/// Bank statement lines saved for an account.
+final bankStatementLinesProvider = FutureProvider.family
+    .autoDispose<List<BankStatementLine>, String>((ref, accountId) async {
+      ref.watch(currentUserIdProvider);
+      final result = await ref
+          .watch(financeRepositoryProvider)
+          .fetchBankStatementLines(accountId);
+      return result.when(ok: (lines) => lines, err: (failure) => throw failure);
+    });
+
+/// CIB historical repair preview manifest.
+final cibRepairPreviewProvider = FutureProvider.family
+    .autoDispose<RepairManifest, String>((ref, accountId) async {
+      ref.watch(currentUserIdProvider);
+      final result = await ref
+          .watch(financeRepositoryProvider)
+          .previewCibHistoricalRepair(accountId);
+      return result.when(
+        ok: (manifest) => manifest,
+        err: (failure) => throw failure,
+      );
+    });
