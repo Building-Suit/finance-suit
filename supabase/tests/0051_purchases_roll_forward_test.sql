@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(20);
+select plan(19);
 
 insert into auth.users (
   id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -108,8 +108,8 @@ select results_eq(
     from app_finance.credit_card_statement_items si
     join app_finance.credit_card_statement_cycles c on c.id = si.cycle_id
     where si.transaction_id = '00000000-0000-0000-0000-000000055f02'$$,
-  $$values (date '2026-04-10')$$,
-  'the late-logged purchase joins the next open statement'
+  $$values (date '2026-03-10')$$,
+  'the late-logged purchase joins its contractual March statement'
 );
 
 -- The recurring-charge path (charge_credit_card) rolls the same way.
@@ -122,25 +122,18 @@ select results_eq(
     from app_finance.credit_card_statement_items si
     join app_finance.credit_card_statement_cycles c on c.id = si.cycle_id
     where si.transaction_id = '00000000-0000-0000-0000-000000055f03'$$,
-  $$values (date '2026-04-10')$$,
-  'charge_credit_card also skips the paid statement'
+  $$values (date '2026-03-10')$$,
+  'charge_credit_card assigns to March statement by date'
 );
 
--- Re-dating a rolled charge to another day of the paid cycle keeps rolling.
-select lives_ok(
+-- Re-dating a charge on a settled statement cycle is refused.
+select throws_ok(
   $$select app_finance.update_expense_transaction(
       '00000000-0000-0000-0000-000000055f02',
       (select id from app_finance.accounts where name = 'Roll Card'),
       date '2026-03-08', 40000, '00000000-0000-0000-0000-000000055c01')$$,
-  'an edit that targets a paid statement is not refused'
-);
-select results_eq(
-  $$select c.cycle_close
-    from app_finance.credit_card_statement_items si
-    join app_finance.credit_card_statement_cycles c on c.id = si.cycle_id
-    where si.transaction_id = '00000000-0000-0000-0000-000000055f02'$$,
-  $$values (date '2026-04-10')$$,
-  'the edited charge stays on the next open statement'
+  'P0001', null,
+  'an edit that targets a paid statement is refused'
 );
 
 -- Paid history itself stays immutable: a charge already sitting on a paid
@@ -154,7 +147,7 @@ select throws_ok(
 );
 
 -- A non-monetary edit never moves settled history: the renamed charge keeps
--- its membership on the paid March statement instead of rolling forward.
+-- its membership on the paid March statement.
 select lives_ok(
   $$select app_finance.update_expense_transaction(
       '00000000-0000-0000-0000-000000055f01',
@@ -172,7 +165,7 @@ select results_eq(
   'the renamed charge stays on its paid statement'
 );
 
--- With April paid too, a new backdated charge rolls past both cycles.
+-- A second payment allocates to the oldest unpaid statement cycle (March).
 select app_finance.pay_credit_facility(
   (select id from app_finance.accounts where name = 'Roll Card'),
   '00000000-0000-0000-0000-000000055a01', 30000, date '2026-04-12',
@@ -182,9 +175,9 @@ select results_eq(
     from app_finance.credit_card_statement_allocations al
     join app_finance.credit_card_statement_cycles c on c.id = al.cycle_id
     where al.payment_transaction_id = '00000000-0000-0000-0000-000000055902'
-      and c.cycle_close = date '2026-04-10'$$,
+      and c.cycle_close = date '2026-03-10'$$,
   $$values (1)$$,
-  'the second payment settled into the April statement'
+  'the second payment settled against the remaining March statement balance'
 );
 select app_finance.charge_liability_account(
   (select id from app_finance.accounts where name = 'Roll Card'),
@@ -195,8 +188,8 @@ select results_eq(
     from app_finance.credit_card_statement_items si
     join app_finance.credit_card_statement_cycles c on c.id = si.cycle_id
     where si.transaction_id = '00000000-0000-0000-0000-000000055f04'$$,
-  $$values (date '2026-05-10')$$,
-  'a backdated charge rolls past every paid statement to the open one'
+  $$values (date '2026-03-10')$$,
+  'a backdated charge is assigned to its contractual statement cycle by posting date'
 );
 
 -- ---------------------------------------------------------------------------

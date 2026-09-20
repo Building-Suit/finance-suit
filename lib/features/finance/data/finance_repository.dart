@@ -10,6 +10,7 @@ import 'package:work_tracker/features/finance/data/card_research_data_source.dar
 import 'package:work_tracker/features/finance/domain/account.dart';
 import 'package:work_tracker/features/finance/domain/card_fee_rule.dart';
 import 'package:work_tracker/features/finance/domain/card_research.dart';
+import 'package:work_tracker/features/finance/domain/credit_card_reconciliation.dart';
 import 'package:work_tracker/features/finance/domain/credit_facility.dart';
 import 'package:work_tracker/features/finance/domain/facility_activity.dart';
 import 'package:work_tracker/features/finance/domain/facility_payment_component.dart';
@@ -1144,6 +1145,88 @@ class FinanceRepository {
         params: draft.toJson(),
       );
       return id;
+    });
+  }
+
+  /// Saves a bank statement line for reconciliation.
+  Future<Result<String>> saveBankStatementLine({
+    required String accountId,
+    required PlainDate lineDate,
+    required PlainDate postingDate,
+    required int amountMinor,
+    required String currencyCode,
+    required String description,
+    String? referenceNumber,
+    bool isPending = false,
+  }) {
+    return guard(() async {
+      final id = await _db.rpc<String>(
+        'save_bank_statement_line',
+        params: {
+          'p_account_id': accountId,
+          'p_line_date': lineDate.toIso(),
+          'p_posting_date': postingDate.toIso(),
+          'p_amount_minor': amountMinor,
+          'p_currency_code': currencyCode,
+          'p_description': description,
+          'p_reference_number': referenceNumber,
+          'p_is_pending': isPending,
+        },
+      );
+      return id;
+    });
+  }
+
+  /// Fetches saved bank statement lines for an account.
+  Future<Result<List<BankStatementLine>>> fetchBankStatementLines(
+    String accountId,
+  ) {
+    return guard(() async {
+      final data = await _db
+          .from('bank_statement_lines')
+          .select()
+          .eq('account_id', accountId)
+          .order('posting_date', ascending: false);
+      final list = (data as List)
+          .map(
+            (json) => BankStatementLine.fromJson(json as Map<String, dynamic>),
+          )
+          .toList();
+      return list;
+    });
+  }
+
+  /// Generates a preview historical repair manifest for CIB or card accounts.
+  Future<Result<RepairManifest>> previewCibHistoricalRepair(String accountId) {
+    return guard(() async {
+      final json = await _db.rpc<Map<String, dynamic>>(
+        'preview_cib_historical_repair',
+        params: {'p_account_id': accountId},
+      );
+      return RepairManifest.fromJson(json);
+    });
+  }
+
+  /// Applies a historical repair plan manifest.
+  Future<Result<void>> applyReconciliationRepairPlan(RepairManifest manifest) {
+    return guard(() async {
+      await _db.rpc<dynamic>(
+        'apply_reconciliation_repair_plan',
+        params: {'p_manifest': manifest.toJson()},
+      );
+    });
+  }
+
+  /// Catch-up credit card automation processing on demand for an account.
+  Future<Result<Map<String, dynamic>>> catchUpCreditCardProcessing({
+    String? accountId,
+  }) {
+    return guard(() async {
+      final json = await _db.rpc<Map<String, dynamic>>(
+        'catch_up_credit_card_processing',
+        params: {'p_account_id': accountId},
+      );
+      return json;
     });
   }
 
